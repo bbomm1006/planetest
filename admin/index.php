@@ -34,6 +34,7 @@
       <?php include 'lib/socialMgmt.php'; ?>
 
       <?php include 'lib/siteMgmt.php'; ?>
+      <?php include 'lib/homepageInfo.php'; ?>
 
       <!-- ========================
             1-1. 상단 메인 배너
@@ -165,6 +166,8 @@
 <script src="js/excel.js"></script>
 
 <script src="js/site.js"></script>
+
+<script src="js/homepageInfo.js"></script>
 
 </body>
 </html>

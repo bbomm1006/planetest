@@ -77,6 +77,8 @@ const PAGE_LABELS = {
   siteMgmt: ['시스템','사이트 정보 관리'],
   consultField: ['상담','필드 관리'],
   consultTerms: ['상담','약관 관리'],
+
+  homepageInfo: ['시스템','홈페이지 정보 관리'],
 };
 
 // ===========================
@@ -309,6 +311,8 @@ function showPage(pageId) {
   if (pageId === 'siteMgmt') loadSiteInfo();
   if (pageId === 'consultField') loadConsultConfig();
   if (pageId === 'consultTerms') loadConsultTermsList();
+
+  if (pageId === 'homepageInfo') hiLoad();
 }
 
 function toggleNav(el) {
