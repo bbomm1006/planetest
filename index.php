@@ -47,6 +47,9 @@
   <!-- PHOTO GALLERY -->
   <?php include 'lib/bbs_photogallery.php'; ?>
 
+  <!-- SLIDE GALLERY -->
+  <?php include 'lib/bbs_slidegallery.php'; ?>
+
   <!-- BOARD (문의게시판) -->
   <?php include 'lib/qna.php'; ?>
   <?php include 'lib/consult.php'; ?>
@@ -93,6 +96,7 @@
   <script src="js/nav-fade.js"></script>
   <script src="js/notice-faq-gallery.js"></script>
   <script src="js/bbs_photogallery.js"></script>
+  <script src="js/bbs_slidegallery.js"></script>
   <script src="js/popup.js"></script><!-- 팝업 -->
   <script>
     fetch('/admin/api_front/popup_public.php')
