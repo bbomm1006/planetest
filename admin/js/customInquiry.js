@@ -6,6 +6,10 @@ let ciCurrentFormData = {};
 let ciCurrentDataPage = 1;
 let ciTableChecked    = false; // 테이블명 중복확인 여부
 let ciFieldDragSrc    = null;
+let ciSaving          = false; // 중복 저장 방지
+
+function ciLock(btn)   { ciSaving = true;  if (btn) { btn.disabled = true; btn.dataset.origText = btn.textContent; btn.textContent = '저장 중...'; } }
+function ciUnlock(btn) { ciSaving = false; if (btn) { btn.disabled = false; btn.textContent = btn.dataset.origText || '저장'; } }
 
 // =====================================================
 // 폼 추가 - 테이블명 중복확인
@@ -48,7 +52,10 @@ document.addEventListener('DOMContentLoaded', function () {
 // 폼 생성
 // =====================================================
 async function ciCreateForm() {
+  if (ciSaving) return;
   if (!ciTableChecked) { showToast('테이블명 중복 확인을 먼저 해주세요.', 'error'); return; }
+  const submitBtn = document.getElementById('ci_create_submit_btn');
+  ciLock(submitBtn);
   const title = document.getElementById('ci_create_title').value.trim();
   const desc  = document.getElementById('ci_create_desc').value.trim();
   const btn   = document.getElementById('ci_create_btn').value.trim();
@@ -71,6 +78,7 @@ async function ciCreateForm() {
   } else {
     showToast(res.msg || '오류가 발생했습니다.', 'error');
   }
+  ciUnlock(submitBtn);
 }
 
 // =====================================================
@@ -199,6 +207,9 @@ function ciToggleFeature(key) {
 // 기본정보 저장
 // =====================================================
 async function ciSaveBasic() {
+  if (ciSaving) return;
+  const btn = event?.target || document.querySelector('#ci-panel-basic .btn-primary');
+  ciLock(btn);
   const loginTypes = [...document.querySelectorAll('input[name="ci_login_type"]:checked')].map(c => c.value).join(',');
   const visType    = (document.querySelector('input[name="ci_visibility_type"]:checked') || {}).value || '';
   const commentVis = (document.querySelector('input[name="ci_comment_visibility"]:checked') || {}).value || '';
@@ -230,17 +241,22 @@ async function ciSaveBasic() {
   } else {
     showToast(res.msg || '오류', 'error');
   }
+  ciUnlock(btn);
 }
 
 // =====================================================
 // 답변설정 저장
 // =====================================================
 async function ciSaveReply() {
+  if (ciSaving) return;
+  const btn = event?.target;
+  ciLock(btn);
   const reply_use    = (document.querySelector('input[name="ci_reply_use"]:checked') || {}).value || 0;
   const reply_method = (document.querySelector('input[name="ci_reply_method"]:checked') || {}).value || '';
   const res = await apiPost('api/custom_inquiry.php', { action: 'save_reply', id: ciCurrentFormId, reply_use, reply_method });
   if (res.ok) showToast('저장되었습니다.');
   else showToast(res.msg || '오류', 'error');
+  ciUnlock(btn);
 }
 
 function ciToggleReply() {
@@ -346,6 +362,9 @@ function ciToggleMgrPanel(key) {
 }
 
 async function ciSaveManager() {
+  if (ciSaving) return;
+  const btn = document.querySelector('#ciManagerModal .btn-primary');
+  ciLock(btn);
   const id      = intval(document.getElementById('ci_mgr_id').value);
   const isActive = (document.querySelector('input[name="ci_mgr_active"]:checked') || {}).value || 1;
   const data = {
@@ -369,6 +388,7 @@ async function ciSaveManager() {
   const res = await apiPost('api/custom_inquiry.php', data);
   if (res.ok) { closeModal('ciManagerModal'); ciLoadManagers(); showToast('저장되었습니다.'); }
   else showToast(res.msg || '오류', 'error');
+  ciUnlock(btn);
 }
 
 async function ciDeleteManager(id) {
@@ -439,6 +459,9 @@ async function ciDeleteStatus(id, btn) {
 }
 
 async function ciSaveStatuses() {
+  if (ciSaving) return;
+  const btn = event?.target;
+  ciLock(btn);
   const rows  = document.querySelectorAll('#ciStatusList .ci-status-row');
   const items = [];
   rows.forEach((row, i) => {
@@ -454,6 +477,7 @@ async function ciSaveStatuses() {
   const res = await apiPost('api/custom_inquiry.php', { action: 'save_statuses', form_id: ciCurrentFormId, items: JSON.stringify(items) });
   if (res.ok) showToast('저장되었습니다.');
   else showToast(res.msg || '오류', 'error');
+  ciUnlock(btn);
 }
 
 // =====================================================
@@ -515,9 +539,10 @@ async function ciToggleFieldVisible(id, cb) {
 async function ciOpenFieldModal(id = 0) {
   document.getElementById('ciFieldModalTitle').textContent = id ? '필드 수정' : '필드 추가';
   document.getElementById('ci_field_id').value = id;
-  ['ci_field_label','ci_field_key','ci_field_placeholder'].forEach(f => {
+  ['ci_field_label','ci_field_placeholder'].forEach(f => {
     const el = document.getElementById(f); if (el) el.value = '';
   });
+  document.getElementById('ci_field_key').value = '';
   document.getElementById('ci_field_type').value = '';
   document.querySelectorAll('input[name="ci_field_ext"]').forEach(c => { c.checked = false; });
   document.getElementById('ci-field-placeholder-wrap').style.display = 'none';
@@ -553,8 +578,39 @@ async function ciOpenFieldModal(id = 0) {
     }
   } else {
     keyEl.disabled = false;
+    // 항목명 입력 시 필드 키 자동 생성
+    const labelEl = document.getElementById('ci_field_label');
+    labelEl.oninput = function() {
+      if (!keyEl.disabled) {
+        keyEl.value = ciAutoFieldKey(this.value);
+      }
+    };
   }
   openModal('ciFieldModal');
+}
+
+// 한글 → 영문 필드키 자동변환
+function ciAutoFieldKey(str) {
+  const map = {
+    '이름':'name','성명':'name','이메일':'email','연락처':'phone','전화번호':'phone','핸드폰':'phone',
+    '제목':'subject','내용':'content','문의내용':'content','주소':'address','날짜':'date',
+    '성별':'gender','나이':'age','직업':'job','회사':'company','부서':'department',
+    '파일':'file','첨부':'attachment','선택':'selection','유형':'type','종류':'type',
+    '지역':'region','구분':'division','방법':'method','시간':'time','날':'date',
+  };
+  const trimmed = str.trim();
+  if (map[trimmed]) return map[trimmed];
+  // 영문/숫자 포함된 경우 그대로 변환
+  let key = trimmed
+    .toLowerCase()
+    .replace(/[^a-z0-9가-힣]/g, '_')
+    .replace(/_{2,}/g, '_')
+    .replace(/^_|_$/g, '');
+  // 한글만 남은 경우 field_ + 타임스탬프
+  if (/[가-힣]/.test(key)) {
+    key = 'field_' + Date.now().toString().slice(-6);
+  }
+  return key || 'field_' + Date.now().toString().slice(-6);
 }
 
 function ciOnFieldTypeChange() {
@@ -564,20 +620,43 @@ function ciOnFieldTypeChange() {
   document.getElementById('ci-field-options-wrap').style.display       = ['select','radio','checkbox'].includes(type) ? '' : 'none';
 }
 
+let ciOptDragSrc = null;
+
 function ciAddFieldOption(label = '', isVisible = 1) {
   const list = document.getElementById('ci-field-options-list');
   const div  = document.createElement('div');
-  div.style  = 'display:flex;gap:8px;align-items:center;margin-bottom:6px;';
+  div.draggable = true;
+  div.style  = 'display:flex;gap:8px;align-items:center;margin-bottom:6px;background:#f8fafc;padding:6px 8px;border-radius:6px;border:1px solid var(--border);';
   div.innerHTML = `
+    <span style="cursor:grab;color:#94a3b8;font-size:1rem;padding:0 2px;">⠿</span>
     <input type="text" class="form-control" value="${escHtml(label)}" placeholder="항목명" style="flex:1;"/>
-    <label style="display:flex;align-items:center;gap:4px;font-size:.8rem;font-weight:400;cursor:pointer;">
+    <label style="display:flex;align-items:center;gap:4px;font-size:.8rem;font-weight:400;cursor:pointer;white-space:nowrap;">
       <input type="checkbox" ${isVisible == 1 ? 'checked' : ''}/> 사용
     </label>
-    <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('div').remove()">✕</button>`;
+    <button type="button" class="btn btn-danger" style="padding:4px 8px;font-size:.78rem;" onclick="this.closest('div').remove()">✕</button>`;
+
+  // 드래그 이벤트
+  div.addEventListener('dragstart', e => { ciOptDragSrc = div; div.style.opacity = '.4'; });
+  div.addEventListener('dragend',   e => { div.style.opacity = ''; });
+  div.addEventListener('dragover',  e => { e.preventDefault(); });
+  div.addEventListener('drop',      e => {
+    e.preventDefault();
+    if (ciOptDragSrc && ciOptDragSrc !== div) {
+      const all = [...list.querySelectorAll(':scope > div')];
+      const si  = all.indexOf(ciOptDragSrc);
+      const di  = all.indexOf(div);
+      if (si < di) div.after(ciOptDragSrc);
+      else div.before(ciOptDragSrc);
+    }
+  });
+
   list.appendChild(div);
 }
 
 async function ciSaveField() {
+  if (ciSaving) return;
+  const btn = document.querySelector('#ciFieldModal .btn-primary');
+  ciLock(btn);
   const id   = intval(document.getElementById('ci_field_id').value);
   const type = document.getElementById('ci_field_type').value;
   const exts = [...document.querySelectorAll('input[name="ci_field_ext"]:checked')].map(c => c.value).join(',');
@@ -605,6 +684,7 @@ async function ciSaveField() {
   const res = await apiPost('api/custom_inquiry.php', data);
   if (res.ok) { closeModal('ciFieldModal'); ciLoadFields(); showToast('저장되었습니다.'); }
   else showToast(res.msg || '오류', 'error');
+  ciUnlock(btn);
 }
 
 // =====================================================
@@ -653,6 +733,9 @@ async function ciOpenTermModal(id = 0) {
 }
 
 async function ciSaveTerm() {
+  if (ciSaving) return;
+  const btn = document.querySelector('#ciTermModal .btn-primary');
+  ciLock(btn);
   const data = {
     action:      'save_term',
     id:          intval(document.getElementById('ci_term_id').value),
@@ -665,6 +748,7 @@ async function ciSaveTerm() {
   const res = await apiPost('api/custom_inquiry.php', data);
   if (res.ok) { closeModal('ciTermModal'); ciLoadTerms(); showToast('저장되었습니다.'); }
   else showToast(res.msg || '오류', 'error');
+  ciUnlock(btn);
 }
 
 async function ciDeleteTerm(id) {
@@ -680,35 +764,88 @@ async function ciDeleteTerm(id) {
 async function ciLoadData(formId) {
   if (formId) ciCurrentFormId = formId;
   ciCurrentDataPage = 1;
-  await ciLoadStatusSearchOptions();
+  await ciRenderSearchFilters();
   await ciFetchData();
 }
 
-async function ciLoadStatusSearchOptions() {
-  const res = await apiGet('api/custom_inquiry.php', { action: 'list_statuses', form_id: ciCurrentFormId });
-  const sel = document.getElementById('ciDataSearchStatus');
-  sel.innerHTML = '<option value="">전체</option>';
-  (res.data || []).forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s.id; opt.textContent = s.label;
-    sel.appendChild(opt);
+// 검색 필터 전체 렌더 (상태 + select/radio/checkbox 필드)
+async function ciRenderSearchFilters() {
+  const [statusRes, fieldRes] = await Promise.all([
+    apiGet('api/custom_inquiry.php', { action: 'list_statuses', form_id: ciCurrentFormId }),
+    apiGet('api/custom_inquiry.php', { action: 'list_fields',   form_id: ciCurrentFormId }),
+  ]);
+
+  const filterWrap = document.getElementById('ciDynamicFilters');
+  if (!filterWrap) return;
+  filterWrap.innerHTML = '';
+
+  // 상태 셀렉트 (사용중인 것만)
+  const activeStatuses = (statusRes.data || []).filter(s => s.is_active == 1);
+  if (activeStatuses.length) {
+    const sel = document.createElement('select');
+    sel.className = 'form-control';
+    sel.id = 'ciFilterStatus';
+    sel.innerHTML = '<option value="">전체 상태</option>' +
+      activeStatuses.map(s => `<option value="${s.id}">${escHtml(s.label)}</option>`).join('');
+    filterWrap.appendChild(sel);
+  }
+
+  // select/radio/checkbox 필드 셀렉트 (노출 중인 것만)
+  const choiceFields = (fieldRes.data || []).filter(f =>
+    f.is_visible == 1 && ['select','radio','checkbox'].includes(f.type)
+  );
+  choiceFields.forEach(f => {
+    const sel = document.createElement('select');
+    sel.className = 'form-control';
+    sel.dataset.fieldKey = f.field_key;
+    sel.dataset.fieldId  = f.id;
+    sel.innerHTML = `<option value="">${escHtml(f.label)} 전체</option>` +
+      (f.options || [])
+        .filter(o => o.is_visible == 1)
+        .map(o => `<option value="${escHtml(o.label)}">${escHtml(o.label)}</option>`)
+        .join('');
+    filterWrap.appendChild(sel);
   });
 }
 
 async function ciFetchData() {
-  const res = await apiGet('api/custom_inquiry_data.php', {
-    action:   'list',
-    form_id:  ciCurrentFormId,
-    keyword:  document.getElementById('ciDataSearchKeyword').value.trim(),
-    status:   document.getElementById('ciDataSearchStatus').value,
-    from:     document.getElementById('ciDataSearchFrom').value,
-    to:       document.getElementById('ciDataSearchTo').value,
-    page:     ciCurrentDataPage,
+  // 동적 필터값 수집
+  const statusEl = document.getElementById('ciFilterStatus');
+  const fieldFilters = {};
+  document.querySelectorAll('#ciDynamicFilters select[data-field-key]').forEach(sel => {
+    if (sel.value) fieldFilters[sel.dataset.fieldKey] = sel.value;
   });
 
   const tbody = document.getElementById('ciDataTableBody');
-  if (!res.ok || !res.data.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#94a3b8;">내역이 없습니다.</td></tr>';
+  // 로딩 표시 (검색 중 피드백)
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#94a3b8;">조회 중...</td></tr>';
+
+  const res = await apiGet('api/custom_inquiry_data.php', {
+    action:       'list',
+    form_id:      ciCurrentFormId,
+    keyword:      document.getElementById('ciDataSearchKeyword').value.trim(),
+    status:       statusEl ? statusEl.value : '',
+    from:         document.getElementById('ciDataSearchFrom').value,
+    to:           document.getElementById('ciDataSearchTo').value,
+    field_filters: JSON.stringify(fieldFilters),
+    page:          ciCurrentDataPage,
+  });
+
+  // 검색어 있는 경우와 없는 경우 메시지 구분
+  const hasFilter = document.getElementById('ciDataSearchKeyword').value.trim() ||
+    (statusEl && statusEl.value) ||
+    document.getElementById('ciDataSearchFrom').value ||
+    document.getElementById('ciDataSearchTo').value ||
+    [...document.querySelectorAll('#ciDynamicFilters select')].some(s => s.value);
+
+  if (!res.ok) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#94a3b8;">데이터를 불러오지 못했습니다.</td></tr>';
+    document.getElementById('ciDataPagination').innerHTML = '';
+    return;
+  }
+  if (!res.data || !res.data.length) {
+    const msg = hasFilter ? '검색 결과가 없습니다.' : '등록된 문의 내역이 없습니다.';
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:#94a3b8;">${msg}</td></tr>`;
     document.getElementById('ciDataPagination').innerHTML = '';
     return;
   }
@@ -737,9 +874,9 @@ function ciGoPage(p) { ciCurrentDataPage = p; ciFetchData(); }
 
 function ciResetSearch() {
   document.getElementById('ciDataSearchKeyword').value = '';
-  document.getElementById('ciDataSearchStatus').value  = '';
   document.getElementById('ciDataSearchFrom').value    = '';
   document.getElementById('ciDataSearchTo').value      = '';
+  document.querySelectorAll('#ciDynamicFilters select').forEach(sel => { sel.value = ''; });
   ciCurrentDataPage = 1;
   ciFetchData();
 }

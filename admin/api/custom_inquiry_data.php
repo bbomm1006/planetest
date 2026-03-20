@@ -34,6 +34,17 @@ if ($action === 'list') {
     if (!$form) { echo json_encode(['ok' => false, 'msg' => '폼을 찾을 수 없습니다.']); exit; }
     $tbl = $form['table_name'];
 
+    $field_filters_raw = trim($_GET['field_filters'] ?? '');
+    $field_filters = $field_filters_raw ? json_decode($field_filters_raw, true) : [];
+
+    // 필드 키 화이트리스트 (SQL 인젝션 방지)
+    $allowed_keys = [];
+    if (!empty($field_filters)) {
+        $fk_stmt = $pdo->prepare("SELECT field_key FROM custom_inquiry_fields WHERE form_id=? AND type IN ('select','radio','checkbox')");
+        $fk_stmt->execute([$form_id]);
+        $allowed_keys = array_column($fk_stmt->fetchAll(), 'field_key');
+    }
+
     $where  = ['d.form_id = ?'];
     $params = [$form_id];
 
@@ -41,6 +52,15 @@ if ($action === 'list') {
     if ($status)  { $where[] = 'd.status_id = ?'; $params[] = intval($status); }
     if ($from)    { $where[] = 'DATE(d.created_at) >= ?'; $params[] = $from; }
     if ($to)      { $where[] = 'DATE(d.created_at) <= ?'; $params[] = $to; }
+
+    // 동적 필드 필터 (select/radio/checkbox)
+    foreach ($field_filters as $fkey => $fval) {
+        if (!in_array($fkey, $allowed_keys, true)) continue;
+        if ($fval === '' || $fval === null) continue;
+        // checkbox는 FIND_IN_SET 또는 LIKE로 처리 (콤마구분 저장 방식)
+        $where[] = "d.`{$fkey}` LIKE ?";
+        $params[] = "%{$fval}%";
+    }
 
     $whereSQL = implode(' AND ', $where);
 
