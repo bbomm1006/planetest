@@ -86,6 +86,17 @@
       </div>
       <div class="nav-section">
         <div class="nav-item">
+          <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">🤖</span>챗봇 관리<span class="nav-arrow">›</span></div>
+          <div class="nav-sub">
+            <div class="nav-sub-link" onclick="showPage('chatbotKB')">지식베이스 관리</div>
+            <div class="nav-sub-link" onclick="showPage('chatbotContext')">컨텍스트 관리</div>
+            <div class="nav-sub-link" onclick="showPage('chatbotQuick')">빠른질문 관리</div>
+            <div class="nav-sub-link" onclick="showPage('chatbotConfig')">봇 설정</div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-item">
           <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">📋</span>로그 관리<span class="nav-arrow">›</span></div>
           <div class="nav-sub">
             <div class="nav-sub-link" onclick="showPage('logMgmt')">로그 조회</div>

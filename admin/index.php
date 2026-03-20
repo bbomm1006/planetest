@@ -80,9 +80,14 @@
 
       <!-- 7-1. 예약 시간 관리 -->
       <!-- 7-2. 예약 내역 -->
-      <?php include 'lib/reserve.php'; ?>      
+      <?php include 'lib/reserve.php'; ?>            
 
-      <!-- 8. 로그 관리 -->
+      <!-- ========================
+            8. 챗봇 관리
+            ======================== -->
+      <?php include 'lib/chatbot.php'; ?>
+
+      <!-- 9. 로그 관리 -->
       <?php include 'lib/logMgmt.php'; ?>
 
     </main>
@@ -135,6 +140,9 @@
   <!-- 예약 시간 Modal --> <!-- 예약 상세 Modal -->
   <?php include 'modals/reserveModal.php'; ?>
 
+  <!-- 챗봇 Modal -->
+  <?php include 'modals/chatbotModal.php'; ?>
+
   <!-- 로그 상세 Modal -->
   <?php include 'modals/logDetailModal.php'; ?>
 
@@ -177,6 +185,9 @@
 <script src="js/site.js"></script>
 
 <script src="js/homepageInfo.js"></script>
+
+<script src="js/chatbot.js"></script>
+
 <script src="js/log.js"></script>
 
 </body>
