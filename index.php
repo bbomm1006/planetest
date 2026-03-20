@@ -24,8 +24,8 @@
     'front_gallery',
     'front_photo_gallery',
     'front_slide_gallery',
-    'front_board',
-    'front_consult',
+    // 'front_board',
+    // 'front_consult',
     'front_footer',
   ];
 
@@ -193,13 +193,6 @@
     <?php include 'lib/bbs_slidegallery.php'; ?>
   </div>
 
-  <!-- BOARD (문의게시판) -->
-  <div data-front-section-key="front_board" <?php if (!$frontIsVisible('front_board')) echo 'style="display:none;"'; ?>>
-    <?php include 'lib/qna.php'; ?>
-  </div>
-  <div data-front-section-key="front_consult" <?php if (!$frontIsVisible('front_consult')) echo 'style="display:none;"'; ?>>
-    <?php include 'lib/customInquiry.php'; ?>
-  </div>
 
   <?php endif; ?>
 
