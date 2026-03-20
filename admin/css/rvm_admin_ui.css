@@ -1,0 +1,335 @@
+/* =========================================================
+   RVM Admin UI (예약관리 테이블) — 화면 구조 전용 스타일
+   - 기능/DB 연동은 JS에서 제외(더미 데이터만)
+========================================================= */
+
+.rvmAdmin {
+  padding: 0 0 28px;
+}
+
+.rvmAdmin__section {
+  margin-top: 14px;
+}
+
+.rvmAdmin-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.rvmAdmin-card__head {
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.rvmAdmin-card__head h3 {
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -.2px;
+}
+
+.rvmAdmin-card__head p {
+  color: var(--text3);
+  font-size: .86rem;
+  margin-top: 4px;
+}
+
+.rvmAdmin-card__body {
+  padding: 14px 16px 16px;
+}
+
+.rvmAdmin-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.rvmAdmin-tab {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 700;
+  color: var(--text2);
+  cursor: pointer;
+  transition: .15s ease;
+}
+
+.rvmAdmin-tab:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.rvmAdmin-tab.on {
+  border-color: var(--primary);
+  background: var(--primary-lt);
+  color: var(--primary-dark);
+}
+
+.rvmAdmin-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 12px;
+}
+
+.rvmAdmin-col-6 { grid-column: span 6; }
+.rvmAdmin-col-12 { grid-column: span 12; }
+.rvmAdmin-col-4 { grid-column: span 4; }
+.rvmAdmin-col-8 { grid-column: span 8; }
+
+@media (max-width: 980px) {
+  .rvmAdmin-col-6,
+  .rvmAdmin-col-4,
+  .rvmAdmin-col-8 {
+    grid-column: span 12;
+  }
+}
+
+.rvmAdmin-form-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rvmAdmin-form-row label {
+  font-weight: 800;
+  font-size: .85rem;
+  color: var(--text2);
+  min-width: 92px;
+}
+
+.rvmAdmin-input, .rvmAdmin-textarea, .rvmAdmin-select {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  outline: none;
+}
+.rvmAdmin-textarea { min-height: 86px; resize: vertical; }
+
+.rvmAdmin-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rvmAdmin-switch input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+}
+
+.rvmAdmin-table-wrap { overflow: auto; }
+.rvmAdmin-t {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+.rvmAdmin-t th, .rvmAdmin-t td {
+  border-bottom: 1px solid var(--border);
+  padding: 10px 8px;
+  text-align: left;
+  vertical-align: middle;
+  font-size: .92rem;
+}
+.rvmAdmin-t th {
+  color: var(--text2);
+  font-weight: 900;
+  background: #fbfcff;
+}
+
+.rvmAdmin-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: .82rem;
+  font-weight: 800;
+  border: 1px solid var(--border);
+  color: var(--text2);
+}
+.rvmAdmin-pill.ok {
+  border-color: rgba(24,184,122,.25);
+  background: rgba(24,184,122,.08);
+  color: #0b7a4a;
+}
+.rvmAdmin-pill.bad {
+  border-color: rgba(240,69,74,.25);
+  background: rgba(240,69,74,.08);
+  color: #a1171d;
+}
+.rvmAdmin-pill.warn {
+  border-color: rgba(245,166,35,.28);
+  background: rgba(245,166,35,.10);
+  color: #7a4b00;
+}
+
+.rvmAdmin-list-card {
+  padding: 14px 16px;
+}
+
+.rvmAdmin-steps-ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.rvmAdmin-step-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 10px;
+  background: #fff;
+}
+.rvmAdmin-step-item[draggable="true"] {
+  cursor: grab;
+}
+.rvmAdmin-step-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+.rvmAdmin-step-left .grab {
+  color: var(--text3);
+  font-weight: 900;
+}
+.rvmAdmin-step-left .title {
+  font-weight: 900;
+  white-space: nowrap;
+}
+.rvmAdmin-step-left .sub {
+  color: var(--text3);
+  font-size: .82rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rvmAdmin-btn-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* 더미 모달 */
+.rvmAdmin-modal-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,.55);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+.rvmAdmin-modal-bg.open { display: flex; }
+.rvmAdmin-modal {
+  width: min(720px, calc(100vw - 28px));
+  max-height: min(78vh, 720px);
+  overflow: auto;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  padding: 16px;
+}
+.rvmAdmin-modal h3 { margin-bottom: 8px; }
+
+/* 캘린더 */
+.rvmAdmin-calendar {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 12px;
+}
+.rvmAdmin-calendar-left,
+.rvmAdmin-calendar-right {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+}
+.rvmAdmin-calendar-left { padding: 12px; }
+.rvmAdmin-calendar-right { padding: 12px; }
+
+@media (max-width: 980px) {
+  .rvmAdmin-calendar { grid-template-columns: 1fr; }
+}
+
+.rvmAdmin-month-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.rvmAdmin-month-head .month-title {
+  font-weight: 900;
+}
+
+.rvmAdmin-dow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-bottom: 6px;
+  color: var(--text3);
+  font-weight: 800;
+  font-size: .8rem;
+}
+.rvmAdmin-dow span { text-align: center; }
+
+.rvmAdmin-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+.rvmAdmin-cal-day {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  height: 56px;
+  padding: 8px;
+  background: #fff;
+  cursor: pointer;
+  transition: .12s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.rvmAdmin-cal-day:hover { border-color: var(--primary); }
+.rvmAdmin-cal-day.muted {
+  opacity: .45;
+  cursor: default;
+}
+.rvmAdmin-cal-day.on {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-lt);
+}
+.rvmAdmin-cal-day .num {
+  font-weight: 900;
+}
+.rvmAdmin-cal-day .badge {
+  font-size: .78rem;
+  font-weight: 900;
+  color: var(--text3);
+}
+.rvmAdmin-cal-day.closed .badge {
+  color: #a1171d;
+}
+
+/* 상세 테이블에서 action btn 정렬 */
+.rvmAdmin-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+

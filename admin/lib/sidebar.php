@@ -100,6 +100,7 @@
           <div class="nav-sub">
             <div class="nav-sub-link" onclick="showPage('rv2Reserve')">rv2 예약 관리</div>
             <div class="nav-sub-link" onclick="showPage('customReserModule')">예약 모듈 (customReser)</div>
+            <div class="nav-sub-link" onclick="showPage('rvmAdminUi')">예약관리 테이블 UI</div>
           </div>
         </div>
       </div>
