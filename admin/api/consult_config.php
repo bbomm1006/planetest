@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../config/log_helper.php';
 
 header('Content-Type: application/json; charset=utf-8');
 requireLogin();
@@ -25,6 +26,7 @@ if ($action === 'saveConfig') {
 
     $pdo->prepare('UPDATE consults_configs SET title=?, description=?, description2=?, use_category=?, use_product=? WHERE id=1')
         ->execute([$title, $desc, $desc2, $use_cat, $use_product]);
+    logAdminAction($pdo, 'update', 'consults_configs', '1');
     echo json_encode(['ok' => true]);
     exit;
 }
@@ -50,6 +52,7 @@ if ($action === 'fieldCreate') {
 
     $pdo->prepare('INSERT INTO consults_fields (field_name, field_type, placeholder, options, is_active) VALUES (?,?,?,?,1)')
         ->execute([$name, $type, $ph, $options]);
+    logAdminAction($pdo, 'create', 'consults_fields', '');
     echo json_encode(['ok' => true]);
     exit;
 }
@@ -62,6 +65,7 @@ if ($action === 'fieldUpdate') {
 
     $pdo->prepare('UPDATE consults_fields SET placeholder=?, options=? WHERE id=?')
         ->execute([$placeholder, $options, $id]);
+    logAdminAction($pdo, 'update', 'consults_fields', (string)$id);
     echo json_encode(['ok' => true]);
     exit;
 }

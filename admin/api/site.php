@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../config/log_helper.php';
 
 header('Content-Type: application/json; charset=utf-8');
 requireLogin();
@@ -70,6 +71,7 @@ if ($action === 'save') {
         $stmt->execute([$footer_copy, $tel, $hours, $address, $copyright]);
     }
 
+    logAdminAction($pdo, 'update', 'site', '1');
     echo json_encode(['ok' => true]);
     exit;
 }

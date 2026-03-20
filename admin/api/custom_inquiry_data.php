@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../config/log_helper.php';
 
 header('Content-Type: application/json; charset=utf-8');
 requireLogin();
@@ -129,6 +130,7 @@ if ($action === 'update_status') {
     $tbl = $form['table_name'];
 
     $pdo->prepare("UPDATE `{$tbl}` SET status_id=? WHERE id=?")->execute([$status_id, $id]);
+    logAdminAction($pdo, 'update', 'custom_' . $tbl, (string)$id);
     echo json_encode(['ok' => true]);
     exit;
 }

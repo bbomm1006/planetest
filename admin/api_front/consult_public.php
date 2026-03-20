@@ -1,10 +1,13 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/log_helper.php';
 header('Content-Type: application/json; charset=utf-8');
 set_error_handler(function($no,$str,$file,$line){ echo json_encode(['ok'=>false,'msg'=>"PHP[$no]:$str $file:$line"]); exit; });
 set_exception_handler(function($e){ echo json_encode(['ok'=>false,'msg'=>$e->getMessage()]); exit; });
 
 $pdo    = getDB();
+logAccess($pdo);
+logLanding($pdo);
 $action = $_GET['action'] ?? $_POST['action'] ?? 'config';
 
 /* ── 폼 설정 + 추가필드 + 약관 한번에 ── */

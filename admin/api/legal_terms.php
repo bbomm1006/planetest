@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../config/log_helper.php';
 
 $_ltb = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'legal_terms_bootstrap.php';
 if (!is_readable($_ltb)) {
@@ -72,6 +73,7 @@ if ($action === 'cat_save') {
             'INSERT INTO legal_term_categories (name, slug, sort_order, is_active) VALUES (?,?,?,?)'
         )->execute(array($name, $slug, $sort_order, $is_active));
     }
+    logAdminAction($pdo, 'update', 'legal_term_categories', '');
     echo json_encode(array('ok' => true));
     exit;
 }
@@ -92,6 +94,7 @@ if ($action === 'cat_visibility_save') {
         $active = (!empty($it['is_active'])) ? 1 : 0;
         $st->execute(array($active, $id));
     }
+    logAdminAction($pdo, 'update', 'legal_term_categories', 'visibility');
     echo json_encode(array('ok' => true));
     exit;
 }
@@ -117,6 +120,7 @@ if ($action === 'ver_visibility_save') {
         $vis = (!empty($it['is_visible'])) ? 1 : 0;
         $st->execute(array($vis, $vid, $cid));
     }
+    logAdminAction($pdo, 'update', 'legal_term_versions', 'visibility');
     echo json_encode(array('ok' => true));
     exit;
 }
@@ -129,6 +133,7 @@ if ($action === 'cat_delete') {
     }
     $pdo->prepare('DELETE FROM legal_term_versions WHERE category_id = ?')->execute(array($id));
     $pdo->prepare('DELETE FROM legal_term_categories WHERE id = ?')->execute(array($id));
+    logAdminAction($pdo, 'delete', 'legal_term_categories', '');
     echo json_encode(array('ok' => true));
     exit;
 }
@@ -205,6 +210,7 @@ if ($action === 'ver_save') {
              VALUES (?,?,?,?,?,?,?)'
         )->execute(array($category_id, $version_label, $body, $effective_date, $is_active, $is_visible, $sort_order));
     }
+    logAdminAction($pdo, 'update', 'legal_term_versions', '');
     echo json_encode(array('ok' => true));
     exit;
 }
@@ -216,6 +222,7 @@ if ($action === 'ver_delete') {
         exit;
     }
     $pdo->prepare('DELETE FROM legal_term_versions WHERE id = ?')->execute(array($id));
+    logAdminAction($pdo, 'delete', 'legal_term_versions', '');
     echo json_encode(array('ok' => true));
     exit;
 }

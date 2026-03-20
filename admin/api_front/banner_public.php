@@ -10,9 +10,12 @@
  * }
  */
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/log_helper.php';
 header('Content-Type: application/json; charset=utf-8');
 
 $pdo = getDB();
+logAccess($pdo);
+logLanding($pdo);
 
 /* ── bannerConfig: scripts 테이블의 banner_config 컬럼, 없으면 기본값 ── */
 try {

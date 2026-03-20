@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/log_helper.php';
 
 $_ltb = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'legal_terms_bootstrap.php';
 if (!is_readable($_ltb)) {
@@ -12,6 +13,8 @@ require_once $_ltb;
 header('Content-Type: application/json; charset=utf-8');
 
 $pdo = getDB();
+logAccess($pdo);
+logLanding($pdo);
 legal_terms_ensure_tables($pdo);
 
 $action = isset($_GET['action']) ? $_GET['action'] : '';

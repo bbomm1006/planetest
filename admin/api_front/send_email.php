@@ -17,6 +17,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 header('Content-Type: application/json; charset=utf-8');
+try { $_lp = getDB(); logAccess($_lp); logLanding($_lp); } catch(Throwable $_le) {}
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); echo json_encode(['ok'=>false,'error'=>'POST only']); exit; }
 
@@ -72,6 +73,7 @@ try {
     $mail->Body     = $htmlBody;
 
     $mail->send();
+    logEmail(getDB(), $to, $subject, 'default', 'success');
     echo json_encode(['ok'=>true,'message'=>$to.'로 발송되었습니다']);
 } catch (Exception $e) {
     http_response_code(500);

@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../config/log_helper.php';
 
 header('Content-Type: application/json; charset=utf-8');
 requireLogin();
@@ -102,6 +103,7 @@ if ($action === 'create_form') {
         KEY `idx_created_at` (`created_at`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
+    logAdminAction($pdo, 'create', 'custom_inquiry_forms', (string)$form_id);
     echo json_encode(['ok' => true, 'form_id' => $form_id]);
     exit;
 }
@@ -163,6 +165,7 @@ if ($action === 'save_basic') {
         $product_use, $product_req,
         $id
     ]);
+    logAdminAction($pdo, 'update', 'custom_inquiry_forms', (string)($id??''));
     echo json_encode(['ok' => true]);
     exit;
 }
@@ -269,6 +272,7 @@ if ($action === 'delete_manager') {
     $pdo->prepare('DELETE FROM custom_inquiry_managers WHERE id=?')->execute([$id]);
     $pdo->prepare('INSERT INTO custom_inquiry_manager_history (form_id, manager_id, changed_by, change_desc) VALUES (?,?,?,?)')
         ->execute([$form_id, $id, $changed_by, json_encode(['action'=>'deleted'])]);
+    logAdminAction($pdo, 'delete', 'custom_inquiry_managers', (string)$id);
     echo json_encode(['ok' => true]);
     exit;
 }

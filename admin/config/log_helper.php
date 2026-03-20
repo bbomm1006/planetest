@@ -57,6 +57,46 @@ function logEmail(PDO $pdo, string $toEmail, string $subject, string $template, 
 }
 
 /**
+ * 접속 로그 기록
+ */
+function logAccess(PDO $pdo): void {
+    try {
+        $pdo->prepare(
+            "INSERT INTO logs_access (ip, method, uri, status_code, user_agent, referer) VALUES (?, ?, ?, ?, ?, ?)"
+        )->execute([
+            getClientIp(),
+            $_SERVER['REQUEST_METHOD']  ?? '',
+            $_SERVER['REQUEST_URI']     ?? '',
+            http_response_code() ?: 200,
+            $_SERVER['HTTP_USER_AGENT'] ?? '',
+            $_SERVER['HTTP_REFERER']    ?? null,
+        ]);
+    } catch (Throwable $e) {}
+}
+
+/**
+ * 랜딩 로그 기록 (utm_source 있을 때만)
+ */
+function logLanding(PDO $pdo): void {
+    $utmSource = trim($_GET['utm_source'] ?? $_POST['utm_source'] ?? '');
+    if ($utmSource === '') return;
+    try {
+        $pdo->prepare(
+            "INSERT INTO logs_landing (ip, utm_source, utm_medium, utm_campaign, utm_term, utm_content, landing_page, referer) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        )->execute([
+            getClientIp(),
+            $utmSource,
+            trim($_GET['utm_medium']   ?? '') ?: null,
+            trim($_GET['utm_campaign'] ?? '') ?: null,
+            trim($_GET['utm_term']     ?? '') ?: null,
+            trim($_GET['utm_content']  ?? '') ?: null,
+            $_SERVER['REQUEST_URI']    ?? null,
+            $_SERVER['HTTP_REFERER']   ?? null,
+        ]);
+    } catch (Throwable $e) {}
+}
+
+/**
  * 에러 로그 기록
  */
 function logError(PDO $pdo, string $message, string $level = 'error', string $code = '', string $file = '', int $line = 0, string $stackTrace = ''): void {

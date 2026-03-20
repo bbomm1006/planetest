@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../config/log_helper.php';
 
 header('Content-Type: application/json; charset=utf-8');
 requireLogin();
@@ -20,6 +21,7 @@ if ($action === 'save') {
     $name = trim($_POST['term_name'] ?? '');
     $body = trim($_POST['term_body'] ?? '');
     $pdo->prepare('UPDATE consult_terms SET term_name=?, term_body=? WHERE id=1')->execute([$name, $body]);
+    logAdminAction($pdo, 'update', 'consult_terms', '1');
     echo json_encode(['ok' => true]);
     exit;
 }

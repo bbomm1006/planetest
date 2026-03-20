@@ -1,8 +1,11 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/log_helper.php';
 header('Content-Type: application/json; charset=utf-8');
 
 $pdo = getDB();
+logAccess($pdo);
+logLanding($pdo);
 
 /* 분류 */
 $cats = $pdo->query(

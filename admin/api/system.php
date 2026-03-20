@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../config/log_helper.php';
 
 header('Content-Type: application/json; charset=utf-8');
 requireLogin();
@@ -33,6 +34,7 @@ if ($action === 'menuSave') {
              ON DUPLICATE KEY UPDATE is_active = VALUES(is_active)'
         )->execute([$key, $item['label'] ?? $key, $isActive]);
     }
+    logAdminAction($pdo, 'update', 'menus', 'bulk');
     echo json_encode(['ok' => true]);
     exit;
 }
@@ -57,6 +59,7 @@ if ($action === 'scriptSave') {
         'INSERT INTO scripts (id, head_code, body_code) VALUES (1, ?, ?)
          ON DUPLICATE KEY UPDATE head_code = VALUES(head_code), body_code = VALUES(body_code)'
     )->execute([$head, $body]);
+    logAdminAction($pdo, 'update', 'scripts', '1');
     echo json_encode(['ok' => true]);
     exit;
 }
@@ -88,6 +91,7 @@ if ($action === 'socialSave') {
            naver_client_secret = VALUES(naver_client_secret),
            google_client_id = VALUES(google_client_id)'
     )->execute([$kakao, $navId, $navSec, $google]);
+    logAdminAction($pdo, 'update', 'social_links', '1');
     echo json_encode(['ok' => true]);
     exit;
 }

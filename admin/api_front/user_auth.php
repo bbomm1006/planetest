@@ -43,6 +43,8 @@ if ($method === 'POST') {
     }
 
     $pdo = getDB();
+logAccess($pdo);
+logLanding($pdo);
 
     // social_links에서 API 키 조회
     $keys = $pdo->query('SELECT * FROM social_links WHERE id=1')->fetch();
