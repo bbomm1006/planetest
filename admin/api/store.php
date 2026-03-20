@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../config/log_helper.php';
 
 header('Content-Type: application/json; charset=utf-8');
 requireLogin();
@@ -81,7 +82,9 @@ if ($action === 'storeCreate') {
          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)'
     )->execute([$store_name,$branch_name,$address,$lat,$lng,$phone,$open_hours,
                 $reserve_url,$reserve_target,$memo,$detail_info,$images,$max+1]);
-    echo json_encode(['ok' => true, 'id' => (int)$pdo->lastInsertId()]);
+    $newId = $pdo->lastInsertId();
+    logAdminAction($pdo, 'create', 'stores', (string)$newId, [], ['store_name' => $store_name, 'branch_name' => $branch_name]);
+    echo json_encode(['ok' => true, 'id' => (int)$newId]);
     exit;
 }
 
@@ -107,6 +110,7 @@ if ($action === 'storeUpdate') {
          reserve_url=?,reserve_target=?,memo=?,detail_info=?,images=? WHERE id=?'
     )->execute([$store_name,$branch_name,$address,$lat,$lng,$phone,$open_hours,
                 $reserve_url,$reserve_target,$memo,$detail_info,$images,$id]);
+    logAdminAction($pdo, 'update', 'stores', (string)$id, [], ['store_name' => $store_name, 'branch_name' => $branch_name]);
     echo json_encode(['ok' => true]);
     exit;
 }
@@ -115,6 +119,7 @@ if ($action === 'storeDelete') {
     $id = (int)($_POST['id'] ?? 0);
     if ($id <= 0) { echo json_encode(['ok' => false, 'msg' => '잘못된 ID']); exit; }
     $pdo->prepare('DELETE FROM stores WHERE id=?')->execute([$id]);
+    logAdminAction($pdo, 'delete', 'stores', (string)$id);
     echo json_encode(['ok' => true]);
     exit;
 }

@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../config/log_helper.php';
 header('Content-Type: application/json; charset=utf-8');
 set_error_handler(function($no,$str,$file,$line){ echo json_encode(['ok'=>false,'msg'=>"PHP[$no]:$str $file:$line"]); exit; });
 set_exception_handler(function($e){ echo json_encode(['ok'=>false,'msg'=>$e->getMessage()]); exit; });
@@ -85,6 +86,7 @@ if ($action === 'update') {
     $status    = trim($_POST['status']??'');
     $is_public = (int)($_POST['is_public']??1);
     $pdo->prepare('UPDATE inquiries SET status=?, is_public=? WHERE id=?')->execute([$status,$is_public,$id]);
+    logAdminAction($pdo,'update','inquiries',(string)$id,[],['status'=>$status]);
     echo json_encode(['ok'=>true]); exit;
 }
 
@@ -117,6 +119,7 @@ if ($action === 'delete') {
     $id=(int)($_POST['id']??0);
     $pdo->prepare('DELETE FROM inquiry_answers WHERE inquiry_id=?')->execute([$id]);
     $pdo->prepare('DELETE FROM inquiries WHERE id=?')->execute([$id]);
+    logAdminAction($pdo,'delete','inquiries',(string)$id);
     echo json_encode(['ok'=>true]); exit;
 }
 if ($action === 'bulkDelete') {
@@ -126,6 +129,7 @@ if ($action === 'bulkDelete') {
         $pdo->prepare('DELETE FROM inquiry_answers WHERE inquiry_id=?')->execute([$id]);
         $pdo->prepare('DELETE FROM inquiries WHERE id=?')->execute([$id]);
     }
+    logAdminAction($pdo,'delete','inquiries','bulk');
     echo json_encode(['ok'=>true]); exit;
 }
 echo json_encode(['ok'=>false,'msg'=>'Unknown action']);

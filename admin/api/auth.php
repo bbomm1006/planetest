@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../config/log_helper.php';
 
 header('Content-Type: application/json; charset=utf-8');
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
@@ -21,6 +22,8 @@ if ($action === 'login') {
     $admin = $stmt->fetch();
 
     if (!$admin || !password_verify($password, $admin['password'])) {
+        // 로그인 실패 로그
+        logLogin($pdo, 'admin', null, $username, 'fail', '아이디 또는 비밀번호 불일치');
         echo json_encode(['ok' => false, 'msg' => '아이디 또는 비밀번호가 올바르지 않습니다.']);
         exit;
     }
@@ -31,12 +34,20 @@ if ($action === 'login') {
     $_SESSION['admin_name']  = $admin['name'];
     $_SESSION['admin_email'] = $admin['email'];
 
+    // 로그인 성공 로그
+    logLogin($pdo, 'admin', (string)$admin['id'], $admin['username'], 'success');
+
     echo json_encode(['ok' => true, 'name' => $admin['name'], 'username' => $admin['username'], 'email' => $admin['email']]);
     exit;
 }
 
 // ── 로그아웃
 if ($action === 'logout') {
+    if (isLoggedIn()) {
+        $pdo   = getDB();
+        $admin = currentAdmin();
+        logAdminAction($pdo, 'logout');
+    }
     $_SESSION = [];
     session_destroy();
     echo json_encode(['ok' => true]);

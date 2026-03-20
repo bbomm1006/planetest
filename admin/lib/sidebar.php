@@ -84,6 +84,14 @@
           </div>
         </div>
       </div>
+      <div class="nav-section">
+        <div class="nav-item">
+          <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">📋</span>로그 관리<span class="nav-arrow">›</span></div>
+          <div class="nav-sub">
+            <div class="nav-sub-link" onclick="showPage('logMgmt')">로그 조회</div>
+          </div>
+        </div>
+      </div>
     </nav>
     <div class="sidebar-footer">
       <div class="sidebar-user">

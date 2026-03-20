@@ -9,6 +9,8 @@
  */
 
 require_once __DIR__ . '/../../phpmailer/Exception.php';
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/log_helper.php';
 require_once __DIR__ . '/../../phpmailer/PHPMailer.php';
 require_once __DIR__ . '/../../phpmailer/SMTP.php';
 use PHPMailer\PHPMailer\PHPMailer;
@@ -73,5 +75,6 @@ try {
     echo json_encode(['ok'=>true,'message'=>$to.'로 발송되었습니다']);
 } catch (Exception $e) {
     http_response_code(500);
+    logEmail(getDB(), $to, $subject, 'default', 'fail', $mail->ErrorInfo);
     echo json_encode(['ok'=>false,'error'=>'메일 발송 실패: '.$mail->ErrorInfo]);
 }

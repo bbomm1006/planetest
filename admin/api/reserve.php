@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../config/log_helper.php';
 header('Content-Type: application/json; charset=utf-8');
 set_error_handler(function($no,$str,$file,$line){ echo json_encode(['ok'=>false,'msg'=>"PHP[$no]:$str $file:$line"]); exit; });
 set_exception_handler(function($e){ echo json_encode(['ok'=>false,'msg'=>$e->getMessage()]); exit; });
@@ -100,18 +101,21 @@ if ($action === 'update') {
     $status     = trim($_POST['status']??'');
     $admin_memo = trim($_POST['admin_memo']??'');
     $pdo->prepare('UPDATE reservations SET status=?, admin_memo=? WHERE id=?')->execute([$status,$admin_memo,$id]);
+    logAdminAction($pdo,'update','reservations',(string)$id,[],['status'=>$status]);
     echo json_encode(['ok'=>true]); exit;
 }
 
 if ($action === 'delete') {
     $id=(int)($_POST['id']??0);
     $pdo->prepare('DELETE FROM reservations WHERE id=?')->execute([$id]);
+    logAdminAction($pdo,'delete','reservations',(string)$id);
     echo json_encode(['ok'=>true]); exit;
 }
 if ($action === 'bulkDelete') {
     $ids=json_decode($_POST['ids']??'[]',true)?:[];
     $st=$pdo->prepare('DELETE FROM reservations WHERE id=?');
     foreach($ids as $id) $st->execute([(int)$id]);
+    logAdminAction($pdo,'delete','reservations','bulk');
     echo json_encode(['ok'=>true]); exit;
 }
 echo json_encode(['ok'=>false,'msg'=>'Unknown action']);

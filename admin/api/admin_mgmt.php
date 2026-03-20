@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../config/log_helper.php';
 
 header('Content-Type: application/json; charset=utf-8');
 requireLogin();
@@ -38,7 +39,9 @@ if ($action === 'create') {
     $hash = password_hash($password, PASSWORD_BCRYPT);
     $stmt = $pdo->prepare('INSERT INTO admins (username, password, name, email) VALUES (?, ?, ?, ?)');
     $stmt->execute([$username, $hash, $name, $email]);
-    echo json_encode(['ok' => true, 'id' => $pdo->lastInsertId()]);
+    $newId = $pdo->lastInsertId();
+    logAdminAction($pdo, 'create', 'admins', (string)$newId, [], ['username' => $username, 'name' => $name]);
+    echo json_encode(['ok' => true, 'id' => $newId]);
     exit;
 }
 
@@ -62,6 +65,7 @@ if ($action === 'update') {
         $stmt = $pdo->prepare('UPDATE admins SET name = ?, email = ? WHERE id = ?');
         $stmt->execute([$name, $email, $id]);
     }
+    logAdminAction($pdo, 'update', 'admins', (string)$id, [], ['name' => $name, 'email' => $email]);
     echo json_encode(['ok' => true]);
     exit;
 }
@@ -74,6 +78,7 @@ if ($action === 'delete') {
         exit;
     }
     $pdo->prepare('DELETE FROM admins WHERE id = ?')->execute([$id]);
+    logAdminAction($pdo, 'delete', 'admins', (string)$id);
     echo json_encode(['ok' => true]);
     exit;
 }

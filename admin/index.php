@@ -82,6 +82,9 @@
       <!-- 7-2. 예약 내역 -->
       <?php include 'lib/reserve.php'; ?>      
 
+      <!-- 8. 로그 관리 -->
+      <?php include 'lib/logMgmt.php'; ?>
+
     </main>
   </div>
 </div><!-- /admin-wrap -->
@@ -132,6 +135,9 @@
   <!-- 예약 시간 Modal --> <!-- 예약 상세 Modal -->
   <?php include 'modals/reserveModal.php'; ?>
 
+  <!-- 로그 상세 Modal -->
+  <?php include 'modals/logDetailModal.php'; ?>
+
 
 <div class="toast-container" id="toastContainer"></div>
 
@@ -171,6 +177,7 @@
 <script src="js/site.js"></script>
 
 <script src="js/homepageInfo.js"></script>
+<script src="js/log.js"></script>
 
 </body>
 </html>

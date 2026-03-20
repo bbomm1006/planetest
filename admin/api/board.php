@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../config/log_helper.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -117,6 +118,7 @@ if ($action === 'boardCreate') {
     )->execute([$name, $table_name, $use_category, $use_comment, $use_file, $use_thumbnail, $use_tags, $use_social, $fields_json, $max + 1]);
     $board_id = (int)$pdo->lastInsertId();
 
+    logAdminAction($pdo,'create','boards',(string)$board_id);
     echo json_encode(['ok' => true, 'id' => $board_id]);
     exit;
 }
@@ -148,6 +150,7 @@ if ($action === 'boardDelete') {
     $pdo->exec("DROP TABLE IF EXISTS `bp_{$row['table_name']}`");
     $pdo->prepare('DELETE FROM board_categories WHERE board_id=?')->execute([$id]);
     $pdo->prepare('DELETE FROM boards WHERE id=?')->execute([$id]);
+    logAdminAction($pdo,'delete','boards',(string)$id);
     echo json_encode(['ok' => true]);
     exit;
 }
@@ -302,6 +305,7 @@ if ($action === 'postDelete') {
     $id    = (int)($_POST['id'] ?? 0);
     $pdo->prepare("DELETE FROM `bp_{$table}` WHERE id=?")->execute([$id]);
     $pdo->prepare("DELETE FROM board_comments WHERE post_id=?")->execute([$id]);
+    logAdminAction($pdo,'delete',"bp_{$table}",(string)$id);
     echo json_encode(['ok' => true]);
     exit;
 }
@@ -314,6 +318,7 @@ if ($action === 'postBulkDelete') {
         $pdo->prepare("DELETE FROM `bp_{$table}` WHERE id=?")->execute([$id]);
         $pdo->prepare("DELETE FROM board_comments WHERE post_id=?")->execute([$id]);
     }
+    logAdminAction($pdo,'delete',"bp_{$table}",'bulk');
     echo json_encode(['ok' => true]);
     exit;
 }

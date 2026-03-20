@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../config/log_helper.php';
 
 header('Content-Type: application/json; charset=utf-8');
 requireLogin();
@@ -49,7 +50,9 @@ if ($action === 'create') {
         'INSERT INTO popups (title,is_visible,link_url,link_target,pc_image,mo_image,start_dt,end_dt,sort_order)
          VALUES (?,?,?,?,?,?,?,?,?)'
     )->execute([$title,$is_visible,$link_url,$link_target,$pc_image,$mo_image,$start_dt,$end_dt,$maxOrder+1]);
-    echo json_encode(['ok'=>true,'id'=>(int)$pdo->lastInsertId()]);
+    $newId = $pdo->lastInsertId();
+    logAdminAction($pdo, 'create', 'popups', (string)$newId, [], ['title' => $title]);
+    echo json_encode(['ok'=>true,'id'=>(int)$newId]);
     exit;
 }
 
@@ -70,6 +73,7 @@ if ($action === 'update') {
         'UPDATE popups SET title=?,is_visible=?,link_url=?,link_target=?,
          pc_image=?,mo_image=?,start_dt=?,end_dt=? WHERE id=?'
     )->execute([$title,$is_visible,$link_url,$link_target,$pc_image,$mo_image,$start_dt,$end_dt,$id]);
+    logAdminAction($pdo, 'update', 'popups', (string)$id, [], ['title' => $title]);
     echo json_encode(['ok'=>true]);
     exit;
 }
@@ -79,6 +83,7 @@ if ($action === 'delete') {
     $id = (int)($_POST['id'] ?? 0);
     if ($id <= 0) { echo json_encode(['ok'=>false,'msg'=>'잘못된 ID']); exit; }
     $pdo->prepare('DELETE FROM popups WHERE id=?')->execute([$id]);
+    logAdminAction($pdo, 'delete', 'popups', (string)$id);
     echo json_encode(['ok'=>true]);
     exit;
 }

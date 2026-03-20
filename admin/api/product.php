@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../config/log_helper.php';
 
 header('Content-Type: application/json; charset=utf-8');
 requireLogin();
@@ -189,7 +190,9 @@ if ($action === 'productCreate') {
          (category_id,model_no,name,badge_text,badge_color,price,discount,short_desc,detail_desc,image,tags,sort_order)
          VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'
     )->execute([$cat_id,$model_no,$name,$badge_text,$badge_color,$price,$discount,$short_desc,$detail_desc,$image,$tags,$max+1]);
-    echo json_encode(['ok' => true, 'id' => (int)$pdo->lastInsertId()]);
+    $newId = $pdo->lastInsertId();
+    logAdminAction($pdo, 'create', 'product_products', (string)$newId, [], ['name' => $name, 'model_no' => $model_no]);
+    echo json_encode(['ok' => true, 'id' => (int)$newId]);
     exit;
 }
 
@@ -214,6 +217,7 @@ if ($action === 'productUpdate') {
          category_id=?,model_no=?,name=?,badge_text=?,badge_color=?,price=?,discount=?,
          short_desc=?,detail_desc=?,image=?,tags=? WHERE id=?'
     )->execute([$cat_id,$model_no,$name,$badge_text,$badge_color,$price,$discount,$short_desc,$detail_desc,$image,$tags,$id]);
+    logAdminAction($pdo, 'update', 'product_products', (string)$id, [], ['name' => $name, 'model_no' => $model_no]);
     echo json_encode(['ok' => true]);
     exit;
 }
@@ -222,6 +226,7 @@ if ($action === 'productDelete') {
     $id = (int)($_POST['id'] ?? 0);
     if ($id <= 0) { echo json_encode(['ok' => false, 'msg' => '잘못된 ID']); exit; }
     $pdo->prepare('DELETE FROM product_products WHERE id=?')->execute([$id]);
+    logAdminAction($pdo, 'delete', 'product_products', (string)$id);
     echo json_encode(['ok' => true]);
     exit;
 }

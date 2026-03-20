@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../config/log_helper.php';
 
 header('Content-Type: application/json; charset=utf-8');
 requireLogin();
@@ -50,7 +51,9 @@ if ($action === 'create') {
         $p['btn1_on'], $p['btn1_text'], $p['btn1_link'], $p['btn1_bg'], $p['btn1_text_color'],
         $p['btn2_on'], $p['btn2_text'], $p['btn2_link'], $p['btn2_text_color'],
     ]);
-    echo json_encode(['ok'=>true,'id'=>(int)$pdo->lastInsertId()]);
+    $newId = $pdo->lastInsertId();
+    logAdminAction($pdo, 'create', 'banners', (string)$newId, [], ['title' => $p['title']]);
+    echo json_encode(['ok'=>true,'id'=>(int)$newId]);
     exit;
 }
 
@@ -80,6 +83,7 @@ if ($action === 'update') {
         $p['btn2_on'], $p['btn2_text'], $p['btn2_link'], $p['btn2_text_color'],
         $id,
     ]);
+    logAdminAction($pdo, 'update', 'banners', (string)$id, [], ['title' => $p['title']]);
     echo json_encode(['ok'=>true]);
     exit;
 }
@@ -89,6 +93,7 @@ if ($action === 'delete') {
     $id = (int)($_POST['id'] ?? 0);
     if ($id <= 0) { echo json_encode(['ok'=>false,'msg'=>'잘못된 ID']); exit; }
     $pdo->prepare('DELETE FROM banners WHERE id=?')->execute([$id]);
+    logAdminAction($pdo, 'delete', 'banners', (string)$id);
     echo json_encode(['ok'=>true]);
     exit;
 }

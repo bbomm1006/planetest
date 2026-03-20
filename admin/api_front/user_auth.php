@@ -6,6 +6,7 @@
  * POST /admin/api_front/user_auth.php?action=logout
  */
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/log_helper.php';
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Credentials: true');
 
@@ -114,6 +115,9 @@ if ($method === 'POST') {
 
     $user = ['id' => $userId, 'name' => $userName, 'provider' => $provider];
     $_SESSION['board_user'] = $user;
+
+    // 로그인 로그
+    logLogin($pdo, $provider, $userId, $userName, 'success');
 
     echo json_encode(['ok' => true, 'user' => $user]);
     exit;

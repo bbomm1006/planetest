@@ -104,6 +104,7 @@ const PAGE_LABELS = {
   consultTerms: ['상담','약관 관리'],
 
   homepageInfo: ['시스템','홈페이지 정보 관리'],
+  logMgmt:      ['로그 관리','로그 관리'],
 };
 
 // ===========================
@@ -340,6 +341,7 @@ function showPage(pageId) {
   if (pageId === 'consultTerms') loadConsultTermsList();
 
   if (pageId === 'homepageInfo') hiLoad();
+  if (pageId === 'logMgmt')     initLogMgmt();
 }
 
 function toggleNav(el) {
