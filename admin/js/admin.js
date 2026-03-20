@@ -501,49 +501,136 @@ async function loadSectionMgmt() {
   renderSectionChecks();
 }
 
+function escapeHtmlMgmt(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function escapeAttrMgmt(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;');
+}
+
+function refreshMgmtToggleRow(input) {
+  const row = input.closest('.mgmt-toggle-row');
+  if (!row) return;
+  const on = input.checked;
+  row.classList.toggle('is-on', on);
+  row.classList.toggle('is-off', !on);
+  const pill = row.querySelector('.mgmt-visibility-pill');
+  if (pill) pill.textContent = on ? '노출' : '미노출';
+}
+
+function wireMgmtToggleInputs(container) {
+  if (!container) return;
+  container.querySelectorAll('input[type="checkbox"][data-state-key]').forEach(el => {
+    el.addEventListener('change', function () {
+      menuState[this.dataset.stateKey] = this.checked;
+      refreshMgmtToggleRow(this);
+    });
+  });
+}
+
+function renderMgmtToggleRow(id, stateKey, label, note) {
+  const checked = menuState[stateKey] !== false;
+  const chk = checked ? 'checked' : '';
+  const rowCls = checked ? 'is-on' : 'is-off';
+  const pill = checked ? '노출' : '미노출';
+  const noteHtml = note
+    ? `<span class="mgmt-toggle-row__note">${escapeHtmlMgmt(note)}</span>`
+    : '';
+  return `<div class="mgmt-toggle-row ${rowCls}">
+    <div class="mgmt-toggle-row__info">
+      <span class="mgmt-toggle-row__title">${escapeHtmlMgmt(label)}</span>
+      ${noteHtml}
+    </div>
+    <div class="mgmt-toggle-row__actions">
+      <span class="mgmt-visibility-pill">${pill}</span>
+      <label class="toggle">
+        <input type="checkbox" id="${escapeHtmlMgmt(id)}" data-state-key="${escapeAttrMgmt(stateKey)}" ${chk}>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>`;
+}
+
+function renderMgmtPanel(title, desc, rowsHtml) {
+  const descHtml = desc
+    ? `<p class="mgmt-panel__desc">${escapeHtmlMgmt(desc)}</p>`
+    : '';
+  return `<section class="mgmt-panel">
+    <header class="mgmt-panel__head">
+      <h3 class="mgmt-panel__title">${escapeHtmlMgmt(title)}</h3>
+      ${descHtml}
+    </header>
+    <div class="mgmt-toggle-list">${rowsHtml}</div>
+  </section>`;
+}
+
 function renderSectionChecks() {
   const container = document.getElementById('sectionCheckList');
   if (!container) return;
-  let html = '<p style="font-size:.82rem;font-weight:700;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;">프론트 노출 설정</p>';
-  html += '<div class="checkbox-group" style="margin-bottom:0;">';
-  FRONT_SECTION_LIST.forEach(m => {
-    const chk = menuState[m.key] !== false ? 'checked' : '';
-    html += `<div class="checkbox-item"><input type="checkbox" id="section_${m.key}" ${chk} onchange="menuState['${m.key}']=this.checked"><span>${m.label}</span></div>`;
-  });
-  html += '</div>';
-  container.innerHTML = html;
+  const frontRows = FRONT_SECTION_LIST.map(m =>
+    renderMgmtToggleRow(`section_${m.key}`, m.key, m.label, m.key)
+  ).join('');
+  container.innerHTML =
+    '<div class="mgmt-stack">' +
+    renderMgmtPanel(
+      '메인 화면 섹션',
+      '홈에 표시할 단락을 켜거나 끕니다. 키 이름은 시스템 식별용으로만 표시됩니다.',
+      frontRows
+    ) +
+    '</div>';
+  wireMgmtToggleInputs(container);
 }
 
 function renderMenuChecks() {
   const container = document.getElementById('menuCheckList');
   if (!container) return;
 
-  let html = '<p style="font-size:.82rem;font-weight:700;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;">관리자 메뉴</p>';
-  html += '<div class="checkbox-group" style="margin-bottom:20px;">';
-  MENU_LIST_BASE.forEach(m => {
-    const chk = menuState[m.key] !== false ? 'checked' : '';
-    html += `<div class="checkbox-item"><input type="checkbox" id="menu_${m.key}" ${chk} onchange="menuState['${m.key}']=this.checked"><span>${m.label}</span></div>`;
-  });
-  html += '</div>';
+  const adminRows = MENU_LIST_BASE.map(m =>
+    renderMgmtToggleRow(`menu_${m.key}`, m.key, m.label, null)
+  ).join('');
 
-  html += '<p style="font-size:.82rem;font-weight:700;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;margin-top:18px;">프론트 노출 설정</p>';
-  html += '<div class="checkbox-group" style="margin-bottom:0;">';
-  FRONT_SECTION_LIST.forEach(m => {
-    const chk = menuState[m.key] !== false ? 'checked' : '';
-    html += `<div class="checkbox-item"><input type="checkbox" id="menu_${m.key}" ${chk} onchange="menuState['${m.key}']=this.checked"><span>${m.label}</span></div>`;
-  });
-  html += '</div>';
+  const frontRows = FRONT_SECTION_LIST.map(m =>
+    renderMgmtToggleRow(`menu_${m.key}`, m.key, m.label, m.key)
+  ).join('');
 
+  let html = '<div class="mgmt-stack">';
+  html += renderMgmtPanel(
+    '관리자 사이드바 메뉴',
+    '로그인 후 왼쪽 내비게이션에 보일 항목입니다. 끄면 해당 메뉴가 숨겨집니다.',
+    adminRows
+  );
+  html += renderMgmtPanel(
+    '프론트(홈) 섹션 노출',
+    '방문자 메인 페이지의 각 블록 표시 여부입니다. 끄면 해당 영역이 보이지 않습니다.',
+    frontRows
+  );
   if (createdBoards.length > 0) {
-    html += '<p style="font-size:.82rem;font-weight:700;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;">게시판 메뉴</p>';
-    html += '<div class="checkbox-group">';
-    createdBoards.forEach(b => {
-      const chk = menuState['board_'+b.table] !== false ? 'checked' : '';
-      html += `<div class="checkbox-item"><input type="checkbox" id="menu_board_${b.table}" ${chk} onchange="menuState['board_${b.table}']=this.checked"><span>${b.name} (${b.table})</span></div>`;
-    });
-    html += '</div>';
+    const boardRows = createdBoards.map(b =>
+      renderMgmtToggleRow(
+        `menu_board_${b.table}`,
+        `board_${b.table}`,
+        b.name,
+        b.table
+      )
+    ).join('');
+    html += renderMgmtPanel(
+      '게시판 메뉴',
+      '생성된 게시판별로 관리자 메뉴에 표시할지 설정합니다.',
+      boardRows
+    );
   }
+  html += '</div>';
   container.innerHTML = html;
+  wireMgmtToggleInputs(container);
 }
 
 async function saveMenuMgmt() {

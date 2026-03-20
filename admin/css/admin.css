@@ -706,6 +706,97 @@ textarea.form-control { resize: vertical; min-height: 100px; }
 }
 .checkbox-item span { font-size: .875rem; color: var(--text2); }
 
+/* ── 메뉴 관리 / 섹션 관리 (패널 + 토글 행) ── */
+.mgmt-page-card { overflow: hidden; }
+.card-body--flush-y { padding-top: 0; padding-bottom: 0; }
+.mgmt-check-host { min-height: 120px; }
+
+.mgmt-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.mgmt-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg2);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.mgmt-panel__head {
+  padding: 16px 20px;
+  background: linear-gradient(180deg, var(--bg2) 0%, var(--bg3) 100%);
+  border-bottom: 1px solid var(--border);
+}
+.mgmt-panel__title {
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -.02em;
+  margin: 0;
+}
+.mgmt-panel__desc {
+  font-size: .8rem;
+  color: var(--text3);
+  line-height: 1.5;
+  margin: 6px 0 0;
+  max-width: 720px;
+}
+.mgmt-toggle-list { display: flex; flex-direction: column; }
+.mgmt-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+  transition: background var(--transition);
+}
+.mgmt-toggle-row:last-child { border-bottom: none; }
+.mgmt-toggle-row:hover { background: #f8f9fd; }
+.mgmt-toggle-row__info { min-width: 0; flex: 1; }
+.mgmt-toggle-row__title {
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.4;
+  display: block;
+}
+.mgmt-toggle-row__note {
+  font-size: .72rem;
+  color: var(--text3);
+  font-family: ui-monospace, 'Consolas', monospace;
+  margin-top: 5px;
+  display: block;
+  word-break: break-all;
+}
+.mgmt-toggle-row__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.mgmt-visibility-pill {
+  font-size: .72rem;
+  font-weight: 700;
+  padding: 5px 11px;
+  border-radius: 999px;
+  min-width: 54px;
+  text-align: center;
+  letter-spacing: .03em;
+}
+.mgmt-toggle-row.is-on .mgmt-visibility-pill {
+  background: var(--success-lt);
+  color: var(--success);
+  border: 1px solid rgba(24, 184, 122, .22);
+}
+.mgmt-toggle-row.is-off .mgmt-visibility-pill {
+  background: var(--bg3);
+  color: var(--text3);
+  border: 1px solid var(--border);
+}
+
 /* Radio tabs */
 .radio-tabs {
   display: flex;
