@@ -124,16 +124,20 @@
       '<div><label>상태</label><select id="rb-st"><option value="">전체</option><option>접수</option><option>확인</option><option>완료</option><option>취소</option></select></div>' +
       '<div><button type="button" class="customReser-btn" id="rb-go">검색</button></div>' +
       '<div><button type="button" class="customReser-btn secondary" id="rb-add">관리자 등록</button></div></div>' +
-      '<div class="customReser-table-wrap"><table class="customReser-t"><thead><tr><th>번호</th><th>상태</th><th>일시</th><th>이름</th><th>연락처</th><th></th></tr></thead><tbody id="rb-body"></tbody></table></div>' +
+      '<div class="customReser-table-wrap"><table class="customReser-t"><thead><tr><th>번호</th><th>상태</th><th>예약일시</th><th>이름</th><th>연락처</th><th>지점/항목</th><th>인원</th><th></th></tr></thead><tbody id="rb-body"></tbody></table></div>' +
       '<div class="customReser-row" id="rb-pager"></div></div>';
     function load() {
       post('booking_list', { instance_id: state.instanceId, page: state.listPage, per_page: 20, q: el('rb-q').value.trim(), status: el('rb-st').value })
         .then(function (r) {
           if (!r.ok) return showMainMsg(r.msg || '오류', false);
           el('rb-body').innerHTML = (r.rows || []).map(function (row) {
-            return '<tr><td>' + esc(row.reservation_no) + '</td><td>' + esc(row.status) + '</td><td>' + esc(row.reservation_at) + '</td><td>' + esc(row.customer_name) + '</td><td>' + esc(row.customer_phone) + '</td>' +
+            var dt = row.slot_date ? (String(row.slot_date).slice(0,10) + (row.slot_time ? ' ' + String(row.slot_time).slice(0,5) : '')) : String(row.reservation_at || '').slice(0,16);
+            var loc = esc(row.branch_name || '') + (row.item_name ? ' / ' + esc(row.item_name) : '');
+            return '<tr><td>' + esc(row.reservation_no) + '</td><td>' + esc(row.status) + '</td><td>' + dt + '</td><td>' + esc(row.customer_name) + '</td><td>' + esc(row.customer_phone) + '</td>' +
+              '<td>' + loc + '</td>' +
+              '<td>' + (parseInt(row.qty, 10) || 1) + '명</td>' +
               '<td><button type="button" class="customReser-btn secondary rb-det" data-id="' + row.id + '">상세</button></td></tr>';
-          }).join('') || '<tr><td colspan="6">없음</td></tr>';
+          }).join('') || '<tr><td colspan="8">없음</td></tr>';
           var tp = Math.max(1, Math.ceil(r.total / 20));
           el('rb-pager').innerHTML = '<button type="button" class="customReser-btn secondary" id="rb-pr"' + (state.listPage <= 1 ? ' disabled' : '') + '>이전</button> ' +
             state.listPage + ' / ' + tp + ' <button type="button" class="customReser-btn secondary" id="rb-nx"' + (state.listPage >= tp ? ' disabled' : '') + '>다음</button>';
@@ -163,6 +167,7 @@
           '<div class="customReser-row"><div><label>이메일</label><input type="text" id="rab-em" style="width:100%"></div></div>' +
           '<div class="customReser-row"><div><label>날짜</label><input type="date" id="rab-dt"></div><button type="button" class="customReser-btn secondary" id="rab-ld">불러오기</button></div>' +
           '<div class="customReser-row"><div style="flex:1"><label>선택</label><select id="rab-sel" style="width:100%"></select></div></div>' +
+          '<div class="customReser-row"><div><label>예약 인원</label><input type="number" id="rab-qty" min="1" max="99" value="1" style="width:70px"> 명</div></div>' +
           '<div class="customReser-row"><button type="button" class="customReser-btn" id="rab-go">등록</button> <button type="button" class="customReser-btn secondary" onclick="document.getElementById(\'customReser-modal-bg\').classList.remove(\'open\')">닫기</button></div>'
         );
         el('rab-ld').onclick = function () {
@@ -195,7 +200,8 @@
             branch_id: parseInt(el('rab-br').value, 10),
             customer_name: el('rab-nm').value.trim(),
             customer_phone: el('rab-ph').value.trim(),
-            customer_email: el('rab-em').value.trim()
+            customer_email: el('rab-em').value.trim(),
+            qty: Math.max(1, parseInt(el('rab-qty').value, 10) || 1)
           };
           if (p[0] === 'iq') data.item_quota_id = parseInt(p[1], 10);
           else data.slot_id = parseInt(p[1], 10);
@@ -219,11 +225,29 @@
         return '<option value="' + s + '"' + (b.status === s ? ' selected' : '') + '>' + s + '</option>';
       }).join('');
       openModal(
-        '<h3>상세</h3><p>' + esc(b.reservation_no) + '</p>' +
-        '<div class="customReser-row"><select id="bd-st">' + stOpt + '</select></div>' +
-        '<div class="customReser-row"><input type="text" id="bd-note" placeholder="메모" style="width:100%" value="' + esc(b.admin_note || '') + '"></div>' +
-        '<div class="customReser-row"><button type="button" class="customReser-btn" id="bd-sv">상태 저장</button></div><hr>' +
-        '<p style="font-size:.85rem;color:#64748b">접수만 일정 변경. 기준: ' + (cap === 'item' ? '항목' : '시간') + '</p>' +
+        (function(){
+          var bDt = b.slot_date ? (String(b.slot_date).slice(0,10) + (b.slot_time ? ' ' + String(b.slot_time).slice(0,5) : '')) : String(b.reservation_at||'').slice(0,16);
+          var extraHtml = '';
+          try { var ex = JSON.parse(b.extra_json||'{}'); Object.keys(ex).forEach(function(k){ extraHtml += '<tr><td style="color:#64748b">' + esc(k) + '</td><td>' + esc(String(ex[k])) + '</td></tr>'; }); } catch(e){}
+          return '<h3 style="margin-top:0">예약 상세</h3>' +
+          '<table style="width:100%;font-size:.88rem;border-collapse:collapse;margin-bottom:12px">' +
+          '<tr><td style="color:#64748b;padding:3px 6px">예약번호</td><td style="padding:3px 6px"><strong>' + esc(b.reservation_no) + '</strong></td></tr>' +
+          '<tr><td style="color:#64748b;padding:3px 6px">상태</td><td style="padding:3px 6px">' + esc(b.status) + '</td></tr>' +
+          '<tr><td style="color:#64748b;padding:3px 6px">예약일시</td><td style="padding:3px 6px">' + bDt + '</td></tr>' +
+          '<tr><td style="color:#64748b;padding:3px 6px">지점</td><td style="padding:3px 6px">' + esc(b.branch_name||'') + '</td></tr>' +
+          (b.item_name ? '<tr><td style="color:#64748b;padding:3px 6px">항목</td><td style="padding:3px 6px">' + esc(b.item_name) + '</td></tr>' : '') +
+          '<tr><td style="color:#64748b;padding:3px 6px">이름</td><td style="padding:3px 6px">' + esc(b.customer_name) + '</td></tr>' +
+          '<tr><td style="color:#64748b;padding:3px 6px">연락처</td><td style="padding:3px 6px">' + esc(b.customer_phone) + '</td></tr>' +
+          (b.customer_email ? '<tr><td style="color:#64748b;padding:3px 6px">이메일</td><td style="padding:3px 6px">' + esc(b.customer_email) + '</td></tr>' : '') +
+          '<tr><td style="color:#64748b;padding:3px 6px">인원</td><td style="padding:3px 6px"><strong>' + (parseInt(b.qty,10)||1) + '명</strong></td></tr>' +
+          extraHtml +
+          '</table>' +
+          '<div class="customReser-row"><select id="bd-st">' + stOpt + '</select></div>' +
+          '<div class="customReser-row"><input type="text" id="bd-note" placeholder="메모" style="width:100%" value="' + esc(b.admin_note||'') + '"></div>' +
+          '<div class="customReser-row"><button type="button" class="customReser-btn" id="bd-sv">상태 저장</button></div><hr>' +
+          '<p style="font-size:.85rem;color:#64748b">접수만 일정 변경. 기준: ' + (cap === 'item' ? '항목' : '시간') + '</p>';
+        })()+
+        
         '<div class="customReser-row"><input type="date" id="bd-dt"> <button type="button" class="customReser-btn secondary" id="bd-ld">불러오기</button></div>' +
         '<div class="customReser-row"><select id="bd-sel"></select> <button type="button" class="customReser-btn" id="bd-rs">변경</button></div>' +
         '<button type="button" class="customReser-btn secondary" onclick="document.getElementById(\'customReser-modal-bg\').classList.remove(\'open\')">닫기</button>'
@@ -541,12 +565,41 @@
   }
 
   function renderSettings(inner) {
-    inner.innerHTML = '<div class="customReser-card"><h2>알림 (관리자만)</h2>' +
+    inner.innerHTML = '<div class="customReser-card"><h2>예약 설정</h2>' +
+      '<div class="customReser-row"><label style="font-weight:600">1회 최대 예약 인원</label>' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-top:6px">' +
+      '<input type="number" id="st-mq" min="1" max="999" style="width:80px;text-align:center"> 명' +
+      '</div><p style="color:#64748b;font-size:.82rem;margin:4px 0 0">예약 위젯에서 한 번에 선택할 수 있는 최대 인원수입니다.</p></div>' +
+      '<button type="button" class="customReser-btn" id="st-mq-sv" style="margin-bottom:16px">저장</button></div>' +
+      '<div class="customReser-card"><h2>알림 (관리자만)</h2>' +
       '<div class="customReser-row"><label><input type="checkbox" id="st-em"> 이메일</label> <label><input type="checkbox" id="st-sh"> 스프레드시트</label> <label><input type="checkbox" id="st-al"> 알림톡</label></div>' +
       '<div class="customReser-row"><textarea id="st-ems" placeholder="이메일 쉼표 구분" style="width:100%;min-height:60px"></textarea></div>' +
       '<div class="customReser-row"><input type="text" id="st-shu" placeholder="스프레드시트 웹훅" style="width:100%"></div>' +
       '<div class="customReser-row"><input type="text" id="st-alu" placeholder="알림톡 웹훅" style="width:100%"></div>' +
       '<button type="button" class="customReser-btn" id="st-sv">저장</button></div>';
+
+    /* max_qty: instance 목록에서 현재 인스턴스 값 읽기 */
+    loadInstances().then(function (r) {
+      var inst = (r.instances || []).find(function (x) { return parseInt(x.id, 10) === state.instanceId; });
+      var curMax = inst && parseInt(inst.max_qty_per_booking, 10) > 0 ? parseInt(inst.max_qty_per_booking, 10) : 10;
+      el('st-mq').value = curMax;
+    });
+    el('st-mq-sv').onclick = function () {
+      var mq = parseInt(el('st-mq').value, 10) || 10;
+      /* instance_save with id to update only max_qty */
+      loadInstances().then(function (r) {
+        var inst = (r.instances || []).find(function (x) { return parseInt(x.id, 10) === state.instanceId; });
+        if (!inst) return alert('인스턴스 정보를 불러올 수 없습니다.');
+        post('instance_save', {
+          id: state.instanceId,
+          name: inst.name,
+          slug: inst.slug,
+          is_active: inst.is_active == 1,
+          sort_order: inst.sort_order || 0,
+          max_qty_per_booking: mq
+        }).then(function (res) { alert(res.ok ? '저장되었습니다.' : res.msg); });
+      });
+    };
     post('settings_get', { instance_id: state.instanceId }).then(function (r) {
       var s = r.settings || {};
       el('st-ems').value = s.notify_emails || '';

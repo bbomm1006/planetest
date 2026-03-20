@@ -75,6 +75,7 @@ try {
             $slug = strtolower(trim((string)($in['slug'] ?? '')));
             $act = !empty($in['is_active']) ? 1 : 0;
             $sort = (int)($in['sort_order'] ?? 0);
+            $maxQty = isset($in['max_qty_per_booking']) ? max(1, (int)$in['max_qty_per_booking']) : 10;
             if ($name === '' || $slug === '' || !preg_match('/^[a-z0-9\-]+$/', $slug)) {
                 customReser_json_out(['ok' => false, 'msg' => '이름·slug(영문소문자·숫자·하이픈) 필요'], 400);
             }
@@ -84,8 +85,8 @@ try {
                 if ($chk->fetchColumn()) {
                     customReser_json_out(['ok' => false, 'msg' => '이미 사용 중인 slug'], 400);
                 }
-                $pdo->prepare('UPDATE customReser_instance SET name=?, slug=?, is_active=?, sort_order=? WHERE id=?')
-                    ->execute([$name, $slug, $act, $sort, $id]);
+                $pdo->prepare('UPDATE customReser_instance SET name=?, slug=?, is_active=?, sort_order=?, max_qty_per_booking=? WHERE id=?')
+                    ->execute([$name, $slug, $act, $sort, $maxQty, $id]);
                 customReser_json_out(['ok' => true, 'id' => $id]);
             }
             $chk = $pdo->prepare('SELECT id FROM customReser_instance WHERE slug=?');
@@ -93,8 +94,8 @@ try {
             if ($chk->fetchColumn()) {
                 customReser_json_out(['ok' => false, 'msg' => '이미 사용 중인 slug'], 400);
             }
-            $pdo->prepare('INSERT INTO customReser_instance (name, slug, is_active, sort_order) VALUES (?,?,?,?)')
-                ->execute([$name, $slug, $act, $sort]);
+            $pdo->prepare('INSERT INTO customReser_instance (name, slug, is_active, sort_order, max_qty_per_booking) VALUES (?,?,?,?,?)')
+                ->execute([$name, $slug, $act, $sort, $maxQty]);
             $newId = (int)$pdo->lastInsertId();
             $pdo->prepare(
                 'INSERT INTO customReser_instance_settings (instance_id, notify_emails, notify_use_email, notify_use_sheet, notify_use_alim)
@@ -631,9 +632,12 @@ try {
             $cnt = $pdo->prepare("SELECT COUNT(*) FROM customReser_booking b WHERE $where");
             $cnt->execute($params);
             $total = (int)$cnt->fetchColumn();
-            $sql = "SELECT b.*, br.name AS branch_name, i.name AS item_name FROM customReser_booking b
+            $sql = "SELECT b.*, br.name AS branch_name, i.name AS item_name,
+                           s.slot_date, s.slot_time
+                    FROM customReser_booking b
                     LEFT JOIN customReser_branch br ON br.id = b.branch_id
                     LEFT JOIN customReser_instance_item i ON i.id = b.item_id
+                    LEFT JOIN customReser_slot s ON s.id = b.slot_id
                     WHERE $where ORDER BY b.reservation_at DESC, b.id DESC LIMIT $per OFFSET $offset";
             $st = $pdo->prepare($sql);
             $st->execute($params);
@@ -646,9 +650,13 @@ try {
                 customReser_json_out(['ok' => false, 'msg' => 'id 필요'], 400);
             }
             $st = $pdo->prepare(
-                'SELECT b.*, br.name AS branch_name, i.name AS item_name FROM customReser_booking b
+                'SELECT b.*, br.name AS branch_name, i.name AS item_name,
+                        s.slot_date, s.slot_time
+                 FROM customReser_booking b
                  LEFT JOIN customReser_branch br ON br.id = b.branch_id
-                 LEFT JOIN customReser_instance_item i ON i.id = b.item_id WHERE b.id=?'
+                 LEFT JOIN customReser_instance_item i ON i.id = b.item_id
+                 LEFT JOIN customReser_slot s ON s.id = b.slot_id
+                 WHERE b.id=?'
             );
             $st->execute([$id]);
             $row = $st->fetch(PDO::FETCH_ASSOC);

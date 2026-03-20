@@ -136,6 +136,8 @@ switch ($action) {
             'fields' => $fl,
             'capacity_mode' => $mode,
             'today' => customReser_today_ymd(),
+            'max_qty_per_booking' => isset($inst['max_qty_per_booking']) && (int)$inst['max_qty_per_booking'] > 0
+                ? (int)$inst['max_qty_per_booking'] : 10,
         ]);
     }
 

@@ -1,20 +1,32 @@
-<!-- 예약관리(신규) 관리자 UI — 기능 연동 없이 화면 구조/UX만 제공 -->
+<!-- 예약관리 테이블 UI (customReser 연동) -->
 <div class="page" id="page-rvmAdminUi">
-  <div class="page-header rvmAdmin__header">
+  <div class="page-header">
     <div>
-      <h2>예약관리 테이블 설정 (관리자 UI)</h2>
-      <p>저장/불러오기/DB 연동/실시간 수량 차감/알림 발송은 제외하고, 화면 구조와 컴포넌트 흐름만 먼저 확정합니다.</p>
-    </div>
-    <div class="rvmAdmin__header-actions">
-      <button type="button" class="btn btn-primary" id="rvmAdmin__openCreate">➕ 예약 테이블 추가</button>
+      <h2>예약관리 테이블 UI</h2>
+      <p>인스턴스별로 단계·필드·지점·수량·알림을 설정하고 예약을 관리합니다.</p>
     </div>
   </div>
-
-  <div class="rvmAdmin" id="rvmAdminRoot" aria-label="예약관리 관리자 UI"></div>
+  <div id="customReser-gate" style="display:block;padding:24px;text-align:center;background:var(--bg2);border-radius:var(--radius);">
+    <p>예약 모듈을 불러오는 중…</p>
+  </div>
+  <div id="customReser-app" style="display:none;">
+    <div class="customReser-card" style="margin-bottom:16px;">
+      <div class="customReser-row">
+        <div>
+          <label>예약 인스턴스</label>
+          <select id="customReser-inst" style="min-width:220px;"></select>
+        </div>
+        <div>
+          <button type="button" class="customReser-btn secondary" id="customReser-new-inst">+ 인스턴스 추가</button>
+        </div>
+      </div>
+    </div>
+    <div class="customReser-layout">
+      <nav class="customReser-nav" id="customReser-nav" aria-label="예약 모듈 메뉴"></nav>
+      <div class="customReser-main" id="customReser-main" role="region"></div>
+    </div>
+  </div>
+  <div class="customReser-modal-bg" id="customReser-modal-bg">
+    <div class="customReser-modal" id="customReser-modal"></div>
+  </div>
 </div>
-
-<!-- 인스턴스/필드/접수 상세 공용 모달 (더미 UI용) -->
-<div class="rvmAdmin-modal-bg" id="rvmAdminModalBg" aria-hidden="true">
-  <div class="rvmAdmin-modal" id="rvmAdminModal" role="dialog" aria-modal="true"></div>
-</div>
-

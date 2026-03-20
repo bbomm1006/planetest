@@ -193,3 +193,53 @@
   margin-bottom: 10px;
   background: #fafafa;
 }
+
+/* ── 수량(인원수) 선택 UI ── */
+.customReser-suite .customReser-qty-wrap {
+  margin-top: 14px;
+}
+.customReser-suite .customReser-qty-wrap label {
+  display: block;
+  font-size: 0.82rem;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+.customReser-suite #customReser-qty-minus,
+.customReser-suite #customReser-qty-plus {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  line-height: 1;
+  border-radius: 6px;
+  background: #e2e8f0;
+  color: #334155;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+}
+.customReser-suite #customReser-qty-minus:disabled,
+.customReser-suite #customReser-qty-plus:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.customReser-suite #customReser-qty-val {
+  min-width: 36px;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+/* ── 일정 변경 패널 ── */
+.customReser-suite .customReser-resched-panel {
+  margin-top: 1.25rem;
+}
+.customReser-suite .customReser-resched-panel h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 700;
+}

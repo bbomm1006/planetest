@@ -361,6 +361,9 @@ function showPage(pageId) {
   if (pageId === 'customReserModule' && typeof window.initCustomReserAdmin === 'function') {
     window.initCustomReserAdmin();
   }
+  if (pageId === 'rvmAdminUi' && typeof window.initCustomReserAdmin === 'function') {
+    window.initCustomReserAdmin();
+  }
 }
 
 function toggleNav(el) {

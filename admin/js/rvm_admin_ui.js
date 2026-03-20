@@ -242,38 +242,60 @@
     render();
   }
 
+  function safeOptions(raw) {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    try { var p = JSON.parse(raw); return Array.isArray(p) ? p : []; } catch(e){ return []; }
+  }
+
+  function loadInstanceData(id, cb) {
+    var api = window.RvmApi;
+    if (!api) { if (cb) cb(); return; }
+    Promise.all([
+      api.stepList(id),
+      api.fieldList(id),
+      api.instanceBranchList(id)
+    ]).then(function(res) {
+      state.stepsByInstance[id]        = (res[0].steps  || []).map(function(s){ return Object.assign({}, s, { is_active: !!parseInt(s.is_active,10), sort_order: parseInt(s.sort_order,10)||0 }); });
+      state.fieldsByInstance[id]       = (res[1].fields || []).map(function(f){ return Object.assign({}, f, { is_active: !!parseInt(f.is_active,10), is_required: !!parseInt(f.is_required,10), options: safeOptions(f.options) }); });
+      var assigned = (res[2].branches || []).map(function(b){ return parseInt(b.id||b.branch_id,10); });
+      state.branchAssignByInstance[id] = assigned;
+      if (cb) cb();
+    }).catch(function(e) { console.error('loadInstanceData error', e); if (cb) cb(); });
+  }
+
   function setModeEdit(instanceId) {
     state.mode = 'edit';
     state.instanceId = instanceId;
     state.editTab = 'steps';
-    var assigns = getBranchAssign(instanceId);
-    state.calendarBranchId     = assigns[0] || null;
-    state.branchItemBranchId   = assigns[0] || null;
-    // selectedDate 는 유지하되, 과거면 오늘로 리셋
     var td = todayIso();
     if (!state.selectedDate || state.selectedDate < td) state.selectedDate = td;
-    render();
+    root.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text3)">불러오는 중…</div>';
+    loadInstanceData(instanceId, function() {
+      var assigns = getBranchAssign(instanceId);
+      state.calendarBranchId   = assigns[0] || null;
+      state.branchItemBranchId = assigns[0] || null;
+      render();
+    });
   }
 
   function createNewInstance() {
-    var newId = Math.max.apply(null, state.instances.map(function(x){ return x.id; }).concat([0])) + 1;
-    state.instances.unshift({ id: newId, name: '예약관리 ' + newId, slug: 'reservation-' + newId, is_active: true, description: '' });
-    state.stepsByInstance[newId]        = [ { step_key: 'branch', sort_order: 10, is_active: true }, { step_key: 'date', sort_order: 20, is_active: true }, { step_key: 'time', sort_order: 30, is_active: true }, { step_key: 'info', sort_order: 40, is_active: true } ];
-    state.fieldsByInstance[newId]       = [ { id: state.nextFieldId++, field_type: 'text', name_key: 'customer_name', label: '이름', is_required: true, is_active: true, options: [] }, { id: state.nextFieldId++, field_type: 'phone', name_key: 'customer_phone', label: '전화번호', is_required: true, is_active: true, options: [] } ];
-    var firstBranch = state.branchesMaster && state.branchesMaster[0] ? state.branchesMaster[0].id : null;
-    state.branchAssignByInstance[newId] = firstBranch ? [firstBranch] : [];
-    state.calendarByInstance[newId]     = {};
-    state.notificationByInstance[newId] = { use_email: true, use_sheet: false, use_alimtalk: false, email_list: '', sheet_webhook: '', alimtalk_webhook: '' };
-    state.bookingsByInstance[newId]     = [];
-    state.lookupByInstance[newId]       = { allow_by_reservation_no: true, allow_by_name_phone: true };
-    state.itemsByBranchByInstance[newId]= {};
-    state.instanceId    = newId;
-    state.mode          = 'edit';
-    state.editTab       = 'steps';
-    state.calendarBranchId   = firstBranch;
-    state.branchItemBranchId = firstBranch;
-    render();
-    toast('새 예약 테이블 생성됨', 'success');
+    var api = window.RvmApi;
+    var name = '예약관리 ' + (state.instances.length + 1);
+    var slug = 'reservation-' + Date.now();
+    if (!api) {
+      var newId = Math.max.apply(null, state.instances.map(function(x){ return x.id; }).concat([0])) + 1;
+      state.instances.unshift({ id: newId, name: name, slug: slug, is_active: true, description: '' });
+      state.stepsByInstance[newId] = [];
+      state.fieldsByInstance[newId] = [];
+      state.branchAssignByInstance[newId] = [];
+      state.instanceId = newId; state.mode = 'edit'; state.editTab = 'steps';
+      toast('새 예약 테이블 생성됨', 'success'); render(); return;
+    }
+    api.instanceSave({ id: 0, name: name, slug: slug, is_active: true, sort_order: 0 }).then(function(res) {
+      toast('새 예약 테이블 생성됨', 'success');
+      loadAll(function() { setModeEdit(res.id); });
+    }).catch(function(e) { toast(e.message || '생성 실패', 'error'); });
   }
 
   /* ════════════════════════════════════════════════════
@@ -908,7 +930,12 @@
       if (act === 'bk-reset')    el.onclick = function() { resetBookingsFilters(); render(); };
       if (act === 'cal-prev')    el.onclick = function() { moveCalendar(-1); };
       if (act === 'cal-next')    el.onclick = function() { moveCalendar(1); };
-      if (act === 'dummy-save')  el.onclick = function() { syncAndSave(); };
+      if (act === 'dummy-save')  el.onclick = function() {
+        var tab = state.editTab;
+        if (tab === 'notification') { saveNotification(); }
+        else if (tab === 'lookup')  { saveLookup(); }
+        else { syncAndSave(); }
+      };
     });
 
     // ─ 인스턴스 목록: 사용 여부 토글
@@ -957,6 +984,8 @@
         if (!confirm('필드를 삭제할까요?')) return;
         var id = parseInt(b.getAttribute('data-id'), 10);
         state.fieldsByInstance[state.instanceId] = getFields(state.instanceId).filter(function(f){ return f.id !== id; });
+        var api = window.RvmApi;
+        if (api) api.fieldDelete(id).catch(function(e){ console.error('fieldDelete', e); });
         toast('필드 삭제됨', 'success'); render();
       };
     });
@@ -978,6 +1007,8 @@
         if (branchCount > 0) { alert('"' + (r ? r.name : id) + '" 지역에 소속 지점(' + branchCount + '개)이 있어 삭제할 수 없습니다.\n지점을 먼저 삭제하거나 다른 지역으로 이동하세요.'); return; }
         if (!confirm('"' + (r ? r.name : id) + '" 지역을 삭제할까요?')) return;
         state.regionsMaster = (state.regionsMaster || []).filter(function(x){ return x.id !== id; });
+        var api = window.RvmApi;
+        if (api) api.regionDelete(id).catch(function(e){ console.error('regionDelete', e); });
         toast('지역 삭제됨', 'success'); render();
       };
     });
@@ -991,13 +1022,19 @@
         if (cb.checked) { if (idx < 0) list.push(bid); }
         else            { if (idx >= 0) list.splice(idx, 1); }
         state.branchAssignByInstance[state.instanceId] = list;
+        var api = window.RvmApi;
+        if (api) api.instanceBranchSync(state.instanceId, list).catch(function(e){ console.error('branchSync', e); });
         toast('지점 연결 변경됨', 'success'); render();
       };
     });
     root.querySelectorAll('input.rvmBranchActive[data-branch]').forEach(function(cb) {
       cb.onchange = function() {
         var br = branchById(parseInt(cb.getAttribute('data-branch'), 10));
-        if (br) br.is_active = !!cb.checked;
+        if (br) {
+          br.is_active = !!cb.checked;
+          var api = window.RvmApi;
+          if (api) api.branchSave({ id: br.id, region_id: br.region_id, name: br.name, is_active: br.is_active ? 1 : 0, sort_order: br.sort_order||0 }).catch(function(e){ console.error('branchSave', e); });
+        }
         toast('지점 사용 여부 변경됨', 'success'); render();
       };
     });
@@ -1020,6 +1057,8 @@
         });
         if (state.branchItemBranchId === id) state.branchItemBranchId = getBranchAssign(state.instanceId)[0] || null;
         if (state.calendarBranchId   === id) state.calendarBranchId   = getBranchAssign(state.instanceId)[0] || null;
+        var api = window.RvmApi;
+        if (api) api.branchDelete(id).catch(function(e){ console.error('branchDelete', e); });
         toast('지점 삭제됨', 'success'); render();
       };
     });
@@ -1036,6 +1075,8 @@
         var bid = state.branchItemBranchId;
         if (!bid) return;
         setItemsByBranch(state.instanceId, bid, getItemsByBranch(state.instanceId, bid).filter(function(x){ return x.id !== itemId; }));
+        var api = window.RvmApi;
+        if (api) api.branchItemDelete(itemId).catch(function(e){ console.error('branchItemDelete', e); });
         toast('항목 삭제됨', 'success'); render();
       };
     });
@@ -1166,25 +1207,60 @@
   function deleteInstance(id) {
     var inst = getInstance(id);
     if (!confirm('"' + (inst ? inst.name : id) + '" 예약 테이블을 삭제할까요?')) return;
-    state.instances = state.instances.filter(function(x){ return x.id !== id; });
-    ['stepsByInstance','fieldsByInstance','branchAssignByInstance','calendarByInstance','notificationByInstance','bookingsByInstance','lookupByInstance','itemsByBranchByInstance'].forEach(function(k){ delete state[k][id]; });
-    if (!state.instances.length) { state.instances = demo.instances.map(function(x){ return Object.assign({}, x); }); }
-    state.mode = 'list';
-    toast('삭제됨', 'success'); render();
+    var api = window.RvmApi;
+    if (!api) {
+      state.instances = state.instances.filter(function(x){ return x.id !== id; });
+      ['stepsByInstance','fieldsByInstance','branchAssignByInstance','calendarByInstance','notificationByInstance','bookingsByInstance','lookupByInstance','itemsByBranchByInstance'].forEach(function(k){ delete state[k][id]; });
+      state.mode = 'list'; toast('삭제됨', 'success'); render(); return;
+    }
+    api.instanceDelete(id).then(function() {
+      state.instances = state.instances.filter(function(x){ return x.id !== id; });
+      ['stepsByInstance','fieldsByInstance','branchAssignByInstance','calendarByInstance','notificationByInstance','bookingsByInstance','lookupByInstance','itemsByBranchByInstance'].forEach(function(k){ delete state[k][id]; });
+      state.mode = 'list'; toast('삭제됨', 'success'); render();
+    }).catch(function(e) { toast(e.message || '삭제 실패', 'error'); });
   }
 
-  function syncAndSave() {
+  function saveNotification() {
+    var n = getNotification(state.instanceId);
+    var useEmail = !!(root.querySelector('input.rvmNotiUse[data-key="use_email"]') || {checked:n.use_email}).checked;
+    var useSheet = !!(root.querySelector('input.rvmNotiUse[data-key="use_sheet"]') || {checked:n.use_sheet}).checked;
+    var useAlim  = !!(root.querySelector('input.rvmNotiUse[data-key="use_alimtalk"]') || {checked:n.use_alimtalk}).checked;
+    var emails   = ((document.getElementById('rvmNotiEmails') || {}).value || '').trim();
+    var sheet    = ((document.getElementById('rvmNotiSheet')  || {}).value || '').trim();
+    var alim     = ((document.getElementById('rvmNotiAlim')   || {}).value || '').trim();
+    Object.assign(n, { use_email: useEmail, use_sheet: useSheet, use_alimtalk: useAlim, email_list: emails, sheet_webhook: sheet, alimtalk_webhook: alim });
+    var api = window.RvmApi;
+    if (!api) { toast('알림 설정 저장됨', 'success'); return; }
+    api.settingsSave({ instance_id: state.instanceId, use_email: useEmail ? 1 : 0, use_sheet: useSheet ? 1 : 0, use_alimtalk: useAlim ? 1 : 0, email_list: emails, sheet_webhook: sheet, alimtalk_webhook: alim })
+      .then(function(){ toast('알림 설정 저장됨', 'success'); })
+      .catch(function(e){ toast(e.message||'저장 실패', 'error'); });
+  }
+
+  function saveLookup() {
+    var l = getLookup(state.instanceId);
+    var noEl   = document.getElementById('rvmLookupNo');
+    var npEl   = document.getElementById('rvmLookupNamePhone');
+    if (noEl) l.allow_by_reservation_no = !!noEl.checked;
+    if (npEl) l.allow_by_name_phone     = !!npEl.checked;
+    toast('예약 조회 설정 저장됨', 'success');
+  }
+
+    function syncAndSave() {
     if (state.mode !== 'edit') { toast('저장됨', 'success'); return; }
     var inst = getInstance(state.instanceId);
     var nm = document.getElementById('rvm-edit-name');
     var ac = document.getElementById('rvm-edit-active');
     var ds = document.getElementById('rvm-edit-desc');
-    if (inst && nm && ac) {
-      inst.name        = (nm.value || '').trim() || inst.name;
-      inst.is_active   = !!ac.checked;
-      inst.description = ds ? (ds.value || '') : '';
-    }
-    toast('저장됨', 'success'); render();
+    if (!inst || !nm) { toast('저장됨', 'success'); return; }
+    var newName = (nm.value || '').trim() || inst.name;
+    var newActive = ac ? !!ac.checked : !!inst.is_active;
+    var newDesc   = ds ? (ds.value || '') : (inst.description || '');
+    inst.name = newName; inst.is_active = newActive; inst.description = newDesc;
+    var api = window.RvmApi;
+    if (!api) { toast('저장됨', 'success'); render(); return; }
+    api.instanceSave({ id: inst.id, name: newName, slug: inst.slug || '', is_active: newActive, sort_order: inst.sort_order || 0 })
+      .then(function() { toast('저장됨', 'success'); render(); })
+      .catch(function(e) { toast(e.message || '저장 실패', 'error'); });
   }
 
   function toggleStep(idx, isActive) {
@@ -1211,7 +1287,14 @@
     saveSteps(steps); toast('단계 삭제됨', 'success'); render();
   }
   function sortedSteps() { return getSteps(state.instanceId).slice().sort(function(a,b){ return a.sort_order - b.sort_order; }); }
-  function saveSteps(steps) { state.stepsByInstance[state.instanceId] = steps.map(function(s,i){ return Object.assign({}, s, { sort_order: (i+1)*10 }); }); }
+  function saveSteps(steps) {
+    var ordered = steps.map(function(s,i){ return Object.assign({}, s, { sort_order: (i+1)*10 }); });
+    state.stepsByInstance[state.instanceId] = ordered;
+    var api = window.RvmApi;
+    if (!api) return;
+    api.stepBulkSave(state.instanceId, ordered.map(function(s){ return { step_key: s.step_key, sort_order: s.sort_order, is_active: s.is_active ? 1 : 0 }; }))
+      .catch(function(e){ console.error('saveSteps error', e); });
+  }
 
   function moveCalendar(delta) {
     var cur  = state.monthCursor instanceof Date ? state.monthCursor : new Date();
@@ -1269,8 +1352,75 @@
       cur.setDate(cur.getDate() + 1);
     }
 
-    toast('일괄 적용 완료: ' + inserted + '개 슬롯 추가됨', 'success');
-    render();
+    var api = window.RvmApi;
+    if (!api) { toast('일괄 적용 완료: ' + inserted + '개 슬롯 추가됨', 'success'); render(); return; }
+    var bid = state.calendarBranchId;
+    if (!bid) { toast('일괄 적용 완료: ' + inserted + '개 슬롯 추가됨', 'success'); render(); return; }
+    // API로 bulk 저장: 날짜별 슬롯 목록 수집
+    var slots = [];
+    var cur2 = parseIso(fromIso); var end2 = parseIso(toIso);
+    while (cur2 <= end2) {
+      var k2 = formatISODate(cur2);
+      if (k2 >= td && m[k2] && m[k2].times) {
+        m[k2].times.forEach(function(t) {
+          slots.push({ slot_date: k2, slot_time: t.time + ':00', capacity: t.capacity });
+        });
+      }
+      cur2.setDate(cur2.getDate() + 1);
+    }
+    if (slots.length) {
+      api.slotBulkSave({ instance_id: state.instanceId, branch_id: bid, slots: slots })
+        .then(function(){ toast('일괄 저장 완료: ' + inserted + '개 슬롯', 'success'); render(); })
+        .catch(function(e){ toast(e.message||'일괄 저장 실패','error'); render(); });
+    } else {
+      toast('일괄 적용 완료: ' + inserted + '개 슬롯 추가됨', 'success'); render();
+    }
+  }
+
+  function renderBkRows(filtered, activeFields) {
+    var colCount = 6 + activeFields.length;
+    var body    = document.getElementById('rvmBkBody');
+    var summary = document.getElementById('rvmBkSummary');
+    if (!body) return;
+    if (summary) summary.textContent = '검색 결과: ' + filtered.length + '건';
+    body.innerHTML = filtered.map(function(bk) {
+      var statusOpts = ['접수','확인','완료','취소'].map(function(s){ return '<option value="' + esc(s) + '"' + (s === bk.status ? ' selected' : '') + '>' + esc(s) + '</option>'; }).join('');
+      var extraObj = {}; try { extraObj = JSON.parse(bk.extra_json || '{}'); } catch(e){}
+      var fieldTds = activeFields.map(function(f){ return '<td style="min-width:140px">' + esc(String(extraObj[f.name_key] || '')); + '</td>'; }).join('');
+      var pillCls = bk.status === '완료' ? 'ok' : bk.status === '취소' ? 'bad' : bk.status === '확인' ? 'warn' : '';
+      var bkBrName = esc((branchById(bk.branch_id) || {}).name || bk.branch_name || '-');
+      return '<tr>' +
+        '<td style="font-weight:900;white-space:nowrap">' + esc(bk.reservation_no || bk.no) + '</td>' +
+        '<td><span class="rvmAdmin-pill ' + pillCls + '">' + esc(bk.status) + '</span></td>' +
+        '<td style="min-width:120px"><select class="rvmAdmin-select rvmBkStatusSel" data-bid="' + esc(bk.id) + '">' + statusOpts + '</select></td>' +
+        '<td style="white-space:nowrap">' + esc(bk.reservation_at || bk.at || '') + '</td>' +
+        '<td>' + bkBrName + '</td>' +
+        '<td>' + esc(bk.customer_name || bk.name || '') + ' / ' + esc(bk.customer_phone || bk.phone || '') + '</td>' +
+        '<td><div class="rvmAdmin-actions">' +
+        '<button type="button" class="btn btn-sm btn-outline rvmBkStatusSet" data-bid="' + esc(bk.id) + '">변경</button>' +
+        '<button type="button" class="btn btn-sm btn-outline rvmBkDetail" data-bid="' + esc(bk.id) + '">상세</button>' +
+        '</div></td></tr>';
+    }).join('') || '<tr><td colspan="' + colCount + '" style="color:var(--text3);padding:18px 8px">검색 결과가 없습니다.</td></tr>';
+    body.querySelectorAll('.rvmBkDetail[data-bid]').forEach(function(btn) {
+      btn.onclick = function() { openBookingDetailModal(parseInt(btn.getAttribute('data-bid'), 10)); };
+    });
+    body.querySelectorAll('.rvmBkStatusSet[data-bid]').forEach(function(btn) {
+      btn.onclick = function() {
+        var bid = parseInt(btn.getAttribute('data-bid'), 10);
+        var tr  = btn.closest('tr');
+        var sel = tr ? tr.querySelector('select.rvmBkStatusSel') : null;
+        if (!sel) return;
+        var newStatus = sel.value;
+        var api = window.RvmApi;
+        if (api) {
+          api.bookingStatusUpdate(bid, newStatus, '').then(function(){ toast('상태 변경: ' + newStatus, 'success'); filterAndRenderBookings(); }).catch(function(e){ toast(e.message||'실패','error'); });
+        } else {
+          var bk = getBookings(state.instanceId).find(function(x){ return x.id === bid; });
+          if (bk) bk.status = newStatus;
+          toast('상태 변경: ' + newStatus, 'success'); render();
+        }
+      };
+    });
   }
 
   function filterAndRenderBookings() {
@@ -1279,55 +1429,37 @@
     var br       = parseInt(((document.getElementById('rvmBkBranch') || {}).value || '0'), 10);
     var dateFrom = ((document.getElementById('rvmBkDateFrom') || {}).value || '').trim();
     var dateTo   = ((document.getElementById('rvmBkDateTo')   || {}).value || '').trim();
-
-    // 필터 상태 저장 (탭 전환 후에도 유지)
     state.bkFilter = { q: q, status: st, branch: String(br), dateFrom: dateFrom, dateTo: dateTo };
-
     var activeFields = getFields(state.instanceId).filter(function(f){ return !!f.is_active; });
-
-    var filtered = getBookings(state.instanceId).filter(function(bk) {
-      var okSt = !st || bk.status === st;
-      var okBr = !br || bk.branch_id === br;
-      var text = (bk.no + ' ' + bk.name + ' ' + bk.phone).toLowerCase();
-      var okQ  = !q || text.indexOf(q) >= 0;
-
-      // 날짜 필터: bk.at = 'YYYY-MM-DD HH:MM' 앞 10자로 비교
-      var bkDate = (bk.at || '').slice(0, 10);
-      var okFrom = !dateFrom || bkDate >= dateFrom;
-      var okTo   = !dateTo   || bkDate <= dateTo;
-
-      return okSt && okBr && okQ && okFrom && okTo;
+    var api = window.RvmApi;
+    if (!api) {
+      var filtered = getBookings(state.instanceId).filter(function(bk) {
+        var text = ((bk.reservation_no||bk.no||'') + ' ' + (bk.customer_name||bk.name||'') + ' ' + (bk.customer_phone||bk.phone||'')).toLowerCase();
+        var bkDate = (bk.reservation_at||bk.at||'').slice(0,10);
+        return (!st||bk.status===st) && (!br||bk.branch_id===br) && (!q||text.indexOf(q)>=0) && (!dateFrom||bkDate>=dateFrom) && (!dateTo||bkDate<=dateTo);
+      });
+      renderBkRows(filtered, activeFields); return;
+    }
+    var params = { instance_id: state.instanceId, page: 1, per_page: 100 };
+    if (st) params.status = st;
+    if (br) params.branch_id = br;
+    if (q)  params.q = q;
+    if (dateFrom) params.date_from = dateFrom;
+    if (dateTo)   params.date_to   = dateTo;
+    api.bookingList(params).then(function(res) {
+      state.bookingsByInstance[state.instanceId] = res.bookings || res.rows || [];
+      renderBkRows(state.bookingsByInstance[state.instanceId], activeFields);
+    }).catch(function(e) {
+      var body = document.getElementById('rvmBkBody');
+      if (body) body.innerHTML = '<tr><td colspan="8" style="color:#b91c1c">' + esc(e.message||'로드 실패') + '</td></tr>';
     });
 
+    // 예약 목록 탭이 활성화될 때 API 로드 되도록 아래를 보존
     var body    = document.getElementById('rvmBkBody');
     var summary = document.getElementById('rvmBkSummary');
     if (!body) return;
-
-    // 결과 요약
-    if (summary) {
-      var hasFilter = q || st || br || dateFrom || dateTo;
-      summary.textContent = hasFilter
-        ? '검색 결과: ' + filtered.length + '건 / 전체 ' + getBookings(state.instanceId).length + '건'
-        : '전체 ' + getBookings(state.instanceId).length + '건';
-    }
-
-    var colCount = 6 + activeFields.length;
-    body.innerHTML = filtered.map(function(bk) {
-      var statusOpts = ['접수','확인','완료','취소'].map(function(s){ return '<option value="' + esc(s) + '"' + (s === bk.status ? ' selected' : '') + '>' + esc(s) + '</option>'; }).join('');
-      var fieldTds   = activeFields.map(function(f){ return '<td style="min-width:140px">' + esc(dummyFieldValue(bk, f)) + '</td>'; }).join('');
-      var pillCls    = bk.status === '완료' ? 'ok' : bk.status === '취소' ? 'bad' : bk.status === '확인' ? 'warn' : '';
-      return '<tr>' +
-        '<td style="font-weight:900;white-space:nowrap">' + esc(bk.no) + '</td>' +
-        '<td><span class="rvmAdmin-pill ' + pillCls + '">' + esc(bk.status) + '</span></td>' +
-        '<td style="min-width:120px"><select class="rvmAdmin-select rvmBkStatusSel" data-bid="' + esc(bk.id) + '">' + statusOpts + '</select></td>' +
-        '<td style="white-space:nowrap">' + esc(bk.at) + '</td>' +
-        '<td>' + esc((branchById(bk.branch_id) || {}).name || '-') + '</td>' +
-        fieldTds +
-        '<td><div class="rvmAdmin-actions">' +
-        '<button type="button" class="btn btn-sm btn-outline rvmBkStatusSet" data-bid="' + esc(bk.id) + '">변경</button>' +
-        '<button type="button" class="btn btn-sm btn-outline rvmBkDetail" data-bid="' + esc(bk.id) + '">상세</button>' +
-        '</div></td></tr>';
-    }).join('') || '<tr><td colspan="' + colCount + '" style="color:var(--text3);padding:18px 8px">검색 결과가 없습니다.</td></tr>';
+    if (summary) summary.textContent = '불러오는 중…';
+    body.innerHTML = '<tr><td colspan="8" style="color:var(--text3);padding:18px 8px">불러오는 중…</td></tr>';
 
     body.querySelectorAll('.rvmBkDetail[data-bid]').forEach(function(btn) {
       btn.onclick = function() { openBookingDetailModal(parseInt(btn.getAttribute('data-bid'), 10)); };
@@ -1340,8 +1472,13 @@
         if (!sel) return;
         var bk  = getBookings(state.instanceId).find(function(x){ return x.id === bid; });
         if (!bk) return;
-        bk.status = sel.value;
-        toast('상태 변경: ' + sel.value, 'success'); render();
+        var newStatus = sel.value;
+        bk.status = newStatus;
+        var api = window.RvmApi;
+        if (api) {
+          api.bookingStatusUpdate(bid, newStatus, '').catch(function(e){ console.error('statusUpdate', e); });
+        }
+        toast('상태 변경: ' + newStatus, 'success'); render();
       };
     });
   }
@@ -1397,13 +1534,19 @@
       var exists = m[iso].times.find(function(t){ return t.time === timeVal; });
       if (exists) { alert(timeVal + ' 슬롯이 이미 등록되어 있습니다.'); return; }
 
-      m[iso].times.push({ time: timeVal, capacity: capVal, booked: 0 });
-      // 시간 순 정렬
-      m[iso].times.sort(function(a, b){ return a.time < b.time ? -1 : 1; });
-
-      closeModal();
-      toast(iso + ' · ' + timeVal + ' 슬롯 추가됨', 'success');
-      render();
+      var api = window.RvmApi;
+      if (!api) {
+        m[iso].times.push({ time: timeVal, capacity: capVal, booked: 0 });
+        m[iso].times.sort(function(a, b){ return a.time < b.time ? -1 : 1; });
+        closeModal(); toast(iso + ' · ' + timeVal + ' 슬롯 추가됨', 'success'); render(); return;
+      }
+      var bid = state.calendarBranchId;
+      if (!bid) { alert('지점을 먼저 선택하세요.'); return; }
+      api.slotSave({ id: 0, instance_id: state.instanceId, branch_id: bid, slot_date: iso, slot_time: timeVal + ':00', capacity: capVal }).then(function() {
+        m[iso].times.push({ time: timeVal, capacity: capVal, booked: 0 });
+        m[iso].times.sort(function(a, b){ return a.time < b.time ? -1 : 1; });
+        closeModal(); toast(iso + ' · ' + timeVal + ' 슬롯 추가됨', 'success'); render();
+      }).catch(function(e){ toast(e.message||'슬롯 저장 실패', 'error'); });
     };
   }
 
@@ -1487,15 +1630,23 @@
         var ta = modalEl.querySelector('#rvmFieldOpts');
         if (ta) opts = ta.value.split(/\r?\n/).map(function(x){ return x.trim(); }).filter(Boolean);
       }
-      var fields = getFields(state.instanceId).slice();
-      if (f) {
-        var idx = fields.findIndex(function(x){ return x.id === f.id; });
-        if (idx >= 0) fields[idx] = Object.assign({}, fields[idx], { field_type: type, name_key: key, label: lab, is_required: req, is_active: act, options: opts });
-      } else {
-        fields.push({ id: state.nextFieldId++, field_type: type, name_key: key, label: lab, is_required: req, is_active: act, options: opts });
+      var api = window.RvmApi;
+      var fieldData = { instance_id: state.instanceId, id: f ? f.id : 0, field_type: type, name_key: key, label: lab, is_required: req ? 1 : 0, is_active: act ? 1 : 0, options: opts, sort_order: f ? (f.sort_order||0) : 999 };
+      if (!api) {
+        var fields = getFields(state.instanceId).slice();
+        if (f) {
+          var idx = fields.findIndex(function(x){ return x.id === f.id; });
+          if (idx >= 0) fields[idx] = Object.assign({}, fields[idx], { field_type: type, name_key: key, label: lab, is_required: req, is_active: act, options: opts });
+        } else {
+          fields.push({ id: state.nextFieldId++, field_type: type, name_key: key, label: lab, is_required: req, is_active: act, options: opts });
+        }
+        state.fieldsByInstance[state.instanceId] = fields;
+        closeModal(); toast('필드 반영됨', 'success'); render(); return;
       }
-      state.fieldsByInstance[state.instanceId] = fields;
-      closeModal(); toast('필드 반영됨', 'success'); render();
+      api.fieldSave(fieldData).then(function() {
+        closeModal(); toast('필드 저장됨', 'success');
+        loadInstanceData(state.instanceId, function(){ render(); });
+      }).catch(function(e){ toast(e.message||'필드 저장 실패','error'); });
     };
   }
 
@@ -1517,14 +1668,19 @@
       if (!name)     return alert('항목명을 입력하세요.');
       if (!branchId) return alert('대상 지점이 선택되지 않았습니다.');
       var items = getItemsByBranch(state.instanceId, branchId).slice();
-      if (item) {
-        var idx = items.findIndex(function(x){ return x.id === item.id; });
-        if (idx >= 0) items[idx] = Object.assign({}, items[idx], { name: name, is_active: active });
-      } else {
-        items.push({ id: state.nextItemId++, name: name, is_active: active });
+      var api = window.RvmApi;
+      if (!api) {
+        if (item) { var idx = items.findIndex(function(x){ return x.id === item.id; }); if (idx >= 0) items[idx] = Object.assign({}, items[idx], { name: name, is_active: active }); }
+        else { items.push({ id: state.nextItemId++, name: name, is_active: active }); }
+        setItemsByBranch(state.instanceId, branchId, items);
+        closeModal(); toast('항목 반영됨', 'success'); render(); return;
       }
-      setItemsByBranch(state.instanceId, branchId, items);
-      closeModal(); toast('항목 반영됨', 'success'); render();
+      api.branchItemSave({ id: item ? item.id : 0, instance_id: state.instanceId, branch_id: branchId, name: name, is_active: active ? 1 : 0, sort_order: item ? (item.sort_order||0) : 999 }).then(function() {
+        return api.branchItemList(state.instanceId, branchId);
+      }).then(function(r) {
+        setItemsByBranch(state.instanceId, branchId, r.items || []);
+        closeModal(); toast('항목 반영됨', 'success'); render();
+      }).catch(function(e){ toast(e.message||'저장 실패', 'error'); });
     };
   }
 
@@ -1629,13 +1785,36 @@
     };
   }
 
-  /* ─── 초기화 ─────────────────────────────────────── */
-  try {
-    state.mode = 'list';
-    render();
-  } catch (e) {
-    root.innerHTML = '<div class="rvmAdmin-card"><div class="rvmAdmin-card__body" style="color:#b91c1c;font-weight:900">UI 초기화 실패: ' + esc(e && e.message ? e.message : String(e)) + '</div></div>';
-    console.error('[rvm_admin_ui] init error:', e);
+  /* ─── 초기화 (API 연동) ──────────────────────────── */
+  function loadAll(cb) {
+    var api = window.RvmApi;
+    if (!api) {
+      // rvm_api.js 미로드 시 더미 데이터로 폴백
+      state.mode = 'list';
+      try { if (typeof cb === 'function') { cb(); } else { render(); } } catch(e) { console.error(e); }
+      return;
+    }
+    root.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text3)">불러오는 중…</div>';
+    Promise.all([
+      api.instanceList(),
+      api.regionList(),
+      api.branchList()
+    ]).then(function(results) {
+      var instR = results[0], regR = results[1], brR = results[2];
+      state.instances      = (instR.instances || []).map(function(x){ return Object.assign({}, x, { is_active: !!parseInt(x.is_active, 10) }); });
+      state.regionsMaster  = regR.regions  || [];
+      state.branchesMaster = (brR.branches || []).map(function(x){ return Object.assign({}, x, { is_active: !!parseInt(x.is_active, 10) }); });
+      if (state.instances.length) state.instanceId = state.instances[0].id;
+      state.mode = 'list';
+      try {
+        if (typeof cb === 'function') { cb(); } else { render(); }
+      } catch(e) {
+        root.innerHTML = '<div class="rvmAdmin-card"><div class="rvmAdmin-card__body" style="color:#b91c1c;font-weight:900">UI 초기화 실패: ' + esc(e && e.message ? e.message : String(e)) + '</div></div>';
+      }
+    }).catch(function(e) {
+      root.innerHTML = '<div class="rvmAdmin-card"><div class="rvmAdmin-card__body" style="color:#b91c1c;font-weight:900">데이터 로드 실패: ' + esc(e && e.message ? String(e.message) : String(e)) + '</div></div>';
+    });
   }
+  loadAll();
 
 })();

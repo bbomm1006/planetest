@@ -114,13 +114,14 @@ function customReser_is_day_closed(PDO $pdo, int $instanceId, int $branchId, str
 }
 
 function customReser_release_booking_capacity(PDO $pdo, array $bookingRow): void {
+    $qty = max(1, (int)($bookingRow['qty'] ?? 1));
     if (!empty($bookingRow['slot_id'])) {
-        $pdo->prepare('UPDATE customReser_slot SET booked = GREATEST(0, booked - 1) WHERE id = ?')
-            ->execute([(int)$bookingRow['slot_id']]);
+        $pdo->prepare('UPDATE customReser_slot SET booked = GREATEST(0, booked - ?) WHERE id = ?')
+            ->execute([$qty, (int)$bookingRow['slot_id']]);
     }
     if (!empty($bookingRow['item_quota_id'])) {
-        $pdo->prepare('UPDATE customReser_item_quota SET booked = GREATEST(0, booked - 1) WHERE id = ?')
-            ->execute([(int)$bookingRow['item_quota_id']]);
+        $pdo->prepare('UPDATE customReser_item_quota SET booked = GREATEST(0, booked - ?) WHERE id = ?')
+            ->execute([$qty, (int)$bookingRow['item_quota_id']]);
     }
 }
 
@@ -134,9 +135,25 @@ function customReser_booking_create(PDO $pdo, int $instanceId, array $in): array
     $name = trim((string)($in['customer_name'] ?? ''));
     $phone = trim((string)($in['customer_phone'] ?? ''));
     $email = trim((string)($in['customer_email'] ?? ''));
+    $qty = max(1, (int)($in['qty'] ?? 1));
+    $maxQty = 10; /* 기본 상한; 추후 instance 설정으로 확장 가능 */
+    if ($qty > $maxQty) {
+        return ['ok' => false, 'msg' => '1회 예약 최대 인원(' . $maxQty . '명)을 초과했습니다.'];
+    }
     $itemId = isset($in['item_id']) ? (int)$in['item_id'] : 0;
     $itemId = $itemId > 0 ? $itemId : null;
     $extra = isset($in['extra']) && is_array($in['extra']) ? $in['extra'] : [];
+
+    /* 수량(인원수): 1 이상, 인스턴스 설정 max_qty_per_booking 이하 */
+    $qty = max(1, (int)($in['qty'] ?? 1));
+    $instSt = $pdo->prepare('SELECT max_qty_per_booking FROM customReser_instance WHERE id = ? LIMIT 1');
+    $instSt->execute([$instanceId]);
+    $instData = $instSt->fetch(PDO::FETCH_ASSOC);
+    $maxQty = isset($instData['max_qty_per_booking']) && (int)$instData['max_qty_per_booking'] > 0
+        ? (int)$instData['max_qty_per_booking'] : 10;
+    if ($qty > $maxQty) {
+        return ['ok' => false, 'msg' => '1회 최대 예약 인원(' . $maxQty . '명)을 초과했습니다.'];
+    }
 
     if ($branchId < 1 || $name === '' || $phone === '') {
         return ['ok' => false, 'msg' => '지점, 이름, 연락처는 필수입니다.'];
@@ -191,9 +208,9 @@ function customReser_booking_create(PDO $pdo, int $instanceId, array $in): array
                 $pdo->rollBack();
                 return ['ok' => false, 'msg' => '해당 일정은 예약이 불가합니다.'];
             }
-            if ((int)$slot['booked'] >= (int)$slot['capacity']) {
+            if ((int)$slot['booked'] + $qty > (int)$slot['capacity']) {
                 $pdo->rollBack();
-                return ['ok' => false, 'msg' => '해당 시간은 마감되었습니다.'];
+                return ['ok' => false, 'msg' => '해당 시간의 잔여 인원이 부족합니다. (잔여: ' . max(0, (int)$slot['capacity'] - (int)$slot['booked']) . '명)'];
             }
             $timeHi = substr((string)$slot['slot_time'], 0, 5);
             $err = customReser_validate_same_day_two_hours($dateYmd, $timeHi);
@@ -202,8 +219,8 @@ function customReser_booking_create(PDO $pdo, int $instanceId, array $in): array
                 return ['ok' => false, 'msg' => $err];
             }
             $resAt = $dateYmd . ' ' . substr((string)$slot['slot_time'], 0, 8);
-            $up = $pdo->prepare('UPDATE customReser_slot SET booked = booked + 1 WHERE id = ? AND booked < capacity');
-            $up->execute([$sid]);
+            $up = $pdo->prepare('UPDATE customReser_slot SET booked = booked + ? WHERE id = ? AND booked + ? <= capacity');
+            $up->execute([$qty, $sid, $qty]);
             if ($up->rowCount() !== 1) {
                 $pdo->rollBack();
                 return ['ok' => false, 'msg' => '예약 가능 인원이 부족합니다.'];
@@ -237,9 +254,9 @@ function customReser_booking_create(PDO $pdo, int $instanceId, array $in): array
                 $pdo->rollBack();
                 return ['ok' => false, 'msg' => '선택한 항목과 일정이 일치하지 않습니다.'];
             }
-            if ((int)$qrow['booked'] >= (int)$qrow['capacity']) {
+            if ((int)$qrow['booked'] + $qty > (int)$qrow['capacity']) {
                 $pdo->rollBack();
-                return ['ok' => false, 'msg' => '해당 항목은 마감되었습니다.'];
+                return ['ok' => false, 'msg' => '해당 항목의 잔여 인원이 부족합니다. (잔여: ' . max(0, (int)$qrow['capacity'] - (int)$qrow['booked']) . '명)'];
             }
             $clock = customReser_item_mode_clock_time();
             $err = customReser_validate_same_day_two_hours($dateYmd, substr($clock, 0, 5));
@@ -249,9 +266,9 @@ function customReser_booking_create(PDO $pdo, int $instanceId, array $in): array
             }
             $resAt = $dateYmd . ' ' . $clock;
             $up = $pdo->prepare(
-                'UPDATE customReser_item_quota SET booked = booked + 1 WHERE id = ? AND booked < capacity'
+                'UPDATE customReser_item_quota SET booked = booked + ? WHERE id = ? AND booked + ? <= capacity'
             );
-            $up->execute([$iqid]);
+            $up->execute([$qty, $iqid, $qty]);
             if ($up->rowCount() !== 1) {
                 $pdo->rollBack();
                 return ['ok' => false, 'msg' => '예약 가능 인원이 부족합니다.'];
@@ -266,8 +283,8 @@ function customReser_booking_create(PDO $pdo, int $instanceId, array $in): array
         $extraJson = json_encode($extra, JSON_UNESCAPED_UNICODE);
         $ins = $pdo->prepare(
             'INSERT INTO customReser_booking (instance_id, reservation_no, status, branch_id, item_id, slot_id, item_quota_id, reservation_at,
-             customer_name, customer_phone, customer_email, extra_json, admin_note)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,NULL)'
+             customer_name, customer_phone, customer_email, extra_json, qty, admin_note)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,NULL)'
         );
         $ins->execute([
             $instanceId,
@@ -282,6 +299,7 @@ function customReser_booking_create(PDO $pdo, int $instanceId, array $in): array
             $phoneSave,
             $email !== '' ? $email : null,
             $extraJson,
+            $qty,
         ]);
         $bid = (int)$pdo->lastInsertId();
         $pdo->commit();
@@ -313,6 +331,7 @@ function customReser_booking_reschedule(PDO $pdo, array $booking, int $newSlotId
     $mode = customReser_capacity_mode($pdo, $instanceId);
     $id = (int)$booking['id'];
     $branchId = (int)$booking['branch_id'];
+    $qty = max(1, (int)($booking['qty'] ?? 1));
 
     $pdo->beginTransaction();
     try {
@@ -345,9 +364,9 @@ function customReser_booking_reschedule(PDO $pdo, array $booking, int $newSlotId
                 $pdo->rollBack();
                 return ['ok' => false, 'msg' => '해당 일정은 예약이 불가합니다.'];
             }
-            if ((int)$ns['booked'] >= (int)$ns['capacity']) {
+            if ((int)$ns['booked'] + $qty > (int)$ns['capacity']) {
                 $pdo->rollBack();
-                return ['ok' => false, 'msg' => '선택한 시간은 마감되었습니다.'];
+                return ['ok' => false, 'msg' => '선택한 시간의 잔여 인원이 부족합니다.'];
             }
             $timeHi = substr((string)$ns['slot_time'], 0, 5);
             $err = customReser_validate_same_day_two_hours($dateYmd, $timeHi);
@@ -359,19 +378,19 @@ function customReser_booking_reschedule(PDO $pdo, array $booking, int $newSlotId
             $oldSlot = (int)($b['slot_id'] ?? 0);
             $oldIq = (int)($b['item_quota_id'] ?? 0);
             if ($oldSlot > 0) {
-                $pdo->prepare('UPDATE customReser_slot SET booked = GREATEST(0, booked - 1) WHERE id=?')->execute([$oldSlot]);
+                $pdo->prepare('UPDATE customReser_slot SET booked = GREATEST(0, booked - ?) WHERE id=?')->execute([$qty, $oldSlot]);
             }
             if ($oldIq > 0) {
-                $pdo->prepare('UPDATE customReser_item_quota SET booked = GREATEST(0, booked - 1) WHERE id=?')->execute([$oldIq]);
+                $pdo->prepare('UPDATE customReser_item_quota SET booked = GREATEST(0, booked - ?) WHERE id=?')->execute([$qty, $oldIq]);
             }
-            $up = $pdo->prepare('UPDATE customReser_slot SET booked = booked + 1 WHERE id=? AND booked < capacity');
-            $up->execute([$newSlotId]);
+            $up = $pdo->prepare('UPDATE customReser_slot SET booked = booked + ? WHERE id=? AND booked + ? <= capacity');
+            $up->execute([$qty, $newSlotId, $qty]);
             if ($up->rowCount() !== 1) {
                 if ($oldSlot > 0) {
-                    $pdo->prepare('UPDATE customReser_slot SET booked = booked + 1 WHERE id=?')->execute([$oldSlot]);
+                    $pdo->prepare('UPDATE customReser_slot SET booked = booked + ? WHERE id=?')->execute([$qty, $oldSlot]);
                 }
                 if ($oldIq > 0) {
-                    $pdo->prepare('UPDATE customReser_item_quota SET booked = booked + 1 WHERE id=?')->execute([$oldIq]);
+                    $pdo->prepare('UPDATE customReser_item_quota SET booked = booked + ? WHERE id=?')->execute([$qty, $oldIq]);
                 }
                 $pdo->rollBack();
                 return ['ok' => false, 'msg' => '예약 가능 인원이 부족합니다.'];

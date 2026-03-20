@@ -59,11 +59,59 @@
       slotId: 0,
       itemQuotaId: 0,
       itemId: 0,
+      qty: 1,
       extra: {},
       calYear: 0,
       calMonth: 0,
       calDays: null
     };
+
+    /* ── 저장 / 불러오기 (sessionStorage) ── */
+    var SAVE_KEY = 'customReser_draft_' + slug;
+
+    function saveDraft() {
+      try {
+        var snap = {
+          stepIndex: st.stepIndex,
+          branchId: st.branchId,
+          dateYmd: st.dateYmd,
+          slotId: st.slotId,
+          itemQuotaId: st.itemQuotaId,
+          itemId: st.itemId,
+          qty: st.qty,
+          calYear: st.calYear,
+          calMonth: st.calMonth,
+          extra: st.extra
+        };
+        sessionStorage.setItem(SAVE_KEY, JSON.stringify(snap));
+      } catch (e) {}
+    }
+
+    function loadDraft() {
+      try {
+        var raw = sessionStorage.getItem(SAVE_KEY);
+        if (!raw) return false;
+        var snap = JSON.parse(raw);
+        if (snap && typeof snap === 'object') {
+          st.stepIndex = snap.stepIndex || 0;
+          st.branchId = snap.branchId || 0;
+          st.dateYmd = snap.dateYmd || '';
+          st.slotId = snap.slotId || 0;
+          st.itemQuotaId = snap.itemQuotaId || 0;
+          st.itemId = snap.itemId || 0;
+          st.qty = snap.qty || 1;
+          st.calYear = snap.calYear || 0;
+          st.calMonth = snap.calMonth || 0;
+          st.extra = snap.extra || {};
+          return true;
+        }
+      } catch (e) {}
+      return false;
+    }
+
+    function clearDraft() {
+      try { sessionStorage.removeItem(SAVE_KEY); } catch (e) {}
+    }
 
     function showMsg(text, ok) {
       if (!msgEl) return;
@@ -84,6 +132,7 @@
 
     function goStep(delta) {
       st.stepIndex = Math.max(0, Math.min(st.plan.length - 1, st.stepIndex + delta));
+      saveDraft();
       renderProgress();
       renderStep();
     }
@@ -196,21 +245,61 @@
             hostEl.innerHTML = '<p class="customReser-sub">선택한 날짜에 예약 가능한 시간이 없습니다.</p>';
             return;
           }
+          var maxQty = parseInt(st.cfg.max_qty_per_booking, 10) || 10;
           var hh = '<div class="customReser-slot-list">';
           slots.forEach(function (s) {
             var dis = !s.available;
-            hh += '<button type="button" data-id="' + s.id + '"' + (dis ? ' disabled' : '') + '>' + esc(s.slot_time) + (dis ? ' (마감)' : ' (잔여 ' + s.remaining + ')') + '</button>';
+            hh += '<button type="button" data-id="' + s.id + '" data-remaining="' + (s.remaining || 0) + '"' + (dis ? ' disabled' : '') + '>' + esc(s.slot_time) + (dis ? ' (마감)' : ' (잔여 ' + s.remaining + ')') + '</button>';
           });
           hh += '</div>';
+          hh += '<div class="customReser-field customReser-qty-wrap" style="margin-top:14px">';
+          hh += '<label>예약 인원 *</label>';
+          hh += '<div style="display:flex;align-items:center;gap:8px">';
+          hh += '<button type="button" class="customReser-btn secondary" id="customReser-qty-minus" style="padding:4px 14px;font-size:1.1rem">−</button>';
+          hh += '<span id="customReser-qty-val" style="min-width:32px;text-align:center;font-weight:600">' + st.qty + '</span>';
+          hh += '<button type="button" class="customReser-btn secondary" id="customReser-qty-plus" style="padding:4px 14px;font-size:1.1rem">+</button>';
+          hh += '<span class="customReser-sub" style="margin-left:4px" id="customReser-qty-hint">명 (최대 ' + maxQty + '명)</span>';
+          hh += '</div></div>';
           hostEl.innerHTML = hh;
+
+          function updateQtyDisplay() {
+            var valEl = hostEl.querySelector('#customReser-qty-val');
+            var hintEl = hostEl.querySelector('#customReser-qty-hint');
+            var selectedBtn = hostEl.querySelector('.customReser-slot-list button.on');
+            var remaining = selectedBtn ? parseInt(selectedBtn.getAttribute('data-remaining'), 10) : maxQty;
+            var effectiveMax = Math.min(maxQty, remaining);
+            if (valEl) valEl.textContent = st.qty;
+            if (hintEl) hintEl.textContent = '명 (최대 ' + effectiveMax + '명)';
+            var minusBtn = hostEl.querySelector('#customReser-qty-minus');
+            var plusBtn = hostEl.querySelector('#customReser-qty-plus');
+            if (minusBtn) minusBtn.disabled = st.qty <= 1;
+            if (plusBtn) plusBtn.disabled = st.qty >= effectiveMax;
+          }
+
           hostEl.querySelectorAll('.customReser-slot-list button').forEach(function (btn) {
             btn.onclick = function () {
               if (btn.disabled) return;
               hostEl.querySelectorAll('.customReser-slot-list button').forEach(function (b) { b.classList.remove('on'); });
               btn.classList.add('on');
               st.slotId = parseInt(btn.getAttribute('data-id'), 10);
+              var rem = parseInt(btn.getAttribute('data-remaining'), 10) || 1;
+              if (st.qty > Math.min(maxQty, rem)) st.qty = 1;
+              updateQtyDisplay();
             };
           });
+
+          var minusBtn = hostEl.querySelector('#customReser-qty-minus');
+          var plusBtn = hostEl.querySelector('#customReser-qty-plus');
+          if (minusBtn) minusBtn.onclick = function () {
+            if (st.qty > 1) { st.qty--; updateQtyDisplay(); }
+          };
+          if (plusBtn) plusBtn.onclick = function () {
+            var selectedBtn = hostEl.querySelector('.customReser-slot-list button.on');
+            var remaining = selectedBtn ? parseInt(selectedBtn.getAttribute('data-remaining'), 10) : maxQty;
+            var effectiveMax = Math.min(maxQty, remaining);
+            if (st.qty < effectiveMax) { st.qty++; updateQtyDisplay(); }
+          };
+          updateQtyDisplay();
         });
         actEl.innerHTML = '<button type="button" class="customReser-btn secondary" id="customReser-back">이전</button> <button type="button" class="customReser-btn primary" id="customReser-next">다음</button>';
         actEl.querySelector('#customReser-back').onclick = function () { goStep(-1); };
@@ -237,13 +326,37 @@
             hostEl.innerHTML = '<p class="customReser-sub">선택한 날짜에 예약 가능한 항목이 없습니다.</p>';
             return;
           }
+          var maxQtyI = parseInt(st.cfg.max_qty_per_booking, 10) || 10;
           var hh = '<div class="customReser-item-list">';
           qs.forEach(function (q) {
             var dis = !q.available;
-            hh += '<button type="button" data-id="' + q.id + '" data-item="' + q.item_id + '"' + (dis ? ' disabled' : '') + '>' + esc(q.item_name) + (dis ? ' (마감)' : ' (잔여 ' + q.remaining + ')') + '</button>';
+            hh += '<button type="button" data-id="' + q.id + '" data-item="' + q.item_id + '" data-remaining="' + (q.remaining || 0) + '"' + (dis ? ' disabled' : '') + '>' + esc(q.item_name) + (dis ? ' (마감)' : ' (잔여 ' + q.remaining + ')') + '</button>';
           });
           hh += '</div>';
+          hh += '<div class="customReser-field customReser-qty-wrap" style="margin-top:14px">';
+          hh += '<label>예약 인원 *</label>';
+          hh += '<div style="display:flex;align-items:center;gap:8px">';
+          hh += '<button type="button" class="customReser-btn secondary" id="customReser-qty-minus" style="padding:4px 14px;font-size:1.1rem">−</button>';
+          hh += '<span id="customReser-qty-val" style="min-width:32px;text-align:center;font-weight:600">' + st.qty + '</span>';
+          hh += '<button type="button" class="customReser-btn secondary" id="customReser-qty-plus" style="padding:4px 14px;font-size:1.1rem">+</button>';
+          hh += '<span class="customReser-sub" style="margin-left:4px" id="customReser-qty-hint">명 (최대 ' + maxQtyI + '명)</span>';
+          hh += '</div></div>';
           hostEl.innerHTML = hh;
+
+          function updateQtyDisplayI() {
+            var valEl = hostEl.querySelector('#customReser-qty-val');
+            var hintEl = hostEl.querySelector('#customReser-qty-hint');
+            var selectedBtn = hostEl.querySelector('.customReser-item-list button.on');
+            var remaining = selectedBtn ? parseInt(selectedBtn.getAttribute('data-remaining'), 10) : maxQtyI;
+            var effectiveMax = Math.min(maxQtyI, remaining);
+            if (valEl) valEl.textContent = st.qty;
+            if (hintEl) hintEl.textContent = '명 (최대 ' + effectiveMax + '명)';
+            var minusBtnI = hostEl.querySelector('#customReser-qty-minus');
+            var plusBtnI = hostEl.querySelector('#customReser-qty-plus');
+            if (minusBtnI) minusBtnI.disabled = st.qty <= 1;
+            if (plusBtnI) plusBtnI.disabled = st.qty >= effectiveMax;
+          }
+
           hostEl.querySelectorAll('.customReser-item-list button').forEach(function (btn) {
             btn.onclick = function () {
               if (btn.disabled) return;
@@ -251,8 +364,24 @@
               btn.classList.add('on');
               st.itemQuotaId = parseInt(btn.getAttribute('data-id'), 10);
               st.itemId = parseInt(btn.getAttribute('data-item'), 10) || 0;
+              var rem = parseInt(btn.getAttribute('data-remaining'), 10) || 1;
+              if (st.qty > Math.min(maxQtyI, rem)) st.qty = 1;
+              updateQtyDisplayI();
             };
           });
+
+          var minusBtnI = hostEl.querySelector('#customReser-qty-minus');
+          var plusBtnI = hostEl.querySelector('#customReser-qty-plus');
+          if (minusBtnI) minusBtnI.onclick = function () {
+            if (st.qty > 1) { st.qty--; updateQtyDisplayI(); }
+          };
+          if (plusBtnI) plusBtnI.onclick = function () {
+            var selectedBtn = hostEl.querySelector('.customReser-item-list button.on');
+            var remaining = selectedBtn ? parseInt(selectedBtn.getAttribute('data-remaining'), 10) : maxQtyI;
+            var effectiveMax = Math.min(maxQtyI, remaining);
+            if (st.qty < effectiveMax) { st.qty++; updateQtyDisplayI(); }
+          };
+          updateQtyDisplayI();
         });
         actEl.innerHTML = '<button type="button" class="customReser-btn secondary" id="customReser-back">이전</button> <button type="button" class="customReser-btn primary" id="customReser-next">다음</button>';
         actEl.querySelector('#customReser-back').onclick = function () { goStep(-1); };
@@ -337,6 +466,7 @@
             customer_name: nm.value.trim(),
             customer_phone: ph.value.trim(),
             customer_email: (hostEl.querySelector('#customReser-cemail') || {}).value || '',
+            qty: st.qty || 1,
             extra: extra
           };
           if (st.cfg.capacity_mode === 'item') {
@@ -347,6 +477,7 @@
           }
           call(slug, 'book', payload, 'POST').then(function (res) {
             if (!res.ok) return showMsg(res.msg || '예약 실패', false);
+            clearDraft();
             showMsg('예약이 접수되었습니다. 예약번호: ' + res.reservation_no, true);
             st.stepIndex = 0;
             st.branchId = 0;
@@ -354,6 +485,7 @@
             st.slotId = 0;
             st.itemQuotaId = 0;
             st.itemId = 0;
+            st.qty = 1;
             st.extra = {};
             renderProgress();
             renderStep();
@@ -379,9 +511,16 @@
         showMsg('활성화된 단계가 없습니다.', false);
         return;
       }
-      st.stepIndex = 0;
-      renderProgress();
-      renderStep();
+      var restored = loadDraft();
+      if (restored && st.stepIndex > 0 && st.stepIndex < st.plan.length) {
+        /* draft가 있으면 해당 스텝부터 재개 */
+        renderProgress();
+        renderStep();
+      } else {
+        st.stepIndex = 0;
+        renderProgress();
+        renderStep();
+      }
     });
 
     /* ----- 조회 / 변경 ----- */
