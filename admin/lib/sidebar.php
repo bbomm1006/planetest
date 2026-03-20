@@ -67,7 +67,7 @@
           </div>
         </div>
       </div>
-      <div class="nav-section" data-menu-keys="consultCat consult">
+      <!-- <div class="nav-section" data-menu-keys="consultCat consult">
         <div class="nav-item">
           <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">💬</span>상담 관리<span class="nav-arrow">›</span></div>
           <div class="nav-sub">            
@@ -93,7 +93,7 @@
             <div class="nav-sub-link" data-menu-key="rsvList" onclick="showPage('reserveList')">예약 내역</div>
           </div>
         </div>
-      </div>
+      </div> -->
       <div class="nav-section">
         <div class="nav-item">
           <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">🤖</span>챗봇 관리<span class="nav-arrow">›</span></div>
