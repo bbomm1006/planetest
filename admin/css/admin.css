@@ -529,6 +529,7 @@ table.admin-table tbody td {
 }
 table.admin-table tbody tr:last-child td { border-bottom: none; }
 table.admin-table tbody tr:hover td { background: #f7f8fd; }
+table.admin-table tbody tr.is-selected td { background: #eef2ff; }
 
 /* drag states */
 table.admin-table tbody tr.row-dragging td {

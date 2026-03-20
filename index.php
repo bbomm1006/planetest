@@ -40,6 +40,8 @@
     if (!array_key_exists($key, $frontSectionState)) return true; // 미설정이면 기본 노출
     return (int)$frontSectionState[$key] !== 0;
   };
+
+  $legalSlug = isset($_GET['legal']) ? preg_replace('/[^a-zA-Z0-9\-_]/', '', (string) $_GET['legal']) : '';
 ?>
 
   <!-- 서비스 전환 바 -->
@@ -51,6 +53,12 @@
   <div data-front-section-key="front_user_menu" <?php if (!$frontIsVisible('front_user_menu')) echo 'style="display:none;"'; ?>>
     <?php include 'lib/_nav.php'; ?>
   </div>
+
+  <?php if ($legalSlug !== ''): ?>
+  <main class="legal-page">
+    <?php include 'lib/legal_terms_view.php'; ?>
+  </main>
+  <?php else: ?>
 
   <!-- HERO -->
   <div data-front-section-key="front_hero_banner" <?php if (!$frontIsVisible('front_hero_banner')) echo 'style="display:none;"'; ?>>
@@ -129,6 +137,8 @@
   <div data-front-section-key="front_consult" <?php if (!$frontIsVisible('front_consult')) echo 'style="display:none;"'; ?>>
     <?php include 'lib/consult.php'; ?>
   </div>
+
+  <?php endif; ?>
 
   <!-- 풋터 -->
   <div data-front-section-key="front_footer" <?php if (!$frontIsVisible('front_footer')) echo 'style="display:none;"'; ?>>

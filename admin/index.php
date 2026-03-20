@@ -70,6 +70,7 @@
       <!-- 5-2. 상담 내역 -->
       <?php include 'lib/consultFieldMgmt.php'; ?>
       <?php include 'lib/consultTerms.php'; ?>
+      <?php include 'lib/legalTermsMgmt.php'; ?>
       <?php include 'lib/consult.php'; ?>
 
       <!-- ========================
@@ -132,6 +133,8 @@
   <!-- 상담 상세 Modal -->
   <?php include 'modals/consultDetailModal.php'; ?>
 
+  <?php include 'modals/legalTermCatModal.php'; ?>
+  <?php include 'modals/legalTermVerModal.php'; ?>
 
   <!-- 문의 답변 Modal -->
   <?php include 'modals/inquiryDetailModal.php'; ?>
@@ -170,6 +173,7 @@
 
 <script src="js/consultField.js"></script>
 <script src="js/consultTerms.js"></script>
+<script src="js/legalTerms.js"></script>
 <script src="js/consult.js"></script> 
 
 <script src="js/inquiry.js"></script>

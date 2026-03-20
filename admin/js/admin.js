@@ -102,6 +102,7 @@ const PAGE_LABELS = {
   siteMgmt: ['시스템','사이트 정보 관리'],
   consultField: ['상담','필드 관리'],
   consultTerms: ['상담','약관 관리'],
+  legalTermsMgmt: ['시스템','법적 약관 관리'],
 
   homepageInfo: ['시스템','홈페이지 정보 관리'],
   logMgmt:      ['로그 관리','로그 관리'],
@@ -339,6 +340,7 @@ function showPage(pageId) {
   if (pageId === 'siteMgmt') loadSiteInfo();
   if (pageId === 'consultField') loadConsultConfig();
   if (pageId === 'consultTerms') loadConsultTermsList();
+  if (pageId === 'legalTermsMgmt') loadLegalTermsAdmin();
 
   if (pageId === 'homepageInfo') hiLoad();
   if (pageId === 'logMgmt')     initLogMgmt();

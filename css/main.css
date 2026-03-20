@@ -2558,3 +2558,29 @@ p.ft-legal span{color:rgba(255,255,255,.2);font-size:.75rem;}
 @media(max-width:640px){
   .ft-bot{flex-direction:column;align-items:flex-start;gap:16px;}
 }
+
+/* 법적 약관 페이지 (index.php?legal=) */
+.legal-page{
+  max-width:900px;margin:0 auto;padding:48px 5vw 72px;
+}
+.legal-page-inner{width:100%;}
+.legal-page-back{
+  display:inline-block;font-size:.88rem;color:var(--muted,#64748b);text-decoration:none;margin-bottom:20px;
+}
+.legal-page-back:hover{color:var(--ink,#0f172a);}
+.legal-page-title{
+  font-size:1.65rem;font-weight:800;margin:0 0 20px;letter-spacing:-.02em;color:var(--ink,#0f172a);
+}
+.legal-page-version-row{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;
+}
+.legal-page-version-row label{font-size:.85rem;font-weight:600;color:var(--muted,#64748b);}
+.legal-version-select{
+  min-width:220px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:10px;
+  font-size:.9rem;background:#fff;color:var(--ink,#0f172a);
+}
+.legal-page-meta{font-size:.82rem;color:var(--muted,#64748b);margin:0 0 24px;}
+.legal-page-body{line-height:1.75;}
+.legal-page-prose{font-size:.92rem;color:#334155;}
+.legal-page-empty{font-size:.95rem;color:var(--muted,#64748b);}
+.ft-legal-sep{color:rgba(255,255,255,.2);font-size:.75rem;}
