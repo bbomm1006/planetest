@@ -1,8 +1,8 @@
 <!-- ============================================================
      담당관리자 추가/수정 모달
      ============================================================ -->
-<div id="ciManagerModal" class="modal-overlay" style="display:none;">
-  <div class="modal-box" style="max-width:560px;">
+<div class="modal-overlay" id="ciManagerModal">
+  <div class="modal modal-md">
     <div class="modal-header">
       <h3 id="ciManagerModalTitle">담당자 추가</h3>
       <button class="modal-close" onclick="closeModal('ciManagerModal')">✕</button>
@@ -11,7 +11,7 @@
       <input type="hidden" id="ci_mgr_id"/>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
         <div class="form-group">
-          <label>이름 <span style="color:#e53e3e;">*</span></label>
+          <label>이름 <span class="req">*</span></label>
           <input type="text" class="form-control" id="ci_mgr_name"/>
         </div>
         <div class="form-group">
@@ -105,8 +105,8 @@
 <!-- ============================================================
      필드 추가/수정 모달
      ============================================================ -->
-<div id="ciFieldModal" class="modal-overlay" style="display:none;">
-  <div class="modal-box" style="max-width:500px;">
+<div class="modal-overlay" id="ciFieldModal">
+  <div class="modal modal-md">
     <div class="modal-header">
       <h3 id="ciFieldModalTitle">필드 추가</h3>
       <button class="modal-close" onclick="closeModal('ciFieldModal')">✕</button>
@@ -114,16 +114,16 @@
     <div class="modal-body">
       <input type="hidden" id="ci_field_id"/>
       <div class="form-group" style="margin-bottom:14px;">
-        <label>항목명 <span style="color:#e53e3e;">*</span></label>
+        <label>항목명 <span class="req">*</span></label>
         <input type="text" class="form-control" id="ci_field_label" placeholder="예: 문의 유형"/>
       </div>
       <div class="form-group" style="margin-bottom:14px;">
-        <label>필드 키 <span style="color:#e53e3e;">*</span></label>
-        <input type="text" class="form-control" id="ci_field_key" placeholder="영문/숫자/언더바 (예: inquiry_type)"/>
+        <label>필드 키 <small style="font-weight:400;color:#94a3b8;">(자동 생성)</small></label>
+        <input type="text" class="form-control" id="ci_field_key" readonly style="background:#f8fafc;color:#64748b;" placeholder="항목명 입력 시 자동 생성"/>
         <p style="font-size:.75rem;color:#94a3b8;margin-top:3px;">DB 컬럼명으로 사용됩니다. 한번 생성 후 변경 불가.</p>
       </div>
       <div class="form-group" style="margin-bottom:14px;">
-        <label>타입 <span style="color:#e53e3e;">*</span></label>
+        <label>타입 <span class="req">*</span></label>
         <select class="form-control" id="ci_field_type" onchange="ciOnFieldTypeChange()">
           <option value="">선택하세요</option>
           <option value="input">input (텍스트)</option>
@@ -154,9 +154,9 @@
       <div id="ci-field-options-wrap" style="display:none;margin-bottom:14px;">
         <label style="font-size:.85rem;font-weight:600;display:block;margin-bottom:8px;">항목 목록</label>
         <div id="ci-field-options-list"></div>
-        <button type="button" class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="ciAddFieldOption()">+ 항목 추가</button>
+        <button type="button" class="btn btn-outline" style="margin-top:8px;" onclick="ciAddFieldOption()">+ 항목 추가</button>
       </div>
-      <div style="display:flex;gap:20px;">
+      <div style="display:flex;gap:30px;">
         <div class="form-group">
           <label>필수여부</label>
           <div style="display:flex;gap:14px;margin-top:6px;">
@@ -183,8 +183,8 @@
 <!-- ============================================================
      약관 추가/수정 모달
      ============================================================ -->
-<div id="ciTermModal" class="modal-overlay" style="display:none;">
-  <div class="modal-box" style="max-width:560px;">
+<div class="modal-overlay" id="ciTermModal">
+  <div class="modal modal-md">
     <div class="modal-header">
       <h3 id="ciTermModalTitle">약관 추가</h3>
       <button class="modal-close" onclick="closeModal('ciTermModal')">✕</button>
@@ -192,7 +192,7 @@
     <div class="modal-body">
       <input type="hidden" id="ci_term_id"/>
       <div class="form-group" style="margin-bottom:14px;">
-        <label>약관명 <span style="color:#e53e3e;">*</span></label>
+        <label>약관명 <span class="req">*</span></label>
         <input type="text" class="form-control" id="ci_term_title" placeholder="예: 개인정보 수집 및 이용에 동의합니다"/>
       </div>
       <div class="form-group" style="margin-bottom:14px;">
@@ -226,8 +226,8 @@
 <!-- ============================================================
      문의 상세 모달
      ============================================================ -->
-<div id="ciDataDetailModal" class="modal-overlay" style="display:none;">
-  <div class="modal-box" style="max-width:640px;">
+<div class="modal-overlay" id="ciDataDetailModal">
+  <div class="modal modal-md">
     <div class="modal-header">
       <h3>문의 상세</h3>
       <button class="modal-close" onclick="closeModal('ciDataDetailModal')">✕</button>

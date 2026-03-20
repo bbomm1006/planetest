@@ -549,8 +549,10 @@ async function ciOpenFieldModal(id = 0) {
   document.getElementById('ci-field-ext-wrap').style.display          = 'none';
   document.getElementById('ci-field-options-wrap').style.display       = 'none';
   document.getElementById('ci-field-options-list').innerHTML            = '';
-  document.querySelector('input[name="ci_field_required"][value="0"]').checked = true;
-  document.querySelector('input[name="ci_field_visible"][value="1"]').checked  = true;
+  const reqEl = document.querySelector('input[name="ci_field_required"][value="0"]');
+  const visEl = document.querySelector('input[name="ci_field_visible"][value="1"]');
+  if (reqEl) reqEl.checked = true;
+  if (visEl) visEl.checked = true;
 
   const keyEl = document.getElementById('ci_field_key');
 
@@ -573,8 +575,10 @@ async function ciOpenFieldModal(id = 0) {
       if (f.options && f.options.length) {
         f.options.forEach(o => ciAddFieldOption(o.label, o.is_visible));
       }
-      document.querySelector(`input[name="ci_field_required"][value="${f.is_required}"]`).checked = true;
-      document.querySelector(`input[name="ci_field_visible"][value="${f.is_visible}"]`).checked   = true;
+      const reqEl2 = document.querySelector(`input[name="ci_field_required"][value="${f.is_required}"]`);
+      const visEl2 = document.querySelector(`input[name="ci_field_visible"][value="${f.is_visible}"]`);
+      if (reqEl2) reqEl2.checked = true;
+      if (visEl2) visEl2.checked = true;
     }
   } else {
     keyEl.disabled = false;
