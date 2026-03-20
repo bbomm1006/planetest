@@ -81,6 +81,7 @@ if ($action === 'list') {
     $cntStmt = $pdo->prepare("SELECT COUNT(*) FROM `$table` $where");
     $cntStmt->execute($params);
     $total = (int)$cntStmt->fetchColumn();
+    $cntStmt->closeCursor();
 
     $dataStmt = $pdo->prepare("SELECT * FROM `$table` $where ORDER BY id DESC LIMIT $limit OFFSET $offset");
     $dataStmt->execute($params);
@@ -156,7 +157,7 @@ if ($action === 'export') {
 
     $where = $conds ? 'WHERE ' . implode(' AND ', $conds) : '';
     $stmt  = $pdo->prepare("SELECT * FROM `$table` $where ORDER BY id DESC");
-    $stmt->execute($params);
+    $stmt->execute(array_values($params));
 
     $labelMap = ['access'=>'접속로그','login'=>'로그인로그','admin_action'=>'관리자작업로그','error'=>'에러로그','email'=>'이메일발송로그','landing'=>'랜딩로그'];
     $filename = ($labelMap[$logType] ?? $logType) . '_' . date('Ymd') . '.csv';
