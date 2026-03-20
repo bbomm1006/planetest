@@ -4,7 +4,8 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>관리자 시스템</title>
-<link rel="stylesheet" href="admin.css"/>
+<link rel="stylesheet" href="css/admin.css"/>
+<link rel="stylesheet" href="css/find_account.css"/>
 <!-- 카카오 주소검색 (Daum 우편번호) -->
 <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 </head>
@@ -141,6 +142,7 @@
 
 <!-- admin.js: 전역 변수·헬퍼 정의 -->
 <script src="js/admin.js"></script>
+<script src="js/find_account.js"></script>
 
 <!-- file_upload.js: resetUploadArea/setUploadPreview 공통 함수 -->
 <script src="js/file_upload.js"></script>
