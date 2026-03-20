@@ -188,7 +188,7 @@
     <?php include 'lib/qna.php'; ?>
   </div>
   <div data-front-section-key="front_consult" <?php if (!$frontIsVisible('front_consult')) echo 'style="display:none;"'; ?>>
-    <?php include 'lib/consult.php'; ?>
+    <?php include 'lib/customInquiry.php'; ?>
   </div>
 
   <?php endif; ?>
