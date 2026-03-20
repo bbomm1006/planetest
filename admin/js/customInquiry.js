@@ -236,9 +236,18 @@ async function ciSaveBasic() {
   const btn = event?.target || document.querySelector('#ci-panel-basic .btn-primary');
   ciLock(btn);
   const loginTypes = [...document.querySelectorAll('input[name="ci_login_type"]:checked')].map(c => c.value).join(',');
-  const visType    = (document.querySelector('input[name="ci_visibility_type"]:checked') || {}).value || '';
   const commentVis = (document.querySelector('input[name="ci_comment_visibility"]:checked') || {}).value || '';
   const isActive   = (document.querySelector('input[name="ci_is_active"]:checked') || {}).value || 1;
+  const loginUse   = document.getElementById('ci_login_use').checked;
+  const visUse     = document.getElementById('ci_visibility_use').checked;
+  const visType    = visUse ? ((document.querySelector('input[name="ci_visibility_type"]:checked') || {}).value || '') : '';
+
+  // 유효성 검사: 로그인off + 공개글여부(비공개 or 비공개/공개선택) 조합 불가
+  if (!loginUse && visUse && (visType === 'private' || visType === 'both')) {
+    showToast('로그인 연동을 ON하시거나 공개글 여부를 "공개"로 설정하세요.', 'error');
+    ciUnlock(btn);
+    return;
+  }
 
   const data = {
     action:           'save_basic',

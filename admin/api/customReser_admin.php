@@ -137,20 +137,25 @@ try {
             if ($iid < 1 || !is_array($steps)) {
                 customReser_json_out(['ok' => false, 'msg' => 'instance_id, steps[] 필요'], 400);
             }
+            $allowed_keys = ['branch', 'date', 'time', 'item', 'info'];
             $pdo->beginTransaction();
             try {
-                $u = $pdo->prepare('UPDATE customReser_instance_step SET sort_order=?, is_active=? WHERE instance_id=? AND step_key=?');
+                $u = $pdo->prepare(
+                    'INSERT INTO customReser_instance_step (instance_id, step_key, sort_order, is_active)
+                     VALUES (?,?,?,?)
+                     ON DUPLICATE KEY UPDATE sort_order = VALUES(sort_order), is_active = VALUES(is_active)'
+                );
                 foreach ($steps as $s) {
                     $k = (string)($s['step_key'] ?? '');
-                    if ($k === '') {
+                    if ($k === '' || !in_array($k, $allowed_keys, true)) {
                         continue;
                     }
-                    $u->execute([(int)($s['sort_order'] ?? 0), !empty($s['is_active']) ? 1 : 0, $iid, $k]);
+                    $u->execute([$iid, $k, (int)($s['sort_order'] ?? 0), !empty($s['is_active']) ? 1 : 0]);
                 }
                 $pdo->commit();
             } catch (Throwable $e) {
                 $pdo->rollBack();
-                customReser_json_out(['ok' => false, 'msg' => '저장 실패'], 500);
+                customReser_json_out(['ok' => false, 'msg' => '저장 실패: ' . $e->getMessage()], 500);
             }
             customReser_json_out(['ok' => true]);
         }

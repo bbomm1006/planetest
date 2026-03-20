@@ -103,9 +103,10 @@ if ($action === 'availability') {
     if ($rt && $rt['items']) {
         $its = json_decode($rt['items'], true) ?: [];
         foreach ($its as $it) {
-            $maxCap += (int)($it['capacity'] ?? $it['count'] ?? 1);
+            $cap = (int)($it['capacity'] ?? $it['count'] ?? 1);
+            $maxCap += ($cap > 0 ? $cap : 1);
         }
-        if ($maxCap === 0) $maxCap = count($its) ?: 1;
+        if ($maxCap === 0) $maxCap = max(count($its), 1);
     }
     if ($maxCap === 0) $maxCap = 10; // 기본값
 
@@ -226,8 +227,11 @@ if ($action === 'create' && $method === 'POST') {
     if ($rt && $rt['items']) {
         $its = json_decode($rt['items'], true) ?: [];
         $maxCap = 0;
-        foreach ($its as $it) $maxCap += (int)($it['capacity'] ?? $it['count'] ?? 1);
-        if ($maxCap === 0) $maxCap = count($its) ?: 10;
+        foreach ($its as $it) {
+            $cap = (int)($it['capacity'] ?? $it['count'] ?? 1);
+            $maxCap += ($cap > 0 ? $cap : 1);
+        }
+        if ($maxCap === 0) $maxCap = max(count($its), 10);
     }
     $stC = $pdo->prepare("SELECT COUNT(*) FROM reservations WHERE store_id=? AND reserve_time_id=? AND reserve_date=? AND status!='cancelled'");
     $stC->execute([$store_id, $reserve_time_id ?: 0, $reserve_date]);

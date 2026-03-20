@@ -19,7 +19,9 @@ function renderReserveTimeTable() {
     tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:32px;">등록된 예약 시간이 없습니다.</td></tr>`;
     return;
   }
-  tbody.innerHTML = reserveTimeData.map((t, i) => `
+  tbody.innerHTML = reserveTimeData.map((t, i) => {
+    const totalCap = (t.items||[]).reduce((s, it) => s + (parseInt(it.capacity||it.count||1)||1), 0);
+    return `
     <tr>
       <td><input type="checkbox" class="row-check" data-id="${t.id}" onchange="updateBulkBar('reserveTimeBulk')"></td>
       <td class="row-num">${i+1}</td>
@@ -28,13 +30,15 @@ function renderReserveTimeTable() {
       <td>${t.start_time}</td>
       <td>${t.end_time}</td>
       <td>${(t.items||[]).length}개</td>
+      <td><strong>${totalCap > 0 ? totalCap+'명' : '—'}</strong></td>
       <td><span class="status-badge ${t.is_active?'status-사용':'status-미사용'}" style="cursor:pointer"
             onclick="toggleReserveTime(${t.id},this)">${t.is_active?'사용':'미사용'}</span></td>
       <td><div class="table-actions">
         <button class="btn btn-sm btn-outline" onclick="openReserveTimeModal(${t.id})">수정</button>
         <button class="btn btn-sm btn-danger"  onclick="deleteReserveTime(${t.id})">삭제</button>
       </div></td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 async function toggleReserveTime(id, el) {
@@ -84,7 +88,7 @@ function openReserveTimeModal(id) {
       group.innerHTML = '';
       const items = t.items || [];
       if (items.length > 0) {
-        items.forEach(item => addReserveItem(item.name||'', item.desc||'', item.active!==false));
+        items.forEach(item => addReserveItem(item.name||'', item.desc||'', item.active!==false, item.capacity||item.count||1));
       } else {
         addReserveItem();
       }
@@ -101,14 +105,16 @@ async function saveReserveTimeModal() {
   const is_active  = document.getElementById('rtIsActive').checked ? 1 : 0;
   if (!store_id)   { showToast('매장을 선택하세요.', 'error'); return; }
   if (!start_time || !end_time) { showToast('시작·종료 시간을 입력하세요.', 'error'); return; }
+  if (start_time >= end_time)   { showToast('종료 시간은 시작 시간보다 늦어야 합니다.', 'error'); return; }
 
   // 항목 수집
   const items = [];
   document.querySelectorAll('#reserveItemGroup .repeat-row').forEach(row => {
-    const name   = row.querySelector('input[placeholder="항목명"]')?.value.trim() || '';
-    const desc2  = row.querySelector('input[placeholder="설명"]')?.value.trim()   || '';
-    const active = row.querySelector('input[type="checkbox"]')?.checked !== false;
-    if (name) items.push({ name, desc: desc2, active });
+    const name     = row.querySelector('input[placeholder="항목명"]')?.value.trim() || '';
+    const desc2    = row.querySelector('input[placeholder="설명"]')?.value.trim()   || '';
+    const capacity = parseInt(row.querySelector('input[placeholder="수량"]')?.value || '1', 10) || 1;
+    const active   = row.querySelector('input[type="checkbox"]')?.checked !== false;
+    if (name) items.push({ name, desc: desc2, capacity, active });
   });
 
   const data = {
@@ -226,16 +232,17 @@ async function bulkDeleteReserve() {
   if (res.ok) { showToast(`${ids.length}건 삭제되었습니다.`, 'success'); loadReserveList(); }
 }
 
-// addReserveItem은 repeat.js에 있으나 name/desc/active 파라미터 지원을 위해 오버라이드
-function addReserveItem(name='', desc='', active=true) {
+// addReserveItem은 repeat.js에 있으나 name/desc/capacity/active 파라미터 지원을 위해 오버라이드
+function addReserveItem(name='', desc='', active=true, capacity=1) {
   const group = document.getElementById('reserveItemGroup');
   if (!group) return;
   const row = document.createElement('div');
   row.className = 'repeat-row';
   row.innerHTML = `
     <span class="drag-handle" draggable="true">⠿</span>
-    <input type="text" class="form-control" placeholder="항목명" value="${esc(name)}" style="flex:.3"/>
-    <input type="text" class="form-control" placeholder="설명"   value="${esc(desc)}" style="flex:.5"/>
+    <input type="text"   class="form-control" placeholder="항목명" value="${esc(name)}"     style="flex:.3"/>
+    <input type="text"   class="form-control" placeholder="설명"   value="${esc(desc)}"     style="flex:.4"/>
+    <input type="number" class="form-control" placeholder="수량"   value="${capacity > 0 ? capacity : 1}" min="1" style="flex:.1;min-width:60px;" title="최대 예약 수량"/>
     <div class="toggle-wrap" style="flex-shrink:0;gap:4px;">
       <label class="toggle"><input type="checkbox" ${active?'checked':''}><span class="toggle-slider"></span></label>
       <span style="font-size:.75rem">사용</span>

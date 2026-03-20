@@ -385,16 +385,19 @@
         '<td style="font-weight:900">' + esc(ins.name) + '</td>' +
         '<td><code style="font-size:.82rem;color:var(--text3)">' + esc(ins.slug || '') + '</code></td>' +
         '<td><span class="rvmAdmin-pill ' + (ins.is_active ? 'ok' : 'bad') + '">' + (ins.is_active ? '사용' : '미사용') + '</span></td>' +
-        '<td style="width:220px"><div class="rvmAdmin-btn-row">' +
-        '<button type="button" class="btn btn-sm btn-outline" data-action="edit" data-inst="' + esc(ins.id) + '">수정</button>' +
+        '<td><div class="rvmAdmin-btn-row" style="justify-content:flex-end">' +
+        '<button type="button" class="btn btn-sm btn-outline" data-action="edit" data-inst="' + esc(ins.id) + '">설정</button>' +
         '<button type="button" class="btn btn-sm btn-danger" data-action="del" data-inst="' + esc(ins.id) + '">삭제</button>' +
-        '</div></td>' + '</tr>';
-    }).join('') || '<tr><td colspan="4" style="color:var(--text3);padding:18px 8px">예약 테이블이 없습니다.</td></tr>';
+        '</div></td></tr>';
+    }).join('') || '<tr><td colspan="4" style="color:var(--text3);padding:24px 12px;text-align:center">등록된 예약 테이블이 없습니다. 오른쪽 버튼으로 추가하세요.</td></tr>';
 
     return '<div class="rvmAdmin__section"><div class="rvmAdmin-card">' +
-      '<div class="rvmAdmin-card__head"><div><h3>예약 테이블 목록</h3><p>예약 테이블 단위로 단계/필드/지점/날짜를 독립 설정합니다.</p></div></div>' +
+      '<div class="rvmAdmin-card__head">' +
+      '<div><h3>예약 테이블 목록</h3><p>인스턴스 단위로 단계·필드·지점·날짜를 독립 설정합니다.</p></div>' +
+      '<div class="rvmAdmin-actions"><button type="button" class="btn btn-primary" data-action="create">+ 예약 테이블 추가</button></div>' +
+      '</div>' +
       '<div class="rvmAdmin-card__body"><div class="rvmAdmin-table-wrap"><table class="rvmAdmin-t">' +
-      '<thead><tr><th>예약명</th><th>slug</th><th>상태</th><th>관리</th></tr></thead>' +
+      '<thead><tr><th>예약명</th><th>Slug</th><th>상태</th><th style="text-align:right">관리</th></tr></thead>' +
       '<tbody>' + rows + '</tbody></table></div></div></div></div>';
   }
 
@@ -408,19 +411,19 @@
 
     return '<div class="rvmAdmin__section"><div class="rvmAdmin-card">' +
       '<div class="rvmAdmin-card__head">' +
-      '<div><h3>예약 테이블 설정</h3><p>기본 정보 편집 후 하단 탭에서 단계/필드/날짜 등을 설정하세요.</p></div>' +
+      '<div><h3>' + esc(title || '예약 테이블') + '</h3><p>기본 정보 수정 후 저장하고 아래 탭에서 상세 설정하세요.</p></div>' +
       '<div class="rvmAdmin-actions">' +
-      '<button type="button" class="btn btn-ghost" data-action="back">← 목록</button>' +
-      '<button type="button" class="btn btn-outline" data-action="dummy-save">저장</button>' +
+      '<button type="button" class="btn btn-ghost btn-sm" data-action="back">← 목록</button>' +
+      '<button type="button" class="btn btn-primary btn-sm" data-action="dummy-save">저장</button>' +
       '</div></div>' +
       '<div class="rvmAdmin-card__body"><div class="rvmAdmin-grid">' +
       '<div class="rvmAdmin-col-6"><div class="rvmAdmin-form-row"><label>예약명</label>' +
-      '<input class="rvmAdmin-input" type="text" id="rvm-edit-name" value="' + esc(title) + '"/></div></div>' +
-      '<div class="rvmAdmin-col-6"><div class="rvmAdmin-form-row"><label>slug</label>' +
+      '<input class="rvmAdmin-input" type="text" id="rvm-edit-name" value="' + esc(title) + '" placeholder="예: 강남점 예약"/></div></div>' +
+      '<div class="rvmAdmin-col-6"><div class="rvmAdmin-form-row"><label>Slug</label>' +
       '<input class="rvmAdmin-input" type="text" id="rvm-edit-slug" value="' + esc(slug) + '" placeholder="영문소문자·숫자·하이픈"/></div></div>' +
       '<div class="rvmAdmin-col-6"><div class="rvmAdmin-form-row"><label>사용 여부</label>' +
-      '<label class="rvmAdmin-switch"><input type="checkbox" id="rvm-edit-active" ' + (active ? 'checked' : '') + '/>' +
-      '<span style="font-weight:900">' + (active ? '사용' : '미사용') + '</span></label></div></div>' +
+      '<label class="rvmAdmin-switch"><input type="checkbox" id="rvm-edit-active"' + (active ? ' checked' : '') + '/>' +
+      '<span style="font-weight:800;font-size:.88rem">' + (active ? '사용 중' : '미사용') + '</span></label></div></div>' +
       '<div class="rvmAdmin-col-12"><div class="rvmAdmin-form-row" style="align-items:flex-start"><label style="padding-top:10px">설명</label>' +
       '<textarea class="rvmAdmin-textarea" id="rvm-edit-desc">' + esc(desc) + '</textarea></div></div>' +
       '</div></div></div></div>';
@@ -460,9 +463,9 @@
     }).join('');
 
     return '<div class="rvmAdmin__section"><div class="rvmAdmin-card">' +
-      '<div class="rvmAdmin-card__head"><div><h3>단계 구성</h3><p>예약 흐름 단계를 추가/삭제/순서 변경합니다. 드래그 또는 ↑↓ 버튼으로 순서를 조정하세요.</p></div>' +
-      '<div class="rvmAdmin-actions"><button type="button" class="btn btn-primary" data-action="step-add">+ 단계 추가</button></div></div>' +
-      '<div class="rvmAdmin-card__body"><ul class="rvmAdmin-steps-ul" id="rvmStepsUl">' + (listHtml || '<li style="color:var(--text3);padding:14px 0">단계가 없습니다.</li>') + '</ul></div>' +
+      '<div class="rvmAdmin-card__head"><div><h3>단계 구성</h3><p>예약 흐름 단계를 추가·삭제·순서 변경합니다. 드래그 또는 ↑↓ 버튼으로 순서를 조정하세요.</p></div>' +
+      '<div class="rvmAdmin-actions"><button type="button" class="btn btn-primary btn-sm" data-action="step-add">+ 단계 추가</button></div></div>' +
+      '<div class="rvmAdmin-card__body"><ul class="rvmAdmin-steps-ul" id="rvmStepsUl">' + (listHtml || '<li style="color:var(--text3);padding:16px 0;text-align:center">단계가 없습니다.</li>') + '</ul></div>' +
       '</div></div>';
   }
 
@@ -486,8 +489,8 @@
     }).join('') || '<tr><td colspan="7" style="color:var(--text3);padding:14px 8px">필드가 없습니다.</td></tr>';
 
     return '<div class="rvmAdmin__section"><div class="rvmAdmin-card">' +
-      '<div class="rvmAdmin-card__head"><div><h3>정보입력 필드</h3><p>예약 시 고객에게 보여줄 입력 항목을 관리합니다.</p></div>' +
-      '<div class="rvmAdmin-actions"><button type="button" class="btn btn-primary" data-action="field-add">+ 필드 추가</button></div></div>' +
+      '<div class="rvmAdmin-card__head"><div><h3>정보입력 필드</h3><p>예약 시 고객에게 표시할 입력 항목을 관리합니다.</p></div>' +
+      '<div class="rvmAdmin-actions"><button type="button" class="btn btn-primary btn-sm" data-action="field-add">+ 필드 추가</button></div></div>' +
       '<div class="rvmAdmin-card__body"><div class="rvmAdmin-table-wrap"><table class="rvmAdmin-t">' +
       '<thead><tr><th>라벨</th><th>타입</th><th>name_key</th><th>옵션</th><th>필수</th><th>상태</th><th>관리</th></tr></thead>' +
       '<tbody>' + rows + '</tbody></table></div></div></div></div>';
@@ -526,10 +529,10 @@
     }).join('') || '<p style="color:var(--text3)">지역이 없습니다.</p>';
 
     return '<div class="rvmAdmin__section"><div class="rvmAdmin-card">' +
-      '<div class="rvmAdmin-card__head"><div><h3>지점 관리</h3><p>지역/지점 마스터를 관리하고, 이 인스턴스에 연결할 지점을 체크하세요.</p></div>' +
-      '<div class="rvmAdmin-actions" style="gap:6px">' +
-      '<button type="button" class="btn btn-outline" id="rvmRegionAdd">+ 지역 추가</button>' +
-      '<button type="button" class="btn btn-primary" id="rvmBranchMasterAdd">+ 지점 추가</button>' +
+      '<div class="rvmAdmin-card__head"><div><h3>지점 관리</h3><p>지역·지점 마스터를 관리하고, 이 인스턴스에 연결할 지점을 체크하세요.</p></div>' +
+      '<div class="rvmAdmin-actions">' +
+      '<button type="button" class="btn btn-outline btn-sm" id="rvmRegionAdd">+ 지역</button>' +
+      '<button type="button" class="btn btn-primary btn-sm" id="rvmBranchMasterAdd">+ 지점</button>' +
       '</div></div>' +
       '<div class="rvmAdmin-card__body">' + regionHtml + '</div>' +
       '</div></div>';
@@ -602,15 +605,15 @@
     }
 
     /* 일괄 설정 */
-    var bulkHtml = '<div class="rvmAdmin-card" style="margin-top:14px">' +
-      '<div class="rvmAdmin-card__head"><div><h3>일괄 시간 등록</h3><p>날짜 범위 + 시간 목록으로 한 번에 슬롯을 만듭니다.</p></div></div>' +
-      '<div class="rvmAdmin-card__body"><div class="rvmAdmin-grid" style="gap:12px">' +
-      '<div class="rvmAdmin-col-4"><label style="font-weight:900;font-size:.85rem;display:block;margin-bottom:4px">시작일</label><input class="rvmAdmin-input" type="date" id="rvmBulkFrom" value="' + esc(todayIso()) + '"/></div>' +
-      '<div class="rvmAdmin-col-4"><label style="font-weight:900;font-size:.85rem;display:block;margin-bottom:4px">종료일</label><input class="rvmAdmin-input" type="date" id="rvmBulkTo" value="' + esc(todayIso()) + '"/></div>' +
-      '<div class="rvmAdmin-col-4"><label style="font-weight:900;font-size:.85rem;display:block;margin-bottom:4px">정원</label><input class="rvmAdmin-input" type="number" id="rvmBulkCap" value="3" min="1"/></div>' +
-      '<div class="rvmAdmin-col-12"><label style="font-weight:900;font-size:.85rem;display:block;margin-bottom:4px">시간 목록 (쉼표 구분, 예: 09:00,10:30,14:00)</label><input class="rvmAdmin-input" type="text" id="rvmBulkTimes" placeholder="09:00,10:00,11:00,14:00,15:00"/></div>' +
+    var bulkHtml = '<details class="rvmAdmin-bulk-details" style="margin-top:14px">' +
+      '<summary class="rvmAdmin-bulk-summary">일괄 시간 등록 (날짜 범위)</summary>' +
+      '<div class="rvmAdmin-bulk-body"><div class="rvmAdmin-grid" style="gap:10px">' +
+      '<div class="rvmAdmin-col-4"><label style="font-weight:800;font-size:.83rem;display:block;margin-bottom:4px;color:var(--text2)">시작일</label><input class="rvmAdmin-input" type="date" id="rvmBulkFrom" value="' + esc(todayIso()) + '"/></div>' +
+      '<div class="rvmAdmin-col-4"><label style="font-weight:800;font-size:.83rem;display:block;margin-bottom:4px;color:var(--text2)">종료일</label><input class="rvmAdmin-input" type="date" id="rvmBulkTo" value="' + esc(todayIso()) + '"/></div>' +
+      '<div class="rvmAdmin-col-4"><label style="font-weight:800;font-size:.83rem;display:block;margin-bottom:4px;color:var(--text2)">정원</label><input class="rvmAdmin-input" type="number" id="rvmBulkCap" value="3" min="1"/></div>' +
+      '<div class="rvmAdmin-col-12"><label style="font-weight:800;font-size:.83rem;display:block;margin-bottom:4px;color:var(--text2)">시간 목록 (쉼표 구분)</label><input class="rvmAdmin-input" type="text" id="rvmBulkTimes" placeholder="09:00,10:00,11:00,14:00,15:00"/></div>' +
       '<div class="rvmAdmin-col-12"><button type="button" class="btn btn-primary" id="rvmBulkApply">일괄 등록</button></div>' +
-      '</div></div></div>';
+      '</div></div></details>';
 
     return '<div class="rvmAdmin__section"><div class="rvmAdmin-card">' +
       '<div class="rvmAdmin-card__head"><div><h3>날짜/시간 설정</h3><p>지점을 선택하고 날짜를 클릭해 슬롯을 관리하세요.</p></div>' +
@@ -633,25 +636,23 @@
   /* ─── 알림 설정 탭 ──────────────────────────────── */
   function renderNotificationTab() {
     var n = getNotification(state.instanceId);
+    function notiBox(key, label, inputId, value, placeholder) {
+      var checked = !!n[key];
+      return '<div class="rvmAdmin-col-12"><div class="rvmAdmin-noti-box">' +
+        '<label class="rvmAdmin-switch"><input type="checkbox" class="rvmNotiUse" data-key="' + esc(key) + '"' + (checked ? ' checked' : '') + '/>' +
+        '<span style="font-weight:900;font-size:.92rem">' + esc(label) + '</span>' +
+        '<span class="rvmAdmin-pill ' + (checked ? 'ok' : '') + '" style="margin-left:4px">' + (checked ? '사용' : '꺼짐') + '</span>' +
+        '</label>' +
+        '<input class="rvmAdmin-input" type="text" id="' + esc(inputId) + '" value="' + esc(value) + '" placeholder="' + esc(placeholder) + '"/>' +
+        '</div></div>';
+    }
     return '<div class="rvmAdmin__section"><div class="rvmAdmin-card">' +
-      '<div class="rvmAdmin-card__head"><div><h3>알림 설정</h3><p>예약 접수 시 관리자 알림 방식을 설정합니다.</p></div>' +
-      '<div class="rvmAdmin-actions"><button type="button" class="btn btn-outline" data-action="dummy-save">저장</button></div></div>' +
-      '<div class="rvmAdmin-card__body"><div class="rvmAdmin-grid" style="gap:16px">' +
-      /* 이메일 */
-      '<div class="rvmAdmin-col-12"><div style="padding:12px;border:1px solid var(--border);border-radius:12px;background:#fbfcff">' +
-      '<label class="rvmAdmin-switch" style="gap:10px"><input type="checkbox" class="rvmNotiUse" data-key="use_email"' + (n.use_email ? ' checked' : '') + '/><span style="font-weight:900">이메일 알림</span></label>' +
-      '<div style="margin-top:10px"><input class="rvmAdmin-input" type="text" id="rvmNotiEmails" value="' + esc(n.email_list || '') + '" placeholder="admin@example.com (쉼표 구분)"/></div>' +
-      '</div></div>' +
-      /* 스프레드시트 */
-      '<div class="rvmAdmin-col-12"><div style="padding:12px;border:1px solid var(--border);border-radius:12px;background:#fbfcff">' +
-      '<label class="rvmAdmin-switch" style="gap:10px"><input type="checkbox" class="rvmNotiUse" data-key="use_sheet"' + (n.use_sheet ? ' checked' : '') + '/><span style="font-weight:900">스프레드시트 연동</span></label>' +
-      '<div style="margin-top:10px"><input class="rvmAdmin-input" type="text" id="rvmNotiSheet" value="' + esc(n.sheet_webhook || '') + '" placeholder="Webhook URL"/></div>' +
-      '</div></div>' +
-      /* 알림톡 */
-      '<div class="rvmAdmin-col-12"><div style="padding:12px;border:1px solid var(--border);border-radius:12px;background:#fbfcff">' +
-      '<label class="rvmAdmin-switch" style="gap:10px"><input type="checkbox" class="rvmNotiUse" data-key="use_alimtalk"' + (n.use_alimtalk ? ' checked' : '') + '/><span style="font-weight:900">알림톡</span></label>' +
-      '<div style="margin-top:10px"><input class="rvmAdmin-input" type="text" id="rvmNotiAlim" value="' + esc(n.alimtalk_webhook || '') + '" placeholder="알림톡 Webhook URL"/></div>' +
-      '</div></div>' +
+      '<div class="rvmAdmin-card__head"><div><h3>알림 설정</h3><p>예약 접수 시 관리자에게 알림을 보냅니다. 사용할 방식을 켜고 저장하세요.</p></div>' +
+      '<div class="rvmAdmin-actions"><button type="button" class="btn btn-primary btn-sm" data-action="dummy-save">저장</button></div></div>' +
+      '<div class="rvmAdmin-card__body"><div class="rvmAdmin-grid" style="gap:12px">' +
+      notiBox('use_email', '이메일 알림', 'rvmNotiEmails', n.email_list || '', '수신 이메일 (쉼표로 구분)') +
+      notiBox('use_sheet', '스프레드시트 연동', 'rvmNotiSheet', n.sheet_webhook || '', 'Google Sheets Webhook URL') +
+      notiBox('use_alimtalk', '알림톡 발송', 'rvmNotiAlim', n.alimtalk_webhook || '', '알림톡 Webhook URL') +
       '</div></div></div></div>';
   }
 
@@ -699,7 +700,7 @@
 
     return '<div class="rvmAdmin__section"><div class="rvmAdmin-card">' +
       '<div class="rvmAdmin-card__head"><div><h3>예약 접수 리스트</h3><p>실제 DB에서 예약 데이터를 조회합니다.</p></div>' +
-      '<div class="rvmAdmin-actions"><button type="button" class="btn btn-success" data-action="bk-export">📥 엑셀 다운로드</button></div>' +
+      '<div class="rvmAdmin-actions"><button type="button" class="btn btn-outline btn-sm" data-action="bk-export">엑셀 다운로드</button></div>' +
       '</div>' +
       '<div class="rvmAdmin-card__body">' +
       '<div class="rvmAdmin-bk-filters">' +
@@ -710,15 +711,15 @@
       '<input class="rvmAdmin-input" type="date" id="rvmBkDateTo" value="' + esc(fDateTo) + '" style="min-width:0;flex:1"/>' +
       '</div></div>' +
       '<div class="rvmAdmin-bk-filter-group" style="justify-content:flex-end"><label>&nbsp;</label>' +
-      '<button type="button" class="btn btn-outline" id="rvmBkToday" style="white-space:nowrap">📅 오늘</button></div>' +
+      '<button type="button" class="btn btn-outline btn-sm" id="rvmBkToday" style="white-space:nowrap">오늘</button></div>' +
       '<div class="rvmAdmin-bk-filter-group"><label>검색</label>' +
       '<input class="rvmAdmin-input" type="text" id="rvmBkQ" value="' + esc(fq) + '" placeholder="예약번호 / 이름 / 전화번호"/></div>' +
       '<div class="rvmAdmin-bk-filter-group"><label>상태</label><select class="rvmAdmin-select" id="rvmBkStatus">' + statusOpts + '</select></div>' +
       '<div class="rvmAdmin-bk-filter-group"><label>지점</label><select class="rvmAdmin-select" id="rvmBkBranch">' + branchOpts + '</select></div>' +
       '<div class="rvmAdmin-bk-filter-group" style="justify-content:flex-end"><label>&nbsp;</label>' +
       '<div style="display:flex;gap:6px">' +
-      '<button type="button" class="btn btn-primary" data-action="bk-search">🔍 검색</button>' +
-      '<button type="button" class="btn btn-ghost" data-action="bk-reset">초기화</button>' +
+      '<button type="button" class="btn btn-primary btn-sm" data-action="bk-search">검색</button>' +
+      '<button type="button" class="btn btn-ghost btn-sm" data-action="bk-reset">초기화</button>' +
       '</div></div>' +
       '</div>' +
       '<div id="rvmBkSummary" style="margin:10px 0 4px;font-size:.85rem;font-weight:800;color:var(--text3)"></div>' +
@@ -734,18 +735,22 @@
   /* ─── 예약 조회 설정 탭 ─────────────────────────── */
   function renderLookupTab() {
     var l = getLookup(state.instanceId);
+    function lookupBox(id, checked, title, desc) {
+      return '<div class="rvmAdmin-col-6"><div class="rvmAdmin-lookup-box">' +
+        '<div style="font-weight:900;color:var(--text1);margin-bottom:10px;font-size:.95rem">' + esc(title) + '</div>' +
+        '<label class="rvmAdmin-switch"><input type="checkbox" id="' + esc(id) + '"' + (checked ? ' checked' : '') + '/>' +
+        '<span style="font-weight:800;font-size:.88rem">허용</span>' +
+        '<span class="rvmAdmin-pill ' + (checked ? 'ok' : '') + '" style="margin-left:4px">' + (checked ? '사용' : '꺼짐') + '</span>' +
+        '</label>' +
+        '<div style="margin-top:8px;color:var(--text3);font-size:.83rem">' + esc(desc) + '</div>' +
+        '</div></div>';
+    }
     return '<div class="rvmAdmin__section"><div class="rvmAdmin-card">' +
-      '<div class="rvmAdmin-card__head"><div><h3>예약 조회 설정</h3><p>프론트에서 고객이 예약을 조회하는 방식을 설정합니다.</p></div>' +
-      '<div class="rvmAdmin-actions"><button type="button" class="btn btn-outline" data-action="dummy-save">저장</button></div></div>' +
-      '<div class="rvmAdmin-card__body"><div class="rvmAdmin-grid">' +
-      '<div class="rvmAdmin-col-6"><div style="padding:12px;border:1px solid var(--border);border-radius:12px;background:#fbfcff">' +
-      '<div style="font-weight:900;color:var(--text2);margin-bottom:10px">예약번호 조회</div>' +
-      '<label class="rvmAdmin-switch" style="gap:10px"><input type="checkbox" id="rvmLookupNo"' + (l.allow_by_reservation_no ? ' checked' : '') + '/><span style="font-weight:900;color:var(--text2)">예약번호 조회 허용</span></label>' +
-      '<div style="margin-top:8px;color:var(--text3);font-weight:800;font-size:.85rem">예약번호 입력으로 즉시 조회</div></div></div>' +
-      '<div class="rvmAdmin-col-6"><div style="padding:12px;border:1px solid var(--border);border-radius:12px;background:#fbfcff">' +
-      '<div style="font-weight:900;color:var(--text2);margin-bottom:10px">이름+전화번호 조회</div>' +
-      '<label class="rvmAdmin-switch" style="gap:10px"><input type="checkbox" id="rvmLookupNamePhone"' + (l.allow_by_name_phone ? ' checked' : '') + '/><span style="font-weight:900;color:var(--text2)">이름/전화 조합 조회 허용</span></label>' +
-      '<div style="margin-top:8px;color:var(--text3);font-weight:800;font-size:.85rem">이름과 전화번호를 함께 입력해야 조회</div></div></div>' +
+      '<div class="rvmAdmin-card__head"><div><h3>예약 조회 설정</h3><p>고객이 프론트에서 예약을 조회할 수 있는 방법을 설정합니다.</p></div>' +
+      '<div class="rvmAdmin-actions"><button type="button" class="btn btn-primary btn-sm" data-action="dummy-save">저장</button></div></div>' +
+      '<div class="rvmAdmin-card__body"><div class="rvmAdmin-grid" style="gap:12px">' +
+      lookupBox('rvmLookupNo', l.allow_by_reservation_no, '예약번호 조회', '예약번호를 입력해 즉시 조회합니다.') +
+      lookupBox('rvmLookupNamePhone', l.allow_by_name_phone, '이름 + 연락처 조회', '이름과 전화번호를 함께 입력해야 조회됩니다.') +
       '</div></div></div></div>';
   }
 

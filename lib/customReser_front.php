@@ -31,12 +31,14 @@ if ($customReser_public_slug === '') {
 }
 ?>
 <div class="customReser-suite" data-customReser-slug="<?= htmlspecialchars($customReser_public_slug, ENT_QUOTES, 'UTF-8') ?>">
+
+  <!-- 예약하기 섹션 -->
   <section class="sw customReser-book-section" id="customReser-book-anchor" style="background:var(--off);">
     <div class="inner">
       <div class="customReser-wrap">
         <div class="customReser-head">
           <h2>예약하기</h2>
-          <p class="customReser-sub">지점·일정·정보를 순서대로 선택해 주세요.</p>
+          <p class="customReser-sub">단계별로 지점·날짜·정보를 선택해 주세요.</p>
           <p id="customReser-cap-hint" class="customReser-cap-hint" hidden></p>
         </div>
         <div id="customReser-msg"></div>
@@ -44,11 +46,13 @@ if ($customReser_public_slug === '') {
         <div id="customReser-step-host"></div>
         <div id="customReser-actions" class="customReser-actions"></div>
         <div class="customReser-link-bar">
-          <a href="#customReser-lookup-anchor">예약 조회</a>
+          <a href="#customReser-lookup-anchor">예약 조회 →</a>
         </div>
       </div>
     </div>
   </section>
+
+  <!-- 예약 조회 섹션 -->
   <section class="sw customReser-lookup-section" id="customReser-lookup-anchor" style="background:var(--off);">
     <div class="inner">
       <div class="customReser-wrap customReser-lookup-wrap">
@@ -61,26 +65,27 @@ if ($customReser_public_slug === '') {
           <div class="customReser-card">
             <div class="customReser-field">
               <label>예약번호</label>
-              <input type="text" id="customReser-lookup-no" placeholder="예약번호" autocomplete="off">
+              <input type="text" id="customReser-lookup-no" placeholder="예약번호 입력" autocomplete="off" inputmode="text">
             </div>
             <p class="customReser-or">또는</p>
             <div class="customReser-field">
               <label>이름</label>
-              <input type="text" id="customReser-lookup-name" autocomplete="name">
+              <input type="text" id="customReser-lookup-name" placeholder="이름" autocomplete="name">
             </div>
             <div class="customReser-field">
               <label>연락처</label>
-              <input type="tel" id="customReser-lookup-phone" placeholder="숫자만" inputmode="numeric" autocomplete="tel">
+              <input type="tel" id="customReser-lookup-phone" placeholder="01012345678" inputmode="numeric" autocomplete="tel">
             </div>
-            <button type="button" class="customReser-btn primary" id="customReser-lookup-btn" style="width:100%;margin-top:8px;">조회</button>
+            <button type="button" class="customReser-btn primary" id="customReser-lookup-btn" style="width:100%;margin-top:12px;">조회하기</button>
           </div>
           <div id="customReser-result" class="customReser-result-col"></div>
         </div>
         <div id="customReser-resched-panel" class="customReser-card customReser-resched-panel" hidden></div>
         <div class="customReser-link-bar">
-          <a href="#customReser-book-anchor">예약하기</a>
+          <a href="#customReser-book-anchor">← 예약하기</a>
         </div>
       </div>
     </div>
   </section>
+
 </div>

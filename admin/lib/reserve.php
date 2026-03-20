@@ -14,7 +14,7 @@
       <button class="btn btn-sm btn-danger" onclick="bulkDelete('reserveTimeBulk','reserveTimeBody')">선택 삭제</button>
     </div>
     <div class="table-wrap"><table class="admin-table">
-      <thead><tr><th>☑</th><th>#</th><th>매장</th><th>예약 설명</th><th>시작</th><th>종료</th><th>항목수</th><th>사용</th><th>관리</th></tr></thead>
+      <thead><tr><th>☑</th><th>#</th><th>매장</th><th>예약 설명</th><th>시작</th><th>종료</th><th>항목수</th><th>총 수량</th><th>사용</th><th>관리</th></tr></thead>
       <tbody id="reserveTimeBody"></tbody>
     </table></div>
   </div></div>

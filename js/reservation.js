@@ -193,11 +193,14 @@
   function rsvInitCalendar(){
     var title=document.getElementById('rsvCalTitle');
     if(title) title.textContent=_rsv.calYear+'년 '+_rsv.calMonth+'월';
-    _rsvUpdateCalNavBtn(); rsvLoadMonthAvail();
+    _rsvUpdateCalNavBtn();
+    rsvLoadMonthAvail();
   }
   function rsvCalNav(dir){
     var _kstNow=new Date(Date.now()+9*60*60*1000);
-    if(dir===-1&&_rsv.calYear===_kstNow.getUTCFullYear()&&_rsv.calMonth===(_kstNow.getUTCMonth()+1)) return;
+    var curY=_kstNow.getUTCFullYear(), curM=_kstNow.getUTCMonth()+1;
+    // 이전 달: 현재 달이면 이동 불가
+    if(dir===-1&&_rsv.calYear===curY&&_rsv.calMonth===curM) return;
     _rsv.calMonth+=dir;
     if(_rsv.calMonth>12){_rsv.calMonth=1;_rsv.calYear++;}
     if(_rsv.calMonth<1){_rsv.calMonth=12;_rsv.calYear--;}
@@ -207,9 +210,21 @@
   }
   function _rsvUpdateCalNavBtn(){
     var _kstNow=new Date(Date.now()+9*60*60*1000);
-    var isCur=(_rsv.calYear===_kstNow.getUTCFullYear()&&_rsv.calMonth===(_kstNow.getUTCMonth()+1));
+    var curY=_kstNow.getUTCFullYear(), curM=_kstNow.getUTCMonth()+1;
+    // 혹시라도 현재 달보다 이전으로 넘어갔으면 현재 달로 보정
+    if(_rsv.calYear<curY||(_rsv.calYear===curY&&_rsv.calMonth<curM)){
+      _rsv.calYear=curY; _rsv.calMonth=curM;
+      var title=document.getElementById('rsvCalTitle');
+      if(title) title.textContent=_rsv.calYear+'년 '+_rsv.calMonth+'월';
+    }
+    var isCur=(_rsv.calYear===curY&&_rsv.calMonth===curM);
     var prevBtn=document.querySelector('#rsvPanel2 .rsv-cal-nav-btn:first-child');
-    if(prevBtn){ prevBtn.disabled=isCur; prevBtn.style.opacity=isCur?'0.3':''; prevBtn.style.cursor=isCur?'default':''; }
+    if(prevBtn){
+      prevBtn.disabled=isCur;
+      prevBtn.style.opacity=isCur?'0.25':'1';
+      prevBtn.style.cursor=isCur?'not-allowed':'pointer';
+      prevBtn.style.pointerEvents=isCur?'none':'';
+    }
   }
   function rsvGoToday(){
     var _kstNow=new Date(Date.now()+9*60*60*1000);

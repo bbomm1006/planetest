@@ -13,7 +13,7 @@
         <div class="form-group col-span-2"><label>예약 설명</label><input type="text" class="form-control" id="rtDescription" placeholder="예약 안내 문구"/></div>
         <div class="form-group"><label>시작 시간 <span class="req">*</span></label><input type="time" class="form-control" id="rtStartTime"/></div>
         <div class="form-group"><label>종료 시간 <span class="req">*</span></label><input type="time" class="form-control" id="rtEndTime"/></div>
-        <div class="form-group col-span-2"><label>예약 항목</label>
+        <div class="form-group col-span-2"><label>예약 항목 <small style="font-weight:400;color:var(--text-muted);">항목명 · 설명 · 수량(최대 예약 가능 인원) · 사용여부</small></label>
           <div class="repeat-group" id="reserveItemGroup"></div>
           <button class="btn-add-row" onclick="addReserveItem()">＋ 항목 추가</button>
         </div>

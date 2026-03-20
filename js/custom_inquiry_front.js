@@ -136,11 +136,19 @@ function ciRenderConfig(t, res) {
   // 약관
   ciRenderTerms(t, res.terms || []);
 
-  // visibility OFF → 목록 없음
+  // visibility OFF → 목록 없음, ON → 목록 뷰로 시작
   const hasListView = !!form.visibility_type;
 
-  // 뷰 전환
-  ciShowView(t, 'form');
+  // 목록 타이틀 세팅
+  const listTitleEl = document.getElementById('ci-list-title-' + t);
+  if (listTitleEl) listTitleEl.textContent = form.title || '문의 내역';
+
+  // 뷰 전환 — 공개글여부 on이면 목록 뷰로 시작, off면 폼 뷰로 시작
+  if (hasListView) {
+    ciShowView(t, 'list');
+  } else {
+    ciShowView(t, 'form');
+  }
 
   // visibility 있으면 완료 후 "내역 보기" 버튼 표시
   const okListBtn = document.getElementById('ci-ok-list-btn-' + t);
@@ -164,6 +172,12 @@ function ciShowPeriodNotice(t, title, desc) {
    소셜 로그인 게이트
 ════════════════════════════════════════════════ */
 function ciShowLoginGate(t, form) {
+  // 모든 뷰 숨김
+  ['form', 'list', 'detail'].forEach(v => {
+    const el = document.getElementById(`ci-view-${v}-${t}`);
+    if (el) el.classList.remove('ci-active');
+  });
+
   const gate = document.getElementById('ci-login-gate-' + t);
   if (!gate) return;
   gate.style.display = '';
@@ -361,8 +375,18 @@ async function ciLogout(t) {
   }
   const bar = document.getElementById('ci-user-bar-' + t);
   if (bar) bar.style.display = 'none';
-  const form = ciState(t).config?.form;
-  if (form && form.login_use) ciShowLoginGate(t, form);
+
+  const config = ciState(t).config;
+  const form   = config?.form;
+  if (!form) return;
+
+  if (form.login_use) {
+    // 로그인 필수 폼 → 로그인 게이트 표시
+    ciShowLoginGate(t, form);
+  } else {
+    // 로그인 불필요 폼 → 처음 상태로 재렌더링 (목록 or 폼)
+    ciRenderConfig(t, config);
+  }
 }
 
 /* 계정 변경 — 세션 초기화 후 로그인 게이트 재표시 */
@@ -383,10 +407,18 @@ async function ciSwitchAccount(t) {
     if (timerEl)  timerEl.textContent = '';
     if (_ciOtpTimers[t]) { clearInterval(_ciOtpTimers[t]); delete _ciOtpTimers[t]; }
   }
-  const bar = document.getElementById('ci-user-bar-' + t);
-  if (bar) bar.style.display = 'none';
-  const form = ciState(t).config?.form;
-  if (form) ciShowLoginGate(t, form);
+  const bar2 = document.getElementById('ci-user-bar-' + t);
+  if (bar2) bar2.style.display = 'none';
+
+  const config = ciState(t).config;
+  const form2  = config?.form;
+  if (!form2) return;
+
+  if (form2.login_use) {
+    ciShowLoginGate(t, form2);
+  } else {
+    ciRenderConfig(t, config);
+  }
 }
 
 function ciShowUserBar(t) {
@@ -546,22 +578,27 @@ function ciRenderVisibility(t, form) {
   const wrap = document.getElementById('ci-visibility-wrap-' + t);
   if (!wrap) return;
 
-  if (!form.visibility_type) { wrap.style.display = 'none'; return; }
+  const visType  = form.visibility_type || '';
+  const loginUse = !!form.login_use;
 
-  if (form.visibility_type === 'private') {
-    wrap.style.display = 'none'; // 비공개 고정 → UI 불필요
-  } else if (form.visibility_type === 'public') {
-    wrap.style.display = 'none'; // 공개 고정 → UI 불필요
-  } else if (form.visibility_type === 'both') {
+  // 선택 UI 표시 조건: 로그인on + both 조합만
+  if (visType === 'both' && loginUse) {
     wrap.style.display = '';
-    // 라디오 클릭 시 선택 스타일
     wrap.querySelectorAll('.ci-visibility-opt').forEach(opt => {
       opt.addEventListener('click', () => {
         wrap.querySelectorAll('.ci-visibility-opt').forEach(o => o.classList.remove('ci-selected'));
         opt.classList.add('ci-selected');
       });
     });
+    return;
   }
+
+  // 그 외 모든 조합 → 선택 UI 숨기고 값 자동 고정
+  wrap.style.display = 'none';
+  // private이면 비공개(0), 그 외(public, both+loginoff 등)는 공개(1) 고정
+  const fixedVal = visType === 'private' ? '0' : '1';
+  const radio = wrap.querySelector(`input[value="${fixedVal}"]`);
+  if (radio) radio.checked = true;
 }
 
 /* ════════════════════════════════════════════════
@@ -739,7 +776,14 @@ async function ciLoadList(t, page) {
   if (listEl) listEl.innerHTML = '<div class="ci-loading"><div class="ci-spinner"></div><span>불러오는 중...</span></div>';
 
   const res = await ciFetch(url);
-  if (!res.ok || !listEl) return;
+  if (!res.ok || !listEl) {
+    if (res.msg === '로그인이 필요합니다.') {
+      const form = ciState(t).config?.form;
+      if (form) ciShowLoginGate(t, form);
+      return;
+    }
+    return;
+  }
 
   const items = res.items || [];
   if (!items.length) {
@@ -785,7 +829,17 @@ async function ciLoadDetail(t, id) {
   if (box) box.innerHTML = '<div class="ci-loading"><div class="ci-spinner"></div><span>불러오는 중...</span></div>';
 
   const res = await ciFetch(`/admin/api_front/custom_inquiry_public.php?action=detail&table_name=${t}&id=${id}`);
-  if (!res.ok || !box) { if (box) box.innerHTML = `<div class="ci-error" style="margin:16px;">${ciEsc(res.msg || '오류')}</div>`; return; }
+  if (!res.ok || !box) {
+    // 로그인 필요 또는 권한 없음 → 로그인 게이트 표시
+    if (res.msg === '로그인이 필요합니다.' || res.msg === '본인 글만 확인할 수 있습니다.') {
+      ciShowView(t, 'list');
+      const form = ciState(t).config?.form;
+      if (form) ciShowLoginGate(t, form);
+      return;
+    }
+    if (box) box.innerHTML = `<div class="ci-error" style="margin:16px;">${ciEsc(res.msg || '오류')}</div>`;
+    return;
+  }
 
   const item    = res.item;
   const fields  = item.fields  || [];
@@ -821,9 +875,10 @@ async function ciLoadDetail(t, id) {
       </div>`;
   }
 
-  // 댓글 영역
+  // 댓글 영역 — 작성은 무조건 로그인 필수 (login_use 설정과 무관)
   let commentHtml = '';
   if (form.comment_use == 1) {
+    // 세션 유저 우선, 없으면 ciState 유저 사용
     const user = ciState(t).user;
     const commentItems = comments.map(c => `
       <div class="board-comment-item ${c.is_admin ? 'admin-comment' : ''}">
