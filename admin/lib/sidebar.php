@@ -12,6 +12,7 @@
           <div class="nav-sub">
             <div class="nav-sub-link" onclick="showPage('adminMgmt')">관리자 관리</div>
             <div class="nav-sub-link" onclick="showPage('menuMgmt')">메뉴 관리</div>
+            <div class="nav-sub-link" onclick="showPage('sectionMgmt')">섹션 관리</div>
             <div class="nav-sub-link" onclick="showPage('scriptMgmt')">스크립트 관리</div>
             <div class="nav-sub-link" onclick="showPage('socialMgmt')">소셜 관리</div>
             <!-- <div class="nav-sub-link" onclick="showPage('siteMgmt')">사이트 정보 관리</div> -->

@@ -81,6 +81,7 @@ const COMMENT_FIELDS = ['댓글'];
 const PAGE_LABELS = {
   adminMgmt:   ['시스템','관리자 관리'],
   menuMgmt:    ['시스템','메뉴 관리'],
+  sectionMgmt: ['시스템','섹션 관리'],
   scriptMgmt:  ['시스템','스크립트 관리'],
   socialMgmt:  ['시스템','소셜 관리'],
   bannerMgmt:  ['콘텐츠','상단 메인 배너'],
@@ -315,6 +316,7 @@ function showPage(pageId) {
   // 페이지 진입 시 데이터 로드
   if (pageId === 'adminMgmt')    loadAdminList();
   if (pageId === 'menuMgmt')     loadMenuList();
+  if (pageId === 'sectionMgmt')  loadSectionMgmt();
   if (pageId === 'scriptMgmt')   loadScript();
   if (pageId === 'socialMgmt')   loadSocial();
   if (pageId === 'bannerMgmt')   loadBannerList();
@@ -491,6 +493,27 @@ async function loadMenuList() {
   renderMenuChecks();
 }
 
+async function loadSectionMgmt() {
+  const res = await apiGet('api/system.php', { action: 'menuList' });
+  if (res.ok && res.data.length > 0) {
+    res.data.forEach(m => { menuState[m.key] = !!m.is_active; });
+  }
+  renderSectionChecks();
+}
+
+function renderSectionChecks() {
+  const container = document.getElementById('sectionCheckList');
+  if (!container) return;
+  let html = '<p style="font-size:.82rem;font-weight:700;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;">프론트 노출 설정</p>';
+  html += '<div class="checkbox-group" style="margin-bottom:0;">';
+  FRONT_SECTION_LIST.forEach(m => {
+    const chk = menuState[m.key] !== false ? 'checked' : '';
+    html += `<div class="checkbox-item"><input type="checkbox" id="section_${m.key}" ${chk} onchange="menuState['${m.key}']=this.checked"><span>${m.label}</span></div>`;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
 function renderMenuChecks() {
   const container = document.getElementById('menuCheckList');
   if (!container) return;
@@ -537,6 +560,25 @@ async function saveMenuMgmt() {
   const res = await apiPost('api/system.php', { action: 'menuSave', items: JSON.stringify(items) });
   if (res.ok) {
     showToast('메뉴 설정이 저장되었습니다.', 'success');
+    renderSidebar();
+  } else {
+    showToast('저장 실패', 'error');
+  }
+}
+
+async function saveSectionMgmt() {
+  document.querySelectorAll('#sectionCheckList input[type="checkbox"]').forEach(cb => {
+    const key = cb.id.replace('section_', '');
+    menuState[key] = cb.checked;
+  });
+  const items = FRONT_SECTION_LIST.map(m => ({
+    key: m.key,
+    label: m.label,
+    is_active: menuState[m.key] ? 1 : 0,
+  }));
+  const res = await apiPost('api/system.php', { action: 'menuSave', items: JSON.stringify(items) });
+  if (res.ok) {
+    showToast('섹션 설정이 저장되었습니다.', 'success');
     renderSidebar();
   } else {
     showToast('저장 실패', 'error');

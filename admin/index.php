@@ -30,6 +30,7 @@
             ======================== -->
       <?php include 'lib/admin.php'; ?>
       <?php include 'lib/menuMgmt.php'; ?>
+      <?php include 'lib/sectionMgmt.php'; ?>
       <?php include 'lib/scriptMgmt.php'; ?>
       <?php include 'lib/socialMgmt.php'; ?>
 
