@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../config/log_helper.php';
 header('Content-Type: application/json; charset=utf-8');
 set_error_handler(function($no,$str,$file,$line){ echo json_encode(['ok'=>false,'msg'=>"PHP[$no]:$str $file:$line"]); exit; });
 set_exception_handler(function($e){ echo json_encode(['ok'=>false,'msg'=>$e->getMessage()]); exit; });
@@ -24,13 +25,17 @@ if ($action === 'kbSave') {
     $follow_context = trim($_POST['follow_context'] ?? '');
     if (!$keywords || !$answer) { echo json_encode(['ok'=>false,'msg'=>'키워드와 답변은 필수입니다.']); exit; }
     if ($id > 0) {
+        $before = $pdo->prepare("SELECT keywords, answer, follow_text, follow_context FROM chatbot_kb WHERE id=?"); $before->execute([$id]);
+        $old = $before->fetch() ?: [];
         $pdo->prepare("UPDATE chatbot_kb SET keywords=?, answer=?, follow_text=?, follow_context=? WHERE id=?")
             ->execute([$keywords, $answer, $follow_text ?: null, $follow_context ?: null, $id]);
+        logAdminAction($pdo, 'update', 'chatbot_kb', (string)$id, $old, ['keywords'=>$keywords,'answer'=>$answer]);
     } else {
         $max = (int)$pdo->query("SELECT COALESCE(MAX(sort_order),0) FROM chatbot_kb")->fetchColumn();
         $pdo->prepare("INSERT INTO chatbot_kb (keywords, answer, follow_text, follow_context, sort_order) VALUES (?,?,?,?,?)")
             ->execute([$keywords, $answer, $follow_text ?: null, $follow_context ?: null, $max + 1]);
         $id = (int)$pdo->lastInsertId();
+        logAdminAction($pdo, 'create', 'chatbot_kb', (string)$id, [], ['keywords'=>$keywords,'answer'=>$answer]);
     }
     echo json_encode(['ok'=>true,'id'=>$id]); exit;
 }
@@ -42,13 +47,17 @@ if ($action === 'kbToggle') {
 }
 if ($action === 'kbDelete') {
     $id = (int)($_POST['id'] ?? 0);
+    $st = $pdo->prepare("SELECT keywords, answer FROM chatbot_kb WHERE id=?"); $st->execute([$id]);
+    $old = $st->fetch() ?: [];
     $pdo->prepare("DELETE FROM chatbot_kb WHERE id=?")->execute([$id]);
+    logAdminAction($pdo, 'delete', 'chatbot_kb', (string)$id, $old);
     echo json_encode(['ok'=>true]); exit;
 }
 if ($action === 'kbBulkDelete') {
     $ids = json_decode($_POST['ids'] ?? '[]', true) ?: [];
     $st  = $pdo->prepare("DELETE FROM chatbot_kb WHERE id=?");
-    foreach ($ids as $id) $st->execute([(int)$id]);
+    foreach ($ids as $id) { $st->execute([(int)$id]); }
+    logAdminAction($pdo, 'bulkDelete', 'chatbot_kb', implode(',', $ids), ['ids'=>$ids]);
     echo json_encode(['ok'=>true]); exit;
 }
 if ($action === 'kbReorder') {
@@ -73,13 +82,17 @@ if ($action === 'ctxSave') {
     $fallback    = trim($_POST['fallback'] ?? '');
     if (!$context_key || !$keywords || !$answer) { echo json_encode(['ok'=>false,'msg'=>'context_key, 키워드, 답변은 필수입니다.']); exit; }
     if ($id > 0) {
+        $before = $pdo->prepare("SELECT context_key, keywords, answer, fallback FROM chatbot_context WHERE id=?"); $before->execute([$id]);
+        $old = $before->fetch() ?: [];
         $pdo->prepare("UPDATE chatbot_context SET context_key=?, keywords=?, answer=?, fallback=? WHERE id=?")
             ->execute([$context_key, $keywords, $answer, $fallback ?: null, $id]);
+        logAdminAction($pdo, 'update', 'chatbot_context', (string)$id, $old, ['context_key'=>$context_key,'keywords'=>$keywords,'answer'=>$answer]);
     } else {
         $max = (int)$pdo->query("SELECT COALESCE(MAX(sort_order),0) FROM chatbot_context")->fetchColumn();
         $pdo->prepare("INSERT INTO chatbot_context (context_key, keywords, answer, fallback, sort_order) VALUES (?,?,?,?,?)")
             ->execute([$context_key, $keywords, $answer, $fallback ?: null, $max + 1]);
         $id = (int)$pdo->lastInsertId();
+        logAdminAction($pdo, 'create', 'chatbot_context', (string)$id, [], ['context_key'=>$context_key,'keywords'=>$keywords,'answer'=>$answer]);
     }
     echo json_encode(['ok'=>true,'id'=>$id]); exit;
 }
@@ -91,13 +104,17 @@ if ($action === 'ctxToggle') {
 }
 if ($action === 'ctxDelete') {
     $id = (int)($_POST['id'] ?? 0);
+    $st = $pdo->prepare("SELECT context_key, keywords FROM chatbot_context WHERE id=?"); $st->execute([$id]);
+    $old = $st->fetch() ?: [];
     $pdo->prepare("DELETE FROM chatbot_context WHERE id=?")->execute([$id]);
+    logAdminAction($pdo, 'delete', 'chatbot_context', (string)$id, $old);
     echo json_encode(['ok'=>true]); exit;
 }
 if ($action === 'ctxBulkDelete') {
     $ids = json_decode($_POST['ids'] ?? '[]', true) ?: [];
     $st  = $pdo->prepare("DELETE FROM chatbot_context WHERE id=?");
-    foreach ($ids as $id) $st->execute([(int)$id]);
+    foreach ($ids as $id) { $st->execute([(int)$id]); }
+    logAdminAction($pdo, 'bulkDelete', 'chatbot_context', implode(',', $ids), ['ids'=>$ids]);
     echo json_encode(['ok'=>true]); exit;
 }
 
@@ -115,13 +132,17 @@ if ($action === 'quickSave') {
     $context_key   = trim($_POST['context_key'] ?? '');
     if (!$label || !$question_text) { echo json_encode(['ok'=>false,'msg'=>'버튼 라벨과 질문 텍스트는 필수입니다.']); exit; }
     if ($id > 0) {
+        $before = $pdo->prepare("SELECT label, question_text, context_key FROM chatbot_quick WHERE id=?"); $before->execute([$id]);
+        $old = $before->fetch() ?: [];
         $pdo->prepare("UPDATE chatbot_quick SET label=?, question_text=?, context_key=? WHERE id=?")
             ->execute([$label, $question_text, $context_key ?: null, $id]);
+        logAdminAction($pdo, 'update', 'chatbot_quick', (string)$id, $old, ['label'=>$label,'question_text'=>$question_text]);
     } else {
         $max = (int)$pdo->query("SELECT COALESCE(MAX(sort_order),0) FROM chatbot_quick")->fetchColumn();
         $pdo->prepare("INSERT INTO chatbot_quick (label, question_text, context_key, sort_order) VALUES (?,?,?,?)")
             ->execute([$label, $question_text, $context_key ?: null, $max + 1]);
         $id = (int)$pdo->lastInsertId();
+        logAdminAction($pdo, 'create', 'chatbot_quick', (string)$id, [], ['label'=>$label,'question_text'=>$question_text]);
     }
     echo json_encode(['ok'=>true,'id'=>$id]); exit;
 }
@@ -133,13 +154,17 @@ if ($action === 'quickToggle') {
 }
 if ($action === 'quickDelete') {
     $id = (int)($_POST['id'] ?? 0);
+    $st = $pdo->prepare("SELECT label, question_text FROM chatbot_quick WHERE id=?"); $st->execute([$id]);
+    $old = $st->fetch() ?: [];
     $pdo->prepare("DELETE FROM chatbot_quick WHERE id=?")->execute([$id]);
+    logAdminAction($pdo, 'delete', 'chatbot_quick', (string)$id, $old);
     echo json_encode(['ok'=>true]); exit;
 }
 if ($action === 'quickBulkDelete') {
     $ids = json_decode($_POST['ids'] ?? '[]', true) ?: [];
     $st  = $pdo->prepare("DELETE FROM chatbot_quick WHERE id=?");
-    foreach ($ids as $id) $st->execute([(int)$id]);
+    foreach ($ids as $id) { $st->execute([(int)$id]); }
+    logAdminAction($pdo, 'bulkDelete', 'chatbot_quick', implode(',', $ids), ['ids'=>$ids]);
     echo json_encode(['ok'=>true]); exit;
 }
 if ($action === 'quickReorder') {
@@ -161,11 +186,15 @@ if ($action === 'defSave') {
     $answer = trim($_POST['answer'] ?? '');
     if (!$answer) { echo json_encode(['ok'=>false,'msg'=>'답변을 입력하세요.']); exit; }
     if ($id > 0) {
+        $before = $pdo->prepare("SELECT answer FROM chatbot_default WHERE id=?"); $before->execute([$id]);
+        $old = $before->fetch() ?: [];
         $pdo->prepare("UPDATE chatbot_default SET answer=? WHERE id=?")->execute([$answer, $id]);
+        logAdminAction($pdo, 'update', 'chatbot_default', (string)$id, $old, ['answer'=>$answer]);
     } else {
         $max = (int)$pdo->query("SELECT COALESCE(MAX(sort_order),0) FROM chatbot_default")->fetchColumn();
         $pdo->prepare("INSERT INTO chatbot_default (answer, sort_order) VALUES (?,?)")->execute([$answer, $max + 1]);
         $id = (int)$pdo->lastInsertId();
+        logAdminAction($pdo, 'create', 'chatbot_default', (string)$id, [], ['answer'=>$answer]);
     }
     echo json_encode(['ok'=>true,'id'=>$id]); exit;
 }
@@ -177,7 +206,10 @@ if ($action === 'defToggle') {
 }
 if ($action === 'defDelete') {
     $id = (int)($_POST['id'] ?? 0);
+    $st = $pdo->prepare("SELECT answer FROM chatbot_default WHERE id=?"); $st->execute([$id]);
+    $old = $st->fetch() ?: [];
     $pdo->prepare("DELETE FROM chatbot_default WHERE id=?")->execute([$id]);
+    logAdminAction($pdo, 'delete', 'chatbot_default', (string)$id, $old);
     echo json_encode(['ok'=>true]); exit;
 }
 
@@ -192,11 +224,15 @@ if ($action === 'configLoad') {
 }
 if ($action === 'configSave') {
     $fields = ['bot_name','bot_status','welcome_message','greeting_morning','greeting_afternoon','greeting_evening','footer_note','default_fallback','error_message','phone_number'];
+    $before_rows = $pdo->query("SELECT config_key, config_value FROM chatbot_config ORDER BY sort_order ASC")->fetchAll();
+    $old = []; foreach ($before_rows as $r) $old[$r['config_key']] = $r['config_value'];
     $st = $pdo->prepare("UPDATE chatbot_config SET config_value=? WHERE config_key=?");
+    $new = [];
     foreach ($fields as $key) {
         $val = trim($_POST[$key] ?? '');
-        if ($val !== '') $st->execute([$val, $key]);
+        if ($val !== '') { $st->execute([$val, $key]); $new[$key] = $val; }
     }
+    logAdminAction($pdo, 'update', 'chatbot_config', 'config', $old, $new);
     echo json_encode(['ok'=>true]); exit;
 }
 

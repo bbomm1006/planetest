@@ -3,12 +3,27 @@
 // ===========================
 
 /* ──────────────────────────────────────
+   안전한 API 래퍼 (JSON 파싱 실패 대비)
+─────────────────────────────────────── */
+async function cbApi(method, params) {
+  try {
+    const res = method === 'GET'
+      ? await apiGet('api/chatbot.php', params)
+      : await apiPost('api/chatbot.php', params);
+    return res ?? { ok: false, msg: '응답 없음' };
+  } catch (e) {
+    console.error('[chatbot API error]', e);
+    return { ok: false, msg: '통신 오류가 발생했습니다.' };
+  }
+}
+
+/* ──────────────────────────────────────
    KB (지식베이스)
 ─────────────────────────────────────── */
 let cbKbData = [];
 
 async function loadCbKb() {
-  const res = await apiGet('api/chatbot.php', { action: 'kbList' });
+  const res = await cbApi('GET', { action: 'kbList' });
   if (res.ok) { cbKbData = res.data; renderCbKbTable(); }
 }
 
@@ -65,20 +80,20 @@ async function saveCbKb() {
     follow_text:    document.getElementById('cbKbModalFollowText').value.trim(),
     follow_context: document.getElementById('cbKbModalFollowCtx').value.trim(),
   };
-  const res = await apiPost('api/chatbot.php', payload);
+  const res = await cbApi('POST', payload);
   if (res.ok) { showToast('저장되었습니다.', 'success'); closeModal('cbKbModal'); loadCbKb(); }
   else showToast(res.msg || '저장 실패', 'error');
 }
 
 async function toggleCbKb(id, el) {
-  const res = await apiPost('api/chatbot.php', { action: 'kbToggle', id });
+  const res = await cbApi('POST', { action: 'kbToggle', id });
   if (res.ok) { const r = cbKbData.find(x => x.id == id); if (r) r.is_active = res.is_active; }
   else { el.checked = !el.checked; showToast('변경 실패', 'error'); }
 }
 
 async function deleteCbKb(id) {
   if (!confirm('삭제하시겠습니까?')) return;
-  const res = await apiPost('api/chatbot.php', { action: 'kbDelete', id });
+  const res = await cbApi('POST', { action: 'kbDelete', id });
   if (res.ok) { showToast('삭제되었습니다.', 'success'); loadCbKb(); }
   else showToast(res.msg || '삭제 실패', 'error');
 }
@@ -87,7 +102,7 @@ async function cbKbBulkDelete() {
   const ids = [...document.querySelectorAll('#cbKbBody .row-check:checked')].map(el => el.dataset.id);
   if (!ids.length) { showToast('선택된 항목이 없습니다.', 'error'); return; }
   if (!confirm(`${ids.length}건을 삭제하시겠습니까?`)) return;
-  const res = await apiPost('api/chatbot.php', { action: 'kbBulkDelete', ids: JSON.stringify(ids) });
+  const res = await cbApi('POST', { action: 'kbBulkDelete', ids: JSON.stringify(ids) });
   if (res.ok) { showToast('삭제되었습니다.', 'success'); loadCbKb(); }
   else showToast(res.msg || '삭제 실패', 'error');
 }
@@ -98,7 +113,7 @@ async function cbKbBulkDelete() {
 let cbCtxData = [];
 
 async function loadCbCtx() {
-  const res = await apiGet('api/chatbot.php', { action: 'ctxList' });
+  const res = await cbApi('GET', { action: 'ctxList' });
   if (res.ok) { cbCtxData = res.data; renderCbCtxTable(); }
 }
 
@@ -154,20 +169,20 @@ async function saveCbCtx() {
     answer:      document.getElementById('cbCtxModalAnswer').value.trim(),
     fallback:    document.getElementById('cbCtxModalFallback').value.trim(),
   };
-  const res = await apiPost('api/chatbot.php', payload);
+  const res = await cbApi('POST', payload);
   if (res.ok) { showToast('저장되었습니다.', 'success'); closeModal('cbCtxModal'); loadCbCtx(); }
   else showToast(res.msg || '저장 실패', 'error');
 }
 
 async function toggleCbCtx(id, el) {
-  const res = await apiPost('api/chatbot.php', { action: 'ctxToggle', id });
+  const res = await cbApi('POST', { action: 'ctxToggle', id });
   if (res.ok) { const r = cbCtxData.find(x => x.id == id); if (r) r.is_active = res.is_active; }
   else { el.checked = !el.checked; showToast('변경 실패', 'error'); }
 }
 
 async function deleteCbCtx(id) {
   if (!confirm('삭제하시겠습니까?')) return;
-  const res = await apiPost('api/chatbot.php', { action: 'ctxDelete', id });
+  const res = await cbApi('POST', { action: 'ctxDelete', id });
   if (res.ok) { showToast('삭제되었습니다.', 'success'); loadCbCtx(); }
   else showToast(res.msg || '삭제 실패', 'error');
 }
@@ -176,7 +191,7 @@ async function cbCtxBulkDelete() {
   const ids = [...document.querySelectorAll('#cbCtxBody .row-check:checked')].map(el => el.dataset.id);
   if (!ids.length) { showToast('선택된 항목이 없습니다.', 'error'); return; }
   if (!confirm(`${ids.length}건을 삭제하시겠습니까?`)) return;
-  const res = await apiPost('api/chatbot.php', { action: 'ctxBulkDelete', ids: JSON.stringify(ids) });
+  const res = await cbApi('POST', { action: 'ctxBulkDelete', ids: JSON.stringify(ids) });
   if (res.ok) { showToast('삭제되었습니다.', 'success'); loadCbCtx(); }
   else showToast(res.msg || '삭제 실패', 'error');
 }
@@ -187,7 +202,7 @@ async function cbCtxBulkDelete() {
 let cbQuickData = [];
 
 async function loadCbQuick() {
-  const res = await apiGet('api/chatbot.php', { action: 'quickList' });
+  const res = await cbApi('GET', { action: 'quickList' });
   if (res.ok) { cbQuickData = res.data; renderCbQuickTable(); }
 }
 
@@ -237,20 +252,20 @@ async function saveCbQuick() {
     question_text: document.getElementById('cbQuickModalQuestion').value.trim(),
     context_key:   document.getElementById('cbQuickModalCtxKey').value.trim(),
   };
-  const res = await apiPost('api/chatbot.php', payload);
+  const res = await cbApi('POST', payload);
   if (res.ok) { showToast('저장되었습니다.', 'success'); closeModal('cbQuickModal'); loadCbQuick(); }
   else showToast(res.msg || '저장 실패', 'error');
 }
 
 async function toggleCbQuick(id, el) {
-  const res = await apiPost('api/chatbot.php', { action: 'quickToggle', id });
+  const res = await cbApi('POST', { action: 'quickToggle', id });
   if (res.ok) { const r = cbQuickData.find(x => x.id == id); if (r) r.is_active = res.is_active; }
   else { el.checked = !el.checked; showToast('변경 실패', 'error'); }
 }
 
 async function deleteCbQuick(id) {
   if (!confirm('삭제하시겠습니까?')) return;
-  const res = await apiPost('api/chatbot.php', { action: 'quickDelete', id });
+  const res = await cbApi('POST', { action: 'quickDelete', id });
   if (res.ok) { showToast('삭제되었습니다.', 'success'); loadCbQuick(); }
   else showToast(res.msg || '삭제 실패', 'error');
 }
@@ -261,7 +276,7 @@ async function deleteCbQuick(id) {
 let cbDefData = [];
 
 async function loadCbDef() {
-  const res = await apiGet('api/chatbot.php', { action: 'defList' });
+  const res = await cbApi('GET', { action: 'defList' });
   if (res.ok) { cbDefData = res.data; renderCbDefTable(); }
 }
 
@@ -303,20 +318,20 @@ async function saveCbDef() {
     id:     document.getElementById('cbDefModalId').value,
     answer: document.getElementById('cbDefModalAnswer').value.trim(),
   };
-  const res = await apiPost('api/chatbot.php', payload);
+  const res = await cbApi('POST', payload);
   if (res.ok) { showToast('저장되었습니다.', 'success'); closeModal('cbDefModal'); loadCbDef(); }
   else showToast(res.msg || '저장 실패', 'error');
 }
 
 async function toggleCbDef(id, el) {
-  const res = await apiPost('api/chatbot.php', { action: 'defToggle', id });
+  const res = await cbApi('POST', { action: 'defToggle', id });
   if (res.ok) { const r = cbDefData.find(x => x.id == id); if (r) r.is_active = res.is_active; }
   else { el.checked = !el.checked; showToast('변경 실패', 'error'); }
 }
 
 async function deleteCbDef(id) {
   if (!confirm('삭제하시겠습니까?')) return;
-  const res = await apiPost('api/chatbot.php', { action: 'defDelete', id });
+  const res = await cbApi('POST', { action: 'defDelete', id });
   if (res.ok) { showToast('삭제되었습니다.', 'success'); loadCbDef(); }
   else showToast(res.msg || '삭제 실패', 'error');
 }
@@ -325,7 +340,7 @@ async function deleteCbDef(id) {
    Config (봇 설정)
 ─────────────────────────────────────── */
 async function loadCbConfig() {
-  const res = await apiGet('api/chatbot.php', { action: 'configLoad' });
+  const res = await cbApi('GET', { action: 'configLoad' });
   if (!res.ok) return;
   const d = res.data;
   const set = (id, key) => { const el = document.getElementById(id); if (el && d[key] !== undefined) el.value = d[key]; };
@@ -343,19 +358,19 @@ async function loadCbConfig() {
 
 async function saveCbConfig() {
   const payload = {
-    action:            'configSave',
-    bot_name:          document.getElementById('cfgBotName').value.trim(),
-    bot_status:        document.getElementById('cfgBotStatus').value.trim(),
-    welcome_message:   document.getElementById('cfgWelcome').value.trim(),
-    greeting_morning:  document.getElementById('cfgMorning').value.trim(),
-    greeting_afternoon:document.getElementById('cfgAfternoon').value.trim(),
-    greeting_evening:  document.getElementById('cfgEvening').value.trim(),
-    phone_number:      document.getElementById('cfgPhone').value.trim(),
-    footer_note:       document.getElementById('cfgFooter').value.trim(),
-    default_fallback:  document.getElementById('cfgFallback').value.trim(),
-    error_message:     document.getElementById('cfgError').value.trim(),
+    action:             'configSave',
+    bot_name:           document.getElementById('cfgBotName').value.trim(),
+    bot_status:         document.getElementById('cfgBotStatus').value.trim(),
+    welcome_message:    document.getElementById('cfgWelcome').value.trim(),
+    greeting_morning:   document.getElementById('cfgMorning').value.trim(),
+    greeting_afternoon: document.getElementById('cfgAfternoon').value.trim(),
+    greeting_evening:   document.getElementById('cfgEvening').value.trim(),
+    phone_number:       document.getElementById('cfgPhone').value.trim(),
+    footer_note:        document.getElementById('cfgFooter').value.trim(),
+    default_fallback:   document.getElementById('cfgFallback').value.trim(),
+    error_message:      document.getElementById('cfgError').value.trim(),
   };
-  const res = await apiPost('api/chatbot.php', payload);
+  const res = await cbApi('POST', payload);
   if (res.ok) showToast('설정이 저장되었습니다.', 'success');
   else showToast(res.msg || '저장 실패', 'error');
 }
