@@ -301,6 +301,84 @@ if ($action === 'create') {
         }
     }
 
+    // ── 담당자 SMS/알림톡 발송
+    $msgMgrs = $pdo->prepare('SELECT * FROM custom_inquiry_managers WHERE form_id=? AND is_active=1 AND (notify_sms=1 OR notify_alimtalk=1)');
+    $msgMgrs->execute([$form_id]);
+    $msgManagers = $msgMgrs->fetchAll();
+
+    if (!empty($msgManagers)) {
+        // 문자 내용 구성
+        $formTitle = $form_row['title'] ?? '문의';
+        $firstVal  = '';
+        if (!empty($fMeta3)) {
+            $firstKey = $fMeta3[0]['field_key'] ?? '';
+            $firstVal = $firstKey ? ($fieldValues[$firstKey] ?? '') : '';
+        }
+        $smsText = "[{$formTitle}] 새 문의가 접수되었습니다.\n{$firstVal}";
+
+        foreach ($msgManagers as $mmgr) {
+            $apiKey    = trim($mmgr['alimtalk_key']    ?? '');
+            $apiSecret = trim($mmgr['alimtalk_secret'] ?? '');
+            $fromPhone = preg_replace('/[^0-9]/', '', trim($mmgr['alimtalk_sender'] ?? ''));
+            $toPhone   = preg_replace('/[^0-9]/', '', trim($mmgr['phone'] ?? ''));
+
+            if (!$apiKey || !$apiSecret || !$toPhone || !$fromPhone) continue;
+
+            try {
+                $date    = gmdate('Y-m-d\TH:i:s\Z');
+                $salt    = bin2hex(random_bytes(16));
+                $hmac    = hash_hmac('sha256', $date . $salt, $apiSecret);
+                $authHeader = "HMAC-SHA256 apiKey={$apiKey}, date={$date}, salt={$salt}, signature={$hmac}";
+
+                // SMS 발송
+                if ($mmgr['notify_sms'] == 1) {
+                    $payload = json_encode([
+                        'message' => [
+                            'to'   => $toPhone,
+                            'from' => $fromPhone,
+                            'text' => $smsText,
+                            'type' => mb_strlen($smsText) > 90 ? 'LMS' : 'SMS',
+                        ],
+                    ]);
+                    $ch = curl_init('https://api.solapi.com/messages/v4/send');
+                    curl_setopt_array($ch, [
+                        CURLOPT_RETURNTRANSFER => true,
+                        CURLOPT_POST           => true,
+                        CURLOPT_POSTFIELDS     => $payload,
+                        CURLOPT_HTTPHEADER     => ['Content-Type: application/json', "Authorization: {$authHeader}"],
+                        CURLOPT_TIMEOUT        => 10,
+                    ]);
+                    curl_exec($ch);
+                    curl_close($ch);
+                }
+
+                // 알림톡 발송 (SMS 폴백으로 발송 - 템플릿 없이도 동작)
+                if ($mmgr['notify_alimtalk'] == 1) {
+                    $payload = json_encode([
+                        'message' => [
+                            'to'   => $toPhone,
+                            'from' => $fromPhone,
+                            'text' => $smsText,
+                            'type' => 'SMS',
+                        ],
+                    ]);
+                    $ch = curl_init('https://api.solapi.com/messages/v4/send');
+                    curl_setopt_array($ch, [
+                        CURLOPT_RETURNTRANSFER => true,
+                        CURLOPT_POST           => true,
+                        CURLOPT_POSTFIELDS     => $payload,
+                        CURLOPT_HTTPHEADER     => ['Content-Type: application/json', "Authorization: {$authHeader}"],
+                        CURLOPT_TIMEOUT        => 10,
+                    ]);
+                    curl_exec($ch);
+                    curl_close($ch);
+                }
+            } catch (Exception $e) {
+                // 발송 실패 무시
+            }
+        }
+    }
+
     echo json_encode(['ok'=>true, 'id'=>$insert_id]);
     exit;
 }

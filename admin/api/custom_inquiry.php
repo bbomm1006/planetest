@@ -298,6 +298,15 @@ if ($action === 'list_managers') {
    담당자 저장 (추가/수정)
    ================================================================ */
 if ($action === 'save_manager') {
+    // alimtalk_secret 컬럼 없으면 자동 추가
+    try {
+        $colChk = $pdo->prepare("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='custom_inquiry_managers' AND column_name='alimtalk_secret'");
+        $colChk->execute();
+        if (!$colChk->fetchColumn()) {
+            $pdo->exec("ALTER TABLE custom_inquiry_managers ADD COLUMN alimtalk_secret VARCHAR(255) DEFAULT NULL AFTER alimtalk_key");
+        }
+    } catch (Exception $e) {}
+
     $id              = intval($_POST['id'] ?? 0);
     $form_id         = intval($_POST['form_id'] ?? 0);
     $name            = trim($_POST['name'] ?? '');
@@ -311,6 +320,7 @@ if ($action === 'save_manager') {
     $sheet_id        = trim($_POST['sheet_id'] ?? '');
     $sheet_name      = trim($_POST['sheet_name'] ?? '');
     $alimtalk_key    = trim($_POST['alimtalk_key'] ?? '');
+    $alimtalk_secret = trim($_POST['alimtalk_secret'] ?? '');
     $alimtalk_sender = trim($_POST['alimtalk_sender'] ?? '');
     $is_active       = intval($_POST['is_active'] ?? 1);
     $changed_by      = $_SESSION['admin_user'] ?? 'system';
@@ -326,11 +336,11 @@ if ($action === 'save_manager') {
         $stmt = $pdo->prepare('UPDATE custom_inquiry_managers SET
             name=?, department=?, phone=?, email=?,
             notify_email=?, notify_sheet=?, notify_alimtalk=?, notify_sms=?,
-            sheet_id=?, sheet_name=?, alimtalk_key=?, alimtalk_sender=?,
+            sheet_id=?, sheet_name=?, alimtalk_key=?, alimtalk_secret=?, alimtalk_sender=?,
             is_active=? WHERE id=?');
         $stmt->execute([$name, $dept, $phone, $email,
             $notify_email, $notify_sheet, $notify_alimtalk, $notify_sms,
-            $sheet_id, $sheet_name, $alimtalk_key, $alimtalk_sender,
+            $sheet_id, $sheet_name, $alimtalk_key, $alimtalk_secret, $alimtalk_sender,
             $is_active, $id]);
 
         // 변경 히스토리
@@ -349,11 +359,11 @@ if ($action === 'save_manager') {
     } else {
         $stmt = $pdo->prepare('INSERT INTO custom_inquiry_managers
             (form_id, name, department, phone, email, notify_email, notify_sheet, notify_alimtalk, notify_sms,
-             sheet_id, sheet_name, alimtalk_key, alimtalk_sender, is_active)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+             sheet_id, sheet_name, alimtalk_key, alimtalk_secret, alimtalk_sender, is_active)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
         $stmt->execute([$form_id, $name, $dept, $phone, $email,
             $notify_email, $notify_sheet, $notify_alimtalk, $notify_sms,
-            $sheet_id, $sheet_name, $alimtalk_key, $alimtalk_sender, $is_active]);
+            $sheet_id, $sheet_name, $alimtalk_key, $alimtalk_secret, $alimtalk_sender, $is_active]);
         $new_id = $pdo->lastInsertId();
         $pdo->prepare('INSERT INTO custom_inquiry_manager_history (form_id, manager_id, changed_by, change_desc) VALUES (?,?,?,?)')
             ->execute([$form_id, $new_id, $changed_by, json_encode(['action'=>'created'], JSON_UNESCAPED_UNICODE)]);
