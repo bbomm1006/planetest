@@ -49,12 +49,13 @@ if ($defaultId === 0 && count($versionsJs)) {
 }
 ?>
 <div class="legal-page-inner">
-  <div class="legal-page-head">
-    <a class="legal-page-back" href="./index.php">← 홈으로</a>
+  <header class="legal-page-head">
+    <div class="legal-page-top">
+      <a class="legal-page-back" href="./index.php">← 홈으로</a>
+    </div>
     <h1 class="legal-page-title"><?= htmlspecialchars($cat['name']) ?></h1>
     <?php if (count($versionsJs) > 1): ?>
     <div class="legal-page-version-row">
-      <label for="legalVersionSelect">버전</label>
       <select id="legalVersionSelect" class="form-select legal-version-select" aria-label="약관 버전 선택">
         <?php foreach ($versionsJs as $v): ?>
           <option value="<?= (int) $v['id'] ?>" <?= $v['id'] === $defaultId ? 'selected' : '' ?>>
@@ -66,7 +67,7 @@ if ($defaultId === 0 && count($versionsJs)) {
     </div>
     <?php endif; ?>
     <p class="legal-page-meta" id="legalPageMeta"></p>
-  </div>
+  </header>
   <div class="legal-page-body" id="legalPageBody"></div>
 </div>
 <script>

@@ -27,7 +27,7 @@ body{font-family:'DM Sans','Noto Sans KR',sans-serif;background:var(--white);col
   display:flex;align-items:center;gap:6px;
   padding:0 18px;height:100%;
   font-size:.72rem;font-weight:700;letter-spacing:.04em;
-  color:rgba(255,255,255,.4);text-decoration:none;
+  color:rgba(255,255,255,.62);text-decoration:none;
   transition:color .2s,background .2s;
   border-right:1px solid rgba(255,255,255,.07);
   white-space:nowrap;
