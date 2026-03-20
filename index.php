@@ -72,6 +72,16 @@
     <?php include 'lib/products.php'; ?>
   </div>
 
+  <?php
+$ci_table = 'form_type2';
+include __DIR__ . '/lib/custom_inquiry_front.php';
+?>
+
+<?php
+$ci_table = 'form_type1';
+include __DIR__ . '/lib/custom_inquiry_front.php';
+?>
+
   <!-- BENEFITS -->
   <div data-front-section-key="front_benefits" <?php if (!$frontIsVisible('front_benefits')) echo 'style="display:none;"'; ?>>
     <?php include 'lib/benefits.php'; ?>
@@ -287,5 +297,7 @@
         })});
       });
   </script>
+
+  <script src="js/custom_inquiry_front.js"></script>
 
 <?php include 'lib/__tail.php'; ?>

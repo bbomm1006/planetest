@@ -101,6 +101,7 @@ async function ciLoadFormList() {
       <td>
         <button class="btn btn-sm btn-outline" onclick="ciOpenDetail(${f.id})">설정</button>
         <button class="btn btn-sm btn-outline" onclick="showPage('customInquiryData_${f.id}')">내역</button>
+        <button class="btn btn-sm" style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;" onclick="ciShowPlacementCode('${escHtml(f.table_name)}', '${escHtml(f.title)}')">📋 적용코드</button>
       </td>
     </tr>`).join('');
 }
@@ -181,6 +182,32 @@ async function ciOpenDetail(formId) {
   ciLoadStatuses();
   ciLoadFields();
   ciLoadTerms();
+
+  // 적용 안내 배너 갱신
+  const tbl   = res.data.table_name;
+  const code  = `<?php include 'lib/custom_inquiry_front.php'; ?>\n<!-- 위 코드를 index.php 원하는 위치에 붙여넣으세요 -->\n<!-- table_name: ${tbl} | 폼명: ${res.data.title} -->`;
+  let banner = document.getElementById('ci-placement-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'ci-placement-banner';
+    const header = document.getElementById('page-customInquiryDetail')?.querySelector('.page-header');
+    if (header) header.insertAdjacentElement('afterend', banner);
+  }
+  banner.innerHTML = `
+    <div style="margin:0 0 18px;padding:16px 20px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;display:flex;align-items:flex-start;gap:14px;">
+      <div style="font-size:1.3rem;line-height:1;margin-top:2px;">📋</div>
+      <div style="flex:1;min-width:0;">
+        <p style="font-size:.8rem;font-weight:700;color:#15803d;margin-bottom:8px;">프론트 적용 방법 — index.php 원하는 위치에 아래 코드를 붙여넣으세요</p>
+        <div style="position:relative;">
+          <pre id="ci-place-code-${tbl}" style="background:#fff;border:1px solid #d1fae5;border-radius:8px;padding:12px 14px;font-size:.78rem;color:#166534;line-height:1.7;overflow-x:auto;margin:0;white-space:pre-wrap;word-break:break-all;"><?php
+$ci_table = '${tbl}';   // 이 폼의 table_name
+include __DIR__ . '/lib/custom_inquiry_front.php';
+?></pre>
+          <button onclick="ciCopyPlacementCode('${tbl}')" style="position:absolute;top:8px;right:8px;padding:4px 12px;font-size:.72rem;font-weight:700;background:#16a34a;color:#fff;border:none;border-radius:6px;cursor:pointer;" id="ci-copy-btn-${tbl}">복사</button>
+        </div>
+        <p style="font-size:.73rem;color:#4ade80;margin-top:8px;">※ 이 폼이 <strong>미사용</strong> 상태이면 include해도 아무것도 출력되지 않습니다.</p>
+      </div>
+    </div>`;
 }
 
 // =====================================================
@@ -1133,4 +1160,70 @@ function intval(v) { return parseInt(v, 10) || 0; }
 function escHtml(str) {
   if (str == null) return '';
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// =====================================================
+// 적용코드 안내 모달 (목록에서 바로 보기)
+// =====================================================
+function ciShowPlacementCode(tableName, formTitle) {
+  const code = `<?php\n$ci_table = '${tableName}';   // 이 폼의 table_name\ninclude __DIR__ . '/lib/custom_inquiry_front.php';\n?>`;
+
+  // 기존 모달 제거
+  const old = document.getElementById('ci-placement-modal');
+  if (old) old.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'ci-placement-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:2000;background:rgba(8,14,26,.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:16px;width:100%;max-width:560px;box-shadow:0 24px 64px rgba(0,0,0,.22);overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid #e2e8f0;">
+        <div>
+          <p style="font-size:.72rem;color:#94a3b8;margin-bottom:2px;">프론트 적용 코드</p>
+          <strong style="font-size:.96rem;color:#1a2540;">${escHtml(formTitle)}</strong>
+        </div>
+        <button onclick="document.getElementById('ci-placement-modal').remove()" style="width:32px;height:32px;border-radius:50%;border:none;background:#f1f5f9;cursor:pointer;font-size:1.1rem;color:#64748b;display:grid;place-items:center;">✕</button>
+      </div>
+      <div style="padding:20px 22px;">
+        <p style="font-size:.82rem;color:#334155;margin-bottom:12px;line-height:1.6;">
+          <strong>index.php</strong> 원하는 위치에 아래 코드를 붙여넣으세요.<br>
+          <span style="color:#94a3b8;font-size:.76rem;">폼이 <strong>미사용</strong> 상태이면 include해도 아무것도 출력되지 않습니다.</span>
+        </p>
+        <div style="position:relative;">
+          <pre id="ci-modal-code-${tableName}" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;font-size:.8rem;color:#1e3a5f;line-height:1.75;overflow-x:auto;margin:0;white-space:pre-wrap;word-break:break-all;">${escHtml(code)}</pre>
+          <button id="ci-modal-copy-btn-${tableName}" onclick="ciCopyPlacementCode('${tableName}', true)" style="position:absolute;top:10px;right:10px;padding:5px 14px;font-size:.74rem;font-weight:700;background:#1255a6;color:#fff;border:none;border-radius:7px;cursor:pointer;">복사</button>
+        </div>
+        <div style="margin-top:16px;padding:12px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:9px;font-size:.76rem;color:#92400e;line-height:1.65;">
+          💡 <strong>예시:</strong> 예약 섹션 다음에 배치하고 싶다면 index.php에서 <code style="background:#fef3c7;padding:1px 5px;border-radius:4px;">front_reservation</code> div 바로 아래에 붙여넣으세요.
+        </div>
+      </div>
+    </div>`;
+
+  // 배경 클릭 시 닫기
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+function ciCopyPlacementCode(tableName, isModal = false) {
+  const code = `<?php\n$ci_table = '${tableName}';\ninclude __DIR__ . '/lib/custom_inquiry_front.php';\n?>`;
+  navigator.clipboard.writeText(code).then(() => {
+    const btnId = isModal ? `ci-modal-copy-btn-${tableName}` : `ci-copy-btn-${tableName}`;
+    const btn = document.getElementById(btnId);
+    if (btn) {
+      const orig = btn.textContent;
+      btn.textContent = '✓ 복사됨';
+      btn.style.background = '#16a34a';
+      setTimeout(() => { btn.textContent = orig; btn.style.background = isModal ? '#1255a6' : '#16a34a'; }, 2000);
+    }
+  }).catch(() => {
+    // clipboard API 실패 시 폴백
+    const el = document.createElement('textarea');
+    el.value = code;
+    el.style.position = 'fixed'; el.style.opacity = '0';
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    showToast('복사되었습니다.');
+  });
 }

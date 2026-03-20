@@ -47,7 +47,7 @@
           <th style="width:180px;">테이블명</th>
           <th style="width:100px;">사용여부</th>
           <th style="width:150px;">생성일시</th>
-          <th style="width:130px;">관리</th>
+          <th style="width:200px;">관리</th>
         </tr></thead>
         <tbody id="ciFormTableBody">
           <tr><td colspan="6" style="text-align:center;padding:40px;color:#94a3b8;">로딩 중...</td></tr>

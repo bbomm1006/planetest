@@ -1,0 +1,586 @@
+/* ══════════════════════════════════════════════════════
+   custom_inquiry_front.css
+   ── main.css 토큰·클래스 재사용 전제, 추가분만 정의 ──
+   재사용: .sw .inner .s-tag .s-h .s-p
+           .fc .fg .fi .fta .f-priv .f-priv-scroll .f-priv-chk .f-sub .f-ok
+           .board-* .mbg .fu .nt-cat-badge
+══════════════════════════════════════════════════════ */
+
+/* ══════════════════════════════════════
+   섹션 래퍼
+══════════════════════════════════════ */
+.ci-section {
+  padding: 100px 5vw;
+  background: var(--white);
+}
+.ci-section.ci-bg-off {
+  background: var(--off);
+}
+
+/* ══════════════════════════════════════
+   뷰 전환 (폼 / 목록 / 상세)
+══════════════════════════════════════ */
+.ci-view { display: none; }
+.ci-view.ci-active { display: block; }
+
+/* ══════════════════════════════════════
+   로딩 스피너
+══════════════════════════════════════ */
+.ci-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 60px 20px;
+  color: var(--g4);
+  font-size: .85rem;
+}
+.ci-spinner {
+  width: 22px;
+  height: 22px;
+  border: 2.5px solid var(--g2);
+  border-top-color: var(--sky);
+  border-radius: 50%;
+  animation: ciSpin .6s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes ciSpin { to { transform: rotate(360deg); } }
+
+/* ══════════════════════════════════════
+   기간 외 / 미사용 안내
+══════════════════════════════════════ */
+.ci-notice {
+  max-width: 520px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 64px 24px;
+}
+.ci-notice-icon {
+  font-size: 2.6rem;
+  margin-bottom: 16px;
+}
+.ci-notice-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--ink2);
+  margin-bottom: 8px;
+}
+.ci-notice-desc {
+  font-size: .88rem;
+  color: var(--g5);
+  line-height: 1.75;
+}
+
+/* ══════════════════════════════════════
+   소셜 로그인 게이트
+══════════════════════════════════════ */
+.ci-login-gate {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 48px 24px;
+  text-align: center;
+}
+.ci-login-gate-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--ink2);
+  margin-bottom: 6px;
+}
+.ci-login-gate-desc {
+  font-size: .83rem;
+  color: var(--g5);
+  margin-bottom: 28px;
+  line-height: 1.65;
+}
+.ci-social-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ci-social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 13px 20px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: .9rem;
+  transition: all .18s;
+}
+.ci-social-btn:hover { transform: translateY(-2px); }
+.ci-social-kakao  { background: #FEE500; color: #3A1D1D; }
+.ci-social-kakao:hover  { background: #f5d900; }
+.ci-social-naver  { background: #03C75A; color: #fff; }
+.ci-social-naver:hover  { background: #02b350; }
+.ci-social-google { background: #fff; color: #333; border: 1.5px solid #e2e8f0; }
+.ci-social-google:hover { background: #f8fafc; }
+.ci-social-btn img,
+.ci-social-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+/* 로그인 후 유저 정보 바 */
+.ci-user-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--mist);
+  border: 1px solid var(--pale);
+  border-radius: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.ci-user-bar-info {
+  font-size: .82rem;
+  color: var(--g7);
+}
+.ci-user-bar-info strong { color: var(--blue); }
+.ci-logout-btn {
+  padding: 5px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--g2);
+  background: #fff;
+  color: var(--g5);
+  font-size: .76rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .15s;
+}
+.ci-logout-btn:hover { border-color: var(--g3); color: var(--ink2); }
+
+/* ══════════════════════════════════════
+   폼 컨테이너
+══════════════════════════════════════ */
+.ci-form-wrap {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+/* 폼 설명 */
+.ci-form-desc {
+  font-size: .88rem;
+  color: var(--g5);
+  line-height: 1.75;
+  margin-bottom: 28px;
+  word-break: keep-all;
+}
+
+/* ══════════════════════════════════════
+   제품 선택
+══════════════════════════════════════ */
+.ci-product-wrap {
+  background: var(--off);
+  border: 1px solid var(--g2);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+}
+.ci-product-label {
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--ink2);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.ci-product-label em { color: var(--sky); font-style: normal; }
+.ci-product-selects {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.ci-product-selects select {
+  flex: 1;
+  min-width: 140px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--g2);
+  background: #fff;
+  font-family: inherit;
+  font-size: .86rem;
+  color: var(--ink);
+  outline: none;
+  transition: border-color .2s;
+  cursor: pointer;
+}
+.ci-product-selects select:focus { border-color: var(--sky); }
+
+/* ══════════════════════════════════════
+   공개/비공개 선택 토글
+══════════════════════════════════════ */
+.ci-visibility-wrap {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.ci-visibility-opt {
+  flex: 1;
+  min-width: 120px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--g2);
+  background: #fff;
+  cursor: pointer;
+  text-align: center;
+  font-size: .84rem;
+  font-weight: 600;
+  color: var(--g5);
+  transition: all .18s;
+  user-select: none;
+}
+.ci-visibility-opt:hover { border-color: var(--sky); color: var(--blue); }
+.ci-visibility-opt.ci-selected {
+  border-color: var(--blue);
+  background: var(--mist);
+  color: var(--blue);
+}
+.ci-visibility-opt input[type="radio"] { display: none; }
+
+/* ══════════════════════════════════════
+   약관 동의
+══════════════════════════════════════ */
+.ci-terms-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.ci-term-item {
+  background: var(--off);
+  border: 1px solid var(--g2);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.ci-term-scroll {
+  max-height: 72px;
+  overflow-y: auto;
+  font-size: .72rem;
+  color: var(--g5);
+  line-height: 1.65;
+  margin-bottom: 8px;
+}
+.ci-term-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.ci-term-check input {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--sky);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.ci-term-check span {
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--ink2);
+}
+
+/* ══════════════════════════════════════
+   목록 뷰
+══════════════════════════════════════ */
+.ci-list-wrap {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+/* 검색바 */
+.ci-search-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+  background: var(--off);
+  border-radius: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--g2);
+}
+.ci-search-inp {
+  flex: 1;
+  min-width: 160px;
+  padding: 9px 14px;
+  border-radius: 9px;
+  border: 1.5px solid var(--g2);
+  font-family: inherit;
+  font-size: .84rem;
+  color: var(--ink);
+  background: #fff;
+  outline: none;
+  transition: border-color .2s;
+}
+.ci-search-inp:focus { border-color: var(--sky); }
+.ci-search-btn {
+  padding: 9px 22px;
+  border-radius: 9px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(90deg, var(--blue), var(--sky));
+  color: #fff;
+  font-weight: 700;
+  font-size: .84rem;
+  font-family: inherit;
+  transition: all .2s;
+}
+.ci-search-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(18,85,166,.28); }
+
+/* 목록 아이템 — board-list-item 기반이나 ci 전용 추가분 */
+.ci-list-mine-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: .65rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 100px;
+  background: var(--mist);
+  color: var(--blue);
+  flex-shrink: 0;
+}
+.ci-list-new-btn {
+  margin-bottom: 16px;
+}
+
+/* ══════════════════════════════════════
+   상태 뱃지 (board-status-* 확장)
+══════════════════════════════════════ */
+.ci-status {
+  display: inline-flex;
+  align-items: center;
+  font-size: .67rem;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 100px;
+}
+.ci-status-default  { background: #f0f9ff; color: #0369a1; }
+.ci-status-progress { background: #fef3c7; color: #92400e; }
+.ci-status-done     { background: #dcfce7; color: #166534; }
+.ci-status-closed   { background: #f1f5f9; color: #64748b; }
+
+/* ══════════════════════════════════════
+   상세 뷰
+══════════════════════════════════════ */
+.ci-detail-wrap {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+/* 필드 값 표시 */
+.ci-detail-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--g2);
+}
+.ci-detail-field {
+  display: flex;
+  gap: 12px;
+  font-size: .86rem;
+}
+.ci-detail-field-label {
+  font-weight: 700;
+  color: var(--g5);
+  min-width: 100px;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+.ci-detail-field-value {
+  color: var(--ink2);
+  line-height: 1.65;
+  word-break: break-word;
+  flex: 1;
+}
+
+/* 파일 첨부 표시 */
+.ci-file-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--g2);
+  background: var(--off);
+  color: var(--ink2);
+  font-size: .8rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all .15s;
+}
+.ci-file-link:hover { border-color: var(--sky); background: var(--mist); }
+
+/* ══════════════════════════════════════
+   답변 영역
+══════════════════════════════════════ */
+.ci-answer-wrap {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--g2);
+}
+.ci-answer-head {
+  font-size: .82rem;
+  font-weight: 800;
+  color: var(--ink2);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ci-answer-head span {
+  background: var(--sky);
+  color: #fff;
+  font-size: .65rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 100px;
+}
+.ci-answer-empty {
+  font-size: .84rem;
+  color: var(--g4);
+  padding: 16px 0;
+  text-align: center;
+}
+.ci-answer-item {
+  padding: 14px 16px;
+  border-radius: 11px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  margin-bottom: 10px;
+}
+.ci-answer-item:last-child { margin-bottom: 0; }
+.ci-answer-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.ci-answer-admin-badge {
+  background: var(--blue);
+  color: #fff;
+  font-size: .62rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 100px;
+}
+.ci-answer-date {
+  font-size: .72rem;
+  color: var(--g4);
+  margin-left: auto;
+}
+.ci-answer-content {
+  font-size: .86rem;
+  color: var(--ink3);
+  line-height: 1.72;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ══════════════════════════════════════
+   댓글 영역 — board-comments-* 재사용
+   추가분만 정의
+══════════════════════════════════════ */
+.ci-comment-private-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: .62rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 100px;
+  background: #fef3c7;
+  color: #92400e;
+  margin-left: 4px;
+}
+
+/* ══════════════════════════════════════
+   완료 화면 — .f-ok 재사용 + 추가
+══════════════════════════════════════ */
+.ci-submit-ok-email-note {
+  font-size: .8rem;
+  color: var(--g5);
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.ci-submit-ok-email-note svg {
+  width: 14px;
+  height: 14px;
+  stroke: var(--green);
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════
+   뒤로가기 / 액션 버튼 행
+══════════════════════════════════════ */
+.ci-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.ci-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 16px;
+  border-radius: 9px;
+  border: 1.5px solid var(--g2);
+  background: #fff;
+  color: var(--g5);
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .18s;
+}
+.ci-back-btn:hover { border-color: var(--g3); color: var(--ink2); }
+
+/* ══════════════════════════════════════
+   페이지네이션 — .board-pager 재사용
+   추가분 없음 (동일 클래스 사용)
+══════════════════════════════════════ */
+
+/* ══════════════════════════════════════
+   에러 메시지
+══════════════════════════════════════ */
+.ci-error {
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: .84rem;
+  margin-bottom: 14px;
+}
+
+/* ══════════════════════════════════════
+   반응형
+══════════════════════════════════════ */
+@media (max-width: 640px) {
+  .ci-section { padding: 72px 5vw; }
+
+  .ci-product-selects { flex-direction: column; }
+  .ci-product-selects select { min-width: unset; }
+
+  .ci-detail-field { flex-direction: column; gap: 4px; }
+  .ci-detail-field-label { min-width: unset; }
+
+  .ci-detail-fields { padding: 16px; }
+  .ci-answer-wrap   { padding: 16px; }
+
+  .ci-search-bar { flex-direction: column; }
+  .ci-search-inp { min-width: unset; }
+
+  .ci-visibility-wrap { flex-direction: column; }
+}
