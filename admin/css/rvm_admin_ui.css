@@ -1,335 +1,390 @@
 /* =========================================================
-   RVM Admin UI (예약관리 테이블) — 화면 구조 전용 스타일
-   - 기능/DB 연동은 JS에서 제외(더미 데이터만)
+   RVM Admin UI — 재설계 스타일
+   캘린더: 세로 레이아웃(풀 너비), 날짜 셀 안정화
+   지점 관리: 단일 테이블로 단순화
 ========================================================= */
 
-.rvmAdmin {
-  padding: 0 0 28px;
-}
+/* ─ 공통 래퍼 ─────────────────────────────────── */
+.rvmAdmin { padding: 0 0 32px; }
+.rvmAdmin__section { margin-top: 14px; }
 
-.rvmAdmin__section {
-  margin-top: 14px;
-}
-
+/* ─ 카드 ──────────────────────────────────────── */
 .rvmAdmin-card {
   background: var(--bg2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
-
 .rvmAdmin-card__head {
-  padding: 14px 16px;
+  padding: 14px 18px;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
   border-bottom: 1px solid var(--border);
 }
-
 .rvmAdmin-card__head h3 {
   font-size: 1rem;
   font-weight: 800;
   letter-spacing: -.2px;
 }
-
 .rvmAdmin-card__head p {
   color: var(--text3);
-  font-size: .86rem;
-  margin-top: 4px;
+  font-size: .85rem;
+  margin-top: 3px;
 }
+.rvmAdmin-card__body { padding: 16px 18px 18px; }
 
-.rvmAdmin-card__body {
-  padding: 14px 16px 16px;
-}
-
+/* ─ 탭 ────────────────────────────────────────── */
 .rvmAdmin-tabs {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
   margin-top: 10px;
 }
-
 .rvmAdmin-tab {
   background: transparent;
   border: 1px solid var(--border);
   border-radius: 999px;
-  padding: 8px 12px;
+  padding: 7px 14px;
+  font-size: .88rem;
   font-weight: 700;
   color: var(--text2);
   cursor: pointer;
-  transition: .15s ease;
+  transition: .14s ease;
+  white-space: nowrap;
 }
-
-.rvmAdmin-tab:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-}
-
+.rvmAdmin-tab:hover { border-color: var(--primary); color: var(--primary); }
 .rvmAdmin-tab.on {
   border-color: var(--primary);
   background: var(--primary-lt);
   color: var(--primary-dark);
 }
 
-.rvmAdmin-grid {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 12px;
-}
-
-.rvmAdmin-col-6 { grid-column: span 6; }
+/* ─ 그리드 ────────────────────────────────────── */
+.rvmAdmin-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 12px; }
+.rvmAdmin-col-3  { grid-column: span 3; }
+.rvmAdmin-col-4  { grid-column: span 4; }
+.rvmAdmin-col-5  { grid-column: span 5; }
+.rvmAdmin-col-6  { grid-column: span 6; }
+.rvmAdmin-col-8  { grid-column: span 8; }
 .rvmAdmin-col-12 { grid-column: span 12; }
-.rvmAdmin-col-4 { grid-column: span 4; }
-.rvmAdmin-col-8 { grid-column: span 8; }
-
-@media (max-width: 980px) {
-  .rvmAdmin-col-6,
-  .rvmAdmin-col-4,
-  .rvmAdmin-col-8 {
-    grid-column: span 12;
-  }
+@media (max-width: 860px) {
+  .rvmAdmin-col-3,.rvmAdmin-col-4,.rvmAdmin-col-5,
+  .rvmAdmin-col-6,.rvmAdmin-col-8 { grid-column: span 12; }
 }
 
-.rvmAdmin-form-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.rvmAdmin-form-row label {
-  font-weight: 800;
-  font-size: .85rem;
-  color: var(--text2);
-  min-width: 92px;
-}
-
-.rvmAdmin-input, .rvmAdmin-textarea, .rvmAdmin-select {
+/* ─ 폼 요소 ───────────────────────────────────── */
+.rvmAdmin-form-row { display: flex; align-items: center; gap: 12px; }
+.rvmAdmin-form-row label { font-weight: 800; font-size: .85rem; color: var(--text2); min-width: 88px; }
+.rvmAdmin-input,
+.rvmAdmin-textarea,
+.rvmAdmin-select {
   width: 100%;
-  padding: 9px 10px;
+  padding: 9px 11px;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: #fff;
+  font-size: .92rem;
   outline: none;
+  transition: border-color .12s;
 }
-.rvmAdmin-textarea { min-height: 86px; resize: vertical; }
+.rvmAdmin-input:focus,
+.rvmAdmin-textarea:focus,
+.rvmAdmin-select:focus { border-color: var(--primary); }
+.rvmAdmin-textarea { min-height: 80px; resize: vertical; }
 
-.rvmAdmin-switch {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-}
+/* ─ 스위치 ────────────────────────────────────── */
+.rvmAdmin-switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.rvmAdmin-switch input[type="checkbox"] { width: 17px; height: 17px; cursor: pointer; }
 
-.rvmAdmin-switch input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-}
-
-.rvmAdmin-table-wrap { overflow: auto; }
-.rvmAdmin-t {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 760px;
-}
-.rvmAdmin-t th, .rvmAdmin-t td {
+/* ─ 테이블 ────────────────────────────────────── */
+.rvmAdmin-table-wrap { overflow-x: auto; }
+.rvmAdmin-t { width: 100%; border-collapse: collapse; }
+.rvmAdmin-t th,
+.rvmAdmin-t td {
   border-bottom: 1px solid var(--border);
-  padding: 10px 8px;
+  padding: 10px 10px;
   text-align: left;
   vertical-align: middle;
-  font-size: .92rem;
+  font-size: .91rem;
 }
-.rvmAdmin-t th {
-  color: var(--text2);
-  font-weight: 900;
-  background: #fbfcff;
-}
+.rvmAdmin-t th { color: var(--text2); font-weight: 900; background: #f9fafb; }
+.rvmAdmin-t tr:last-child td { border-bottom: none; }
 
+/* ─ 뱃지/필 ───────────────────────────────────── */
 .rvmAdmin-pill {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
+  padding: 3px 10px;
   border-radius: 999px;
-  font-size: .82rem;
+  font-size: .81rem;
   font-weight: 800;
   border: 1px solid var(--border);
   color: var(--text2);
+  white-space: nowrap;
 }
-.rvmAdmin-pill.ok {
-  border-color: rgba(24,184,122,.25);
-  background: rgba(24,184,122,.08);
-  color: #0b7a4a;
-}
-.rvmAdmin-pill.bad {
-  border-color: rgba(240,69,74,.25);
-  background: rgba(240,69,74,.08);
-  color: #a1171d;
-}
-.rvmAdmin-pill.warn {
-  border-color: rgba(245,166,35,.28);
-  background: rgba(245,166,35,.10);
-  color: #7a4b00;
-}
+.rvmAdmin-pill.ok  { border-color: rgba(24,184,122,.28); background: rgba(24,184,122,.09); color: #0b7a4a; }
+.rvmAdmin-pill.bad { border-color: rgba(220,53,69,.25);  background: rgba(220,53,69,.07);  color: #9b1c1c; }
+.rvmAdmin-pill.warn{ border-color: rgba(245,166,35,.28); background: rgba(245,166,35,.10); color: #7a4b00; }
 
-.rvmAdmin-list-card {
-  padding: 14px 16px;
-}
+/* ─ 버튼 행 ───────────────────────────────────── */
+.rvmAdmin-btn-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.rvmAdmin-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; align-items: center; }
 
-.rvmAdmin-steps-ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
+/* ─ 단계 목록 ─────────────────────────────────── */
+.rvmAdmin-steps-ul { list-style: none; padding: 0; margin: 0; }
 .rvmAdmin-step-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 12px;
+  padding: 11px 14px;
   border: 1px solid var(--border);
   border-radius: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   background: #fff;
 }
-.rvmAdmin-step-item[draggable="true"] {
-  cursor: grab;
-}
-.rvmAdmin-step-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-  flex: 1;
-}
-.rvmAdmin-step-left .grab {
-  color: var(--text3);
-  font-weight: 900;
-}
-.rvmAdmin-step-left .title {
-  font-weight: 900;
-  white-space: nowrap;
-}
-.rvmAdmin-step-left .sub {
-  color: var(--text3);
-  font-size: .82rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+.rvmAdmin-step-item[draggable="true"] { cursor: grab; }
+.rvmAdmin-step-item[draggable="true"]:active { cursor: grabbing; }
+.rvmAdmin-step-left { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+.rvmAdmin-step-left .grab { color: var(--text3); font-size: 1.1rem; }
+.rvmAdmin-step-left .title { font-weight: 900; }
+.rvmAdmin-step-left .sub { color: var(--text3); font-size: .81rem; margin-top: 1px; }
 
-.rvmAdmin-btn-row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-/* 더미 모달 */
+/* ─ 모달 ──────────────────────────────────────── */
 .rvmAdmin-modal-bg {
   position: fixed;
   inset: 0;
-  background: rgba(15,23,42,.55);
+  background: rgba(15,23,42,.52);
   display: none;
   align-items: center;
   justify-content: center;
-  z-index: 10000;
+  z-index: 9999;
 }
 .rvmAdmin-modal-bg.open { display: flex; }
 .rvmAdmin-modal {
-  width: min(720px, calc(100vw - 28px));
-  max-height: min(78vh, 720px);
-  overflow: auto;
+  width: min(680px, calc(100vw - 28px));
+  max-height: min(80vh, 700px);
+  overflow-y: auto;
   background: #fff;
   border-radius: 16px;
   border: 1px solid var(--border);
-  box-shadow: var(--shadow-lg);
-  padding: 16px;
+  box-shadow: 0 8px 40px rgba(0,0,0,.18);
+  padding: 20px;
 }
-.rvmAdmin-modal h3 { margin-bottom: 8px; }
+.rvmAdmin-modal h3 { margin: 0 0 14px; font-size: 1.05rem; font-weight: 900; }
 
-/* 캘린더 */
-.rvmAdmin-calendar {
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 12px;
-}
-.rvmAdmin-calendar-left,
-.rvmAdmin-calendar-right {
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+/* ═══════════════════════════════════════════════
+   ★ 캘린더 — 세로 레이아웃 (풀 너비)
+═══════════════════════════════════════════════ */
+
+/* 달력 전체 래퍼 */
+.rvmAdmin-cal-wrap {
   background: #fff;
-}
-.rvmAdmin-calendar-left { padding: 12px; }
-.rvmAdmin-calendar-right { padding: 12px; }
-
-@media (max-width: 980px) {
-  .rvmAdmin-calendar { grid-template-columns: 1fr; }
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 0;
 }
 
-.rvmAdmin-month-head {
+/* 월 네비게이션 */
+.rvmAdmin-month-nav {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 10px;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 14px;
 }
-.rvmAdmin-month-head .month-title {
+.rvmAdmin-month-title {
+  font-size: 1.05rem;
   font-weight: 900;
+  min-width: 110px;
+  text-align: center;
 }
 
+/* 요일 헤더 */
 .rvmAdmin-dow {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
+  gap: 4px;
   margin-bottom: 6px;
-  color: var(--text3);
   font-weight: 800;
   font-size: .8rem;
+  color: var(--text3);
 }
-.rvmAdmin-dow span { text-align: center; }
+.rvmAdmin-dow span { text-align: center; padding: 4px 0; }
 
+/* 날짜 그리드 — 풀 너비로 균등 분할 */
 .rvmAdmin-cal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
+  gap: 5px;
 }
+
+/* 빈 셀 */
+.rvmAdmin-cal-empty {
+  height: 64px;
+  border-radius: 10px;
+}
+
+/* 날짜 셀 */
 .rvmAdmin-cal-day {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  height: 56px;
-  padding: 8px;
+  position: relative;
+  width: 100%;
+  min-height: 64px;
+  padding: 8px 6px 6px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
   background: #fff;
   cursor: pointer;
-  transition: .12s ease;
+  transition: border-color .12s, background .12s, box-shadow .12s;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
 }
-.rvmAdmin-cal-day:hover { border-color: var(--primary); }
-.rvmAdmin-cal-day.muted {
-  opacity: .45;
-  cursor: default;
+.rvmAdmin-cal-day:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--primary-lt, #eef4ff);
 }
 .rvmAdmin-cal-day.on {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-lt);
+  background: var(--primary-lt, #eef4ff);
+  box-shadow: 0 0 0 3px rgba(37,99,235,.15);
 }
-.rvmAdmin-cal-day .num {
+.rvmAdmin-cal-day.past {
+  opacity: .38;
+  cursor: not-allowed;
+  background: #f5f6f8;
+}
+.rvmAdmin-cal-day.closed {
+  background: #fff8f8;
+  border-color: rgba(220,53,69,.3);
+}
+.rvmAdmin-cal-day:disabled { pointer-events: none; }
+
+/* 날짜 숫자 */
+.rvm-cal-num {
+  font-size: .92rem;
   font-weight: 900;
-}
-.rvmAdmin-cal-day .badge {
-  font-size: .78rem;
-  font-weight: 900;
-  color: var(--text3);
-}
-.rvmAdmin-cal-day.closed .badge {
-  color: #a1171d;
+  line-height: 1;
 }
 
-/* 상세 테이블에서 action btn 정렬 */
-.rvmAdmin-actions {
+/* 날짜 배지 */
+.rvmAdmin-cal-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: .7rem;
+  font-weight: 900;
+  line-height: 1.4;
+}
+.rvmAdmin-cal-badge.open  { background: rgba(24,184,122,.12); color: #0b7a4a; }
+.rvmAdmin-cal-badge.closed{ background: rgba(220,53,69,.1);  color: #9b1c1c; }
+
+/* 선택 날짜 시간 패널 */
+.rvmAdmin-time-panel {
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
+  overflow: hidden;
+}
+.rvmAdmin-time-panel__head {
   display: flex;
-  gap: 8px;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #f9fafb;
+  border-bottom: 1px solid var(--border);
   flex-wrap: wrap;
 }
+.rvmAdmin-time-panel .rvmAdmin-table-wrap {
+  padding: 4px 0;
+}
+.rvmAdmin-time-panel .rvmAdmin-t {
+  min-width: 440px;
+}
 
+/* 일괄 설정 — details/summary */
+.rvmAdmin-bulk-details {
+  margin-bottom: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.rvmAdmin-bulk-summary {
+  padding: 11px 16px;
+  font-weight: 800;
+  font-size: .9rem;
+  cursor: pointer;
+  background: #f9fafb;
+  color: var(--text2);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}
+.rvmAdmin-bulk-summary::-webkit-details-marker { display: none; }
+.rvmAdmin-bulk-details[open] .rvmAdmin-bulk-summary { border-bottom: 1px solid var(--border); }
+.rvmAdmin-bulk-body { padding: 14px 16px; }
+.rvmAdmin-bulk-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+}
+.rvmAdmin-bulk-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-width: 140px;
+}
+.rvmAdmin-bulk-field label {
+  font-weight: 800;
+  font-size: .82rem;
+  color: var(--text2);
+}
+
+/* ─ 예약 리스트 필터 ──────────────────────────── */
+.rvmAdmin-bk-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+.rvmAdmin-bk-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-width: 150px;
+}
+.rvmAdmin-bk-filter-group label {
+  font-size: .82rem;
+  font-weight: 900;
+  color: var(--text2);
+  white-space: nowrap;
+}
+@media (max-width: 700px) {
+  .rvmAdmin-bk-filter-group { min-width: 100%; flex: none; }
+}
+
+@media (max-width: 700px) {
+  .rvmAdmin-cal-day  { min-height: 52px; padding: 6px 4px 4px; }
+  .rvm-cal-num       { font-size: .8rem; }
+  .rvmAdmin-cal-badge{ font-size: .65rem; padding: 1px 4px; }
+}
+@media (max-width: 480px) {
+  .rvmAdmin-cal-grid { gap: 3px; }
+  .rvmAdmin-cal-day  { min-height: 44px; padding: 5px 3px 3px; }
+  .rvmAdmin-cal-badge{ display: none; } /* 너무 좁으면 배지 숨김 */
+}

@@ -116,11 +116,11 @@ try {
             }
             $nameKey = preg_replace('/[^a-z0-9_]/i', '_', (string)($in['name_key'] ?? ''));
             if ($nameKey === '') {
-                rv2_json_out(['ok' => false, 'msg' => 'name_key ?꾩슂'], 400);
+                rv2_json_out(['ok' => false, 'msg' => 'name_key가 필요합니다.'], 400);
             }
             $label = trim((string)($in['label'] ?? ''));
             if ($label === '') {
-                rv2_json_out(['ok' => false, 'msg' => '?쇰꺼 ?꾩슂'], 400);
+                rv2_json_out(['ok' => false, 'msg' => '라벨이 필요합니다.'], 400);
             }
             $opts = isset($in['options']) && is_array($in['options']) ? json_encode($in['options'], JSON_UNESCAPED_UNICODE) : null;
             $sort = (int)($in['sort_order'] ?? 0);
@@ -144,7 +144,7 @@ try {
         case 'field_delete': {
             $id = (int)($in['id'] ?? 0);
             if ($id < 1) {
-                rv2_json_out(['ok' => false, 'msg' => 'id ?꾩슂'], 400);
+                rv2_json_out(['ok' => false, 'msg' => 'id가 필요합니다.'], 400);
             }
             $pdo->prepare('DELETE FROM rv2_field WHERE id=?')->execute([$id]);
             rv2_json_out(['ok' => true]);
@@ -157,7 +157,7 @@ try {
         case 'steps_save': {
             $steps = $in['steps'] ?? [];
             if (!is_array($steps)) {
-                rv2_json_out(['ok' => false, 'msg' => 'steps 諛곗뿴 ?꾩슂'], 400);
+                rv2_json_out(['ok' => false, 'msg' => 'steps 배열이 필요합니다.'], 400);
             }
             $pdo->beginTransaction();
             try {
@@ -172,7 +172,7 @@ try {
                 $pdo->commit();
             } catch (Throwable $e) {
                 $pdo->rollBack();
-                rv2_json_out(['ok' => false, 'msg' => '????ㅽ뙣'], 500);
+                rv2_json_out(['ok' => false, 'msg' => '저장 실패'], 500);
             }
             rv2_json_out(['ok' => true]);
         }
@@ -185,7 +185,7 @@ try {
             $id = (int)($in['id'] ?? 0);
             $name = trim((string)($in['name'] ?? ''));
             if ($name === '') {
-                rv2_json_out(['ok' => false, 'msg' => '吏?먮챸 ?꾩슂'], 400);
+                rv2_json_out(['ok' => false, 'msg' => '지점명이 필요합니다.'], 400);
             }
             $sort = (int)($in['sort_order'] ?? 0);
             $act = !empty($in['is_active']) ? 1 : 0;
@@ -201,7 +201,7 @@ try {
         case 'branch_delete': {
             $id = (int)($in['id'] ?? 0);
             if ($id < 1) {
-                rv2_json_out(['ok' => false, 'msg' => 'id ?꾩슂'], 400);
+                rv2_json_out(['ok' => false, 'msg' => 'id가 필요합니다.'], 400);
             }
             $pdo->prepare('DELETE FROM rv2_branch WHERE id=?')->execute([$id]);
             rv2_json_out(['ok' => true]);
@@ -215,7 +215,7 @@ try {
             $id = (int)($in['id'] ?? 0);
             $name = trim((string)($in['name'] ?? ''));
             if ($name === '') {
-                rv2_json_out(['ok' => false, 'msg' => '??ぉ紐??꾩슂'], 400);
+                rv2_json_out(['ok' => false, 'msg' => '항목명이 필요합니다.'], 400);
             }
             $sort = (int)($in['sort_order'] ?? 0);
             $act = !empty($in['is_active']) ? 1 : 0;
@@ -231,7 +231,7 @@ try {
         case 'item_delete': {
             $id = (int)($in['id'] ?? 0);
             if ($id < 1) {
-                rv2_json_out(['ok' => false, 'msg' => 'id ?꾩슂'], 400);
+                rv2_json_out(['ok' => false, 'msg' => 'id가 필요합니다.'], 400);
             }
             $pdo->prepare('DELETE FROM rv2_item WHERE id=?')->execute([$id]);
             rv2_json_out(['ok' => true]);
@@ -241,7 +241,7 @@ try {
             $branchId = (int)($in['branch_id'] ?? $_GET['branch_id'] ?? 0);
             $date = trim((string)($in['date'] ?? $_GET['date'] ?? ''));
             if ($branchId < 1 || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-                rv2_json_out(['ok' => false, 'msg' => 'branch_id, date ?꾩슂'], 400);
+                rv2_json_out(['ok' => false, 'msg' => 'branch_id, date가 필요합니다.'], 400);
             }
             $st = $pdo->prepare('SELECT * FROM rv2_slot WHERE branch_id=? AND slot_date=? ORDER BY slot_time');
             $st->execute([$branchId, $date]);
@@ -255,12 +255,12 @@ try {
             $times = $in['times'] ?? [];
             $capacity = max(1, (int)($in['capacity'] ?? 1));
             if ($branchId < 1 || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $from) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $to) || !is_array($times) || empty($times)) {
-                rv2_json_out(['ok' => false, 'msg' => 'branch_id, date_from, date_to, times[] ?꾩슂'], 400);
+                rv2_json_out(['ok' => false, 'msg' => 'branch_id, date_from, date_to, times[]가 필요합니다.'], 400);
             }
             $tStart = strtotime($from);
             $tEnd = strtotime($to);
             if ($tStart === false || $tEnd === false || $tStart > $tEnd) {
-                rv2_json_out(['ok' => false, 'msg' => '?좎쭨 踰붿쐞 ?ㅻ쪟'], 400);
+                rv2_json_out(['ok' => false, 'msg' => '날짜 범위가 올바르지 않습니다.'], 400);
             }
             $ins = $pdo->prepare(
                 'INSERT INTO rv2_slot (branch_id, slot_date, slot_time, capacity, booked)
@@ -289,12 +289,12 @@ try {
         case 'slot_delete': {
             $id = (int)($in['id'] ?? 0);
             if ($id < 1) {
-                rv2_json_out(['ok' => false, 'msg' => 'id ?꾩슂'], 400);
+                rv2_json_out(['ok' => false, 'msg' => 'id가 필요합니다.'], 400);
             }
             $bk = $pdo->prepare('SELECT booked FROM rv2_slot WHERE id=?');
             $bk->execute([$id]);
             if ((int)$bk->fetchColumn() > 0) {
-                rv2_json_out(['ok' => false, 'msg' => '?덉빟???덈뒗 ?щ’? ??젣?????놁뒿?덈떎.'], 400);
+                rv2_json_out(['ok' => false, 'msg' => '예약이 있는 슬롯은 삭제할 수 없습니다.'], 400);
             }
             $pdo->prepare('DELETE FROM rv2_slot WHERE id=?')->execute([$id]);
             rv2_json_out(['ok' => true]);
@@ -304,13 +304,13 @@ try {
             $id = (int)($in['id'] ?? 0);
             $cap = (int)($in['capacity'] ?? 0);
             if ($id < 1 || $cap < 1) {
-                rv2_json_out(['ok' => false, 'msg' => 'id, capacity(>=1) ?꾩슂'], 400);
+                rv2_json_out(['ok' => false, 'msg' => 'id, capacity(>=1)가 필요합니다.'], 400);
             }
             $chk = $pdo->prepare('SELECT booked FROM rv2_slot WHERE id=?');
             $chk->execute([$id]);
             $booked = (int)$chk->fetchColumn();
             if ($booked > $cap) {
-                rv2_json_out(['ok' => false, 'msg' => '?대? ?덉빟???섎낫???묎쾶 ?ㅼ젙?????놁뒿?덈떎.'], 400);
+                rv2_json_out(['ok' => false, 'msg' => '이미 예약 건수보다 작게 설정할 수 없습니다.'], 400);
             }
             $pdo->prepare('UPDATE rv2_slot SET capacity=? WHERE id=?')->execute([$cap, $id]);
             rv2_json_out(['ok' => true]);
@@ -372,7 +372,7 @@ try {
         case 'booking_get': {
             $id = (int)($in['id'] ?? $_GET['id'] ?? 0);
             if ($id < 1) {
-                rv2_json_out(['ok' => false, 'msg' => 'id ?꾩슂'], 400);
+                rv2_json_out(['ok' => false, 'msg' => 'id가 필요합니다.'], 400);
             }
             $st = $pdo->prepare(
                 'SELECT b.*, br.name AS branch_name, i.name AS item_name, s.slot_date, s.slot_time
@@ -384,6 +384,9 @@ try {
             );
             $st->execute([$id]);
             $row = $st->fetch(PDO::FETCH_ASSOC);
+            if ($row) {
+                $row['capacity_mode'] = rv2_get_capacity_mode($pdo);
+            }
             rv2_json_out(['ok' => true, 'booking' => $row]);
         }
 
@@ -405,13 +408,10 @@ try {
                 $old = $b['status'];
                 if ($old === '취소' && $newStatus !== '취소') {
                     $pdo->rollBack();
-                    rv2_json_out(['ok' => false, 'msg' => '취소된 예약은 변경할 수 없습니다.'], 400);
+                    rv2_json_out(['ok' => false, 'msg' => '취소된 예약은 복구할 수 없습니다.'], 400);
                 }
-                if ($newStatus === '취소' && $old !== '취소' && !empty($b['slot_id'])) {
-                    $pdo->prepare('UPDATE rv2_slot SET booked = GREATEST(0, booked - 1) WHERE id = ?')->execute([(int)$b['slot_id']]);
-                }
-                if ($old === '취소' && $newStatus !== '취소') {
-                    /* 蹂듦뎄 ???щ’ ?ъ쬆媛??蹂꾨룄 ?뺤콉 ???앸왂 */
+                if ($newStatus === '취소' && $old !== '취소') {
+                    rv2_release_booking_capacity($pdo, $b);
                 }
                 $note = array_key_exists('admin_note', $in) ? (string)$in['admin_note'] : null;
                 if ($note !== null) {
@@ -430,57 +430,137 @@ try {
         case 'booking_reschedule': {
             $id = (int)($in['id'] ?? 0);
             $newSlotId = (int)($in['slot_id'] ?? 0);
-            if ($id < 1 || $newSlotId < 1) {
-                rv2_json_out(['ok' => false, 'msg' => 'id, slot_id ?꾩슂'], 400);
+            $newItemQuotaId = (int)($in['item_quota_id'] ?? 0);
+            if ($id < 1) {
+                rv2_json_out(['ok' => false, 'msg' => 'id가 필요합니다.'], 400);
             }
-            $pdo->beginTransaction();
-            try {
-                $bSt = $pdo->prepare('SELECT * FROM rv2_booking WHERE id=? FOR UPDATE');
-                $bSt->execute([$id]);
-                $b = $bSt->fetch(PDO::FETCH_ASSOC);
-                if (!$b || $b['status'] !== '접수') {
-                    $pdo->rollBack();
-                    rv2_json_out(['ok' => false, 'msg' => '접수 상태에서만 일정 변경이 가능합니다.'], 400);
-                }
-                $oldSlotId = (int)$b['slot_id'];
-                $nSt = $pdo->prepare('SELECT * FROM rv2_slot WHERE id=? FOR UPDATE');
-                $nSt->execute([$newSlotId]);
-                $ns = $nSt->fetch(PDO::FETCH_ASSOC);
-                if (!$ns || (int)$ns['branch_id'] !== (int)$b['branch_id']) {
-                    $pdo->rollBack();
-                    rv2_json_out(['ok' => false, 'msg' => '같은 지점의 시간만 선택하세요.'], 400);
-                }
-                if ((int)$ns['booked'] >= (int)$ns['capacity']) {
-                    $pdo->rollBack();
-                    rv2_json_out(['ok' => false, 'msg' => '선택한 시간은 마감되었습니다.'], 409);
-                }
-                $dateYmd = $ns['slot_date'];
-                $timeHi = substr((string)$ns['slot_time'], 0, 5);
-                $err = rv2_validate_same_day_two_hours($dateYmd, $timeHi);
-                if ($err) {
-                    $pdo->rollBack();
-                    rv2_json_out(['ok' => false, 'msg' => $err], 400);
-                }
-                $resAt = $dateYmd . ' ' . substr((string)$ns['slot_time'], 0, 8);
+            $bSt = $pdo->prepare('SELECT * FROM rv2_booking WHERE id=?');
+            $bSt->execute([$id]);
+            $b = $bSt->fetch(PDO::FETCH_ASSOC);
+            if (!$b) {
+                rv2_json_out(['ok' => false, 'msg' => '없음'], 404);
+            }
+            $res = rv2_booking_reschedule($pdo, $b, $newSlotId, $newItemQuotaId);
+            if (!$res['ok']) {
+                $msg = (string)($res['msg'] ?? '');
+                $code = (strpos($msg, '마감') !== false || strpos($msg, '부족') !== false) ? 409 : 400;
+                rv2_json_out($res, $code);
+            }
+            rv2_json_out(['ok' => true]);
+        }
 
-                if ($oldSlotId > 0) {
-                    $pdo->prepare('UPDATE rv2_slot SET booked = GREATEST(0, booked - 1) WHERE id=?')->execute([$oldSlotId]);
-                }
-                $up = $pdo->prepare('UPDATE rv2_slot SET booked = booked + 1 WHERE id=? AND booked < capacity');
-                $up->execute([$newSlotId]);
-                if ($up->rowCount() !== 1) {
-                    if ($oldSlotId > 0) {
-                        $pdo->prepare('UPDATE rv2_slot SET booked = booked + 1 WHERE id=?')->execute([$oldSlotId]);
-                    }
-                    $pdo->rollBack();
-                    rv2_json_out(['ok' => false, 'msg' => '예약 가능 인원이 부족합니다.'], 409);
-                }
-                $pdo->prepare('UPDATE rv2_booking SET slot_id=?, reservation_at=? WHERE id=?')->execute([$newSlotId, $resAt, $id]);
-                $pdo->commit();
-            } catch (Throwable $e) {
-                $pdo->rollBack();
-                rv2_json_out(['ok' => false, 'msg' => '변경 실패'], 500);
+        case 'booking_admin_create': {
+            $created = rv2_booking_create($pdo, [
+                'branch_id' => (int)($in['branch_id'] ?? 0),
+                'slot_id' => (int)($in['slot_id'] ?? 0),
+                'item_quota_id' => (int)($in['item_quota_id'] ?? 0),
+                'item_id' => isset($in['item_id']) ? (int)$in['item_id'] : null,
+                'customer_name' => (string)($in['customer_name'] ?? ''),
+                'customer_phone' => (string)($in['customer_phone'] ?? ''),
+                'customer_email' => (string)($in['customer_email'] ?? ''),
+                'extra' => isset($in['extra']) && is_array($in['extra']) ? $in['extra'] : [],
+            ]);
+            if (!$created['ok']) {
+                $msg = (string)($created['msg'] ?? '');
+                $code = (strpos($msg, '마감') !== false || strpos($msg, '부족') !== false) ? 409 : 400;
+                rv2_json_out($created, $code);
             }
+            $bSt = $pdo->prepare('SELECT * FROM rv2_booking WHERE id = ? LIMIT 1');
+            $bSt->execute([(int)$created['id']]);
+            $row = $bSt->fetch(PDO::FETCH_ASSOC);
+            if ($row) {
+                rv2_send_reservation_admin_notifications($pdo, $row);
+            }
+            rv2_json_out(['ok' => true, 'id' => $created['id'], 'reservation_no' => $created['reservation_no']]);
+        }
+
+        case 'item_quota_list': {
+            $branchId = (int)($in['branch_id'] ?? $_GET['branch_id'] ?? 0);
+            $date = trim((string)($in['date'] ?? $_GET['date'] ?? ''));
+            if ($branchId < 1 || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                rv2_json_out(['ok' => false, 'msg' => 'branch_id, date가 필요합니다.'], 400);
+            }
+            $st = $pdo->prepare(
+                'SELECT q.*, i.name AS item_name
+                 FROM rv2_item_quota q
+                 INNER JOIN rv2_item i ON i.id = q.item_id
+                 WHERE q.branch_id = ? AND q.quota_date = ?
+                 ORDER BY i.sort_order ASC, i.id ASC'
+            );
+            $st->execute([$branchId, $date]);
+            rv2_json_out(['ok' => true, 'quotas' => $st->fetchAll(PDO::FETCH_ASSOC)]);
+        }
+
+        case 'item_quota_bulk_create': {
+            $branchId = (int)($in['branch_id'] ?? 0);
+            $from = trim((string)($in['date_from'] ?? ''));
+            $to = trim((string)($in['date_to'] ?? ''));
+            $itemIds = $in['item_ids'] ?? [];
+            if (!is_array($itemIds)) {
+                $itemIds = [];
+            }
+            $capacity = max(1, (int)($in['capacity'] ?? 1));
+            if ($branchId < 1 || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $from) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $to)) {
+                rv2_json_out(['ok' => false, 'msg' => 'branch_id, date_from, date_to가 필요합니다.'], 400);
+            }
+            $tStart = strtotime($from);
+            $tEnd = strtotime($to);
+            if ($tStart === false || $tEnd === false || $tStart > $tEnd) {
+                rv2_json_out(['ok' => false, 'msg' => '날짜 범위가 올바르지 않습니다.'], 400);
+            }
+            if (empty($itemIds)) {
+                $itemIds = $pdo->query('SELECT id FROM rv2_item WHERE is_active = 1')->fetchAll(PDO::FETCH_COLUMN);
+            }
+            $itemIds = array_map('intval', $itemIds);
+            $itemIds = array_filter($itemIds, function ($x) {
+                return $x > 0;
+            });
+            if (empty($itemIds)) {
+                rv2_json_out(['ok' => false, 'msg' => '활성 항목이 없습니다.'], 400);
+            }
+            $ins = $pdo->prepare(
+                'INSERT INTO rv2_item_quota (branch_id, item_id, quota_date, capacity, booked)
+                 VALUES (?,?,?,?,0)
+                 ON DUPLICATE KEY UPDATE capacity = VALUES(capacity)'
+            );
+            $cnt = 0;
+            for ($t = $tStart; $t <= $tEnd; $t += 86400) {
+                $d = date('Y-m-d', $t);
+                foreach ($itemIds as $iid) {
+                    $ins->execute([$branchId, $iid, $d, $capacity]);
+                    $cnt++;
+                }
+            }
+            rv2_json_out(['ok' => true, 'inserted_or_updated' => $cnt]);
+        }
+
+        case 'item_quota_delete': {
+            $id = (int)($in['id'] ?? 0);
+            if ($id < 1) {
+                rv2_json_out(['ok' => false, 'msg' => 'id가 필요합니다.'], 400);
+            }
+            $bk = $pdo->prepare('SELECT booked FROM rv2_item_quota WHERE id=?');
+            $bk->execute([$id]);
+            if ((int)$bk->fetchColumn() > 0) {
+                rv2_json_out(['ok' => false, 'msg' => '예약이 있는 항목 일정은 삭제할 수 없습니다.'], 400);
+            }
+            $pdo->prepare('DELETE FROM rv2_item_quota WHERE id=?')->execute([$id]);
+            rv2_json_out(['ok' => true]);
+        }
+
+        case 'item_quota_set_capacity': {
+            $id = (int)($in['id'] ?? 0);
+            $cap = (int)($in['capacity'] ?? 0);
+            if ($id < 1 || $cap < 1) {
+                rv2_json_out(['ok' => false, 'msg' => 'id, capacity(>=1)가 필요합니다.'], 400);
+            }
+            $chk = $pdo->prepare('SELECT booked FROM rv2_item_quota WHERE id=?');
+            $chk->execute([$id]);
+            $booked = (int)$chk->fetchColumn();
+            if ($booked > $cap) {
+                rv2_json_out(['ok' => false, 'msg' => '이미 예약 건수보다 작게 설정할 수 없습니다.'], 400);
+            }
+            $pdo->prepare('UPDATE rv2_item_quota SET capacity=? WHERE id=?')->execute([$cap, $id]);
             rv2_json_out(['ok' => true]);
         }
 
@@ -493,13 +573,19 @@ try {
             $emails = trim((string)($in['notify_emails'] ?? ''));
             $sheet = trim((string)($in['spreadsheet_webhook'] ?? ''));
             $alim = trim((string)($in['alimtalk_webhook'] ?? ''));
+            $useEm = !empty($in['notify_use_email']) ? 1 : 0;
+            $useSh = !empty($in['notify_use_sheet']) ? 1 : 0;
+            $useAl = !empty($in['notify_use_alim']) ? 1 : 0;
             $pdo->prepare(
-                'INSERT INTO rv2_settings (id, notify_emails, spreadsheet_webhook, alimtalk_webhook)
-                 VALUES (1,?,?,?)
-                 ON DUPLICATE KEY UPDATE notify_emails=VALUES(notify_emails), spreadsheet_webhook=VALUES(spreadsheet_webhook), alimtalk_webhook=VALUES(alimtalk_webhook)'
-            )->execute([$emails, $sheet !== '' ? $sheet : null, $alim !== '' ? $alim : null]);
+                'INSERT INTO rv2_settings (id, notify_emails, spreadsheet_webhook, alimtalk_webhook, notify_use_email, notify_use_sheet, notify_use_alim)
+                 VALUES (1,?,?,?,?,?,?)
+                 ON DUPLICATE KEY UPDATE notify_emails=VALUES(notify_emails), spreadsheet_webhook=VALUES(spreadsheet_webhook), alimtalk_webhook=VALUES(alimtalk_webhook), notify_use_email=VALUES(notify_use_email), notify_use_sheet=VALUES(notify_use_sheet), notify_use_alim=VALUES(notify_use_alim)'
+            )->execute([$emails, $sheet !== '' ? $sheet : null, $alim !== '' ? $alim : null, $useEm, $useSh, $useAl]);
             rv2_json_out(['ok' => true]);
         }
+
+        case 'meta':
+            rv2_json_out(['ok' => true, 'capacity_mode' => rv2_get_capacity_mode($pdo)]);
 
         default:
             rv2_json_out(['ok' => false, 'msg' => 'unknown action'], 400);
