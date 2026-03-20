@@ -265,7 +265,6 @@
       <div style="margin-bottom:20px;">
         <p style="font-size:.82rem;font-weight:600;color:#475569;margin-bottom:10px;">고정 필드 (삭제 불가)</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <span style="background:#e2e8f0;color:#475569;padding:5px 12px;border-radius:6px;font-size:.82rem;">제목</span>
           <span style="background:#e2e8f0;color:#475569;padding:5px 12px;border-radius:6px;font-size:.82rem;">신청일시</span>
           <span style="background:#e2e8f0;color:#475569;padding:5px 12px;border-radius:6px;font-size:.82rem;">수정일시</span>
           <span style="background:#e2e8f0;color:#475569;padding:5px 12px;border-radius:6px;font-size:.82rem;">조회수</span>
@@ -320,6 +319,10 @@
       <input type="text" class="form-control" id="ciDataSearchKeyword" placeholder="제목 검색" onkeydown="if(event.key==='Enter')ciFetchData()"/>
       <button class="btn btn-outline" onclick="ciFetchData()">🔍 검색</button>
       <button class="btn btn-ghost" onclick="ciResetSearch()">초기화</button>
+    </div>
+    <div class="bulk-bar" id="ciDataBulk">
+      <span>선택 <span class="bulk-count">0</span>건</span>
+      <button class="btn btn-sm btn-danger" onclick="ciDeleteSelected()">선택 삭제</button>
     </div>
     <div class="table-wrap">
       <table class="admin-table" id="ciDataTable">

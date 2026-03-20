@@ -32,6 +32,7 @@ const FRONT_SECTION_LIST = [
   { key:'front_stores',         label:'프론트 매장찾기 섹션' },
   { key:'front_reservation',    label:'프론트 예약하기 섹션' },
   { key:'front_reservation_lookup', label:'프론트 예약 조회(변경)' },
+  { key:'front_customReser_suite',    label:'프론트 예약(customReser DB)' },
   { key:'front_notices',       label:'프론트 공지사항 섹션' },
   { key:'front_faq',            label:'프론트 FAQ 섹션' },
   { key:'front_gallery',       label:'프론트 갤러리 섹션' },
@@ -112,6 +113,8 @@ const PAGE_LABELS = {
   customInquiryList:   ['문의 폼','문의 폼 목록'],
   customInquiryDetail: ['문의 폼','폼 설정'],
   customInquiryData:   ['문의 폼','문의 내역'],
+
+  customReserModule: ['예약(신규)', '예약 모듈 (customReser)'],
 };
 
 // ===========================
@@ -354,6 +357,10 @@ function showPage(pageId) {
 
   if (pageId === 'customInquiryCreate') { /* 별도 로드 없음 */ }
   if (pageId === 'customInquiryList')   ciLoadFormList();
+
+  if (pageId === 'customReserModule' && typeof window.initCustomReserAdmin === 'function') {
+    window.initCustomReserAdmin();
+  }
 }
 
 function toggleNav(el) {

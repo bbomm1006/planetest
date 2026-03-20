@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="css/admin.css"/>
 <link rel="stylesheet" href="css/find_account.css"/>
 <link rel="stylesheet" href="css/rv2_reserve.css"/>
+<link rel="stylesheet" href="css/customReser_admin.css"/>
 <!-- 카카오 주소검색 (Daum 우편번호) -->
 <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 </head>
@@ -87,7 +88,8 @@
 
       <!-- 7-1. 예약 시간 관리 -->
       <!-- 7-2. 예약 내역 -->
-      <?php include 'lib/reserve.php'; ?>            
+      <?php include 'lib/reserve.php'; ?>
+      <?php include 'lib/customReser_module.php'; ?>
 
       <!-- ========================
             8. 챗봇 관리
@@ -188,6 +190,7 @@
 <script src="js/inquiry.js"></script>
 <script src="js/reserve.js"></script>
 <script src="js/rv2_reserve.js"></script>
+<script src="js/customReser_admin.js"></script>
 
 <!-- 나머지 -->
 <script src="js/social.js"></script>

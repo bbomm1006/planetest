@@ -505,10 +505,10 @@ async function ciLoadFields() {
       <label style="display:flex;align-items:center;gap:4px;font-size:.8rem;font-weight:400;cursor:pointer;">
         <input type="checkbox" ${f.is_visible == 1 ? 'checked' : ''} onchange="ciToggleFieldVisible(${f.id}, this)"/> 노출
       </label>
-      <button class="btn btn-sm btn-outline" onclick="ciOpenFieldModal(${f.id})">수정</button>
+      <button class="btn btn-outline" onclick="ciOpenFieldModal(${f.id})">수정</button>
+      <button class="btn btn-danger" style="padding:6px 10px;font-size:.78rem;" onclick="ciDeleteField(${f.id})">삭제</button>
     </div>`).join('');
 
-  // 드래그 이벤트
   el.querySelectorAll('.ci-field-row').forEach(row => {
     row.addEventListener('dragstart', e => { ciFieldDragSrc = row; row.style.opacity = '.4'; });
     row.addEventListener('dragend',   e => { row.style.opacity = ''; });
@@ -525,6 +525,13 @@ async function ciLoadFields() {
       }
     });
   });
+}
+
+async function ciDeleteField(id) {
+  if (!confirm('이 필드를 삭제하시겠습니까?\n관련 데이터도 함께 삭제될 수 있습니다.')) return;
+  const res = await apiPost('api/custom_inquiry.php', { action: 'delete_field', id, form_id: ciCurrentFormId });
+  if (res.ok) { ciLoadFields(); showToast('삭제되었습니다.'); }
+  else showToast(res.msg || '오류', 'error');
 }
 
 async function ciSaveFieldOrder() {
@@ -774,8 +781,21 @@ async function ciDeleteTerm(id) {
 async function ciLoadData(formId) {
   if (formId) ciCurrentFormId = formId;
   ciCurrentDataPage = 1;
+  // 삭제 버튼 표시
   await ciRenderSearchFilters();
   await ciFetchData();
+}
+
+async function ciDeleteSelected() {
+  const ids = [...document.querySelectorAll('#ciDataTableBody .row-check:checked')].map(c => c.dataset.id);
+  if (!ids.length) { showToast('삭제할 항목을 선택해 주세요.', 'error'); return; }
+  if (!confirm(`선택한 ${ids.length}건을 삭제하시겠습니까?`)) return;
+  const res = await apiPost('api/custom_inquiry_data.php', { action: 'delete_rows', form_id: ciCurrentFormId, ids: ids.join(',') });
+  if (res.ok) {
+    showToast(`${res.deleted}건이 삭제되었습니다.`);
+    updateBulkBar('ciDataBulk');
+    ciFetchData();
+  } else showToast(res.msg || '오류', 'error');
 }
 
 // 검색 필터 전체 렌더 (상태 + select/radio/checkbox 필드)
@@ -827,8 +847,17 @@ async function ciFetchData() {
   });
 
   const tbody = document.getElementById('ciDataTableBody');
+  // 헤더 체크박스 추가
+  const thead = document.getElementById('ciDataTableHead');
+  if (thead && !thead.querySelector('th.ci-chk-th')) {
+    const chkTh = document.createElement('th');
+    chkTh.className = 'ci-chk-th';
+    chkTh.style = 'width:36px;';
+    chkTh.innerHTML = '☑';
+    thead.insertBefore(chkTh, thead.firstChild);
+  }
   // 로딩 표시 (검색 중 피드백)
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#94a3b8;">조회 중...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#94a3b8;">조회 중...</td></tr>';
 
   const res = await apiGet('api/custom_inquiry_data.php', {
     action:       'list',
@@ -861,15 +890,25 @@ async function ciFetchData() {
   }
 
   const offset = (ciCurrentDataPage - 1) * res.limit;
-  tbody.innerHTML = res.data.map((d, i) => `
-    <tr>
+  // 폼 설정 확인 (login_use, comment_use)
+  const formRes = await apiGet('api/custom_inquiry.php', { action: 'get_form', id: ciCurrentFormId });
+  const formCfg = formRes.data || {};
+
+  tbody.innerHTML = res.data.map((d, i) => {
+    const loginInfo = formCfg.login_use == 1 && d.login_id
+      ? `<span style="font-size:.75rem;color:#64748b;margin-left:6px;">${escHtml(d.login_name || d.login_id)} (${escHtml(d.login_type||'')})</span>` : '';
+    const commentBadge = formCfg.comment_use == 1
+      ? `<span style="font-size:.75rem;color:#64748b;margin-left:4px;">💬${d.comment_count||0}</span>` : '';
+    return `<tr>
+      <td><input type="checkbox" class="row-check" data-id="${d.id}" onchange="updateBulkBar('ciDataBulk')"></td>
       <td>${res.total - offset - i}</td>
-      <td>${escHtml(d.title || '-')}</td>
+      <td>${escHtml(d.first_field_value || '-')}${loginInfo}</td>
       <td>${d.created_at ? d.created_at.slice(0,16) : '-'}</td>
-      <td>${d.view_count || 0}</td>
+      <td>${d.view_count || 0}${commentBadge}</td>
       <td><span class="badge" style="background:${d.status_color || '#e2e8f0'};color:#fff;">${escHtml(d.status_label || '-')}</span></td>
       <td><button class="btn btn-sm btn-outline" onclick="ciOpenDataDetail(${d.id})">상세</button></td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 
   // 페이지네이션
   const totalPage = Math.ceil(res.total / res.limit);
@@ -895,8 +934,15 @@ async function ciOpenDataDetail(id) {
   const res = await apiGet('api/custom_inquiry_data.php', { action: 'detail', form_id: ciCurrentFormId, id });
   if (!res.ok) { showToast(res.msg || '오류', 'error'); return; }
 
-  const d      = res.data;
-  const fields = res.fields || [];
+  const d        = res.data;
+  const fields   = res.fields   || [];
+  const statuses = res.statuses || [];
+  const form     = res.form     || {};
+
+  // 상태 변경 select
+  const statusOpts = statuses.map(s =>
+    `<option value="${s.id}" ${d.status_id == s.id ? 'selected' : ''}>${escHtml(s.label)}</option>`
+  ).join('');
 
   let html = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
@@ -904,36 +950,130 @@ async function ciOpenDataDetail(id) {
       <div><label style="font-size:.78rem;color:#94a3b8;">수정일시</label><p style="margin:2px 0;">${d.updated_at ? d.updated_at.slice(0,16) : '-'}</p></div>
       <div><label style="font-size:.78rem;color:#94a3b8;">조회수</label><p style="margin:2px 0;">${d.view_count || 0}</p></div>
       <div><label style="font-size:.78rem;color:#94a3b8;">상태</label>
-        <p style="margin:2px 0;"><span class="badge" style="background:${d.status_color||'#e2e8f0'};color:#fff;">${escHtml(d.status_label||'-')}</span></p>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+          <select class="form-control" id="ciDetailStatusSel" style="width:auto;" onchange="ciSaveDetailStatus(${d.id}, this.value)">
+            ${statusOpts}
+          </select>
+        </div>
       </div>
-    </div>
-    <hr style="border:none;border-top:1px solid var(--border);margin:12px 0;">
-    <div><label style="font-size:.78rem;color:#94a3b8;">제목</label><p style="margin:4px 0;">${escHtml(d.title || '-')}</p></div>`;
-
-  fields.forEach(f => {
-    const val = d[f.field_key] || '-';
-    html += `<div style="margin-top:12px;">
-      <label style="font-size:.78rem;color:#94a3b8;">${escHtml(f.label)}</label>
-      <p style="margin:4px 0;white-space:pre-wrap;">${escHtml(val)}</p>
     </div>`;
+
+  // 로그인 정보
+  if (form.login_use == 1 && d.login_id) {
+    html += `<div style="margin-bottom:12px;padding:10px 14px;background:#f8fafc;border-radius:8px;">
+      <label style="font-size:.78rem;color:#94a3b8;">로그인 정보</label>
+      <p style="margin:4px 0;">${escHtml(d.login_name || d.login_id)} · <span style="color:#64748b;font-size:.82rem;">${escHtml(d.login_type||'')}</span></p>
+    </div>`;
+  }
+
+  html += `<hr style="border:none;border-top:1px solid var(--border);margin:12px 0;">`;
+
+  // 필드값
+  fields.forEach(f => {
+    if (f.field_key === 'category_id') {
+      html += `<div style="margin-top:12px;"><label style="font-size:.78rem;color:#94a3b8;">제품 분류</label><p style="margin:4px 0;">${escHtml(d.category_name || '-')}</p></div>`;
+    } else if (f.field_key === 'product_id') {
+      html += `<div style="margin-top:12px;"><label style="font-size:.78rem;color:#94a3b8;">제품명</label><p style="margin:4px 0;">${escHtml(d.product_name || '-')}</p></div>`;
+    } else {
+      const val = d[f.field_key] || '-';
+      html += `<div style="margin-top:12px;"><label style="font-size:.78rem;color:#94a3b8;">${escHtml(f.label)}</label><p style="margin:4px 0;white-space:pre-wrap;">${escHtml(val)}</p></div>`;
+    }
   });
 
-  if (d.login_type) {
-    html += `<div style="margin-top:12px;"><label style="font-size:.78rem;color:#94a3b8;">로그인 방법</label><p style="margin:4px 0;">${escHtml(d.login_type)}</p></div>`;
+  // 답변 영역
+  if (form.reply_use == 1) {
+    html += `<hr style="border:none;border-top:1px solid var(--border);margin:16px 0;">
+    <div>
+      <label style="font-size:.85rem;font-weight:600;color:#475569;">답변</label>
+      ${d.reply_at ? `<span style="font-size:.75rem;color:#94a3b8;margin-left:8px;">최종 답변: ${d.reply_at.slice(0,16)}</span>` : ''}
+      <textarea id="ciDetailReply" class="form-control" rows="4" style="margin-top:8px;resize:vertical;" placeholder="답변 내용을 입력하세요">${escHtml(d.reply_content || '')}</textarea>
+      <button class="btn btn-primary" style="margin-top:8px;" onclick="ciSaveReply(${d.id})">답변 저장</button>
+    </div>`;
+  }
+
+  // 댓글 영역
+  if (form.comment_use == 1) {
+    html += `<hr style="border:none;border-top:1px solid var(--border);margin:16px 0;">
+    <div>
+      <label style="font-size:.85rem;font-weight:600;color:#475569;">댓글</label>
+      <div id="ciDetailComments" style="margin-top:10px;">로딩 중...</div>
+    </div>`;
   }
 
   document.getElementById('ciDataDetailBody').innerHTML = html;
+
+  // 현재 상세 row id 저장
+  window._ciDetailRowId = d.id;
+
   openModal('ciDataDetailModal');
+
+  // 댓글 로드
+  if (form.comment_use == 1) {
+    ciLoadComments(d.id);
+  }
 }
 
+async function ciSaveDetailStatus(rowId, statusId) {
+  const res = await apiPost('api/custom_inquiry_data.php', { action: 'update_status', form_id: ciCurrentFormId, id: rowId, status_id: statusId });
+  if (res.ok) { showToast('상태가 변경되었습니다.'); ciFetchData(); }
+  else showToast(res.msg || '오류', 'error');
+}
+
+async function ciSaveReply(rowId) {
+  const content = document.getElementById('ciDetailReply').value.trim();
+  const res = await apiPost('api/custom_inquiry_data.php', { action: 'save_reply', form_id: ciCurrentFormId, id: rowId, reply_content: content });
+  if (res.ok) showToast('답변이 저장되었습니다.');
+  else showToast(res.msg || '오류', 'error');
+}
+
+async function ciLoadComments(rowId) {
+  const el  = document.getElementById('ciDetailComments');
+  if (!el) return;
+  const res = await apiGet('api/custom_inquiry.php', { action: 'list_comments', form_id: ciCurrentFormId, row_id: rowId });
+  if (!res.ok || !res.data.length) {
+    el.innerHTML = '<p style="color:#94a3b8;font-size:.85rem;">댓글이 없습니다.</p>';
+    return;
+  }
+  el.innerHTML = res.data.map(c => `
+    <div style="padding:10px 14px;margin-bottom:8px;background:${c.visibility==1?'#f8fafc':'#fef9c3'};border-radius:8px;border:1px solid var(--border);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <div style="font-size:.8rem;color:#475569;">
+          <strong>${escHtml(c.author||'익명')}</strong>
+          ${c.login_type ? `<span style="color:#94a3b8;"> (${escHtml(c.login_type)})</span>` : ''}
+          <span style="color:#94a3b8;margin-left:8px;">${c.created_at ? c.created_at.slice(0,16) : ''}</span>
+          ${c.updated_at !== c.created_at ? `<span style="color:#94a3b8;"> · 수정: ${c.updated_at.slice(0,16)}</span>` : ''}
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span style="font-size:.75rem;color:${c.visibility==1?'#16a34a':'#94a3b8'};">${c.visibility==1?'공개':'비공개'}</span>
+          <button class="btn btn-outline" style="padding:3px 8px;font-size:.75rem;"
+            onclick="ciToggleCommentVisibility(${c.id}, ${c.visibility==1?0:1})">
+            ${c.visibility==1?'비공개 처리':'공개 처리'}
+          </button>
+        </div>
+      </div>
+      <p style="margin:0;font-size:.88rem;white-space:pre-wrap;">${escHtml(c.content)}</p>
+    </div>`).join('');
+}
+
+async function ciToggleCommentVisibility(commentId, visibility) {
+  const res = await apiPost('api/custom_inquiry.php', { action: 'toggle_comment_visibility', form_id: ciCurrentFormId, comment_id: commentId, visibility });
+  if (res.ok) { showToast('처리되었습니다.'); ciLoadComments(window._ciDetailRowId); }
+  else showToast(res.msg || '오류', 'error');
+}
+
+
 function ciExcelDownload() {
+  const statusEl  = document.getElementById('ciFilterStatus');
+  const keywordEl = document.getElementById('ciDataSearchKeyword');
+  const fromEl    = document.getElementById('ciDataSearchFrom');
+  const toEl      = document.getElementById('ciDataSearchTo');
   const params = new URLSearchParams({
     action:  'excel',
     form_id: ciCurrentFormId,
-    keyword: document.getElementById('ciDataSearchKeyword').value.trim(),
-    status:  document.getElementById('ciDataSearchStatus').value,
-    from:    document.getElementById('ciDataSearchFrom').value,
-    to:      document.getElementById('ciDataSearchTo').value,
+    keyword: keywordEl ? keywordEl.value.trim() : '',
+    status:  statusEl  ? statusEl.value : '',
+    from:    fromEl    ? fromEl.value   : '',
+    to:      toEl      ? toEl.value     : '',
   });
   window.location.href = 'api/custom_inquiry_data.php?' + params.toString();
 }

@@ -2835,3 +2835,46 @@ body.rv2-body{
 .rv2-msg.ok{background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;}
 .rv2-link-bar{text-align:center;margin-top:20px;}
 .rv2-link-bar a{color:var(--rv2-primary);font-weight:600;}
+.rv2-cap-hint{
+  font-size:.82rem;
+  color:var(--rv2-muted);
+  margin:8px 0 0;
+  line-height:1.45;
+}
+.rv2-admin-notify-note{
+  font-size:.8rem;
+  color:var(--rv2-muted);
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px solid var(--rv2-border);
+}
+.rv2-lookup-wrap{max-width:960px;}
+.rv2-lookup-grid{
+  display:grid;
+  gap:20px;
+  align-items:start;
+}
+@media (min-width:900px){
+  .rv2-lookup-grid{
+    grid-template-columns:minmax(0,340px) 1fr;
+  }
+}
+.rv2-or{
+  text-align:center;
+  color:var(--rv2-muted);
+  margin:12px 0;
+  font-size:.88rem;
+}
+.rv2-booking-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:16px;
+  padding-top:16px;
+  border-top:1px solid var(--rv2-border);
+}
+.rv2-booking-actions .rv2-btn{flex:1;min-width:100px;}
+.rv2-resched-panel{margin-top:16px;}
+.rv2-resched-title{margin-top:0;font-size:1.05rem;}
+.rv2-booking-card .rv2-status{font-weight:600;color:var(--rv2-primary);}
+.rv2-result-col{display:flex;flex-direction:column;gap:12px;}

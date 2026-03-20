@@ -1,10 +1,7 @@
 <?php
 declare(strict_types=1);
 
-/**
- * 접수 알림 — 관리자 설정(rv2_settings)의 이메일·웹훅만 사용 (고객에게는 발송하지 않음)
- */
-function rv2_send_reservation_admin_notifications(PDO $pdo, array $booking): void {
+function customReser_send_admin_notifications(PDO $pdo, int $instanceId, array $booking): void {
     $extra = $booking['extra_json'] ?? [];
     if (is_string($extra)) {
         $d = json_decode($extra, true);
@@ -12,6 +9,7 @@ function rv2_send_reservation_admin_notifications(PDO $pdo, array $booking): voi
     }
     $payload = [
         'event' => 'reservation_created',
+        'instance_id' => $instanceId,
         'reservation_no' => $booking['reservation_no'],
         'status' => $booking['status'],
         'reservation_at' => $booking['reservation_at'],
@@ -30,12 +28,12 @@ function rv2_send_reservation_admin_notifications(PDO $pdo, array $booking): voi
         '연락처: ' . $booking['customer_phone'],
     ]);
 
-    $st = $pdo->query(
-        'SELECT notify_emails, spreadsheet_webhook, alimtalk_webhook,
-                notify_use_email, notify_use_sheet, notify_use_alim
-         FROM rv2_settings WHERE id = 1 LIMIT 1'
+    $st = $pdo->prepare(
+        'SELECT notify_emails, spreadsheet_webhook, alimtalk_webhook, notify_use_email, notify_use_sheet, notify_use_alim
+         FROM customReser_instance_settings WHERE instance_id = ? LIMIT 1'
     );
-    $settings = $st ? $st->fetch(PDO::FETCH_ASSOC) : [];
+    $st->execute([$instanceId]);
+    $settings = $st->fetch(PDO::FETCH_ASSOC) ?: [];
 
     $useEmail = !isset($settings['notify_use_email']) || (int)$settings['notify_use_email'] === 1;
     $useSheet = isset($settings['notify_use_sheet']) && (int)$settings['notify_use_sheet'] === 1;
@@ -55,26 +53,14 @@ function rv2_send_reservation_admin_notifications(PDO $pdo, array $booking): voi
     }
 
     if ($useSheet && !empty($settings['spreadsheet_webhook'])) {
-        rv2_post_webhook((string)$settings['spreadsheet_webhook'], $payload);
+        customReser_post_webhook((string)$settings['spreadsheet_webhook'], $payload);
     }
     if ($useAlim && !empty($settings['alimtalk_webhook'])) {
-        rv2_post_webhook((string)$settings['alimtalk_webhook'], $payload + ['channel' => 'alimtalk']);
+        customReser_post_webhook((string)$settings['alimtalk_webhook'], $payload + ['channel' => 'alimtalk']);
     }
 }
 
-/** @deprecated 내부에서 rv2_send_reservation_admin_notifications 사용 */
-function rv2_send_notifications(
-    PDO $pdo,
-    array $booking,
-    array $emailsToSend,
-    bool $emailChannelOn,
-    bool $doSheet,
-    bool $doAlim
-): void {
-    rv2_send_reservation_admin_notifications($pdo, $booking);
-}
-
-function rv2_post_webhook(string $url, array $payload): void {
+function customReser_post_webhook(string $url, array $payload): void {
     $url = trim($url);
     if ($url === '') {
         return;

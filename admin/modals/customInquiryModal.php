@@ -227,7 +227,7 @@
      문의 상세 모달
      ============================================================ -->
 <div class="modal-overlay" id="ciDataDetailModal">
-  <div class="modal modal-md">
+  <div class="modal" style="max-width:680px;">
     <div class="modal-header">
       <h3>문의 상세</h3>
       <button class="modal-close" onclick="closeModal('ciDataDetailModal')">✕</button>

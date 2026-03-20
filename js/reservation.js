@@ -605,6 +605,8 @@
     date: null,
     slotId: null,
     itemId: null,
+    itemQuotaId: null,
+    capacityMode: 'time',
     extra: {},
     calendarYear: null,
     calendarMonth: null,
@@ -640,11 +642,22 @@
     return getJSON(API + '?action=config').then(function (res) {
       if (!res.ok) throw new Error(res.msg || '설정 로드 실패');
       state.config = res;
+      state.capacityMode = res.capacity_mode === 'item' ? 'item' : 'time';
       state.steps = (res.steps || []).filter(function (s) { return s.is_active == 1 || s.is_active === true; })
+        .filter(function (s) {
+          if (state.capacityMode === 'item' && s.step_key === 'time') {
+            return false;
+          }
+          return true;
+        })
         .sort(function (a, b) { return (a.sort_order || 0) - (b.sort_order || 0); });
       var now = new Date();
       state.calendarYear = now.getFullYear();
       state.calendarMonth = now.getMonth() + 1;
+      var capEl = el('rv2-cap-hint');
+      if (capEl) {
+        capEl.textContent = res.capacity_hint || '';
+      }
     });
   }
 
@@ -720,6 +733,9 @@
       btn.textContent = b.name;
       btn.onclick = function () {
         state.branchId = b.id;
+        state.slotId = null;
+        state.itemQuotaId = null;
+        state.itemId = null;
         Array.prototype.forEach.call(grid.querySelectorAll('.rv2-opt'), function (x) { x.classList.remove('selected'); });
         btn.classList.add('selected');
       };
@@ -796,6 +812,9 @@
           cEl.onclick = function () {
             if (!inf || !inf.open) return;
             state.date = dstr;
+            state.slotId = null;
+            state.itemQuotaId = null;
+            state.itemId = null;
             Array.prototype.forEach.call(grid.querySelectorAll('.rv2-cal-day'), function (x) { x.classList.remove('selected'); });
             cEl.classList.add('selected');
           };
@@ -854,7 +873,8 @@
           btn.type = 'button';
           btn.className = 'rv2-opt' + (state.slotId === s.id ? ' selected' : '');
           btn.disabled = !s.available;
-          btn.textContent = s.slot_time + (s.available ? '' : ' (마감)');
+          var rem = typeof s.remaining !== 'undefined' ? s.remaining : Math.max(0, (parseInt(s.capacity, 10) || 0) - (parseInt(s.booked, 10) || 0));
+          btn.textContent = s.slot_time + (s.available ? ' (잔여 ' + rem + ')' : ' (마감)');
           btn.onclick = function () {
             if (!s.available) return;
             state.slotId = s.id;
@@ -877,25 +897,87 @@
   }
 
   function renderItem(host, act) {
+    if (!state.branchId || !state.date) {
+      showMsg('지점과 날짜를 먼저 선택해 주세요.');
+      state.stepIndex = Math.max(0, state.stepIndex - 1);
+      return renderStep();
+    }
     var items = state.config.items || [];
     var card = document.createElement('div');
     card.className = 'rv2-card';
+    host.appendChild(card);
+
+    if (state.capacityMode === 'item') {
+      card.innerHTML =
+        '<div class="rv2-step-title">' + titleFor('item') + '</div>' +
+        '<p id="rv2-item-hint" style="color:var(--rv2-muted);font-size:.85rem;margin:0 0 12px;"></p>' +
+        '<div class="rv2-opt-grid cols-2" id="rv2-item-grid"></div>';
+      var grid = card.querySelector('#rv2-item-grid');
+      var hint = card.querySelector('#rv2-item-hint');
+      if (!items.length) {
+        hint.textContent = '등록된 항목이 없습니다. 관리자 설정을 확인해 주세요.';
+        navButtons(act, true, function () {
+          state.stepIndex--;
+          renderStep();
+        }, function () {
+          showMsg('예약 가능한 항목이 없습니다.');
+        });
+        return;
+      }
+      hint.textContent = '잔여 수량이 실시간으로 표시됩니다.';
+      getJSON(API + '?action=item_quotas&branch_id=' + state.branchId + '&date=' + encodeURIComponent(state.date))
+        .then(function (res) {
+          if (!res.ok) throw new Error(res.msg || '항목 정보 로드 실패');
+          var quotas = res.quotas || [];
+          grid.innerHTML = '';
+          if (!quotas.length) {
+            hint.textContent = '이 날짜에 등록된 항목 정원이 없습니다. 다른 날짜를 선택하거나 관리자에게 문의하세요.';
+            return;
+          }
+          quotas.forEach(function (q) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'rv2-opt' + (state.itemQuotaId === q.id ? ' selected' : '');
+            btn.disabled = !q.available;
+            var rem = typeof q.remaining !== 'undefined' ? q.remaining : Math.max(0, (parseInt(q.capacity, 10) || 0) - (parseInt(q.booked, 10) || 0));
+            btn.textContent = (q.item_name || '') + ' (잔여 ' + rem + '/' + (q.capacity || 0) + ')' + (q.available ? '' : ' · 마감');
+            btn.onclick = function () {
+              if (!q.available) return;
+              state.itemQuotaId = q.id;
+              state.itemId = parseInt(q.item_id, 10);
+              Array.prototype.forEach.call(grid.querySelectorAll('.rv2-opt'), function (x) { x.classList.remove('selected'); });
+              btn.classList.add('selected');
+            };
+            grid.appendChild(btn);
+          });
+        })
+        .catch(function (e) { showMsg(e.message || '오류'); });
+      navButtons(act, true, function () {
+        state.stepIndex--;
+        renderStep();
+      }, function () {
+        if (!state.itemQuotaId) { showMsg('항목을 선택해 주세요.'); return; }
+        state.stepIndex++;
+        renderStep();
+      });
+      return;
+    }
+
     if (!items.length) {
       card.innerHTML = '<div class="rv2-step-title">' + titleFor('item') + '</div><p>등록된 항목이 없습니다. 건너뜁니다.</p>';
-      host.appendChild(card);
       navButtons(act, true, function () {
         state.stepIndex--;
         renderStep();
       }, function () {
         state.itemId = null;
+        state.itemQuotaId = null;
         state.stepIndex++;
         renderStep();
       });
       return;
     }
     card.innerHTML = '<div class="rv2-step-title">' + titleFor('item') + '</div><div class="rv2-opt-grid cols-2" id="rv2-item-grid"></div>';
-    host.appendChild(card);
-    var grid = card.querySelector('#rv2-item-grid');
+    var grid2 = card.querySelector('#rv2-item-grid');
     items.forEach(function (it) {
       var btn = document.createElement('button');
       btn.type = 'button';
@@ -903,10 +985,10 @@
       btn.textContent = it.name;
       btn.onclick = function () {
         state.itemId = it.id;
-        Array.prototype.forEach.call(grid.querySelectorAll('.rv2-opt'), function (x) { x.classList.remove('selected'); });
+        Array.prototype.forEach.call(grid2.querySelectorAll('.rv2-opt'), function (x) { x.classList.remove('selected'); });
         btn.classList.add('selected');
       };
-      grid.appendChild(btn);
+      grid2.appendChild(btn);
     });
     navButtons(act, true, function () {
       state.stepIndex--;
@@ -927,13 +1009,7 @@
     html += '<div class="rv2-field"><label>연락처 <span style="color:#b91c1c">*</span></label><input type="text" id="rv2-c-phone" required></div>';
     html += '<div class="rv2-field"><label>이메일</label><input type="email" id="rv2-c-email"></div>';
     html += '<div id="rv2-dynamic-fields"></div>';
-    html += '<div class="rv2-field" style="margin-top:18px;border-top:1px solid var(--rv2-border);padding-top:16px;">';
-    html += '<label style="margin-bottom:10px;">접수 알림 방식 (복수 선택)</label>';
-    html += '<div class="rv2-check-row"><input type="checkbox" id="rv2-n-email"><label for="rv2-n-email" style="margin:0;font-weight:500;">이메일 (아래 수신처로 발송)</label></div>';
-    html += '<div class="rv2-field"><label>알림 이메일 (쉼표로 여러 개)</label><textarea id="rv2-n-emails" placeholder="a@mail.com, b@mail.com"></textarea></div>';
-    html += '<div class="rv2-check-row"><input type="checkbox" id="rv2-n-sheet"><label for="rv2-n-sheet" style="margin:0;font-weight:500;">스프레드시트(웹훅)</label></div>';
-    html += '<div class="rv2-check-row"><input type="checkbox" id="rv2-n-alim"><label for="rv2-n-alim" style="margin:0;font-weight:500;">알림톡(웹훅)</label></div>';
-    html += '</div>';
+    html += '<p class="rv2-admin-notify-note">접수 알림은 관리자 설정(이메일·스프레드시트·알림톡 웹훅)으로만 발송됩니다.</p>';
     card.innerHTML = html;
     host.appendChild(card);
 
@@ -1040,6 +1116,13 @@
       var email = el('rv2-c-email').value.trim();
       if (!name || !phone) { showMsg('이름과 연락처는 필수입니다.'); return; }
 
+      if (state.capacityMode === 'item') {
+        if (!state.itemQuotaId) { showMsg('항목·잔여 수량을 선택해 주세요.'); return; }
+      } else if (!state.slotId) {
+        showMsg('시간을 선택해 주세요.');
+        return;
+      }
+
       var extra = {};
       for (var i = 0; i < fields.length; i++) {
         var f = fields[i];
@@ -1072,17 +1155,19 @@
       var payload = {
         action: 'book',
         branch_id: state.branchId,
-        slot_id: state.slotId,
-        item_id: state.itemId,
         customer_name: name,
         customer_phone: phone,
         customer_email: email,
-        extra: extra,
-        notify_email: el('rv2-n-email').checked,
-        notify_sheet: el('rv2-n-sheet').checked,
-        notify_alim: el('rv2-n-alim').checked,
-        notify_emails: el('rv2-n-emails').value.split(',').map(function (x) { return x.trim(); }).filter(Boolean)
+        extra: extra
       };
+      if (state.itemId) {
+        payload.item_id = state.itemId;
+      }
+      if (state.capacityMode === 'item') {
+        payload.item_quota_id = state.itemQuotaId;
+      } else {
+        payload.slot_id = state.slotId;
+      }
 
       postJSON(payload).then(function (res) {
         if (!res.ok) {
@@ -1138,10 +1223,18 @@
     var extraHtml = Object.keys(ex).length
       ? '<pre style="white-space:pre-wrap;font-size:.85rem;background:#f8fafc;padding:12px;border-radius:8px;">' + esc(JSON.stringify(ex, null, 2)) + '</pre>'
       : '';
+    var actions = '';
+    if (b.status === '접수') {
+      actions =
+        '<div class="rv2-booking-actions" data-no="' + esc(b.reservation_no) + '" data-phone="' + esc(b.customer_phone) + '" data-branch="' + esc(String(b.branch_id || '')) + '" data-at="' + esc(String(b.reservation_at || '').substring(0, 10)) + '">' +
+        '<button type="button" class="rv2-btn ghost rv2-u-cancel">예약 취소</button>' +
+        '<button type="button" class="rv2-btn primary rv2-u-resched">일정 변경</button>' +
+        '</div>';
+    }
     return (
-      '<div class="rv2-card">' +
-      '<p><strong>예약번호</strong> ' + esc(b.reservation_no) + '</p>' +
-      '<p><strong>상태</strong> ' + esc(b.status) + '</p>' +
+      '<div class="rv2-card rv2-booking-card">' +
+      '<p class="rv2-booking-no"><strong>예약번호</strong> ' + esc(b.reservation_no) + '</p>' +
+      '<p><strong>상태</strong> <span class="rv2-status">' + esc(b.status) + '</span></p>' +
       '<p><strong>일시</strong> ' + esc(b.reservation_at) + '</p>' +
       '<p><strong>지점</strong> ' + esc(b.branch_name || '') + '</p>' +
       '<p><strong>항목</strong> ' + esc(b.item_name || '-') + '</p>' +
@@ -1149,12 +1242,157 @@
       '<p><strong>연락처</strong> ' + esc(b.customer_phone) + '</p>' +
       (b.customer_email ? '<p><strong>이메일</strong> ' + esc(b.customer_email) + '</p>' : '') +
       (extraHtml ? '<div style="margin-top:12px"><strong>추가 정보</strong>' + extraHtml + '</div>' : '') +
+      actions +
       '</div>'
     );
   }
 
+  function hideResched() {
+    var p = document.getElementById('rv2-resched-panel');
+    if (!p) return;
+    p.hidden = true;
+    p.innerHTML = '';
+  }
+
+  function postJSON(body) {
+    return fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json; charset=utf-8' },
+      body: JSON.stringify(body),
+      credentials: 'omit'
+    }).then(function (r) { return r.json(); });
+  }
+
+  function wireBookingActions(scope, capacityMode) {
+    var mode = capacityMode === 'item' ? 'item' : 'time';
+    scope.querySelectorAll('.rv2-u-cancel').forEach(function (btn) {
+      btn.onclick = function () {
+        var wrap = btn.closest('.rv2-booking-actions');
+        if (!wrap) return;
+        var no = wrap.getAttribute('data-no');
+        var phone = prompt('예약 시 입력한 연락처를 입력해 주세요.');
+        if (!phone || !phone.trim()) return;
+        postJSON({ action: 'user_cancel', reservation_no: no, customer_phone: phone.trim() })
+          .then(function (res) {
+            if (!res.ok) {
+              showMsg(res.msg || '취소 실패');
+              return;
+            }
+            showMsg('예약이 취소되었습니다.', true);
+            hideResched();
+            document.getElementById('rv2-lookup-btn').click();
+          })
+          .catch(function () { showMsg('네트워크 오류'); });
+      };
+    });
+    scope.querySelectorAll('.rv2-u-resched').forEach(function (btn) {
+      btn.onclick = function () {
+        var wrap = btn.closest('.rv2-booking-actions');
+        if (!wrap) return;
+        var panel = document.getElementById('rv2-resched-panel');
+        if (!panel) return;
+        var no = wrap.getAttribute('data-no');
+        var branchId = parseInt(wrap.getAttribute('data-branch'), 10);
+        var dateDef = wrap.getAttribute('data-at') || '';
+        panel.hidden = false;
+        panel.innerHTML =
+          '<h3 class="rv2-resched-title">일정 변경</h3>' +
+          '<p class="rv2-muted">접수 상태에서만 가능합니다. 연락처 확인 후 새 일정을 선택하세요.</p>' +
+          '<div class="rv2-field"><label>연락처 확인</label><input type="text" id="rv2-rs-phone" autocomplete="tel"></div>' +
+          '<div class="rv2-field"><label>날짜</label><input type="date" id="rv2-rs-date" value="' + esc(dateDef) + '"></div>' +
+          '<div class="rv2-field"><button type="button" class="rv2-btn ghost" id="rv2-rs-load">가능한 일정 불러오기</button></div>' +
+          '<div class="rv2-field"><label id="rv2-rs-lab">선택</label><select id="rv2-rs-sel"><option value="">먼저 불러오기</option></select></div>' +
+          '<div class="rv2-actions" style="margin-top:12px">' +
+          '<button type="button" class="rv2-btn primary" id="rv2-rs-go">변경 적용</button>' +
+          '<button type="button" class="rv2-btn ghost" id="rv2-rs-close">닫기</button></div>';
+
+        document.getElementById('rv2-rs-close').onclick = function () { hideResched(); };
+        document.getElementById('rv2-rs-load').onclick = function () {
+          var d = document.getElementById('rv2-rs-date').value;
+          if (!d || branchId < 1) {
+            showMsg('날짜와 지점 정보를 확인해 주세요.');
+            return;
+          }
+          var sel = document.getElementById('rv2-rs-sel');
+          var lab = document.getElementById('rv2-rs-lab');
+          sel.innerHTML = '<option value="">불러오는 중…</option>';
+          if (mode === 'item') {
+            lab.textContent = '항목 (잔여 수량)';
+            postJSON({ action: 'item_quotas', branch_id: branchId, date: d })
+              .then(function (res) {
+                if (!res.ok) {
+                  sel.innerHTML = '<option value="">오류</option>';
+                  return;
+                }
+                var qs = res.quotas || [];
+                sel.innerHTML = qs.length
+                  ? '<option value="">선택</option>' + qs.map(function (q) {
+                    var rem = typeof q.remaining !== 'undefined' ? q.remaining : Math.max(0, (parseInt(q.capacity, 10) || 0) - (parseInt(q.booked, 10) || 0));
+                    var dis = q.available ? '' : ' disabled';
+                    return '<option value="iq:' + q.id + '"' + dis + '>' + esc(q.item_name) + ' (잔여 ' + rem + ')</option>';
+                  }).join('')
+                  : '<option value="">등록된 항목 정원 없음</option>';
+              });
+          } else {
+            lab.textContent = '시간 슬롯';
+            fetch(API + '?action=slots&branch_id=' + branchId + '&date=' + encodeURIComponent(d))
+              .then(function (r) { return r.json(); })
+              .then(function (res) {
+                if (!res.ok) {
+                  sel.innerHTML = '<option value="">오류</option>';
+                  return;
+                }
+                var sl = res.slots || [];
+                sel.innerHTML = sl.length
+                  ? '<option value="">선택</option>' + sl.map(function (s) {
+                    var rem = typeof s.remaining !== 'undefined' ? s.remaining : Math.max(0, (parseInt(s.capacity, 10) || 0) - (parseInt(s.booked, 10) || 0));
+                    var dis = s.available ? '' : ' disabled';
+                    return '<option value="sl:' + s.id + '"' + dis + '>' + esc(s.slot_time) + ' (잔여 ' + rem + ')</option>';
+                  }).join('')
+                  : '<option value="">슬롯 없음</option>';
+              });
+          }
+        };
+        document.getElementById('rv2-rs-go').onclick = function () {
+          var phone = document.getElementById('rv2-rs-phone').value.trim();
+          var v = document.getElementById('rv2-rs-sel').value;
+          if (!phone) {
+            showMsg('연락처를 입력해 주세요.');
+            return;
+          }
+          if (!v || v.indexOf(':') < 0) {
+            showMsg('새 일정을 선택해 주세요.');
+            return;
+          }
+          var parts = v.split(':');
+          var kind = parts[0];
+          var id = parseInt(parts[1], 10);
+          var body = { action: 'user_reschedule', reservation_no: no, customer_phone: phone };
+          if (kind === 'iq') {
+            body.item_quota_id = id;
+          } else {
+            body.slot_id = id;
+          }
+          postJSON(body)
+            .then(function (res) {
+              if (!res.ok) {
+                showMsg(res.msg || '변경 실패');
+                return;
+              }
+              showMsg('일정이 변경되었습니다.', true);
+              hideResched();
+              document.getElementById('rv2-lookup-btn').click();
+            })
+            .catch(function () { showMsg('네트워크 오류'); });
+        };
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      };
+    });
+  }
+
   btn.onclick = function () {
     showMsg('');
+    hideResched();
     var no = document.getElementById('rv2-lookup-no').value.trim();
     var name = document.getElementById('rv2-lookup-name').value.trim();
     var phone = document.getElementById('rv2-lookup-phone').value.trim();
@@ -1168,13 +1406,7 @@
       return;
     }
 
-    fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json; charset=utf-8' },
-      body: JSON.stringify(body),
-      credentials: 'omit'
-    })
-      .then(function (r) { return r.json(); })
+    postJSON(body)
       .then(function (res) {
         var out = document.getElementById('rv2-result');
         if (!res.ok) {
@@ -1182,14 +1414,17 @@
           out.innerHTML = '';
           return;
         }
+        var capMode = res.capacity_mode || 'time';
         if (res.booking) {
           out.innerHTML = cardBooking(res.booking);
+          wireBookingActions(out, capMode);
         } else if (res.list) {
           if (!res.list.length) {
             out.innerHTML = '<div class="rv2-card"><p>조회 결과가 없습니다.</p></div>';
             return;
           }
           out.innerHTML = res.list.map(cardBooking).join('');
+          wireBookingActions(out, capMode);
         }
       })
       .catch(function () {

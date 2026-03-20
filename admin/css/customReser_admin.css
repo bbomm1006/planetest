@@ -1,0 +1,90 @@
+/* 예약 모듈(customReser DB) — 관리자 #page-customReserModule */
+#page-customReserModule .customReser-layout {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  min-height: 60vh;
+}
+#page-customReserModule .customReser-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 160px;
+  flex-shrink: 0;
+}
+#page-customReserModule .customReser-nav button {
+  text-align: left;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border, #e2e8f0);
+  background: var(--bg2, #f8fafc);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+#page-customReserModule .customReser-nav button.on {
+  background: var(--primary, #2563eb);
+  color: #fff;
+  border-color: transparent;
+}
+#page-customReserModule .customReser-main { flex: 1; min-width: 0; }
+#page-customReserModule .customReser-card {
+  background: var(--card, #fff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 10px;
+  padding: 18px;
+  margin-bottom: 14px;
+}
+#page-customReserModule .customReser-card h2 { margin: 0 0 12px; font-size: 1.1rem; }
+#page-customReserModule .customReser-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  margin-bottom: 12px;
+}
+#page-customReserModule .customReser-row label { display: block; font-size: 0.8rem; color: #64748b; margin-bottom: 4px; }
+#page-customReserModule .customReser-row input,
+#page-customReserModule .customReser-row select,
+#page-customReserModule .customReser-row textarea { padding: 8px 10px; border-radius: 8px; border: 1px solid #e2e8f0; min-width: 120px; }
+#page-customReserModule .customReser-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+#page-customReserModule .customReser-btn.secondary { background: #e2e8f0; color: #334155; }
+#page-customReserModule .customReser-btn.danger { background: #dc2626; }
+#page-customReserModule .customReser-table-wrap { overflow-x: auto; }
+#page-customReserModule table.customReser-t { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+#page-customReserModule table.customReser-t th,
+#page-customReserModule table.customReser-t td { border-bottom: 1px solid #e2e8f0; padding: 8px 10px; text-align: left; }
+#page-customReserModule .customReser-msg { padding: 10px 12px; border-radius: 8px; margin-bottom: 10px; }
+#page-customReserModule .customReser-msg.err { background: #fef2f2; color: #b91c1c; }
+#page-customReserModule .customReser-msg.ok { background: #ecfdf5; color: #047857; }
+#page-customReserModule .customReser-modal-bg {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,.45);
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+#page-customReserModule .customReser-modal-bg.open { display: flex; }
+#page-customReserModule .customReser-modal {
+  background: #fff;
+  border-radius: 12px;
+  max-width: 560px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 20px;
+}
+@media (max-width: 768px) {
+  #page-customReserModule .customReser-layout { flex-direction: column; }
+  #page-customReserModule .customReser-nav { flex-direction: row; flex-wrap: wrap; width: 100%; }
+}

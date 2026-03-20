@@ -18,6 +18,7 @@
     'front_reservation',
     'front_reservation_lookup',
     'front_rv2_suite',
+    'front_customReser_suite',
     'front_notices',
     'front_faq',
     'front_gallery',
@@ -113,7 +114,8 @@
         <div class="rv2-wrap">
           <div class="rv2-head">
             <h1>예약하기</h1>
-            <p>단계를 따라 일정과 정보를 입력해 주세요. (신규 예약 시스템)</p>
+            <p>단계를 따라 일정과 정보를 입력해 주세요.</p>
+            <p id="rv2-cap-hint" class="rv2-cap-hint"></p>
           </div>
           <div id="rv2-msg"></div>
           <div id="rv2-progress" class="rv2-progress"></div>
@@ -127,35 +129,43 @@
     </section>
     <section class="sw" id="rv2-lookup-anchor" style="background:var(--off);">
       <div class="inner">
-        <div class="rv2-wrap">
+        <div class="rv2-wrap rv2-lookup-wrap">
           <div class="rv2-head">
             <h1>예약 조회</h1>
             <p>예약번호 또는 이름·연락처로 조회할 수 있습니다.</p>
           </div>
           <div id="rv2-lookup-msg"></div>
-          <div class="rv2-card">
-            <div class="rv2-field">
-              <label>예약번호</label>
-              <input type="text" id="rv2-lookup-no" placeholder="예약번호">
+          <div class="rv2-lookup-grid">
+            <div class="rv2-card">
+              <div class="rv2-field">
+                <label>예약번호</label>
+                <input type="text" id="rv2-lookup-no" placeholder="예: R250320A1B2C3" autocomplete="off">
+              </div>
+              <p class="rv2-or">또는</p>
+              <div class="rv2-field">
+                <label>이름</label>
+                <input type="text" id="rv2-lookup-name" autocomplete="name">
+              </div>
+              <div class="rv2-field">
+                <label>연락처</label>
+                <input type="tel" id="rv2-lookup-phone" placeholder="숫자만 입력" inputmode="numeric" autocomplete="tel">
+              </div>
+              <button type="button" class="rv2-btn primary" id="rv2-lookup-btn" style="width:100%;margin-top:8px;">조회</button>
             </div>
-            <p style="text-align:center;color:var(--rv2-muted);margin:12px 0;">또는</p>
-            <div class="rv2-field">
-              <label>이름</label>
-              <input type="text" id="rv2-lookup-name">
-            </div>
-            <div class="rv2-field">
-              <label>연락처</label>
-              <input type="text" id="rv2-lookup-phone" placeholder="숫자만 입력 가능">
-            </div>
-            <button type="button" class="rv2-btn primary" id="rv2-lookup-btn" style="width:100%;margin-top:8px;">조회</button>
+            <div id="rv2-result" class="rv2-result-col"></div>
           </div>
-          <div id="rv2-result"></div>
+          <div id="rv2-resched-panel" class="rv2-card rv2-resched-panel" hidden></div>
           <div class="rv2-link-bar">
             <a href="#rv2-book-anchor">예약하기</a>
           </div>
         </div>
       </div>
     </section>
+  </div>
+
+  <!-- customReser (slug는 lib/customReser_front.php에서 설정) -->
+  <div data-front-section-key="front_customReser_suite" <?php if (!$frontIsVisible('front_customReser_suite')) echo 'style="display:none;"'; ?>>
+    <?php include 'lib/customReser_front.php'; ?>
   </div>
 
   <!-- NOTICES -->
@@ -253,6 +263,7 @@
   <script src="js/recommend.js"></script>
   <script src="js/reservation.js"></script>
   <script src="js/reservationLookup.js"></script>
+  <script src="js/customReser_public.js"></script>
   <script src="js/store.js"></script>
   <script src="js/timeslots.js"></script>
   <script src="js/utils.js"></script>

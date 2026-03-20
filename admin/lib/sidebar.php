@@ -99,6 +99,7 @@
           <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">📅</span>예약(신규)<span class="nav-arrow">›</span></div>
           <div class="nav-sub">
             <div class="nav-sub-link" onclick="showPage('rv2Reserve')">rv2 예약 관리</div>
+            <div class="nav-sub-link" onclick="showPage('customReserModule')">예약 모듈 (customReser)</div>
           </div>
         </div>
       </div>

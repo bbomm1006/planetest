@@ -71,6 +71,7 @@
     { id: 'branches', label: '지점' },
     { id: 'items', label: '항목' },
     { id: 'slots', label: '시간·수량' },
+    { id: 'iquota', label: '항목·일별 정원' },
     { id: 'settings', label: '알림 설정' }
   ];
 
@@ -99,6 +100,7 @@
     if (state.tab === 'branches') return renderBranches(inner);
     if (state.tab === 'items') return renderItems(inner);
     if (state.tab === 'slots') return renderSlots(inner);
+    if (state.tab === 'iquota') return renderIQuota(inner);
     if (state.tab === 'settings') return renderSettings(inner);
   }
 
@@ -113,6 +115,7 @@
       '<div><label>종료일</label><input type="date" id="f-to"></div>' +
       '<div><button type="button" class="rv2a-btn" id="btn-search">검색</button></div>' +
       '<div><button type="button" class="rv2a-btn secondary" id="btn-export">엑셀(CSV) 다운로드</button></div>' +
+      '<div><button type="button" class="rv2a-btn" id="btn-admin-book">관리자 예약 등록</button></div>' +
       '</div>' +
       '<div class="rv2a-table-wrap"><table class="rv2a-t"><thead><tr><th>예약번호</th><th>상태</th><th>일시</th><th>지점</th><th>이름</th><th>연락처</th><th>관리</th></tr></thead><tbody id="tbl-body"></tbody></table></div>' +
       '<div class="rv2a-row" id="pager"></div></div>';
@@ -170,6 +173,7 @@
     }
 
     el('btn-search').onclick = function () { state.listPage = 1; load(); };
+    el('btn-admin-book').onclick = function () { openAdminBookModal(); };
     el('btn-export').onclick = function () {
       var q = new URLSearchParams({
         action: 'export_csv',
@@ -184,6 +188,83 @@
     load();
   }
 
+  function openAdminBookModal() {
+    post('meta', {}).then(function (meta) {
+      if (!meta.ok) return alert('설정 로드 실패');
+      var mode = meta.capacity_mode === 'item' ? 'item' : 'time';
+      post('branch_list', {}).then(function (br) {
+        if (!br.ok) return alert('지점 로드 실패');
+        var brOpts = (br.branches || []).map(function (x) {
+          return '<option value="' + x.id + '">' + esc(x.name) + '</option>';
+        }).join('');
+        openModal(
+          '<h3 style="margin-top:0">관리자 예약 등록</h3>' +
+          '<p style="font-size:.85rem;color:#64748b">단계 순서에서 마지막이 「시간」이면 슬롯, 「항목」이면 일별 항목 정원이 차감됩니다.</p>' +
+          '<div class="rv2a-row"><div><label>지점</label><select id="ab-br">' + brOpts + '</select></div></div>' +
+          '<div class="rv2a-row"><div><label>예약자 이름</label><input type="text" id="ab-name"></div></div>' +
+          '<div class="rv2a-row"><div><label>연락처</label><input type="text" id="ab-phone"></div></div>' +
+          '<div class="rv2a-row"><div><label>이메일</label><input type="text" id="ab-email"></div></div>' +
+          '<div class="rv2a-row"><div><label>날짜</label><input type="date" id="ab-dt"></div>' +
+          '<div><button type="button" class="rv2a-btn secondary" id="ab-load">일정 불러오기</button></div></div>' +
+          '<div class="rv2a-row"><div style="flex:1"><label id="ab-lab">' + (mode === 'item' ? '항목 정원' : '시간 슬롯') + '</label><select id="ab-sel" style="width:100%"><option value="">날짜 선택 후 불러오기</option></select></div></div>' +
+          '<div class="rv2a-row"><button type="button" class="rv2a-btn" id="ab-go">접수 등록</button> <button type="button" class="rv2a-btn secondary" onclick="document.getElementById(\'rv2a-modal-bg\').classList.remove(\'open\')">닫기</button></div>'
+        );
+        el('ab-load').onclick = function () {
+          var bid = parseInt(el('ab-br').value, 10);
+          var d = el('ab-dt').value;
+          if (!d) return alert('날짜 선택');
+          var sel = el('ab-sel');
+          if (mode === 'item') {
+            post('item_quota_list', { branch_id: bid, date: d }).then(function (res) {
+              if (!res.ok) return alert(res.msg || '실패');
+              sel.innerHTML = (res.quotas || []).map(function (q) {
+                var rem = Math.max(0, parseInt(q.capacity, 10) - parseInt(q.booked, 10));
+                var av = rem > 0;
+                return '<option value="' + q.id + '"' + (av ? '' : ' disabled') + '>' + esc(q.item_name) + ' (잔여 ' + rem + ')</option>';
+              }).join('') || '<option value="">등록된 항목 정원 없음</option>';
+            });
+          } else {
+            post('slot_list', { branch_id: bid, date: d }).then(function (res) {
+              if (!res.ok) return alert(res.msg || '실패');
+              sel.innerHTML = (res.slots || []).map(function (s) {
+                var t = String(s.slot_time || '').substring(0, 5);
+                var rem = Math.max(0, parseInt(s.capacity, 10) - parseInt(s.booked, 10));
+                var av = rem > 0;
+                return '<option value="' + s.id + '"' + (av ? '' : ' disabled') + '>' + t + ' (잔여 ' + rem + ')</option>';
+              }).join('') || '<option value="">슬롯 없음</option>';
+            });
+          }
+        };
+        el('ab-go').onclick = function () {
+          var bid = parseInt(el('ab-br').value, 10);
+          var name = el('ab-name').value.trim();
+          var phone = el('ab-phone').value.trim();
+          var email = el('ab-email').value.trim();
+          var pick = parseInt(el('ab-sel').value, 10);
+          if (!name || !phone) return alert('이름·연락처 필수');
+          if (!pick) return alert('슬롯 또는 항목 정원 선택');
+          var data = {
+            branch_id: bid,
+            customer_name: name,
+            customer_phone: phone,
+            customer_email: email
+          };
+          if (mode === 'item') {
+            data.item_quota_id = pick;
+          } else {
+            data.slot_id = pick;
+          }
+          post('booking_admin_create', data).then(function (res) {
+            if (!res.ok) return alert(res.msg || '실패');
+            alert('등록됨: ' + res.reservation_no);
+            closeModal();
+            renderMain();
+          });
+        };
+      });
+    });
+  }
+
   function openBookingDetail(id) {
     post('booking_get', { id: id }).then(function (r) {
       if (!r.ok || !r.booking) {
@@ -191,21 +272,25 @@
         return;
       }
       var b = r.booking;
+      var capMode = b.capacity_mode === 'item' ? 'item' : 'time';
       var statusOpts = ['접수', '확인', '완료', '취소'].map(function (s) {
         return '<option value="' + s + '"' + (b.status === s ? ' selected' : '') + '>' + s + '</option>';
       }).join('');
+      var schedLabel = capMode === 'item' ? '새 항목·일정' : '새 슬롯';
+      var loadBtnText = capMode === 'item' ? '해당일 항목 정원 불러오기' : '해당일 슬롯 불러오기';
       openModal(
         '<h3 style="margin-top:0">예약 상세</h3>' +
         '<p><strong>번호</strong> ' + esc(b.reservation_no) + '</p>' +
         '<p><strong>일시</strong> ' + esc(b.reservation_at) + '</p>' +
+        '<p style="font-size:.82rem;color:#64748b"><strong>수량 기준</strong> ' + (capMode === 'item' ? '항목·일별 정원' : '시간 슬롯') + '</p>' +
         '<div class="rv2a-row"><div><label>상태</label><select id="m-st">' + statusOpts + '</select></div></div>' +
         '<div class="rv2a-row"><div style="flex:1"><label>관리 메모</label><input type="text" id="m-note" style="width:100%" value="' + esc(b.admin_note || '') + '"></div></div>' +
         '<div class="rv2a-row"><button type="button" class="rv2a-btn" id="m-save-st">상태 저장</button></div>' +
         '<hr style="margin:16px 0;border:none;border-top:1px solid #e2e8f0">' +
-        '<p style="font-size:.85rem;color:#64748b">접수 상태일 때만 날짜·시간(슬롯) 변경 가능합니다.</p>' +
+        '<p style="font-size:.85rem;color:#64748b">접수 상태일 때만 일정(슬롯 또는 항목 정원) 변경 가능합니다.</p>' +
         '<div class="rv2a-row"><div><label>새 예약일</label><input type="date" id="m-dt"></div>' +
-        '<div><button type="button" class="rv2a-btn secondary" id="m-load-sl">해당일 슬롯 불러오기</button></div></div>' +
-        '<div class="rv2a-row"><div><label>새 슬롯</label><select id="m-slot"><option value="">먼저 날짜 선택 후 불러오기</option></select></div>' +
+        '<div><button type="button" class="rv2a-btn secondary" id="m-load-sl">' + loadBtnText + '</button></div></div>' +
+        '<div class="rv2a-row"><div><label>' + schedLabel + '</label><select id="m-slot"><option value="">먼저 날짜 선택 후 불러오기</option></select></div>' +
         '<div><button type="button" class="rv2a-btn" id="m-resched">일정 변경</button></div></div>' +
         '<div class="rv2a-row"><button type="button" class="rv2a-btn secondary" onclick="document.getElementById(\'rv2a-modal-bg\').classList.remove(\'open\')">닫기</button></div>'
       );
@@ -221,20 +306,39 @@
       el('m-load-sl').onclick = function () {
         var d = el('m-dt').value;
         if (!d) return alert('날짜 선택');
-        post('slot_list', { branch_id: b.branch_id, date: d }).then(function (res) {
-          if (!res.ok) return alert(res.msg || '실패');
-          var sel = el('m-slot');
-          sel.innerHTML = (res.slots || []).map(function (s) {
-            var t = String(s.slot_time || '').substring(0, 5);
-            var av = parseInt(s.capacity, 10) > parseInt(s.booked, 10);
-            return '<option value="' + s.id + '"' + (av ? '' : ' disabled') + '>' + t + ' (잔여 ' + (parseInt(s.capacity, 10) - parseInt(s.booked, 10)) + ')</option>';
-          }).join('') || '<option value="">슬롯 없음</option>';
-        });
+        if (capMode === 'item') {
+          post('item_quota_list', { branch_id: b.branch_id, date: d }).then(function (res) {
+            if (!res.ok) return alert(res.msg || '실패');
+            var sel = el('m-slot');
+            sel.innerHTML = (res.quotas || []).map(function (q) {
+              var rem = Math.max(0, parseInt(q.capacity, 10) - parseInt(q.booked, 10));
+              var av = rem > 0;
+              return '<option value="' + q.id + '"' + (av ? '' : ' disabled') + '>' + esc(q.item_name) + ' (잔여 ' + rem + ')</option>';
+            }).join('') || '<option value="">항목 정원 없음</option>';
+          });
+        } else {
+          post('slot_list', { branch_id: b.branch_id, date: d }).then(function (res) {
+            if (!res.ok) return alert(res.msg || '실패');
+            var sel = el('m-slot');
+            sel.innerHTML = (res.slots || []).map(function (s) {
+              var t = String(s.slot_time || '').substring(0, 5);
+              var rem = Math.max(0, parseInt(s.capacity, 10) - parseInt(s.booked, 10));
+              var av = rem > 0;
+              return '<option value="' + s.id + '"' + (av ? '' : ' disabled') + '>' + t + ' (잔여 ' + rem + ')</option>';
+            }).join('') || '<option value="">슬롯 없음</option>';
+          });
+        }
       };
       el('m-resched').onclick = function () {
-        var sid = parseInt(el('m-slot').value, 10);
-        if (!sid) return alert('슬롯 선택');
-        post('booking_reschedule', { id: id, slot_id: sid }).then(function (res) {
+        var pick = parseInt(el('m-slot').value, 10);
+        if (!pick) return alert('선택 항목을 고르세요');
+        var payload = { id: id };
+        if (capMode === 'item') {
+          payload.item_quota_id = pick;
+        } else {
+          payload.slot_id = pick;
+        }
+        post('booking_reschedule', payload).then(function (res) {
           if (!res.ok) return alert(res.msg || '실패');
           alert('변경 완료');
           closeModal();
@@ -323,14 +427,15 @@
         arr.splice(to, 0, x);
       }
 
+      var stepLab = { branch: '지점', date: '날짜', time: '시간', item: '항목', info: '정보입력' };
       function paint() {
-        inner.innerHTML = '<div class="rv2a-card"><h2>예약 단계 순서</h2><p style="color:#64748b;font-size:.88rem">위/아래로 순서 변경 후 저장하세요.</p><ul id="st-ul" style="list-style:none;padding:0"></ul><button type="button" class="rv2a-btn" id="st-save">순서 저장</button></div>';
+        inner.innerHTML = '<div class="rv2a-card"><h2>예약 단계 순서</h2><p style="color:#64748b;font-size:.88rem">위/아래로 순서 변경 후 저장하세요. 활성 단계 중 <strong>가장 마지막</strong>에 오는 「시간」 또는 「항목」이 수량 기준이 됩니다.</p><ul id="st-ul" style="list-style:none;padding:0"></ul><button type="button" class="rv2a-btn" id="st-save">순서 저장</button></div>';
         var ul = el('st-ul');
         order.forEach(function (s, idx) {
           var li = document.createElement('li');
           li.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:8px;background:#f8fafc';
           li.innerHTML =
-            '<span style="flex:1;font-weight:600">' + esc(s.step_key) + '</span>' +
+            '<span style="flex:1;font-weight:600">' + esc(stepLab[s.step_key] || s.step_key) + ' <small style="color:#94a3b8">(' + esc(s.step_key) + ')</small></span>' +
             '<label><input type="checkbox" class="st-act" data-k="' + esc(s.step_key) + '"' + (s.is_active == 1 ? ' checked' : '') + '> 활성</label>' +
             '<button type="button" class="rv2a-btn secondary st-up" data-i="' + idx + '">↑</button>' +
             '<button type="button" class="rv2a-btn secondary st-down" data-i="' + idx + '">↓</button>';
@@ -498,9 +603,79 @@
     };
   }
 
+  function renderIQuota(inner) {
+    inner.innerHTML = '<div class="rv2a-card"><h2>항목·일별 정원</h2>' +
+      '<p style="color:#64748b;font-size:.88rem">마지막 단계가 「항목」일 때 잔여 수량이 여기서 차감됩니다. 활성 항목 전체에 일괄 생성할 수 있습니다.</p>' +
+      '<div class="rv2a-row"><div><label>지점</label><select id="iq-br"></select></div>' +
+      '<div><label>시작일</label><input type="date" id="iq-f"></div>' +
+      '<div><label>종료일</label><input type="date" id="iq-t"></div></div>' +
+      '<div class="rv2a-row"><div><label>일괄 정원(건/일/항목)</label><input type="number" id="iq-cap" value="5" min="1"></div>' +
+      '<div><button type="button" class="rv2a-btn" id="iq-bulk">기간·항목 일괄 생성</button></div></div>' +
+      '<div class="rv2a-row"><div><label>특정일 조회</label><input type="date" id="iq-day"></div><button type="button" class="rv2a-btn secondary" id="iq-load">해당일 목록</button></div>' +
+      '<table class="rv2a-t"><thead><tr><th>항목</th><th>정원</th><th>예약</th><th></th></tr></thead><tbody id="iq-body"></tbody></table></div>';
+
+    post('branch_list', {}).then(function (r) {
+      var sel = el('iq-br');
+      (r.branches || []).forEach(function (b) {
+        var o = document.createElement('option');
+        o.value = b.id;
+        o.textContent = b.name;
+        sel.appendChild(o);
+      });
+    });
+
+    el('iq-bulk').onclick = function () {
+      post('item_quota_bulk_create', {
+        branch_id: parseInt(el('iq-br').value, 10),
+        date_from: el('iq-f').value,
+        date_to: el('iq-t').value,
+        capacity: parseInt(el('iq-cap').value, 10) || 1
+      }).then(function (res) {
+        if (!res.ok) return alert(res.msg || '실패');
+        alert((res.inserted_or_updated || 0) + '건 반영');
+      });
+    };
+
+    el('iq-load').onclick = function () {
+      var d = el('iq-day').value;
+      if (!d) return alert('날짜 선택');
+      post('item_quota_list', { branch_id: parseInt(el('iq-br').value, 10), date: d }).then(function (res) {
+        if (!res.ok) return alert(res.msg || '실패');
+        el('iq-body').innerHTML = (res.quotas || []).map(function (q) {
+          return '<tr><td>' + esc(q.item_name || '') + '</td><td>' + q.capacity + '</td><td>' + q.booked + '</td><td>' +
+            '<button type="button" class="rv2a-btn secondary iq-capb" data-id="' + q.id + '">정원</button> ' +
+            '<button type="button" class="rv2a-btn danger iq-del" data-id="' + q.id + '">삭제</button></td></tr>';
+        }).join('') || '<tr><td colspan="4">없음</td></tr>';
+        inner.querySelectorAll('.iq-del').forEach(function (b) {
+          b.onclick = function () {
+            if (!confirm('삭제? (예약 없을 때만)')) return;
+            post('item_quota_delete', { id: parseInt(b.getAttribute('data-id'), 10) }).then(function (x) {
+              if (!x.ok) alert(x.msg || '실패');
+              el('iq-load').click();
+            });
+          };
+        });
+        inner.querySelectorAll('.iq-capb').forEach(function (b) {
+          b.onclick = function () {
+            var c = prompt('새 정원', '5');
+            if (c == null) return;
+            post('item_quota_set_capacity', { id: parseInt(b.getAttribute('data-id'), 10), capacity: parseInt(c, 10) }).then(function (x) {
+              if (!x.ok) alert(x.msg || '실패');
+              el('iq-load').click();
+            });
+          };
+        });
+      });
+    };
+  }
+
   function renderSettings(inner) {
-    inner.innerHTML = '<div class="rv2a-card"><h2>알림 설정</h2><p style="color:#64748b;font-size:.88rem">이메일은 서버 mail() 함수 사용. 스프레드시트/알림톡은 웹훅 URL로 JSON POST 됩니다.</p>' +
-      '<div class="rv2a-row"><div style="flex:1"><label>기본 알림 이메일(쉼표 구분)</label><textarea id="set-em" rows="2" style="width:100%"></textarea></div></div>' +
+    inner.innerHTML = '<div class="rv2a-card"><h2>알림 설정</h2><p style="color:#64748b;font-size:.88rem">접수 알림은 <strong>관리자만</strong> 받습니다. 이메일은 PHP mail(), 스프레드시트/알림톡은 웹훅 JSON POST입니다.</p>' +
+      '<div class="rv2a-row" style="flex-wrap:wrap;gap:12px">' +
+      '<label><input type="checkbox" id="set-use-em"> 이메일 사용</label>' +
+      '<label><input type="checkbox" id="set-use-sh"> 스프레드시트 웹훅 사용</label>' +
+      '<label><input type="checkbox" id="set-use-al"> 알림톡 웹훅 사용</label></div>' +
+      '<div class="rv2a-row"><div style="flex:1"><label>알림 이메일 (쉼표로 여러 개)</label><textarea id="set-em" rows="2" style="width:100%"></textarea></div></div>' +
       '<div class="rv2a-row"><div style="flex:1"><label>스프레드시트 웹훅 URL</label><input type="text" id="set-sh" style="width:100%"></div></div>' +
       '<div class="rv2a-row"><div style="flex:1"><label>알림톡 웹훅 URL</label><input type="text" id="set-al" style="width:100%"></div></div>' +
       '<button type="button" class="rv2a-btn" id="set-save">저장</button></div>';
@@ -510,12 +685,18 @@
       el('set-em').value = s.notify_emails || '';
       el('set-sh').value = s.spreadsheet_webhook || '';
       el('set-al').value = s.alimtalk_webhook || '';
+      el('set-use-em').checked = s.notify_use_email === undefined || parseInt(s.notify_use_email, 10) === 1;
+      el('set-use-sh').checked = parseInt(s.notify_use_sheet, 10) === 1;
+      el('set-use-al').checked = parseInt(s.notify_use_alim, 10) === 1;
     });
     el('set-save').onclick = function () {
       post('settings_save', {
         notify_emails: el('set-em').value,
         spreadsheet_webhook: el('set-sh').value,
-        alimtalk_webhook: el('set-al').value
+        alimtalk_webhook: el('set-al').value,
+        notify_use_email: el('set-use-em').checked,
+        notify_use_sheet: el('set-use-sh').checked,
+        notify_use_alim: el('set-use-al').checked
       }).then(function (res) {
         if (!res.ok) return alert(res.msg || '실패');
         alert('저장됨');
