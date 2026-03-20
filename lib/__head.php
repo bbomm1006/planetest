@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/../admin/config/db.php';
+require_once __DIR__ . '/../admin/config/log_helper.php';
 $pdo  = getDB();
+logAccess($pdo);
+logLanding($pdo);
 $site = $pdo->query("SELECT title, description, og_image, favicon, header_logo FROM homepage_info WHERE id=1")->fetch(PDO::FETCH_ASSOC);
 $script = $pdo->query('SELECT head_code, body_code FROM scripts WHERE id = 1')->fetch();
 ?>
