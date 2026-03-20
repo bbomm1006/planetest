@@ -35,8 +35,10 @@ try {
       <span>불러오는 중...</span>
     </div>
 
-    <!-- 소셜 로그인 게이트 (login_use=1 일 때만 표시) -->
-    <div class="ci-login-gate" id="ci-login-gate-<?= $ci_table_safe ?>" style="display:none;">
+    <!-- 소셜 로그인 모달 (login_use=1 일 때만 표시) -->
+    <div class="ci-modal-overlay" id="ci-login-modal-overlay-<?= $ci_table_safe ?>" style="display:none;" onclick="ciCloseLoginModal('<?= $ci_table_safe ?>')"></div>
+    <div class="ci-modal" id="ci-login-gate-<?= $ci_table_safe ?>" style="display:none;">
+      <button class="ci-modal-close" onclick="ciCloseLoginModal('<?= $ci_table_safe ?>')" aria-label="닫기">×</button>
       <div class="ci-login-gate-title">로그인이 필요합니다</div>
       <div class="ci-login-gate-desc" id="ci-login-gate-desc-<?= $ci_table_safe ?>"></div>
       <div class="ci-social-btns" id="ci-social-btns-<?= $ci_table_safe ?>"></div>
@@ -61,6 +63,24 @@ try {
         <div id="ci-otp-err-<?= $ci_table_safe ?>" class="ci-error" style="display:none;"></div>
       </div>
 
+    </div>
+
+    <!-- 완료 모달 -->
+    <div class="ci-modal-overlay" id="ci-ok-modal-overlay-<?= $ci_table_safe ?>" style="display:none;"></div>
+    <div class="ci-modal ci-ok-modal" id="ci-ok-modal-<?= $ci_table_safe ?>" style="display:none;">
+      <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:72px;height:72px;margin-bottom:16px;">
+        <circle cx="40" cy="40" r="38" fill="#dcfce7" stroke="#86efac" stroke-width="2"/>
+        <path d="M24 40l12 12 20-24" stroke="#16a34a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <h3 style="margin:0 0 8px;font-size:1.2rem;">접수되었습니다!</h3>
+      <p style="margin:0 0 12px;color:var(--g4,#666);font-size:.9rem;">궁금한 점을 자유롭게 문의해 주세요. 빠르게 답변드립니다.</p>
+      <div class="ci-submit-ok-email-note" id="ci-ok-modal-email-note-<?= $ci_table_safe ?>" style="display:none;margin-bottom:16px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;vertical-align:middle;margin-right:4px;">
+          <path d="M3 8l9 6 9-6"/><rect x="3" y="6" width="18" height="12" rx="2"/>
+        </svg>
+        접수 확인 메일을 발송했습니다
+      </div>
+      <button class="f-sub" style="max-width:200px;" onclick="ciCloseOkModal('<?= $ci_table_safe ?>')">확인</button>
     </div>
 
     <!-- 기간 외 안내 -->
@@ -91,7 +111,6 @@ try {
           </div>
           <div style="display:flex;gap:8px;">
             <button class="ci-logout-btn" onclick="ciSwitchAccount('<?= $ci_table_safe ?>')">계정 변경</button>
-            <button class="ci-logout-btn" onclick="ciLogout('<?= $ci_table_safe ?>')">로그아웃</button>
           </div>
         </div>
 
@@ -128,34 +147,28 @@ try {
           <!-- 약관 -->
           <div class="ci-terms-wrap" id="ci-terms-wrap-<?= $ci_table_safe ?>"></div>
 
+          <!-- 비로그인 로그인 유도 (login_use + 비로그인 시 JS로 표시) -->
+          <div id="ci-form-login-nudge-<?= $ci_table_safe ?>" style="display:none;margin-bottom:12px;">
+            <button class="ci-login-nudge-btn" onclick="ciState('<?= $ci_table_safe ?>')._pendingView='submit';ciShowLoginGate('<?= $ci_table_safe ?>',ciState('<?= $ci_table_safe ?>').config?.form)">
+              🔒 로그인 후 문의하기
+            </button>
+          </div>
+
           <!-- 에러 메시지 -->
           <div class="ci-error" id="ci-form-err-<?= $ci_table_safe ?>" style="display:none;"></div>
 
           <!-- 제출 버튼 -->
           <button class="f-sub" id="ci-submit-btn-<?= $ci_table_safe ?>"
                   onclick="ciSubmit('<?= $ci_table_safe ?>')">문의하기</button>
+
+          <!-- 목록으로 버튼 (목록 타입일 때만 표시) -->
+          <button class="f-sub" id="ci-form-back-btn-<?= $ci_table_safe ?>"
+                  style="display:none;background:var(--off,#f5f6fa);color:var(--ink2,#444);box-shadow:none;border:1.5px solid var(--g2,#ddd);margin-top:8px;"
+                  onclick="ciShowView('<?= $ci_table_safe ?>', 'list')">← 목록으로</button>
         </div>
 
-        <!-- 제출 완료 -->
-        <div class="f-ok" id="ci-form-ok-<?= $ci_table_safe ?>">
-          <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="40" cy="40" r="38" fill="#dcfce7" stroke="#86efac" stroke-width="2"/>
-            <path d="M24 40l12 12 20-24" stroke="#16a34a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <h3>접수되었습니다!</h3>
-          <p id="ci-ok-msg-<?= $ci_table_safe ?>">문의가 정상적으로 접수되었습니다.</p>
-          <div class="ci-submit-ok-email-note" id="ci-ok-email-note-<?= $ci_table_safe ?>" style="display:none;">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 8l9 6 9-6"/><rect x="3" y="6" width="18" height="12" rx="2"/>
-            </svg>
-            접수 확인 메일을 발송했습니다
-          </div>
-          <!-- 목록 보기 버튼 (visibility 설정 있을 때만 표시) -->
-          <button class="f-sub" id="ci-ok-list-btn-<?= $ci_table_safe ?>" style="display:none;margin-top:20px;max-width:200px;"
-                  onclick="ciShowView('<?= $ci_table_safe ?>', 'list')">내 문의 내역 보기</button>
-          <button class="f-sub" style="background:var(--off);color:var(--ink2);box-shadow:none;border:1.5px solid var(--g2);margin-top:10px;"
-                  onclick="ciResetForm('<?= $ci_table_safe ?>')">새 문의 작성</button>
-        </div>
+        <!-- 제출 완료 (모달로 대체 — 빈 자리 유지) -->
+        <div class="f-ok" id="ci-form-ok-<?= $ci_table_safe ?>" style="display:none;"></div>
       </div>
     </div>
 
@@ -167,8 +180,6 @@ try {
 
         <div class="ci-action-bar">
           <h2 class="s-h" style="text-align:left;margin-bottom:0;" id="ci-list-title-<?= $ci_table_safe ?>">문의 내역</h2>
-          <button class="f-sub" style="width:auto;padding:10px 22px;"
-                  onclick="ciShowView('<?= $ci_table_safe ?>', 'form')">+ 새 문의</button>
         </div>
 
         <!-- 검색 -->
@@ -183,8 +194,19 @@ try {
           <div class="ci-loading"><div class="ci-spinner"></div><span>불러오는 중...</span></div>
         </div>
 
+        <!-- 로그인 유도 영역 (비로그인 + login_use 시 JS로 표시) -->
+        <div id="ci-list-login-nudge-<?= $ci_table_safe ?>" style="display:none;text-align:center;margin-top:8px;">
+          <button class="ci-login-nudge-btn" onclick="ciGoToForm('<?= $ci_table_safe ?>')">로그인하고 내 문의 내역 보기</button>
+        </div>
+
         <!-- 페이지네이션 -->
         <div class="board-pager" id="ci-pager-<?= $ci_table_safe ?>"></div>
+
+        <!-- 글쓰기 버튼 (목록 아래) -->
+        <div style="text-align:right;margin-top:16px;">
+          <button class="f-sub" style="width:auto;padding:10px 22px;"
+                  onclick="ciGoToForm('<?= $ci_table_safe ?>')">+ 새 문의</button>
+        </div>
       </div>
     </div>
 

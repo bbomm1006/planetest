@@ -250,16 +250,33 @@ if ($action === 'excel') {
    답변 저장 + 이메일 발송 (reply_method === 'email' 인 경우)
    ================================================================ */
 if ($action === 'save_reply') {
-    $form_id = intval($_POST['form_id'] ?? 0);
-    $id      = intval($_POST['id'] ?? 0);
-    $content = trim($_POST['reply_content'] ?? '');
+    // POST(FormData) 또는 JSON body 둘 다 지원
+    $_jsonInput = [];
+    $_rawBody = file_get_contents('php://input');
+    if ($_rawBody) { $_jsonInput = json_decode($_rawBody, true) ?: []; }
+
+    $form_id = intval($_POST['form_id'] ?? $_jsonInput['form_id'] ?? 0);
+    $id      = intval($_POST['id']      ?? $_jsonInput['id']      ?? 0);
+    $content = trim($_POST['reply_content'] ?? $_jsonInput['reply_content'] ?? '');
 
     $form = getFormInfo($pdo, $form_id);
     if (!$form) { echo json_encode(['ok' => false, 'msg' => '폼 없음']); exit; }
     $tbl = $form['table_name'];
 
+    // reply_content, reply_at 컬럼이 없으면 자동 추가
+    try {
+        $cols = $pdo->query("SHOW COLUMNS FROM `{$tbl}` LIKE 'reply_content'")->fetchAll();
+        if (empty($cols)) {
+            $pdo->exec("ALTER TABLE `{$tbl}` ADD COLUMN `reply_content` TEXT NULL, ADD COLUMN `reply_at` DATETIME NULL");
+        }
+    } catch (Exception $e) {}
+
     // 답변 내용 저장
-    $pdo->prepare("UPDATE `{$tbl}` SET reply_content=?, reply_at=NOW() WHERE id=?")->execute([$content, $id]);
+    try {
+        $pdo->prepare("UPDATE `{$tbl}` SET reply_content=?, reply_at=NOW() WHERE id=?")->execute([$content, $id]);
+    } catch (Exception $e) {
+        echo json_encode(['ok' => false, 'msg' => '답변 저장 실패: ' . $e->getMessage()]); exit;
+    }
 
     // ── 이메일 발송 (답변 기능 사용 + 이메일 방식인 경우)
     $mailSent   = false;

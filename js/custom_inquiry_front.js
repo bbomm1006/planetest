@@ -98,12 +98,17 @@ function ciRenderConfig(t, res) {
     }
   }
 
-  // 로그인 연동 체크
-  if (form.login_use) {
-    if (!ciState(t).user) {
-      ciShowLoginGate(t, form); return;
-    }
+  // 로그인 유저바 표시 (로그인 된 경우만)
+  if (form.login_use && ciState(t).user) {
     ciShowUserBar(t);
+  }
+
+  // 폼 뷰 로그인 유도 버튼 표시 (login_use + 비로그인 + 폼 타입일 때)
+  const formLoginNudge = document.getElementById('ci-form-login-nudge-' + t);
+  if (formLoginNudge) {
+    const isFormType  = !form.visibility_type; // 목록 없는 순수 폼 타입
+    const needsLogin  = form.login_use && !ciState(t).user;
+    formLoginNudge.style.display = (isFormType && needsLogin) ? '' : 'none';
   }
 
   // 폼 헤더
@@ -143,6 +148,10 @@ function ciRenderConfig(t, res) {
   const listTitleEl = document.getElementById('ci-list-title-' + t);
   if (listTitleEl) listTitleEl.textContent = form.title || '문의 내역';
 
+  // 목록 타입이면 폼 뷰의 "목록으로" 버튼 표시
+  const formBackBtn = document.getElementById('ci-form-back-btn-' + t);
+  if (formBackBtn) formBackBtn.style.display = hasListView ? '' : 'none';
+
   // 뷰 전환 — 공개글여부 on이면 목록 뷰로 시작, off면 폼 뷰로 시작
   if (hasListView) {
     ciShowView(t, 'list');
@@ -172,14 +181,11 @@ function ciShowPeriodNotice(t, title, desc) {
    소셜 로그인 게이트
 ════════════════════════════════════════════════ */
 function ciShowLoginGate(t, form) {
-  // 모든 뷰 숨김
-  ['form', 'list', 'detail'].forEach(v => {
-    const el = document.getElementById(`ci-view-${v}-${t}`);
-    if (el) el.classList.remove('ci-active');
-  });
-
-  const gate = document.getElementById('ci-login-gate-' + t);
+  // 모달 오버레이 + 모달 표시
+  const overlay = document.getElementById('ci-login-modal-overlay-' + t);
+  const gate    = document.getElementById('ci-login-gate-' + t);
   if (!gate) return;
+  if (overlay) overlay.style.display = '';
   gate.style.display = '';
 
   const desc = document.getElementById('ci-login-gate-desc-' + t);
@@ -345,10 +351,41 @@ async function ciVerifyOtp(t) {
 
 /* 로그인 후 처리 */
 function ciAfterLogin(t, form) {
-  const gate = document.getElementById('ci-login-gate-' + t);
-  if (gate) gate.style.display = 'none';
+  ciCloseLoginModal(t);
   ciShowUserBar(t);
+
+  const pending = ciState(t)._pendingView;
+  ciState(t)._pendingView = null;
+
+  if (pending === 'submit') {
+    // 폼 제출 재실행
+    ciSubmit(t);
+    return;
+  }
+
+  if (pending === 'form') {
+    // 뷰 직접 전환 (ciShowView 거치면 로그인 체크 다시 걸릴 수 있으므로 직접 DOM 조작)
+    ['form', 'list', 'detail'].forEach(v => {
+      const el = document.getElementById(`ci-view-${v}-${t}`);
+      if (el) el.classList.toggle('ci-active', v === 'form');
+    });
+    return;
+  }
+
+  if (pending === 'list') {
+    ciShowView(t, 'list');
+    return;
+  }
+
   ciRenderConfig(t, ciState(t).config);
+}
+
+/* 로그인 모달 닫기 */
+function ciCloseLoginModal(t) {
+  const overlay = document.getElementById('ci-login-modal-overlay-' + t);
+  const gate    = document.getElementById('ci-login-gate-' + t);
+  if (overlay) overlay.style.display = 'none';
+  if (gate)    gate.style.display    = 'none';
 }
 
 /* 로그아웃 */
@@ -380,13 +417,8 @@ async function ciLogout(t) {
   const form   = config?.form;
   if (!form) return;
 
-  if (form.login_use) {
-    // 로그인 필수 폼 → 로그인 게이트 표시
-    ciShowLoginGate(t, form);
-  } else {
-    // 로그인 불필요 폼 → 처음 상태로 재렌더링 (목록 or 폼)
-    ciRenderConfig(t, config);
-  }
+  // 로그아웃 후 화면 재렌더링 (로그인 게이트 팝업 없이)
+  ciRenderConfig(t, config);
 }
 
 /* 계정 변경 — 세션 초기화 후 로그인 게이트 재표시 */
@@ -410,15 +442,11 @@ async function ciSwitchAccount(t) {
   const bar2 = document.getElementById('ci-user-bar-' + t);
   if (bar2) bar2.style.display = 'none';
 
-  const config = ciState(t).config;
-  const form2  = config?.form;
-  if (!form2) return;
+  const config2 = ciState(t).config;
+  if (!config2) return;
 
-  if (form2.login_use) {
-    ciShowLoginGate(t, form2);
-  } else {
-    ciRenderConfig(t, config);
-  }
+  // 계정 변경 후 화면 재렌더링
+  ciRenderConfig(t, config2);
 }
 
 function ciShowUserBar(t) {
@@ -675,6 +703,13 @@ async function ciSubmit(t) {
 
   if (!valid) { ciShowError(errEl, firstErr || '필수 항목을 입력해 주세요.'); return; }
 
+  // 로그인 연동 사용 & 비로그인 → 로그인 모달 표시 후 자동 접수
+  if (form.login_use && !state.user) {
+    ciState(t)._pendingView = 'submit';
+    ciShowLoginGate(t, form);
+    return;
+  }
+
   // 제품 선택
   if (form.product_use) {
     const catSel  = document.getElementById('ci-cat-select-' + t);
@@ -731,24 +766,64 @@ async function ciSubmit(t) {
     method: 'POST', body: JSON.stringify(body),
   });
 
-  if (btn) { btn.disabled = false; btn.textContent = form.btn_name || '문의하기'; }
+  if (!res.ok) {
+    if (btn) { btn.disabled = false; btn.textContent = form.btn_name || '문의하기'; }
+    ciShowError(errEl, res.msg || '오류가 발생했습니다.');
+    return;
+  }
 
-  if (!res.ok) { ciShowError(errEl, res.msg || '오류가 발생했습니다.'); return; }
-
-  // 완료 화면
+  // 완료 모달 즉시 표시 (버튼 복구 전)
   ciShowFormOk(t, emailField);
+  if (btn) { btn.disabled = false; btn.textContent = form.btn_name || '문의하기'; }
 }
 
 function ciShowFormOk(t, emailField) {
-  const formWrap = document.querySelector(`#ci-view-form-${t} .ci-form-wrap`);
-  const okEl     = document.getElementById('ci-form-ok-' + t);
-  const fcEl     = document.querySelector(`#ci-view-form-${t} .fc`);
-  if (fcEl)     fcEl.style.display = 'none';
-  if (okEl)     okEl.style.display = '';
+  // 폼 영역 즉시 숨기기 (모달 뜨기 전에 폼이 보이는 현상 방지)
+  const fcEl = document.querySelector(`#ci-view-form-${t} .fc`);
+  if (fcEl) fcEl.style.visibility = 'hidden';
+
+  // 완료 모달 표시
+  const overlay = document.getElementById('ci-ok-modal-overlay-' + t);
+  const modal   = document.getElementById('ci-ok-modal-' + t);
+  if (overlay) overlay.style.display = '';
+  if (modal)   modal.style.display   = '';
 
   // 이메일 발송 노트
-  const noteEl = document.getElementById('ci-ok-email-note-' + t);
+  const noteEl = document.getElementById('ci-ok-modal-email-note-' + t);
   if (noteEl) noteEl.style.display = emailField ? '' : 'none';
+}
+
+function ciCloseOkModal(t) {
+  const overlay = document.getElementById('ci-ok-modal-overlay-' + t);
+  const modal   = document.getElementById('ci-ok-modal-' + t);
+  if (overlay) overlay.style.display = 'none';
+  if (modal)   modal.style.display   = 'none';
+
+  // 폼 초기화 (fc visibility 복구 포함)
+  const fcEl = document.querySelector(`#ci-view-form-${t} .fc`);
+  if (fcEl) { fcEl.style.visibility = ''; fcEl.style.display = ''; }
+
+  // 필드값 초기화
+  const container = document.getElementById('ci-fields-' + t);
+  if (container) {
+    container.querySelectorAll('input:not([type="radio"]):not([type="checkbox"]),textarea,select')
+      .forEach(el => { el.value = ''; });
+    container.querySelectorAll('input[type="radio"],input[type="checkbox"]')
+      .forEach(el => { el.checked = false; });
+  }
+  // 약관 체크 초기화
+  const termContainer = document.getElementById('ci-terms-wrap-' + t);
+  if (termContainer) termContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; });
+
+  // 제품 선택 초기화
+  const catSel  = document.getElementById('ci-cat-select-' + t);
+  const prodSel = document.getElementById('ci-prod-select-' + t);
+  if (catSel)  catSel.selectedIndex  = 0;
+  if (prodSel) prodSel.selectedIndex = 0;
+
+  // 에러 메시지 초기화
+  const errEl = document.getElementById('ci-form-err-' + t);
+  if (errEl) errEl.style.display = 'none';
 }
 
 function ciResetForm(t) {
@@ -776,12 +851,20 @@ async function ciLoadList(t, page) {
   if (listEl) listEl.innerHTML = '<div class="ci-loading"><div class="ci-spinner"></div><span>불러오는 중...</span></div>';
 
   const res = await ciFetch(url);
+
+  // 로그인 유도 영역 기본 숨김
+  const nudgeEl = document.getElementById('ci-list-login-nudge-' + t);
+  if (nudgeEl) nudgeEl.style.display = 'none';
+
   if (!res.ok || !listEl) {
     if (res.msg === '로그인이 필요합니다.') {
-      const form = ciState(t).config?.form;
-      if (form) ciShowLoginGate(t, form);
+      listEl.innerHTML = '<div class="board-list-empty">로그인 후 문의 내역을 확인할 수 있습니다.</div>';
+      if (pagerEl) pagerEl.innerHTML = '';
+      // 로그인 유도 버튼 표시
+      if (nudgeEl) nudgeEl.style.display = '';
       return;
     }
+    if (listEl) listEl.innerHTML = '';
     return;
   }
 
@@ -830,11 +913,13 @@ async function ciLoadDetail(t, id) {
 
   const res = await ciFetch(`/admin/api_front/custom_inquiry_public.php?action=detail&table_name=${t}&id=${id}`);
   if (!res.ok || !box) {
-    // 로그인 필요 또는 권한 없음 → 로그인 게이트 표시
     if (res.msg === '로그인이 필요합니다.' || res.msg === '본인 글만 확인할 수 있습니다.') {
       ciShowView(t, 'list');
       const form = ciState(t).config?.form;
-      if (form) ciShowLoginGate(t, form);
+      if (form) {
+        ciState(t)._pendingView = 'list';
+        ciShowLoginGate(t, form);
+      }
       return;
     }
     if (box) box.innerHTML = `<div class="ci-error" style="margin:16px;">${ciEsc(res.msg || '오류')}</div>`;
@@ -857,9 +942,9 @@ async function ciLoadDetail(t, id) {
     </div>`;
   }).join('');
 
-  // 답변 영역
+  // 답변 영역 — reply_use가 1이거나 answers가 있으면 표시
   let answerHtml = '';
-  if (form.reply_use == 1) {
+  if (form.reply_use == 1 || answers.length > 0) {
     const ansItems = answers.map(a => `
       <div class="ci-answer-item">
         <div class="ci-answer-meta">
@@ -875,10 +960,9 @@ async function ciLoadDetail(t, id) {
       </div>`;
   }
 
-  // 댓글 영역 — 작성은 무조건 로그인 필수 (login_use 설정과 무관)
+  // 댓글 영역 — 무조건 로그인 필수
   let commentHtml = '';
   if (form.comment_use == 1) {
-    // 세션 유저 우선, 없으면 ciState 유저 사용
     const user = ciState(t).user;
     const commentItems = comments.map(c => `
       <div class="board-comment-item ${c.is_admin ? 'admin-comment' : ''}">
@@ -891,13 +975,17 @@ async function ciLoadDetail(t, id) {
         <div class="board-comment-content">${ciEsc(c.content || '')}</div>
       </div>`).join('');
 
-    const writeForm = user ? `
-      <div class="board-comment-form-wrap">
-        <textarea id="ci-comment-inp-${t}" placeholder="댓글을 입력하세요" rows="3"></textarea>
-        <div class="board-comment-submit-row">
-          <button class="board-btn board-btn-blue" onclick="ciWriteComment('${t}', ${id})">댓글 등록</button>
-        </div>
-      </div>` : `<div style="padding:12px 24px;font-size:.82rem;color:var(--g4);">댓글을 작성하려면 로그인이 필요합니다.</div>`;
+    const writeForm = user
+      ? `<div class="board-comment-form-wrap">
+           <textarea id="ci-comment-inp-${t}" placeholder="댓글을 입력하세요" rows="3"></textarea>
+           <div class="board-comment-submit-row">
+             <button class="board-btn board-btn-blue" onclick="ciWriteComment('${t}', ${id})">댓글 등록</button>
+           </div>
+         </div>`
+      : `<div style="padding:12px 0;font-size:.82rem;color:var(--g4,#888);display:flex;align-items:center;gap:10px;">
+           <span>댓글을 작성하려면 로그인이 필요합니다.</span>
+           <button class="ci-login-nudge-btn" style="padding:5px 14px;font-size:.78rem;" onclick="ciState('${t}')._pendingView='list';ciShowLoginGate('${t}',ciState('${t}').config?.form)">로그인</button>
+         </div>`;
 
     commentHtml = `
       <div class="board-comments-wrap">
@@ -955,6 +1043,18 @@ function ciShowView(t, viewName) {
     if (el) el.classList.toggle('ci-active', v === viewName);
   });
   if (viewName === 'list') ciLoadList(t, ciState(t).listPage || 1);
+}
+
+/* 사용자가 "새 문의" 버튼 클릭 시 — 로그인 체크 포함 */
+function ciGoToForm(t) {
+  const config = ciState(t).config;
+  const form   = config?.form;
+  if (form?.login_use && !ciState(t).user) {
+    ciState(t)._pendingView = 'form';
+    ciShowLoginGate(t, form);
+    return;
+  }
+  ciShowView(t, 'form');
 }
 
 /* ════════════════════════════════════════════════
@@ -1018,3 +1118,70 @@ async function ciFetch(url, options = {}) {
     return { ok: false, msg: '네트워크 오류' };
   }
 }
+
+/* ════════════════════════════════════════════════
+   모달 공통 CSS 자동 주입
+════════════════════════════════════════════════ */
+(function ciInjectModalCSS() {
+  if (document.getElementById('ci-modal-style')) return;
+  const style = document.createElement('style');
+  style.id = 'ci-modal-style';
+  style.textContent = `
+    .ci-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 9000;
+    }
+    .ci-modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 40px rgba(0,0,0,.18);
+      padding: 36px 32px 28px;
+      z-index: 9001;
+      width: min(420px, 92vw);
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .ci-modal-close {
+      position: absolute;
+      top: 14px;
+      right: 16px;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      line-height: 1;
+      cursor: pointer;
+      color: #888;
+      padding: 4px 8px;
+    }
+    .ci-modal-close:hover { color: #333; }
+    .ci-login-nudge-btn {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 8px 20px;
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--sky, #2563eb);
+      background: none;
+      border: 1.5px solid var(--sky, #2563eb);
+      border-radius: 100px;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .ci-login-nudge-btn:hover {
+      background: rgba(37,99,235,.06);
+    }
+    .ci-ok-modal {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+  `;
+  document.head.appendChild(style);
+})();

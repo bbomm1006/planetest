@@ -47,22 +47,53 @@
 
       <!-- 구글시트 설정 -->
       <div id="ci-mgr-panel-sheet" style="display:none;background:#f8fafc;border-radius:8px;padding:14px;margin-bottom:12px;">
-        <p style="font-size:.83rem;font-weight:600;margin-bottom:8px;">구글 스프레드시트 설정</p>
+        <p style="font-size:.83rem;font-weight:600;margin-bottom:8px;">구글 스프레드시트 설정 (Apps Script 웹훅)</p>
         <div class="form-group" style="margin-bottom:10px;">
-          <label style="font-size:.8rem;">스프레드시트 ID</label>
-          <input type="text" class="form-control" id="ci_mgr_sheet_id" placeholder="URL의 /d/ 뒤 문자열"/>
+          <label style="font-size:.8rem;">Apps Script 웹훅 URL <span class="req">*</span></label>
+          <input type="text" class="form-control" id="ci_mgr_sheet_id" placeholder="https://script.google.com/macros/s/.../exec"/>
         </div>
         <div class="form-group" style="margin-bottom:10px;">
-          <label style="font-size:.8rem;">시트명</label>
+          <label style="font-size:.8rem;">시트명 <small style="color:#94a3b8;font-weight:400;">(비워두면 Sheet1)</small></label>
           <input type="text" class="form-control" id="ci_mgr_sheet_name" placeholder="Sheet1"/>
         </div>
-        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:10px 12px;font-size:.78rem;color:#1e40af;line-height:1.7;">
-          <strong>Google Sheets API 발급 방법</strong><br>
-          1. <a href="https://console.cloud.google.com/" target="_blank" style="color:#2563eb;">Google Cloud Console</a> 접속 → 프로젝트 생성<br>
-          2. API 및 서비스 → 라이브러리에서 <strong>Google Sheets API</strong> 활성화<br>
-          3. 사용자 인증 정보 → 서비스 계정 생성 후 JSON 키 다운로드<br>
-          4. 해당 서비스 계정 이메일을 스프레드시트에 <strong>편집자</strong>로 공유<br>
-          5. 스프레드시트 URL: https://docs.google.com/spreadsheets/d/<strong>{ID}</strong>/edit
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:12px 14px;font-size:.78rem;color:#1e40af;line-height:1.85;">
+          <strong>📋 Apps Script 웹훅 설정 방법</strong><br><br>
+          <strong>① 스프레드시트 열기</strong><br>
+          구글 스프레드시트에서 <strong>확장 프로그램 → Apps Script</strong> 클릭<br><br>
+          <strong>② 아래 코드를 Code.gs에 붙여넣기</strong><br>
+          <div style="background:#1e293b;color:#e2e8f0;border-radius:6px;padding:10px 12px;margin:8px 0;font-family:monospace;font-size:.74rem;line-height:1.7;white-space:pre-wrap;word-break:break-all;">function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    var sheetName = data.sheet_name || 'Sheet1';
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName(sheetName) || ss.getSheets()[0];
+
+    // 헤더가 없으면 첫 행에 추가
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(data.headers || []);
+    }
+
+    // 데이터 행 추가
+    sheet.appendRow(data.values || []);
+
+    return ContentService
+      .createTextOutput(JSON.stringify({ok: true}))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ok: false, error: err.message}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}</div>
+          <strong>③ 저장 후 배포</strong><br>
+          오른쪽 상단 <strong>배포 → 새 배포</strong> 클릭<br>
+          → 유형: <strong>웹 앱</strong> 선택<br>
+          → 액세스 권한: <strong>모든 사용자</strong> 선택<br>
+          → <strong>배포</strong> 버튼 클릭<br><br>
+          <strong>④ 웹 앱 URL 복사</strong><br>
+          배포 완료 후 나오는 URL(<code style="background:#dbeafe;padding:1px 5px;border-radius:3px;">https://script.google.com/macros/s/.../exec</code>)을<br>
+          위 <strong>Apps Script 웹훅 URL</strong> 칸에 붙여넣기<br><br>
+          ※ 코드 수정 후에는 반드시 <strong>새 배포(버전 업)</strong>를 해야 반영됩니다.
         </div>
       </div>
 

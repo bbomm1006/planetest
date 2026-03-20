@@ -246,6 +246,61 @@ if ($action === 'create') {
         }
     }
 
+    // ── 구글시트 웹훅 발송 (notify_sheet=1 인 담당자에게)
+    $sheetMgrs = $pdo->prepare('SELECT * FROM custom_inquiry_managers WHERE form_id=? AND is_active=1 AND notify_sheet=1');
+    $sheetMgrs->execute([$form_id]);
+    $sheetManagers = $sheetMgrs->fetchAll();
+
+    if (!empty($sheetManagers)) {
+        // 헤더 및 값 구성
+        $fStmt3 = $pdo->prepare('SELECT * FROM custom_inquiry_fields WHERE form_id=? AND is_visible=1 ORDER BY sort_order ASC');
+        $fStmt3->execute([$form_id]);
+        $fMeta3 = $fStmt3->fetchAll();
+
+        $headers = ['접수번호', '접수일시'];
+        $values  = [$insert_id, date('Y-m-d H:i:s')];
+
+        foreach ($fMeta3 as $fm) {
+            $fk = $fm['field_key'];
+            if ($fk === 'category_id') {
+                $headers[] = '제품 분류';
+                $values[]  = $fieldValues['category_name'] ?? '';
+            } elseif ($fk === 'product_id') {
+                $headers[] = '제품명';
+                $values[]  = $fieldValues['product_name'] ?? '';
+            } else {
+                $headers[] = $fm['label'];
+                $values[]  = $fieldValues[$fk] ?? '';
+            }
+        }
+
+        foreach ($sheetManagers as $smgr) {
+            $webhookUrl = trim($smgr['sheet_id'] ?? '');
+            if (!$webhookUrl || strpos($webhookUrl, 'https://script.google.com') !== 0) continue;
+
+            try {
+                $payload = json_encode([
+                    'sheet_name' => $smgr['sheet_name'] ?: 'Sheet1',
+                    'headers'    => $headers,
+                    'values'     => $values,
+                ]);
+                $ch = curl_init($webhookUrl);
+                curl_setopt_array($ch, [
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_POST           => true,
+                    CURLOPT_POSTFIELDS     => $payload,
+                    CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+                    CURLOPT_TIMEOUT        => 10,
+                    CURLOPT_SSL_VERIFYPEER => true,
+                ]);
+                curl_exec($ch);
+                curl_close($ch);
+            } catch (Exception $e) {
+                // 시트 전송 실패 무시
+            }
+        }
+    }
+
     echo json_encode(['ok'=>true, 'id'=>$insert_id]);
     exit;
 }
@@ -265,16 +320,21 @@ if ($action === 'list') {
     $formRow = $form->fetch();
     if (!$formRow) { echo json_encode(['ok'=>false,'msg'=>'폼을 찾을 수 없습니다.']); exit; }
 
-    // 로그인 세션 확인
     if (session_status() === PHP_SESSION_NONE) session_start();
-    $sessionUser = $_SESSION['board_user'] ?? null;
+    $sessionUser  = $_SESSION['board_user'] ?? null;
+    $loginUserId  = $sessionUser ? $sessionUser['id'] : '';
+    $visType      = $formRow['visibility_type'] ?? ''; // 'public' | 'private' | 'both' | ''
+    $loginUse     = (int)($formRow['login_use'] ?? 0);
+
+    // 조회 권한 판단
+    // - visibility_type 없음(공개글 off) → 목록 조회 불가
+    if (!$visType) { echo json_encode(['ok'=>false,'msg'=>'조회 권한이 없습니다.']); exit; }
 
     $page   = max(1, intval($_GET['page']  ?? 1));
     $limit  = min(50, intval($_GET['limit'] ?? 10));
     $kw     = trim($_GET['kw'] ?? '');
     $offset = ($page - 1) * $limit;
 
-    // 첫번째 필드 키 (제목 표시용)
     $fkStmt = $pdo->prepare('SELECT field_key, label FROM custom_inquiry_fields WHERE form_id=? AND is_visible=1 ORDER BY sort_order ASC LIMIT 1');
     $fkStmt->execute([$formRow['id']]);
     $firstField = $fkStmt->fetch();
@@ -282,10 +342,33 @@ if ($action === 'list') {
 
     $where  = ['d.form_id = ?'];
     $params = [$formRow['id']];
+
     if ($kw) {
         $where[] = "d.`{$titleKey}` LIKE ?";
         $params[] = "%{$kw}%";
     }
+
+    // 조회 범위 결정
+    // public  → visibility=1 전체 공개
+    // private → 내 글만 (로그인 필수)
+    // both    → visibility=1 공개글 전체 + 내 비공개글
+    if ($visType === 'public') {
+        $where[] = 'd.visibility = 1';
+    } elseif ($visType === 'private') {
+        if (!$loginUserId) { echo json_encode(['ok'=>false,'msg'=>'로그인이 필요합니다.']); exit; }
+        $where[] = 'd.login_id = ?';
+        $params[] = $loginUserId;
+    } elseif ($visType === 'both') {
+        if ($loginUserId) {
+            // 공개글 전체 + 내 비공개글
+            $where[] = '(d.visibility = 1 OR d.login_id = ?)';
+            $params[] = $loginUserId;
+        } else {
+            // 비로그인 → 공개글만
+            $where[] = 'd.visibility = 1';
+        }
+    }
+
     $whereSQL = implode(' AND ', $where);
 
     $totalStmt = $pdo->prepare("SELECT COUNT(*) FROM `{$table_name}` d WHERE {$whereSQL}");
@@ -303,15 +386,13 @@ if ($action === 'list') {
     $stmt->execute($params);
     $rows = $stmt->fetchAll();
 
-    $loginUserId = $sessionUser ? $sessionUser['id'] : '';
-
     $items = array_map(function($r) use ($loginUserId) {
         $isMine = $loginUserId && $r['login_id'] === $loginUserId;
         return [
             'id'          => (int)$r['id'],
             'title'       => mb_strimwidth($r['title_val'] ?? '', 0, 80, '...'),
             'author_name' => $r['login_id'] ? (function($id){
-                $pm = ['kakao'=>'카카오','naver'=>'네이버','google'=>'구글'];
+                $pm = ['kakao'=>'카카오','naver'=>'네이버','google'=>'구글','email'=>'이메일'];
                 $sep = strpos($id, '_');
                 if ($sep === false) return $id;
                 $prov = substr($id, 0, $sep);
@@ -321,6 +402,7 @@ if ($action === 'list') {
             })($r['login_id']) : '익명',
             'status'      => $r['status_label'] ?? '접수',
             'created_at'  => $r['created_at'],
+            'visibility'  => (int)$r['visibility'],
             'is_mine'     => $isMine,
         ];
     }, $rows);
@@ -350,15 +432,33 @@ if ($action === 'detail') {
 
     if (session_status() === PHP_SESSION_NONE) session_start();
     $sessionUser = $_SESSION['board_user'] ?? null;
-    if (!$sessionUser) { echo json_encode(['ok'=>false,'msg'=>'로그인 필요']); exit; }
+    $loginUserId = $sessionUser ? $sessionUser['id'] : '';
+    $visType     = $formRow['visibility_type'] ?? '';
 
     $stmt = $pdo->prepare("SELECT d.*, s.label as status_label FROM `{$table_name}` d LEFT JOIN custom_inquiry_statuses s ON d.status_id=s.id WHERE d.id=?");
     $stmt->execute([$id]);
     $row = $stmt->fetch();
     if (!$row) { echo json_encode(['ok'=>false,'msg'=>'게시글 없음']); exit; }
 
-    if ($row['login_id'] !== $sessionUser['id']) {
-        echo json_encode(['ok'=>false,'msg'=>'본인 글만 확인할 수 있습니다.']); exit;
+    // 상세 조회 권한 판단
+    $isMine    = $loginUserId && $row['login_id'] === $loginUserId;
+    $isPublic  = (int)$row['visibility'] === 1;
+
+    if ($visType === 'public') {
+        // 공개글 전체 공개 → 누구나 조회 가능
+    } elseif ($visType === 'private') {
+        // 비공개 → 본인만
+        if (!$loginUserId) { echo json_encode(['ok'=>false,'msg'=>'로그인이 필요합니다.']); exit; }
+        if (!$isMine) { echo json_encode(['ok'=>false,'msg'=>'본인 글만 확인할 수 있습니다.']); exit; }
+    } elseif ($visType === 'both') {
+        // 공개글은 누구나, 비공개글은 본인만
+        if (!$isPublic) {
+            if (!$loginUserId) { echo json_encode(['ok'=>false,'msg'=>'로그인이 필요합니다.']); exit; }
+            if (!$isMine) { echo json_encode(['ok'=>false,'msg'=>'본인 글만 확인할 수 있습니다.']); exit; }
+        }
+    } else {
+        // visibility_type 없음 → 조회 불가
+        echo json_encode(['ok'=>false,'msg'=>'조회 권한이 없습니다.']); exit;
     }
 
     // 필드 메타
@@ -366,7 +466,7 @@ if ($action === 'detail') {
     $fStmt->execute([$formRow['id']]);
     $fields = $fStmt->fetchAll();
 
-    // 관리자 답변 (inquiry_answers 또는 ci_answers_*)
+    // 관리자 답변
     $answers = [];
     $ansTable = 'ci_answers_' . $table_name;
     try {
@@ -384,12 +484,11 @@ if ($action === 'detail') {
         $comments = $cStmt->fetchAll();
     } catch (Exception $e) {}
 
-    $row['is_mine']  = true;
+    $row['is_mine']  = $isMine;
     $row['fields']   = $fields;
     $row['answers']  = $answers;
     $row['comments'] = $comments;
 
-    // 조회수 증가
     try { $pdo->prepare("UPDATE `{$table_name}` SET view_count=view_count+1 WHERE id=?")->execute([$id]); } catch(Exception $e){}
 
     echo json_encode(['ok'=>true,'item'=>$row]);

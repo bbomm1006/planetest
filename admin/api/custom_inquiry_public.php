@@ -246,6 +246,61 @@ if ($action === 'create') {
         }
     }
 
+    // ── 구글시트 웹훅 발송 (notify_sheet=1 인 담당자에게)
+    $sheetMgrs = $pdo->prepare('SELECT * FROM custom_inquiry_managers WHERE form_id=? AND is_active=1 AND notify_sheet=1');
+    $sheetMgrs->execute([$form_id]);
+    $sheetManagers = $sheetMgrs->fetchAll();
+
+    if (!empty($sheetManagers)) {
+        // 헤더 및 값 구성
+        $fStmt3 = $pdo->prepare('SELECT * FROM custom_inquiry_fields WHERE form_id=? AND is_visible=1 ORDER BY sort_order ASC');
+        $fStmt3->execute([$form_id]);
+        $fMeta3 = $fStmt3->fetchAll();
+
+        $headers = ['접수번호', '접수일시'];
+        $values  = [$insert_id, date('Y-m-d H:i:s')];
+
+        foreach ($fMeta3 as $fm) {
+            $fk = $fm['field_key'];
+            if ($fk === 'category_id') {
+                $headers[] = '제품 분류';
+                $values[]  = $fieldValues['category_name'] ?? '';
+            } elseif ($fk === 'product_id') {
+                $headers[] = '제품명';
+                $values[]  = $fieldValues['product_name'] ?? '';
+            } else {
+                $headers[] = $fm['label'];
+                $values[]  = $fieldValues[$fk] ?? '';
+            }
+        }
+
+        foreach ($sheetManagers as $smgr) {
+            $webhookUrl = trim($smgr['sheet_id'] ?? '');
+            if (!$webhookUrl || strpos($webhookUrl, 'https://script.google.com') !== 0) continue;
+
+            try {
+                $payload = json_encode([
+                    'sheet_name' => $smgr['sheet_name'] ?: 'Sheet1',
+                    'headers'    => $headers,
+                    'values'     => $values,
+                ]);
+                $ch = curl_init($webhookUrl);
+                curl_setopt_array($ch, [
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_POST           => true,
+                    CURLOPT_POSTFIELDS     => $payload,
+                    CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+                    CURLOPT_TIMEOUT        => 10,
+                    CURLOPT_SSL_VERIFYPEER => true,
+                ]);
+                curl_exec($ch);
+                curl_close($ch);
+            } catch (Exception $e) {
+                // 시트 전송 실패 무시
+            }
+        }
+    }
+
     echo json_encode(['ok'=>true, 'id'=>$insert_id]);
     exit;
 }
@@ -380,6 +435,14 @@ if ($action === 'detail') {
     $loginUserId = $sessionUser ? $sessionUser['id'] : '';
     $visType     = $formRow['visibility_type'] ?? '';
 
+    // reply_content 컬럼 없으면 자동 추가
+    try {
+        $chkCol = $pdo->query("SHOW COLUMNS FROM `{$table_name}` LIKE 'reply_content'")->fetchAll();
+        if (empty($chkCol)) {
+            $pdo->exec("ALTER TABLE `{$table_name}` ADD COLUMN `reply_content` TEXT NULL, ADD COLUMN `reply_at` DATETIME NULL");
+        }
+    } catch (Exception $e) {}
+
     $stmt = $pdo->prepare("SELECT d.*, s.label as status_label FROM `{$table_name}` d LEFT JOIN custom_inquiry_statuses s ON d.status_id=s.id WHERE d.id=?");
     $stmt->execute([$id]);
     $row = $stmt->fetch();
@@ -392,9 +455,13 @@ if ($action === 'detail') {
     if ($visType === 'public') {
         // 공개글 전체 공개 → 누구나 조회 가능
     } elseif ($visType === 'private') {
-        // 비공개 → 본인만
+        // 비공개 → 본인만 (또는 관리자)
         if (!$loginUserId) { echo json_encode(['ok'=>false,'msg'=>'로그인이 필요합니다.']); exit; }
-        if (!$isMine) { echo json_encode(['ok'=>false,'msg'=>'본인 글만 확인할 수 있습니다.']); exit; }
+        // login_id 비교: 앞뒤 공백 제거 후 비교
+        $isMine = trim($loginUserId) === trim((string)($row['login_id'] ?? ''));
+        if (!$isMine) {
+            echo json_encode(['ok'=>false,'msg'=>'본인 글만 확인할 수 있습니다.']); exit;
+        }
     } elseif ($visType === 'both') {
         // 공개글은 누구나, 비공개글은 본인만
         if (!$isPublic) {
@@ -402,8 +469,14 @@ if ($action === 'detail') {
             if (!$isMine) { echo json_encode(['ok'=>false,'msg'=>'본인 글만 확인할 수 있습니다.']); exit; }
         }
     } else {
-        // visibility_type 없음 → 조회 불가
-        echo json_encode(['ok'=>false,'msg'=>'조회 권한이 없습니다.']); exit;
+        // visibility_type 없음(폼 전용) → 본인 글이면 조회 허용, 아니면 차단
+        if ($loginUserId && $isMine) {
+            // 본인 글 조회 허용
+        } elseif (!$visType) {
+            // visibility_type 완전 미설정 → 누구나 조회 허용 (폼 전용 타입)
+        } else {
+            echo json_encode(['ok'=>false,'msg'=>'조회 권한이 없습니다.']); exit;
+        }
     }
 
     // 필드 메타
@@ -411,14 +484,19 @@ if ($action === 'detail') {
     $fStmt->execute([$formRow['id']]);
     $fields = $fStmt->fetchAll();
 
-    // 관리자 답변
+    // 관리자 답변 — reply_content 컬럼에서 읽기 (어드민이 해당 컬럼에 저장)
     $answers = [];
-    $ansTable = 'ci_answers_' . $table_name;
-    try {
-        $aStmt = $pdo->prepare("SELECT * FROM `{$ansTable}` WHERE row_id=? ORDER BY id ASC");
-        $aStmt->execute([$id]);
-        $answers = $aStmt->fetchAll();
-    } catch (Exception $e) {}
+    // reply_content 컬럼이 없을 경우 대비해서 isset으로 체크
+    $replyContent = isset($row['reply_content']) ? trim((string)$row['reply_content']) : '';
+    if (!empty($replyContent)) {
+        $answers = [[
+            'id'         => 0,
+            'row_id'     => $id,
+            'content'    => $replyContent,
+            'created_at' => $row['reply_at'] ?? $row['updated_at'] ?? '',
+            'is_admin'   => 1,
+        ]];
+    }
 
     // 댓글
     $comments = [];
