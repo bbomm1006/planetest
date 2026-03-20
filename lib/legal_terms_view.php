@@ -8,7 +8,7 @@ require_once __DIR__ . '/legal_terms_bootstrap.php';
 legal_terms_ensure_tables($pdo);
 
 $slug = preg_replace('/[^a-zA-Z0-9\-_]/', '', (string) $legalSlug);
-$st   = $pdo->prepare('SELECT id, name, slug FROM legal_term_categories WHERE slug = ? LIMIT 1');
+$st   = $pdo->prepare('SELECT id, name, slug FROM legal_term_categories WHERE slug = ? AND is_active = 1 LIMIT 1');
 $st->execute([$slug]);
 $cat = $st->fetch(PDO::FETCH_ASSOC);
 
@@ -20,7 +20,7 @@ if (!$cat) {
 $st = $pdo->prepare(
     'SELECT id, version_label, body, is_active, effective_date,
             DATE_FORMAT(effective_date, "%Y-%m-%d") AS eff
-     FROM legal_term_versions WHERE category_id = ?
+     FROM legal_term_versions WHERE category_id = ? AND is_visible = 1
      ORDER BY effective_date DESC, sort_order DESC, id DESC'
 );
 $st->execute([(int) $cat['id']]);

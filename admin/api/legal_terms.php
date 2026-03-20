@@ -76,6 +76,51 @@ if ($action === 'cat_save') {
     exit;
 }
 
+if ($action === 'cat_visibility_save') {
+    $raw = isset($_POST['items']) ? $_POST['items'] : '';
+    $items = json_decode($raw, true);
+    if (!is_array($items)) {
+        echo json_encode(array('ok' => false, 'msg' => 'items(JSON)가 필요합니다.'));
+        exit;
+    }
+    $st = $pdo->prepare('UPDATE legal_term_categories SET is_active = ? WHERE id = ?');
+    foreach ($items as $it) {
+        $id = isset($it['id']) ? (int) $it['id'] : 0;
+        if ($id < 1) {
+            continue;
+        }
+        $active = (!empty($it['is_active'])) ? 1 : 0;
+        $st->execute(array($active, $id));
+    }
+    echo json_encode(array('ok' => true));
+    exit;
+}
+
+if ($action === 'ver_visibility_save') {
+    $cid = isset($_POST['category_id']) ? (int) $_POST['category_id'] : 0;
+    if ($cid < 1) {
+        echo json_encode(array('ok' => false, 'msg' => 'category_id가 필요합니다.'));
+        exit;
+    }
+    $raw = isset($_POST['items']) ? $_POST['items'] : '';
+    $items = json_decode($raw, true);
+    if (!is_array($items)) {
+        echo json_encode(array('ok' => false, 'msg' => 'items(JSON)가 필요합니다.'));
+        exit;
+    }
+    $st = $pdo->prepare('UPDATE legal_term_versions SET is_visible = ? WHERE id = ? AND category_id = ?');
+    foreach ($items as $it) {
+        $vid = isset($it['id']) ? (int) $it['id'] : 0;
+        if ($vid < 1) {
+            continue;
+        }
+        $vis = (!empty($it['is_visible'])) ? 1 : 0;
+        $st->execute(array($vis, $vid, $cid));
+    }
+    echo json_encode(array('ok' => true));
+    exit;
+}
+
 if ($action === 'cat_delete') {
     $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
     if ($id < 1) {
@@ -96,7 +141,7 @@ if ($action === 'ver_list') {
         exit;
     }
     $st = $pdo->prepare(
-        'SELECT id, category_id, version_label, body, effective_date, is_active, sort_order,
+        'SELECT id, category_id, version_label, body, effective_date, is_active, is_visible, sort_order,
                 DATE_FORMAT(effective_date, "%Y-%m-%d") AS effective_date_fmt
          FROM legal_term_versions WHERE category_id = ?
          ORDER BY effective_date DESC, sort_order DESC, id DESC'
@@ -118,6 +163,7 @@ if ($action === 'ver_save') {
     $body          = isset($_POST['body']) ? $_POST['body'] : '';
     $effective_raw = trim(isset($_POST['effective_date']) ? $_POST['effective_date'] : '');
     $is_active     = (isset($_POST['is_active']) ? (int) $_POST['is_active'] : 0) ? 1 : 0;
+    $is_visible    = (isset($_POST['is_visible']) ? (int) $_POST['is_visible'] : 1) ? 1 : 0;
     $sort_order    = isset($_POST['sort_order']) ? (int) $_POST['sort_order'] : 0;
 
     if ($category_id < 1 || $version_label === '') {
@@ -150,14 +196,14 @@ if ($action === 'ver_save') {
 
     if ($id > 0) {
         $pdo->prepare(
-            'UPDATE legal_term_versions SET version_label=?, body=?, effective_date=?, is_active=?, sort_order=?
+            'UPDATE legal_term_versions SET version_label=?, body=?, effective_date=?, is_active=?, is_visible=?, sort_order=?
              WHERE id=? AND category_id=?'
-        )->execute(array($version_label, $body, $effective_date, $is_active, $sort_order, $id, $category_id));
+        )->execute(array($version_label, $body, $effective_date, $is_active, $is_visible, $sort_order, $id, $category_id));
     } else {
         $pdo->prepare(
-            'INSERT INTO legal_term_versions (category_id, version_label, body, effective_date, is_active, sort_order)
-             VALUES (?,?,?,?,?,?)'
-        )->execute(array($category_id, $version_label, $body, $effective_date, $is_active, $sort_order));
+            'INSERT INTO legal_term_versions (category_id, version_label, body, effective_date, is_active, is_visible, sort_order)
+             VALUES (?,?,?,?,?,?,?)'
+        )->execute(array($category_id, $version_label, $body, $effective_date, $is_active, $is_visible, $sort_order));
     }
     echo json_encode(array('ok' => true));
     exit;

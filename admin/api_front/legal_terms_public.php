@@ -32,7 +32,7 @@ if ($action === 'document') {
         exit;
     }
 
-    $st = $pdo->prepare('SELECT id, name, slug FROM legal_term_categories WHERE slug = ? LIMIT 1');
+    $st = $pdo->prepare('SELECT id, name, slug FROM legal_term_categories WHERE slug = ? AND is_active = 1 LIMIT 1');
     $st->execute(array($slug));
     $cat = $st->fetch();
     if (!$cat) {
@@ -43,7 +43,7 @@ if ($action === 'document') {
     $st = $pdo->prepare(
         'SELECT id, version_label, body, effective_date, is_active,
                 DATE_FORMAT(effective_date, "%Y-%m-%d") AS eff
-         FROM legal_term_versions WHERE category_id = ?
+         FROM legal_term_versions WHERE category_id = ? AND is_visible = 1
          ORDER BY effective_date DESC, sort_order DESC, id DESC'
     );
     $st->execute(array((int) $cat['id']));

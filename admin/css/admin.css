@@ -698,6 +698,19 @@ textarea.form-control { resize: vertical; min-height: 100px; }
 .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
 .toggle-label { font-size: .84rem; color: var(--text2); }
 
+/* 법적 약관 목록 — 노출 컬럼 토글 */
+.legal-table-toggle-cell {
+  vertical-align: middle;
+  text-align: center;
+  width: 1%;
+  white-space: nowrap;
+}
+.legal-table-toggle-cell .toggle-wrap {
+  justify-content: center;
+  margin: 0;
+  gap: 0;
+}
+
 /* Checkbox */
 .checkbox-group { display: flex; flex-wrap: wrap; gap: 12px; }
 .checkbox-item  { display: flex; align-items: center; gap: 7px; cursor: pointer; }

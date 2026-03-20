@@ -23,6 +23,13 @@
         </div>
       </div>
       <div class="form-group" style="margin-top:12px;">
+        <label>프론트에 노출</label>
+        <div class="toggle-wrap">
+          <label class="toggle"><input type="checkbox" id="legalVerVisible" checked><span class="toggle-slider"></span></label>
+          <span class="toggle-label">끄면 약관 페이지·API에서 이 버전이 목록에 나오지 않습니다.</span>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:12px;">
         <label>약관 본문</label>
         <textarea class="form-control" id="legalVerBody" rows="14" placeholder="약관 전문을 입력하세요."></textarea>
       </div>
