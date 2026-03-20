@@ -1,29 +1,29 @@
 /* ═══════════════════════════════════════════════
-   스마트보험 AI 챗봇 – chatbot.css
+   AI 챗봇 – chatbot.css  (blue theme)
 ═══════════════════════════════════════════════ */
 
 /* ── FAB 버튼 ── */
 .cb-fab {
   position: fixed;
-  bottom: 32px;
+  bottom: 100px;           /* 탑버튼(bottom:30px + h:52px) 위로 띄움 */
   right: 32px;
   width: 62px;
   height: 62px;
-  background: linear-gradient(135deg, #c9a84c, #e8c87a);
+  background: linear-gradient(135deg, #1a3a8f, #2563eb);
   border: none;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6px 24px rgba(201, 168, 76, .5), 0 2px 8px rgba(0, 0, 0, .18);
+  box-shadow: 0 6px 24px rgba(37, 99, 235, .45), 0 2px 8px rgba(0, 0, 0, .18);
   z-index: 8000;
   transition: transform .25s cubic-bezier(.175, .885, .32, 1.275), box-shadow .25s;
-  color: #0f1e35;
+  color: #fff;
 }
 .cb-fab:hover {
   transform: translateY(-3px) scale(1.08);
-  box-shadow: 0 10px 32px rgba(201, 168, 76, .6), 0 4px 12px rgba(0, 0, 0, .22);
+  box-shadow: 0 10px 32px rgba(37, 99, 235, .55), 0 4px 12px rgba(0, 0, 0, .22);
 }
 .cb-fab.active {
   transform: scale(.93);
@@ -67,13 +67,13 @@
 /* ── 패널 ── */
 .cb-panel {
   position: fixed;
-  bottom: 108px;
+  bottom: 176px;           /* FAB(bottom:100 + h:62) + 14px 여백 */
   right: 32px;
   width: 370px;
   max-height: 590px;
   background: #fff;
   border-radius: 20px;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, .22), 0 0 0 1px rgba(201, 168, 76, .18);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .2), 0 0 0 1px rgba(37, 99, 235, .12);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -93,7 +93,7 @@
 
 /* ── 헤더 ── */
 .cb-header {
-  background: linear-gradient(135deg, #0f1e35, #1a2f4e);
+  background: linear-gradient(135deg, #1a3a8f, #2563eb);
   padding: 16px 20px;
   display: flex;
   align-items: center;
@@ -108,8 +108,8 @@
 .cb-avatar {
   width: 40px;
   height: 40px;
-  background: rgba(201, 168, 76, .15);
-  border: 1.5px solid rgba(201, 168, 76, .4);
+  background: rgba(255, 255, 255, .15);
+  border: 1.5px solid rgba(255, 255, 255, .35);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -125,7 +125,7 @@
 }
 .cb-hstatus {
   font-size: 11px;
-  color: rgba(255, 255, 255, .5);
+  color: rgba(255, 255, 255, .6);
   display: flex;
   align-items: center;
   gap: 5px;
@@ -134,7 +134,7 @@
 .cb-dot-green {
   width: 7px;
   height: 7px;
-  background: #2ecc71;
+  background: #4ade80;
   border-radius: 50%;
   animation: cbBlink 2s ease-in-out infinite;
 }
@@ -148,25 +148,25 @@
   gap: 8px;
 }
 .cb-hreset {
-  background: rgba(255, 255, 255, .1);
-  border: 1px solid rgba(255, 255, 255, .2);
+  background: rgba(255, 255, 255, .12);
+  border: 1px solid rgba(255, 255, 255, .25);
   border-radius: 20px;
   padding: 4px 11px;
   font-size: 11px;
   font-family: 'Noto Sans KR', sans-serif;
-  color: rgba(255, 255, 255, .8);
+  color: rgba(255, 255, 255, .85);
   cursor: pointer;
   transition: background .2s, color .2s;
   white-space: nowrap;
 }
 .cb-hreset:hover {
-  background: rgba(201, 168, 76, .3);
+  background: rgba(255, 255, 255, .25);
   color: #fff;
-  border-color: rgba(201, 168, 76, .5);
+  border-color: rgba(255, 255, 255, .45);
 }
 .cb-hclose {
-  background: rgba(255, 255, 255, .1);
-  border: 1px solid rgba(255, 255, 255, .15);
+  background: rgba(255, 255, 255, .12);
+  border: 1px solid rgba(255, 255, 255, .2);
   border-radius: 50%;
   width: 28px;
   height: 28px;
@@ -174,11 +174,11 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: rgba(255, 255, 255, .75);
+  color: rgba(255, 255, 255, .8);
   transition: background .2s;
 }
 .cb-hclose:hover {
-  background: rgba(255, 255, 255, .22);
+  background: rgba(255, 255, 255, .25);
 }
 
 /* ── 메시지 영역 ── */
@@ -189,16 +189,11 @@
   display: flex;
   flex-direction: column;
   gap: 13px;
-  background: #f7f4ef;
+  background: #f0f4ff;
   scroll-behavior: smooth;
 }
-.cb-messages::-webkit-scrollbar {
-  width: 3px;
-}
-.cb-messages::-webkit-scrollbar-thumb {
-  background: #ddd;
-  border-radius: 2px;
-}
+.cb-messages::-webkit-scrollbar { width: 3px; }
+.cb-messages::-webkit-scrollbar-thumb { background: #c7d4f5; border-radius: 2px; }
 
 /* ── 메시지 공통 ── */
 .cb-msg {
@@ -221,7 +216,7 @@
   width: 28px;
   height: 28px;
   flex-shrink: 0;
-  background: #0f1e35;
+  background: linear-gradient(135deg, #1a3a8f, #2563eb);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -239,7 +234,7 @@
   word-break: break-word;
 }
 .cb-ububble {
-  background: linear-gradient(135deg, #0f1e35, #1a2f4e);
+  background: linear-gradient(135deg, #1a3a8f, #2563eb);
   color: #fff;
   border-bottom-right-radius: 4px;
 }
@@ -247,8 +242,8 @@
   background: #fff;
   color: #1a1a2e;
   border-bottom-left-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .07);
-  border: 1px solid rgba(201, 168, 76, .13);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, .08);
+  border: 1px solid rgba(37, 99, 235, .12);
 }
 
 /* ── 타임스탬프 ── */
@@ -267,16 +262,16 @@
 .cb-follow {
   margin-top: 10px;
   padding: 7px 11px;
-  background: rgba(201, 168, 76, .1);
-  border: 1px solid rgba(201, 168, 76, .3);
+  background: rgba(37, 99, 235, .07);
+  border: 1px solid rgba(37, 99, 235, .22);
   border-radius: 10px;
   font-size: 12px;
-  color: #92691a;
+  color: #1a3a8f;
   cursor: pointer;
   transition: background .2s;
 }
 .cb-follow:hover {
-  background: rgba(201, 168, 76, .2);
+  background: rgba(37, 99, 235, .15);
 }
 
 /* ── 타이핑 인디케이터 ── */
@@ -289,7 +284,7 @@
 .cb-td {
   width: 7px;
   height: 7px;
-  background: #c9a84c;
+  background: #2563eb;
   border-radius: 50%;
   animation: cbDot 1.2s ease-in-out infinite;
 }
@@ -306,14 +301,14 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  background: #f7f4ef;
-  border-top: 1px solid rgba(201, 168, 76, .12);
+  background: #f0f4ff;
+  border-top: 1px solid rgba(37, 99, 235, .1);
   flex-shrink: 0;
 }
 .cb-quick button {
   background: #fff;
-  border: 1px solid rgba(201, 168, 76, .35);
-  color: #1a1a2e;
+  border: 1px solid rgba(37, 99, 235, .3);
+  color: #1a3a8f;
   border-radius: 20px;
   padding: 5px 11px;
   font-size: 11.5px;
@@ -323,14 +318,11 @@
   white-space: nowrap;
 }
 .cb-quick button:hover {
-  background: #c9a84c;
-  color: #0f1e35;
-  border-color: #c9a84c;
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
 }
-
-.cb-quick--hidden {
-  display: none !important;
-}
+.cb-quick--hidden { display: none !important; }
 
 /* ── 입력 영역 ── */
 .cb-input-wrap {
@@ -344,13 +336,13 @@
 }
 .cb-input {
   flex: 1;
-  border: 1.5px solid #ede8df;
+  border: 1.5px solid #dbe4ff;
   border-radius: 12px;
   padding: 9px 13px;
   font-size: 13px;
   font-family: 'Noto Sans KR', sans-serif;
   color: #1a1a2e;
-  background: #f7f4ef;
+  background: #f0f4ff;
   resize: none;
   outline: none;
   transition: border-color .2s, background .2s;
@@ -360,43 +352,38 @@
   line-height: 1.5;
 }
 .cb-input:focus {
-  border-color: #c9a84c;
+  border-color: #2563eb;
   background: #fff;
 }
-.cb-input::placeholder {
-  color: #bbb;
-}
+.cb-input::placeholder { color: #bbb; }
 
 /* ── 전송 버튼 ── */
 .cb-send {
   width: 38px;
   height: 38px;
   flex-shrink: 0;
-  background: linear-gradient(135deg, #c9a84c, #e8c87a);
+  background: linear-gradient(135deg, #1a3a8f, #2563eb);
   border: none;
   border-radius: 11px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #0f1e35;
+  color: #fff;
   transition: transform .2s, box-shadow .2s;
-  box-shadow: 0 3px 10px rgba(201, 168, 76, .35);
+  box-shadow: 0 3px 10px rgba(37, 99, 235, .35);
 }
 .cb-send:hover {
   transform: translateY(-1px);
-  box-shadow: 0 5px 14px rgba(201, 168, 76, .45);
+  box-shadow: 0 5px 14px rgba(37, 99, 235, .45);
 }
-.cb-send svg {
-  width: 16px;
-  height: 16px;
-}
+.cb-send svg { width: 16px; height: 16px; }
 
 /* ── 하단 안내문 ── */
 .cb-note {
   text-align: center;
   font-size: 10px;
-  color: #c0b89a;
+  color: #93a8d4;
   padding: 0 14px 9px;
   background: #fff;
   flex-shrink: 0;
@@ -414,7 +401,7 @@
     max-height: 82vh;
   }
   .cb-fab {
-    bottom: 20px;
+    bottom: 90px;
     right: 20px;
   }
 }

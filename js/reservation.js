@@ -585,3 +585,616 @@
 
   var _rsvReady=false;
   document.addEventListener('DOMContentLoaded',function(){ rsvGoStep(1); setTimeout(function(){_rsvReady=true;},500); });
+
+/* ===== reservation.js: rv2 book + lookup (merged from rv2_book.js, rv2_lookup.js) ===== */
+(function () {
+  'use strict';
+  if (!document.getElementById('rv2-step-host')) return;
+
+  var API = (function () {
+    var a = document.createElement('a');
+    a.href = 'admin/api_front/rv2_public.php';
+    return a.href;
+  })();
+
+  var state = {
+    config: null,
+    steps: [],
+    stepIndex: 0,
+    branchId: null,
+    date: null,
+    slotId: null,
+    itemId: null,
+    extra: {},
+    calendarYear: null,
+    calendarMonth: null,
+    calendarDays: {}
+  };
+
+  function el(id) { return document.getElementById(id); }
+
+  function showMsg(text, ok) {
+    var m = el('rv2-msg');
+    if (!text) { m.innerHTML = ''; return; }
+    m.innerHTML = '<div class="rv2-msg ' + (ok ? 'ok' : 'err') + '">' + esc(text) + '</div>';
+  }
+
+  function esc(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  }
+
+  function getJSON(url) {
+    return fetch(url, { credentials: 'omit' }).then(function (r) { return r.json(); });
+  }
+
+  function postJSON(body) {
+    return fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json; charset=utf-8' },
+      body: JSON.stringify(body),
+      credentials: 'omit'
+    }).then(function (r) { return r.json(); });
+  }
+
+  function loadConfig() {
+    return getJSON(API + '?action=config').then(function (res) {
+      if (!res.ok) throw new Error(res.msg || '설정 로드 실패');
+      state.config = res;
+      state.steps = (res.steps || []).filter(function (s) { return s.is_active == 1 || s.is_active === true; })
+        .sort(function (a, b) { return (a.sort_order || 0) - (b.sort_order || 0); });
+      var now = new Date();
+      state.calendarYear = now.getFullYear();
+      state.calendarMonth = now.getMonth() + 1;
+    });
+  }
+
+  function stepKey() {
+    var s = state.steps[state.stepIndex];
+    return s ? s.step_key : null;
+  }
+
+  function renderProgress() {
+    var host = el('rv2-progress');
+    host.innerHTML = '';
+    for (var i = 0; i < state.steps.length; i++) {
+      var sp = document.createElement('span');
+      if (i <= state.stepIndex) sp.className = 'on';
+      host.appendChild(sp);
+    }
+  }
+
+  function titleFor(key) {
+    var map = { branch: '지점 선택', date: '날짜 선택', time: '시간 선택', item: '항목 선택', info: '정보 입력' };
+    return map[key] || key;
+  }
+
+  function renderStep() {
+    renderProgress();
+    var host = el('rv2-step-host');
+    var act = el('rv2-actions');
+    host.innerHTML = '';
+    act.innerHTML = '';
+    showMsg('');
+
+    var key = stepKey();
+    if (!key) {
+      host.innerHTML = '<div class="rv2-card"><p>표시할 단계가 없습니다. 관리자에서 단계를 활성화해 주세요.</p></div>';
+      return;
+    }
+
+    if (key === 'branch') return renderBranch(host, act);
+    if (key === 'date') return renderDate(host, act);
+    if (key === 'time') return renderTime(host, act);
+    if (key === 'item') return renderItem(host, act);
+    if (key === 'info') return renderInfo(host, act);
+    host.innerHTML = '<div class="rv2-card">알 수 없는 단계: ' + esc(key) + '</div>';
+  }
+
+  function navButtons(act, showPrev, onPrev, onNext, nextLabel) {
+    if (showPrev) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'rv2-btn ghost';
+      b.textContent = '이전';
+      b.onclick = onPrev;
+      act.appendChild(b);
+    }
+    var n = document.createElement('button');
+    n.type = 'button';
+    n.className = 'rv2-btn primary';
+    n.textContent = nextLabel || '다음';
+    n.onclick = onNext;
+    act.appendChild(n);
+  }
+
+  function renderBranch(host, act) {
+    var card = document.createElement('div');
+    card.className = 'rv2-card';
+    card.innerHTML = '<div class="rv2-step-title">' + titleFor('branch') + '</div><div class="rv2-opt-grid cols-2" id="rv2-branch-grid"></div>';
+    host.appendChild(card);
+    var grid = card.querySelector('#rv2-branch-grid');
+    (state.config.branches || []).forEach(function (b) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'rv2-opt' + (state.branchId === b.id ? ' selected' : '');
+      btn.textContent = b.name;
+      btn.onclick = function () {
+        state.branchId = b.id;
+        Array.prototype.forEach.call(grid.querySelectorAll('.rv2-opt'), function (x) { x.classList.remove('selected'); });
+        btn.classList.add('selected');
+      };
+      grid.appendChild(btn);
+    });
+    navButtons(act, false, null, function () {
+      if (!state.branchId) { showMsg('지점을 선택해 주세요.'); return; }
+      state.stepIndex++;
+      renderStep();
+    });
+  }
+
+  function loadCalendar() {
+    if (!state.branchId) return Promise.resolve();
+    var y = state.calendarYear;
+    var m = state.calendarMonth;
+    var url = API + '?action=calendar&branch_id=' + state.branchId + '&year=' + y + '&month=' + m;
+    return getJSON(url).then(function (res) {
+      if (!res.ok) throw new Error(res.msg || '캘린더 로드 실패');
+      state.calendarDays = res.days || {};
+    });
+  }
+
+  function renderDate(host, act) {
+    if (!state.branchId) {
+      showMsg('먼저 지점을 선택해 주세요.');
+      state.stepIndex = 0;
+      return renderStep();
+    }
+    var card = document.createElement('div');
+    card.className = 'rv2-card';
+    card.innerHTML =
+      '<div class="rv2-step-title">' + titleFor('date') + '</div>' +
+      '<div class="rv2-cal-nav">' +
+      '<button type="button" id="rv2-cal-prev">‹</button>' +
+      '<h3 id="rv2-cal-label"></h3>' +
+      '<button type="button" id="rv2-cal-next">›</button>' +
+      '</div>' +
+      '<div class="rv2-cal-grid" id="rv2-cal-grid"></div>';
+    host.appendChild(card);
+
+    function paint() {
+      el('rv2-cal-label').textContent = state.calendarYear + '년 ' + state.calendarMonth + '월';
+      var grid = el('rv2-cal-grid');
+      grid.innerHTML = '';
+      var dow = ['일', '월', '화', '수', '목', '금', '토'];
+      dow.forEach(function (d) {
+        var c = document.createElement('div');
+        c.className = 'rv2-cal-dow';
+        c.textContent = d;
+        grid.appendChild(c);
+      });
+      var first = new Date(state.calendarYear, state.calendarMonth - 1, 1);
+      var last = new Date(state.calendarYear, state.calendarMonth, 0);
+      var lead = first.getDay();
+      for (var i = 0; i < lead; i++) {
+        var ph = document.createElement('div');
+        ph.className = 'rv2-cal-day muted';
+        grid.appendChild(ph);
+      }
+      for (var day = 1; day <= last.getDate(); day++) {
+        var ds = state.calendarYear + '-' + String(state.calendarMonth).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+        var cell = document.createElement('div');
+        cell.className = 'rv2-cal-day';
+        cell.textContent = day;
+        var info = state.calendarDays[ds];
+        if (!info || !info.open) {
+          cell.classList.add('closed');
+        } else {
+          cell.classList.add('open');
+        }
+        if (state.date === ds) cell.classList.add('selected');
+        (function (dstr, cEl, inf) {
+          cEl.onclick = function () {
+            if (!inf || !inf.open) return;
+            state.date = dstr;
+            Array.prototype.forEach.call(grid.querySelectorAll('.rv2-cal-day'), function (x) { x.classList.remove('selected'); });
+            cEl.classList.add('selected');
+          };
+        })(ds, cell, info);
+        grid.appendChild(cell);
+      }
+    }
+
+    loadCalendar().then(paint).catch(function (e) {
+      showMsg(e.message || '오류');
+    });
+
+    el('rv2-cal-prev').onclick = function () {
+      state.calendarMonth--;
+      if (state.calendarMonth < 1) { state.calendarMonth = 12; state.calendarYear--; }
+      loadCalendar().then(paint).catch(function (e) { showMsg(e.message); });
+    };
+    el('rv2-cal-next').onclick = function () {
+      state.calendarMonth++;
+      if (state.calendarMonth > 12) { state.calendarMonth = 1; state.calendarYear++; }
+      loadCalendar().then(paint).catch(function (e) { showMsg(e.message); });
+    };
+
+    navButtons(act, state.stepIndex > 0, function () {
+      state.stepIndex--;
+      renderStep();
+    }, function () {
+      if (!state.date) { showMsg('날짜를 선택해 주세요.'); return; }
+      state.stepIndex++;
+      renderStep();
+    });
+  }
+
+  function renderTime(host, act) {
+    if (!state.branchId || !state.date) {
+      showMsg('지점과 날짜를 먼저 선택해 주세요.');
+      state.stepIndex = Math.max(0, state.stepIndex - 1);
+      return renderStep();
+    }
+    var card = document.createElement('div');
+    card.className = 'rv2-card';
+    card.innerHTML = '<div class="rv2-step-title">' + titleFor('time') + '</div><div class="rv2-opt-grid cols-2" id="rv2-slot-grid"></div><p id="rv2-slot-hint" style="color:var(--rv2-muted);font-size:.85rem;margin-top:10px;"></p>';
+    host.appendChild(card);
+    var grid = card.querySelector('#rv2-slot-grid');
+    var hint = card.querySelector('#rv2-slot-hint');
+    getJSON(API + '?action=slots&branch_id=' + state.branchId + '&date=' + encodeURIComponent(state.date))
+      .then(function (res) {
+        if (!res.ok) throw new Error(res.msg || '시간 로드 실패');
+        var slots = res.slots || [];
+        if (!slots.length) {
+          hint.textContent = '이 날짜에 등록된 시간대가 없습니다. 다른 날짜를 선택해 주세요.';
+          return;
+        }
+        slots.forEach(function (s) {
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'rv2-opt' + (state.slotId === s.id ? ' selected' : '');
+          btn.disabled = !s.available;
+          btn.textContent = s.slot_time + (s.available ? '' : ' (마감)');
+          btn.onclick = function () {
+            if (!s.available) return;
+            state.slotId = s.id;
+            Array.prototype.forEach.call(grid.querySelectorAll('.rv2-opt'), function (x) { x.classList.remove('selected'); });
+            btn.classList.add('selected');
+          };
+          grid.appendChild(btn);
+        });
+      })
+      .catch(function (e) { showMsg(e.message); });
+
+    navButtons(act, true, function () {
+      state.stepIndex--;
+      renderStep();
+    }, function () {
+      if (!state.slotId) { showMsg('시간을 선택해 주세요.'); return; }
+      state.stepIndex++;
+      renderStep();
+    });
+  }
+
+  function renderItem(host, act) {
+    var items = state.config.items || [];
+    var card = document.createElement('div');
+    card.className = 'rv2-card';
+    if (!items.length) {
+      card.innerHTML = '<div class="rv2-step-title">' + titleFor('item') + '</div><p>등록된 항목이 없습니다. 건너뜁니다.</p>';
+      host.appendChild(card);
+      navButtons(act, true, function () {
+        state.stepIndex--;
+        renderStep();
+      }, function () {
+        state.itemId = null;
+        state.stepIndex++;
+        renderStep();
+      });
+      return;
+    }
+    card.innerHTML = '<div class="rv2-step-title">' + titleFor('item') + '</div><div class="rv2-opt-grid cols-2" id="rv2-item-grid"></div>';
+    host.appendChild(card);
+    var grid = card.querySelector('#rv2-item-grid');
+    items.forEach(function (it) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'rv2-opt' + (state.itemId === it.id ? ' selected' : '');
+      btn.textContent = it.name;
+      btn.onclick = function () {
+        state.itemId = it.id;
+        Array.prototype.forEach.call(grid.querySelectorAll('.rv2-opt'), function (x) { x.classList.remove('selected'); });
+        btn.classList.add('selected');
+      };
+      grid.appendChild(btn);
+    });
+    navButtons(act, true, function () {
+      state.stepIndex--;
+      renderStep();
+    }, function () {
+      if (!state.itemId) { showMsg('항목을 선택해 주세요.'); return; }
+      state.stepIndex++;
+      renderStep();
+    });
+  }
+
+  function renderInfo(host, act) {
+    var fields = state.config.fields || [];
+    var card = document.createElement('div');
+    card.className = 'rv2-card';
+    var html = '<div class="rv2-step-title">' + titleFor('info') + '</div>';
+    html += '<div class="rv2-field"><label>이름 <span style="color:#b91c1c">*</span></label><input type="text" id="rv2-c-name" required></div>';
+    html += '<div class="rv2-field"><label>연락처 <span style="color:#b91c1c">*</span></label><input type="text" id="rv2-c-phone" required></div>';
+    html += '<div class="rv2-field"><label>이메일</label><input type="email" id="rv2-c-email"></div>';
+    html += '<div id="rv2-dynamic-fields"></div>';
+    html += '<div class="rv2-field" style="margin-top:18px;border-top:1px solid var(--rv2-border);padding-top:16px;">';
+    html += '<label style="margin-bottom:10px;">접수 알림 방식 (복수 선택)</label>';
+    html += '<div class="rv2-check-row"><input type="checkbox" id="rv2-n-email"><label for="rv2-n-email" style="margin:0;font-weight:500;">이메일 (아래 수신처로 발송)</label></div>';
+    html += '<div class="rv2-field"><label>알림 이메일 (쉼표로 여러 개)</label><textarea id="rv2-n-emails" placeholder="a@mail.com, b@mail.com"></textarea></div>';
+    html += '<div class="rv2-check-row"><input type="checkbox" id="rv2-n-sheet"><label for="rv2-n-sheet" style="margin:0;font-weight:500;">스프레드시트(웹훅)</label></div>';
+    html += '<div class="rv2-check-row"><input type="checkbox" id="rv2-n-alim"><label for="rv2-n-alim" style="margin:0;font-weight:500;">알림톡(웹훅)</label></div>';
+    html += '</div>';
+    card.innerHTML = html;
+    host.appendChild(card);
+
+    var dyn = card.querySelector('#rv2-dynamic-fields');
+    fields.forEach(function (f) {
+      var fid = 'rv2-f-' + f.name_key;
+      var req = f.is_required == 1 || f.is_required === true;
+      var wrap = document.createElement('div');
+      wrap.className = 'rv2-field';
+      var label = document.createElement('label');
+      label.innerHTML = esc(f.label) + (req ? ' <span style="color:#b91c1c">*</span>' : '');
+      wrap.appendChild(label);
+
+      if (f.field_type === 'text') {
+        var inp = document.createElement('input');
+        inp.type = 'text';
+        inp.id = fid;
+        wrap.appendChild(inp);
+      } else if (f.field_type === 'date') {
+        var inpd = document.createElement('input');
+        inpd.type = 'date';
+        inpd.id = fid;
+        wrap.appendChild(inpd);
+      } else if (f.field_type === 'time') {
+        var inpt = document.createElement('input');
+        inpt.type = 'time';
+        inpt.id = fid;
+        wrap.appendChild(inpt);
+      } else if (f.field_type === 'daterange') {
+        var r1 = document.createElement('input');
+        r1.type = 'date';
+        r1.id = fid + '_s';
+        var r2 = document.createElement('input');
+        r2.type = 'date';
+        r2.id = fid + '_e';
+        r2.style.marginTop = '8px';
+        wrap.appendChild(r1);
+        wrap.appendChild(r2);
+      } else if (f.field_type === 'dropdown') {
+        var sel = document.createElement('select');
+        sel.id = fid;
+        var o0 = document.createElement('option');
+        o0.value = '';
+        o0.textContent = '선택';
+        sel.appendChild(o0);
+        (f.options || []).forEach(function (opt) {
+          var o = document.createElement('option');
+          var v = typeof opt === 'object' ? (opt.value || opt.label) : opt;
+          var l = typeof opt === 'object' ? (opt.label || opt.value) : opt;
+          o.value = v;
+          o.textContent = l;
+          sel.appendChild(o);
+        });
+        wrap.appendChild(sel);
+      } else if (f.field_type === 'radio') {
+        (f.options || []).forEach(function (opt, idx) {
+          var v = typeof opt === 'object' ? (opt.value || opt.label) : opt;
+          var l = typeof opt === 'object' ? (opt.label || opt.value) : opt;
+          var row = document.createElement('div');
+          row.className = 'rv2-check-row';
+          var rb = document.createElement('input');
+          rb.type = 'radio';
+          rb.name = fid;
+          rb.value = v;
+          rb.id = fid + '_' + idx;
+          var lb = document.createElement('label');
+          lb.setAttribute('for', rb.id);
+          lb.style.margin = '0';
+          lb.style.fontWeight = '500';
+          lb.textContent = l;
+          row.appendChild(rb);
+          row.appendChild(lb);
+          wrap.appendChild(row);
+        });
+      } else if (f.field_type === 'checkbox') {
+        (f.options || []).forEach(function (opt, idx) {
+          var v = typeof opt === 'object' ? (opt.value || opt.label) : opt;
+          var l = typeof opt === 'object' ? (opt.label || opt.value) : opt;
+          var row = document.createElement('div');
+          row.className = 'rv2-check-row';
+          var cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.value = v;
+          cb.id = fid + '_' + idx;
+          cb.dataset.fkey = f.name_key;
+          var lb = document.createElement('label');
+          lb.setAttribute('for', cb.id);
+          lb.style.margin = '0';
+          lb.textContent = l;
+          row.appendChild(cb);
+          row.appendChild(lb);
+          wrap.appendChild(row);
+        });
+      }
+      dyn.appendChild(wrap);
+    });
+
+    navButtons(act, true, function () {
+      state.stepIndex--;
+      renderStep();
+    }, function () {
+      var name = el('rv2-c-name').value.trim();
+      var phone = el('rv2-c-phone').value.trim();
+      var email = el('rv2-c-email').value.trim();
+      if (!name || !phone) { showMsg('이름과 연락처는 필수입니다.'); return; }
+
+      var extra = {};
+      for (var i = 0; i < fields.length; i++) {
+        var f = fields[i];
+        var req = f.is_required == 1 || f.is_required === true;
+        var fid = 'rv2-f-' + f.name_key;
+        if (f.field_type === 'checkbox') {
+          var vals = [];
+          dyn.querySelectorAll('input[type="checkbox"][data-fkey="' + f.name_key + '"]:checked').forEach(function (c) {
+            vals.push(c.value);
+          });
+          if (req && !vals.length) { showMsg('"' + f.label + '"을(를) 선택해 주세요.'); return; }
+          extra[f.name_key] = vals;
+        } else if (f.field_type === 'radio') {
+          var r = dyn.querySelector('input[name="' + fid + '"]:checked');
+          if (req && !r) { showMsg('"' + f.label + '"을(를) 선택해 주세요.'); return; }
+          extra[f.name_key] = r ? r.value : '';
+        } else if (f.field_type === 'daterange') {
+          var s = el(fid + '_s').value;
+          var e = el(fid + '_e').value;
+          if (req && (!s || !e)) { showMsg('"' + f.label + '" 기간을 입력해 주세요.'); return; }
+          extra[f.name_key] = { start: s, end: e };
+        } else {
+          var inp = el(fid);
+          var val = inp ? inp.value.trim() : '';
+          if (req && !val) { showMsg('"' + f.label + '"을(를) 입력해 주세요.'); return; }
+          extra[f.name_key] = val;
+        }
+      }
+
+      var payload = {
+        action: 'book',
+        branch_id: state.branchId,
+        slot_id: state.slotId,
+        item_id: state.itemId,
+        customer_name: name,
+        customer_phone: phone,
+        customer_email: email,
+        extra: extra,
+        notify_email: el('rv2-n-email').checked,
+        notify_sheet: el('rv2-n-sheet').checked,
+        notify_alim: el('rv2-n-alim').checked,
+        notify_emails: el('rv2-n-emails').value.split(',').map(function (x) { return x.trim(); }).filter(Boolean)
+      };
+
+      postJSON(payload).then(function (res) {
+        if (!res.ok) {
+          showMsg(res.msg || '예약 실패');
+          return;
+        }
+        showMsg('예약이 완료되었습니다. 예약번호: ' + res.reservation_no, true);
+        el('rv2-step-host').innerHTML = '';
+        el('rv2-actions').innerHTML = '<a class="rv2-btn primary" style="display:inline-block;text-align:center;text-decoration:none;line-height:48px;" href="#rv2-lookup-anchor">예약 조회</a>';
+        el('rv2-progress').innerHTML = '';
+      }).catch(function () {
+        showMsg('네트워크 오류');
+      });
+    }, '예약 완료');
+  }
+
+  loadConfig()
+    .then(renderStep)
+    .catch(function (e) {
+      showMsg(e.message || '초기화 실패');
+    });
+})();
+
+(function () {
+  'use strict';
+  var btn = document.getElementById('rv2-lookup-btn');
+  if (!btn) return;
+
+  var API = (function () {
+    var a = document.createElement('a');
+    a.href = 'admin/api_front/rv2_public.php';
+    return a.href;
+  })();
+
+  function esc(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  }
+
+  function showMsg(text, ok) {
+    var m = document.getElementById('rv2-lookup-msg');
+    if (!text) { m.innerHTML = ''; return; }
+    m.innerHTML = '<div class="rv2-msg ' + (ok ? 'ok' : 'err') + '">' + esc(text) + '</div>';
+  }
+
+  function cardBooking(b) {
+    if (!b) return '<p>조회 결과가 없습니다.</p>';
+    var ex = '';
+    try {
+      ex = typeof b.extra_json === 'string' ? JSON.parse(b.extra_json) : (b.extra_json || {});
+    } catch (e) {
+      ex = {};
+    }
+    var extraHtml = Object.keys(ex).length
+      ? '<pre style="white-space:pre-wrap;font-size:.85rem;background:#f8fafc;padding:12px;border-radius:8px;">' + esc(JSON.stringify(ex, null, 2)) + '</pre>'
+      : '';
+    return (
+      '<div class="rv2-card">' +
+      '<p><strong>예약번호</strong> ' + esc(b.reservation_no) + '</p>' +
+      '<p><strong>상태</strong> ' + esc(b.status) + '</p>' +
+      '<p><strong>일시</strong> ' + esc(b.reservation_at) + '</p>' +
+      '<p><strong>지점</strong> ' + esc(b.branch_name || '') + '</p>' +
+      '<p><strong>항목</strong> ' + esc(b.item_name || '-') + '</p>' +
+      '<p><strong>이름</strong> ' + esc(b.customer_name) + '</p>' +
+      '<p><strong>연락처</strong> ' + esc(b.customer_phone) + '</p>' +
+      (b.customer_email ? '<p><strong>이메일</strong> ' + esc(b.customer_email) + '</p>' : '') +
+      (extraHtml ? '<div style="margin-top:12px"><strong>추가 정보</strong>' + extraHtml + '</div>' : '') +
+      '</div>'
+    );
+  }
+
+  btn.onclick = function () {
+    showMsg('');
+    var no = document.getElementById('rv2-lookup-no').value.trim();
+    var name = document.getElementById('rv2-lookup-name').value.trim();
+    var phone = document.getElementById('rv2-lookup-phone').value.trim();
+    var body = { action: 'lookup' };
+    if (no) body.reservation_no = no;
+    else if (name && phone) {
+      body.customer_name = name;
+      body.customer_phone = phone;
+    } else {
+      showMsg('예약번호 또는 이름+연락처를 입력하세요.');
+      return;
+    }
+
+    fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json; charset=utf-8' },
+      body: JSON.stringify(body),
+      credentials: 'omit'
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        var out = document.getElementById('rv2-result');
+        if (!res.ok) {
+          showMsg(res.msg || '조회 실패');
+          out.innerHTML = '';
+          return;
+        }
+        if (res.booking) {
+          out.innerHTML = cardBooking(res.booking);
+        } else if (res.list) {
+          if (!res.list.length) {
+            out.innerHTML = '<div class="rv2-card"><p>조회 결과가 없습니다.</p></div>';
+            return;
+          }
+          out.innerHTML = res.list.map(cardBooking).join('');
+        }
+      })
+      .catch(function () {
+        showMsg('네트워크 오류');
+      });
+  };
+})();
+

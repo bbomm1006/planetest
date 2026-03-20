@@ -329,7 +329,8 @@ async function ciOpenManagerModal(id = 0) {
   });
   document.getElementById('ci-mgr-panel-sheet').style.display    = 'none';
   document.getElementById('ci-mgr-panel-alimtalk').style.display = 'none';
-  document.querySelector('input[name="ci_mgr_active"][value="1"]').checked = true;
+  const _qel331 = document.querySelector('input[name="ci_mgr_active"][value="1"]');
+  if (_qel331) _qel331.checked = true;
 
   if (id) {
     const res = await apiGet('api/custom_inquiry.php', { action: 'list_managers', form_id: ciCurrentFormId });
@@ -349,7 +350,8 @@ async function ciOpenManagerModal(id = 0) {
       document.getElementById('ci_mgr_notify_sms').checked      = m.notify_sms == 1;
       if (m.notify_sheet    == 1) document.getElementById('ci-mgr-panel-sheet').style.display    = '';
       if (m.notify_alimtalk == 1) document.getElementById('ci-mgr-panel-alimtalk').style.display = '';
-      document.querySelector(`input[name="ci_mgr_active"][value="${m.is_active}"]`).checked = true;
+      const _qel351 = document.querySelector(`input[name="ci_mgr_active"][value="${m.is_active}"]`);
+      if (_qel351) _qel351.checked = true;
     }
   }
   openModal('ciManagerModal');
@@ -720,8 +722,10 @@ async function ciOpenTermModal(id = 0) {
   document.getElementById('ci_term_id').value      = id;
   document.getElementById('ci_term_title').value   = '';
   document.getElementById('ci_term_content').value = '';
-  document.querySelector('input[name="ci_term_required"][value="1"]').checked = true;
-  document.querySelector('input[name="ci_term_active"][value="1"]').checked   = true;
+  const _qel722 = document.querySelector('input[name="ci_term_required"][value="1"]');
+  if (_qel722) _qel722.checked = true;
+  const _qel723 = document.querySelector('input[name="ci_term_active"][value="1"]');
+  if (_qel723) _qel723.checked = true;
 
   if (id) {
     const res = await apiGet('api/custom_inquiry.php', { action: 'list_terms', form_id: ciCurrentFormId });
@@ -729,8 +733,10 @@ async function ciOpenTermModal(id = 0) {
     if (t) {
       document.getElementById('ci_term_title').value   = t.title   || '';
       document.getElementById('ci_term_content').value = t.content || '';
-      document.querySelector(`input[name="ci_term_required"][value="${t.is_required}"]`).checked = true;
-      document.querySelector(`input[name="ci_term_active"][value="${t.is_active}"]`).checked     = true;
+      const _qel731 = document.querySelector(`input[name="ci_term_required"][value="${t.is_required}"]`);
+      if (_qel731) _qel731.checked = true;
+      const _qel732 = document.querySelector(`input[name="ci_term_active"][value="${t.is_active}"]`);
+      if (_qel732) _qel732.checked = true;
     }
   }
   openModal('ciTermModal');
