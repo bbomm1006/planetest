@@ -25,9 +25,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 /* ── 발신자 정보 (send_email.php와 동일하게 맞춰주세요) ── */
-$fromName         = 'PureBlue 고객센터';
+$fromName         = '관리자';
 $gmailEmail       = 'solha.jin90@gmail.com';
 $gmailAppPassword = 'otud ocoq cmsv hvde';
+
+/* ── 메일 제목용 사이트 타이틀 ── */
+$_siteTitle = '';
+try {
+    $_row = getDB()->query("SELECT title FROM homepage_info WHERE id=1 LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+    $_siteTitle = $_row['title'] ?? '';
+} catch (Exception $e) {}
+$mailPrefix = $_siteTitle ? '[' . $_siteTitle . ']' : '[관리자]';
 
 $action = trim($_POST['action'] ?? '');
 
@@ -57,21 +65,35 @@ function sendMail($toEmail, $subject, $htmlBody, $gmailEmail, $gmailAppPassword,
     }
 }
 
+/* ── 홈페이지 정보 가져오기 ── */
+function getSiteInfo() {
+    try {
+        $pdo  = getDB();
+        $row  = $pdo->query("SELECT title, copyright FROM homepage_info WHERE id=1 LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+        return $row ?: ['title' => '', 'copyright' => ''];
+    } catch (Exception $e) {
+        return ['title' => '', 'copyright' => ''];
+    }
+}
+
 /* ── 공통 HTML 래퍼 ── */
 function mailWrap($title, $content) {
+    $site      = getSiteInfo();
+    $siteTitle = htmlspecialchars($site['title'] ?: '');
+    $copyright = htmlspecialchars($site['copyright'] ?: '');
+
     return '<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"></head>
 <body style="font-family:\'Noto Sans KR\',sans-serif;background:#f8fafc;margin:0;padding:0;">
 <div style="max-width:560px;margin:32px auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08);">
   <div style="background:linear-gradient(90deg,#1255a6,#1e7fe8);padding:28px 32px;">
-    <div style="font-family:Montserrat,sans-serif;font-weight:900;font-size:1.3rem;color:#fff;letter-spacing:-0.5px;">Pure<span style="color:#00c6ff;">Blue</span></div>
-    <div style="color:rgba(255,255,255,.7);font-size:.8rem;margin-top:4px;">프리미엄 정수기 렌탈</div>
+    <div style="font-family:Montserrat,sans-serif;font-weight:900;font-size:1.3rem;color:#fff;letter-spacing:-0.5px;">' . $siteTitle . '</div>
   </div>
   <div style="padding:28px 32px;">
     <h2 style="font-size:1.1rem;color:#1255a6;margin:0 0 16px;">' . $title . '</h2>
     ' . $content . '
   </div>
   <div style="background:#f1f5f9;padding:16px 32px;font-size:.75rem;color:#94a3b8;text-align:center;">
-    © 2026 PureBlue Corp. 고객센터: 1588-0000 | 평일 09~18시
+    ' . $copyright . '
   </div>
 </div>
 </body></html>';
@@ -115,7 +137,7 @@ if ($action === 'find_id') {
         </p>';
 
     $html   = mailWrap('아이디 찾기 결과', $content);
-    $result = sendMail($email, '[PureBlue 관리자] 아이디 안내', $html, $gmailEmail, $gmailAppPassword, $fromName);
+    $result = sendMail($email, $mailPrefix . ' 아이디 안내', $html, $gmailEmail, $gmailAppPassword, $fromName);
 
     if ($result === true) {
         echo json_encode(['ok' => true, 'msg' => '등록된 이메일이 있으면 아이디를 발송했습니다.']);
@@ -177,7 +199,7 @@ if ($action === 'find_pw') {
         </p>';
 
     $html   = mailWrap('임시 비밀번호 안내', $content);
-    $result = sendMail($email, '[PureBlue 관리자] 임시 비밀번호 안내', $html, $gmailEmail, $gmailAppPassword, $fromName);
+    $result = sendMail($email, $mailPrefix . ' 임시 비밀번호 안내', $html, $gmailEmail, $gmailAppPassword, $fromName);
 
     if ($result === true) {
         echo json_encode(['ok' => true, 'msg' => '입력하신 정보와 일치하는 계정이 있으면 임시 비밀번호를 발송했습니다.']);
