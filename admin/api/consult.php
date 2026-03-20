@@ -74,15 +74,17 @@ if ($action === 'update') {
     $status = trim($_POST['status']??'');
     $memo   = trim($_POST['admin_memo']??'');
     $pdo->prepare('UPDATE consults SET status=?, admin_memo=? WHERE id=?')->execute([$status,$memo,$id]);
-    logAdminAction($pdo,'update','consults',(string)$id,[],['status'=>$status]);
+    $_cn = $pdo->prepare('SELECT name FROM consults WHERE id=?'); $_cn->execute([$id]); $_cr = $_cn->fetch();
+    logAdminAction($pdo,'update','consults',(string)$id,[],['name'=>$_cr['name']??'','status'=>$status]);
     echo json_encode(['ok'=>true]); exit;
 }
 
 /* ── 삭제 ── */
 if ($action === 'delete') {
     $id = (int)($_POST['id']??0);
+    $_cn2 = $pdo->prepare('SELECT name FROM consults WHERE id=?'); $_cn2->execute([$id]); $_cr2 = $_cn2->fetch();
     $pdo->prepare('DELETE FROM consults WHERE id=?')->execute([$id]);
-    logAdminAction($pdo,'delete','consults',(string)$id);
+    logAdminAction($pdo,'delete','consults',(string)$id,[],['name'=>$_cr2['name']??'']);
     echo json_encode(['ok'=>true]); exit;
 }
 if ($action === 'bulkDelete') {

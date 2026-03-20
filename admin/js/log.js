@@ -38,11 +38,10 @@ const LOG_CONFIG = {
       { value: 'naver',  label: 'Naver' },
       { value: 'normal', label: '일반' },
     ],
-    heads: ['시간', '유형', '아이디', '이름', 'IP', '결과', '실패 사유', '상세'],
+    heads: ['시간', '유형', '아이디', 'IP', '결과', '실패 사유', '상세'],
     row: r => [
       fmtDt(r.created_at),
       userTypeBadge(r.user_type),
-      esc(r.user_id   || '-'),
       esc(r.username  || '-'),
       esc(r.ip),
       resultBadge(r.result),
@@ -60,13 +59,13 @@ const LOG_CONFIG = {
       { value: 'login',  label: '로그인' },
       { value: 'logout', label: '로그아웃' },
     ],
-    heads: ['시간', '관리자', '작업', '대상 테이블', '대상 ID', 'IP', '상세'],
+    heads: ['시간', '관리자', '작업', '대상 테이블', '대상 아이디', 'IP', '상세'],
     row: r => [
       fmtDt(r.created_at),
       esc(r.admin_name || '-'),
       actionBadge(r.action),
       esc(r.target_table || '-'),
-      esc(r.target_id    || '-'),
+      adminActionTarget(r),
       esc(r.ip),
     ],
   },
@@ -329,6 +328,21 @@ function logExportCsv() {
 }
 
 // ── 배지 헬퍼 ─────────────────────────────────────────────────
+function adminActionTarget(r) {
+  // after_data 또는 before_data에서 이름/제목 추출
+  let label = '';
+  const src = r.after_data || r.before_data || '';
+  if (src) {
+    try {
+      const d = typeof src === 'object' ? src : JSON.parse(src);
+      label = d.username || d.name || d.title || d.store_name || d.term_name ||
+              d.field_name || d.model_no || d.subject || d.branch_name || '';
+    } catch(e) {}
+  }
+  if (label) return `<span title="${esc(String(r.target_id||''))}">${esc(String(label))}</span>`;
+  return esc(String(r.target_id || '-'));
+}
+
 function statusBadge(code) {
   const c = parseInt(code);
   const color = c >= 500 ? 'var(--danger)' : c >= 400 ? 'var(--warning,#f59e0b)' : c >= 300 ? 'var(--text-secondary)' : 'var(--success,#22c55e)';

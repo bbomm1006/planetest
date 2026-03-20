@@ -86,7 +86,8 @@ if ($action === 'update') {
     $status    = trim($_POST['status']??'');
     $is_public = (int)($_POST['is_public']??1);
     $pdo->prepare('UPDATE inquiries SET status=?, is_public=? WHERE id=?')->execute([$status,$is_public,$id]);
-    logAdminAction($pdo,'update','inquiries',(string)$id,[],['status'=>$status]);
+    $_in = $pdo->prepare('SELECT name FROM inquiries WHERE id=?'); $_in->execute([$id]); $_ir = $_in->fetch();
+    logAdminAction($pdo,'update','inquiries',(string)$id,[],['name'=>$_ir['name']??'','status'=>$status]);
     echo json_encode(['ok'=>true]); exit;
 }
 
@@ -118,8 +119,9 @@ if ($action === 'answerDelete') {
 if ($action === 'delete') {
     $id=(int)($_POST['id']??0);
     $pdo->prepare('DELETE FROM inquiry_answers WHERE inquiry_id=?')->execute([$id]);
+    $_in2 = $pdo->prepare('SELECT name FROM inquiries WHERE id=?'); $_in2->execute([$id]); $_ir2 = $_in2->fetch();
     $pdo->prepare('DELETE FROM inquiries WHERE id=?')->execute([$id]);
-    logAdminAction($pdo,'delete','inquiries',(string)$id);
+    logAdminAction($pdo,'delete','inquiries',(string)$id,[],['name'=>$_ir2['name']??'']);
     echo json_encode(['ok'=>true]); exit;
 }
 if ($action === 'bulkDelete') {

@@ -101,14 +101,16 @@ if ($action === 'update') {
     $status     = trim($_POST['status']??'');
     $admin_memo = trim($_POST['admin_memo']??'');
     $pdo->prepare('UPDATE reservations SET status=?, admin_memo=? WHERE id=?')->execute([$status,$admin_memo,$id]);
-    logAdminAction($pdo,'update','reservations',(string)$id,[],['status'=>$status]);
+    $_rn = $pdo->prepare('SELECT name FROM reservations WHERE id=?'); $_rn->execute([$id]); $_rr = $_rn->fetch();
+    logAdminAction($pdo,'update','reservations',(string)$id,[],['name'=>$_rr['name']??'','status'=>$status]);
     echo json_encode(['ok'=>true]); exit;
 }
 
 if ($action === 'delete') {
     $id=(int)($_POST['id']??0);
+    $_rn2 = $pdo->prepare('SELECT name FROM reservations WHERE id=?'); $_rn2->execute([$id]); $_rr2 = $_rn2->fetch();
     $pdo->prepare('DELETE FROM reservations WHERE id=?')->execute([$id]);
-    logAdminAction($pdo,'delete','reservations',(string)$id);
+    logAdminAction($pdo,'delete','reservations',(string)$id,[],['name'=>$_rr2['name']??'']);
     echo json_encode(['ok'=>true]); exit;
 }
 if ($action === 'bulkDelete') {

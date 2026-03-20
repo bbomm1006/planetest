@@ -77,8 +77,9 @@ if ($action === 'delete') {
         echo json_encode(['ok' => false, 'msg' => '자신의 계정은 삭제할 수 없습니다.']);
         exit;
     }
+    $_am = $pdo->prepare('SELECT username FROM admins WHERE id = ?'); $_am->execute([$id]); $_ar = $_am->fetch();
     $pdo->prepare('DELETE FROM admins WHERE id = ?')->execute([$id]);
-    logAdminAction($pdo, 'delete', 'admins', (string)$id);
+    logAdminAction($pdo, 'delete', 'admins', (string)$id, [], ['username'=>$_ar['username']??'']);
     echo json_encode(['ok' => true]);
     exit;
 }

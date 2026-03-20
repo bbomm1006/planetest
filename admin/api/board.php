@@ -118,7 +118,7 @@ if ($action === 'boardCreate') {
     )->execute([$name, $table_name, $use_category, $use_comment, $use_file, $use_thumbnail, $use_tags, $use_social, $fields_json, $max + 1]);
     $board_id = (int)$pdo->lastInsertId();
 
-    logAdminAction($pdo,'create','boards',(string)$board_id);
+    logAdminAction($pdo,'create','boards',(string)$board_id,[],['name'=>$name]);
     echo json_encode(['ok' => true, 'id' => $board_id]);
     exit;
 }
@@ -150,7 +150,7 @@ if ($action === 'boardDelete') {
     $pdo->exec("DROP TABLE IF EXISTS `bp_{$row['table_name']}`");
     $pdo->prepare('DELETE FROM board_categories WHERE board_id=?')->execute([$id]);
     $pdo->prepare('DELETE FROM boards WHERE id=?')->execute([$id]);
-    logAdminAction($pdo,'delete','boards',(string)$id);
+    logAdminAction($pdo,'delete','boards',(string)$id,[],['name'=>$row['name']??'']);
     echo json_encode(['ok' => true]);
     exit;
 }
