@@ -65,6 +65,11 @@
       <?php include 'lib/board.php'; ?>
 
       <!-- ========================
+            문의 폼 관리
+            ======================== -->
+      <?php include 'lib/customInquiry.php'; ?>
+
+      <!-- ========================
             5-1. 상담 분류
             ======================== -->
       <!-- 5-2. 상담 내역 -->
@@ -149,6 +154,9 @@
   <!-- 로그 상세 Modal -->
   <?php include 'modals/logDetailModal.php'; ?>
 
+  <!-- 문의 폼 Modal -->
+  <?php include 'modals/customInquiryModal.php'; ?>
+
 
 <div class="toast-container" id="toastContainer"></div>
 
@@ -193,6 +201,8 @@
 <script src="js/chatbot.js"></script>
 
 <script src="js/log.js"></script>
+
+<script src="js/customInquiry.js"></script>
 
 </body>
 </html>

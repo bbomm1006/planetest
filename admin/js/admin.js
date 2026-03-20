@@ -15,6 +15,7 @@ const MENU_LIST_BASE = [
   { key:'inquiry',   label:'일대일 문의 내역' },
   { key:'rsvTime',   label:'예약 시간 관리' },
   { key:'rsvList',   label:'예약 내역' },
+  { key:'customInquiry', label:'문의 폼 관리' },
 ];
 
 // 프론트(홈) 섹션 노출 설정
@@ -106,6 +107,11 @@ const PAGE_LABELS = {
 
   homepageInfo: ['시스템','홈페이지 정보 관리'],
   logMgmt:      ['로그 관리','로그 관리'],
+
+  customInquiryCreate: ['문의 폼','문의 폼 추가'],
+  customInquiryList:   ['문의 폼','문의 폼 목록'],
+  customInquiryDetail: ['문의 폼','폼 설정'],
+  customInquiryData:   ['문의 폼','문의 내역'],
 };
 
 // ===========================
@@ -278,6 +284,7 @@ function enterAdmin(name, username, email = '') {
   showPage(savedPage);
   loadAdminList();
   if (typeof loadBoardList === 'function') loadBoardList();
+  if (typeof ciLoadCustomInquirySidebar === 'function') ciLoadCustomInquirySidebar();
 }
 
 async function doLogout() {
@@ -344,6 +351,9 @@ function showPage(pageId) {
 
   if (pageId === 'homepageInfo') hiLoad();
   if (pageId === 'logMgmt')     initLogMgmt();
+
+  if (pageId === 'customInquiryCreate') { /* 별도 로드 없음 */ }
+  if (pageId === 'customInquiryList')   ciLoadFormList();
 }
 
 function toggleNav(el) {
