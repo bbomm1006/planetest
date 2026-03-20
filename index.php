@@ -24,8 +24,7 @@
     'front_gallery',
     'front_photo_gallery',
     'front_slide_gallery',
-    // 'front_board',
-    // 'front_consult',
+
     'front_footer',
   ];
 
