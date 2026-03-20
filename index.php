@@ -177,6 +177,11 @@ include __DIR__ . '/lib/custom_inquiry_front.php';
     <?php include 'lib/customReser_front.php'; ?>
   </div>
 
+  <!-- rvmReser 신규 예약 UI (lib/rvmReser_front.php) -->
+  <div data-front-section-key="front_customReser_suite" <?php if (!$frontIsVisible('front_customReser_suite')) echo 'style="display:none;"'; ?>>
+    <?php include 'lib/rvmReser_front.php'; ?>
+  </div>
+
   <!-- NOTICES -->
   <div data-front-section-key="front_notices" <?php if (!$frontIsVisible('front_notices')) echo 'style="display:none;"'; ?>>
     <?php include 'lib/bbs_notice.php'; ?>
@@ -266,6 +271,7 @@ include __DIR__ . '/lib/custom_inquiry_front.php';
   <script src="js/reservation.js"></script>
   <script src="js/reservationLookup.js"></script>
   <script src="js/customReser_public.js"></script>
+  <script src="js/rvmReser_public.js"></script>
   <script src="js/store.js"></script>
   <script src="js/timeslots.js"></script>
   <script src="js/utils.js"></script>

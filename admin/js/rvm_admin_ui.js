@@ -12,10 +12,13 @@
    4. selectedDate가 탭 전환 후에도 유지됨
    5. 시간 추가 모달 → 시간(HH:MM) + 정원 직접 입력
    6. 시간 삭제 버튼 추가
+   ★ DB 연동: 더미 데이터 제거, API fetch로 실제 저장/조회
 ========================================================= */
 
 (function () {
   'use strict';
+
+  var API = '/admin/api/customReser_admin.php';
 
   var root = document.getElementById('rvmAdminRoot');
   if (!root) return;
@@ -50,6 +53,21 @@
   function todayIso() {
     var n = new Date();
     return formatISODate(new Date(n.getFullYear(), n.getMonth(), n.getDate()));
+  }
+
+  /* ── API fetch 헬퍼 ──────────────────────────────── */
+  function apiGet(params) {
+    var qs = Object.keys(params).map(function(k){ return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
+    return fetch(API + '?' + qs, { credentials: 'same-origin' }).then(function(r){ return r.json(); });
+  }
+
+  function apiPost(body) {
+    return fetch(API, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(function(r){ return r.json(); });
   }
 
   /* ── 모달 ─────────────────────────────────────────── */
@@ -87,124 +105,35 @@
 
   var FIELD_TYPES = ['text', 'phone', 'email', 'radio', 'checkbox', 'dropdown'];
 
-  /* ── 더미 데이터 ──────────────────────────────────── */
-  var demo = (function () {
-    var instances = [
-      { id: 1, name: '예약관리 1', slug: 'reservation-1', is_active: true, description: '기본 시나리오 — 지점/날짜/시간/정보입력' },
-      { id: 2, name: '예약관리 2', slug: 'reservation-2', is_active: true, description: '항목 포함 시나리오 — 지점/날짜/항목/정보입력' },
-      { id: 3, name: '예약관리 3', slug: 'reservation-3', is_active: false, description: '미사용 예시' },
-    ];
-
-    var regions = [
-      { id: 1, name: '서울' },
-      { id: 2, name: '경기' },
-      { id: 3, name: '부산' },
-    ];
-
-    var branches = [
-      { id: 101, region_id: 1, name: '강남점',   is_active: true  },
-      { id: 102, region_id: 1, name: '홍대점',   is_active: true  },
-      { id: 201, region_id: 2, name: '분당점',   is_active: true  },
-      { id: 202, region_id: 2, name: '수원점',   is_active: false },
-      { id: 301, region_id: 3, name: '해운대점', is_active: true  },
-    ];
-
-    // 오늘 기준으로 더미 캘린더 데이터 생성(시간 슬롯이 실제로 들어있는 날짜들)
-    function makeCalendarDemo() {
-      var cal = {};
-      var now = new Date();
-      var today = formatISODate(new Date(now.getFullYear(), now.getMonth(), now.getDate()));
-      // 오늘 포함 앞으로 5일치 시간 슬롯 미리 넣어둠
-      for (var i = 0; i < 5; i++) {
-        var d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
-        var iso = formatISODate(d);
-        cal[iso] = {
-          closed: i === 2, // 모레는 마감
-          times: [
-            { time: '09:00', capacity: 3, booked: i },
-            { time: '10:00', capacity: 3, booked: Math.max(0, i - 1) },
-            { time: '11:00', capacity: 2, booked: 0 },
-            { time: '14:00', capacity: 3, booked: 0 },
-            { time: '15:00', capacity: 3, booked: 0 },
-          ],
-          itemByBranch: {}
-        };
-      }
-      return cal;
-    }
-
-    function fieldsCommon() {
-      return [
-        { id: 1, field_type: 'text',     name_key: 'customer_name',  label: '이름',         is_required: true,  is_active: true,  options: [] },
-        { id: 2, field_type: 'phone',    name_key: 'customer_phone', label: '전화번호',     is_required: true,  is_active: true,  options: [] },
-        { id: 3, field_type: 'email',    name_key: 'customer_email', label: '이메일',       is_required: false, is_active: true,  options: [] },
-        { id: 4, field_type: 'radio',    name_key: 'visit_purpose',  label: '방문 목적',   is_required: false, is_active: true,  options: ['상담', '시연', '기타'] },
-        { id: 5, field_type: 'checkbox', name_key: 'agreements',     label: '동의 항목',   is_required: false, is_active: true,  options: ['개인정보 수집', '이벤트 수신'] },
-      ];
-    }
-
-    function bookingsFor(instanceId) {
-      return [
-        { id: 9001, no: 'RVM-'+instanceId+'-0001', status: '접수',  at: '2026-03-19 10:20', branch_id: 101, name: '김서준', phone: '010-1234-5678' },
-        { id: 9002, no: 'RVM-'+instanceId+'-0002', status: '확인',  at: '2026-03-19 13:00', branch_id: 102, name: '박지연', phone: '010-2222-3333' },
-        { id: 9003, no: 'RVM-'+instanceId+'-0003', status: '완료',  at: '2026-03-18 09:40', branch_id: 201, name: '이민호', phone: '010-7777-8888' },
-        { id: 9004, no: 'RVM-'+instanceId+'-0004', status: '취소',  at: '2026-03-17 16:10', branch_id: 301, name: '최유나', phone: '010-4444-5555' },
-        { id: 9005, no: 'RVM-'+instanceId+'-0005', status: '접수',  at: '2026-03-20 11:10', branch_id: 101, name: '한지민', phone: '010-9090-1010' },
-        { id: 9006, no: 'RVM-'+instanceId+'-0006', status: '확인',  at: '2026-03-20 15:30', branch_id: 201, name: '정다은', phone: '010-3030-4040' },
-        { id: 9007, no: 'RVM-'+instanceId+'-0007', status: '완료',  at: '2026-03-16 14:00', branch_id: 102, name: '윤도현', phone: '010-5151-6161' },
-        { id: 9008, no: 'RVM-'+instanceId+'-0008', status: '접수',  at: '2026-03-15 09:15', branch_id: 201, name: '오서연', phone: '010-7272-8383' },
-      ];
-    }
-
-    return {
-      instances: instances,
-      regions: regions,
-      branches: branches,
-      stepsByInstance: {
-        1: [ { step_key: 'branch', sort_order: 10, is_active: true }, { step_key: 'date', sort_order: 20, is_active: true }, { step_key: 'time', sort_order: 30, is_active: true }, { step_key: 'info', sort_order: 40, is_active: true } ],
-        2: [ { step_key: 'branch', sort_order: 10, is_active: true }, { step_key: 'date', sort_order: 20, is_active: true }, { step_key: 'item', sort_order: 30, is_active: true }, { step_key: 'info', sort_order: 40, is_active: true } ],
-        3: [ { step_key: 'branch', sort_order: 10, is_active: true }, { step_key: 'date', sort_order: 20, is_active: true }, { step_key: 'time', sort_order: 30, is_active: true }, { step_key: 'info', sort_order: 40, is_active: true } ],
-      },
-      fieldsByInstance:      { 1: fieldsCommon(), 2: fieldsCommon().slice(0, 3), 3: fieldsCommon().slice(0, 2) },
-      branchAssignByInstance:{ 1: [101, 102, 201], 2: [201, 301], 3: [101] },
-      calendarByInstance:    { 1: makeCalendarDemo(), 2: makeCalendarDemo(), 3: {} },
-      notificationByInstance:{ 1: { use_email: true, use_sheet: false, use_alimtalk: true, email_list: 'admin@example.com', sheet_webhook: '', alimtalk_webhook: '' }, 2: { use_email: false, use_sheet: true, use_alimtalk: false, email_list: '', sheet_webhook: 'https://example.com/hook', alimtalk_webhook: '' }, 3: { use_email: false, use_sheet: false, use_alimtalk: false, email_list: '', sheet_webhook: '', alimtalk_webhook: '' } },
-      bookingsByInstance:    { 1: bookingsFor(1), 2: bookingsFor(2), 3: bookingsFor(3) },
-      lookupByInstance:      { 1: { allow_by_reservation_no: true, allow_by_name_phone: true }, 2: { allow_by_reservation_no: true, allow_by_name_phone: true }, 3: { allow_by_reservation_no: true, allow_by_name_phone: false } },
-      itemsByBranchByInstance: {
-        1: { 101: [{ id: 5001, name: '스케일링',    is_active: true }, { id: 5002, name: '기본진료', is_active: true }], 102: [{ id: 5003, name: '시연/상담', is_active: true }], 201: [{ id: 5004, name: '검사', is_active: true }] },
-        2: { 201: [{ id: 5101, name: '정기점검', is_active: true }], 301: [{ id: 5102, name: '긴급수리', is_active: true }, { id: 5103, name: '기타', is_active: true }] },
-        3: { 101: [] },
-      },
-    };
-  })();
-
   /* ── 상태(State) ──────────────────────────────────── */
   var state = {
-    mode: 'list',           // 'list' | 'edit'
-    instanceId: 1,
-    editTab: 'steps',       // steps | fields | branches | calendar | notification | bookings | lookup
-    instances:             demo.instances.map(function(x){ return Object.assign({}, x); }),
-    stepsByInstance:       JSON.parse(JSON.stringify(demo.stepsByInstance)),
-    fieldsByInstance:      JSON.parse(JSON.stringify(demo.fieldsByInstance)),
-    branchAssignByInstance:JSON.parse(JSON.stringify(demo.branchAssignByInstance)),
-    calendarByInstance:    JSON.parse(JSON.stringify(demo.calendarByInstance)),
-    notificationByInstance:JSON.parse(JSON.stringify(demo.notificationByInstance)),
-    bookingsByInstance:    JSON.parse(JSON.stringify(demo.bookingsByInstance)),
-    lookupByInstance:      JSON.parse(JSON.stringify(demo.lookupByInstance)),
-    itemsByBranchByInstance:JSON.parse(JSON.stringify(demo.itemsByBranchByInstance)),
-    regionsMaster:  JSON.parse(JSON.stringify(demo.regions)),
-    branchesMaster: JSON.parse(JSON.stringify(demo.branches)),
+    mode: 'list',
+    instanceId: null,
+    editTab: 'steps',
+    instances: [],
+    stepsByInstance: {},
+    fieldsByInstance: {},
+    branchAssignByInstance: {},
+    calendarByInstance: {},
+    notificationByInstance: {},
+    bookingsByInstance: {},
+    lookupByInstance: {},
+    itemsByBranchByInstance: {},
+    regionsMaster: [],
+    branchesMaster: [],
     nextFieldId: 1000,
     nextStepSeq: 100,
     nextItemId:  5300,
     nextBranchId: 500,
     monthCursor: new Date(),
-    selectedDate: null,          // 캘린더 탭에서 선택된 날짜 (탭 전환 후에도 유지)
+    selectedDate: null,
     calendarBranchId: null,
     branchItemBranchId: null,
     drag: { fromIdx: null },
     bkFilter: {},
+    loading: false,
+    /* 캘린더 탭에서 날짜별 슬롯을 DB에서 로드한 결과 캐시 (instanceId:branchId:date → slots[]) */
+    slotCache: {},
   };
 
   /* ── 셀렉터 헬퍼 ─────────────────────────────────── */
@@ -222,63 +151,205 @@
   function regionById(id)  { return (state.regionsMaster  || []).find(function(r){ return r.id === id; }); }
   function stepLabel(k)    { var t = STEP_TYPES.find(function(x){ return x.key === k; }); return t ? t.label : k; }
 
-  /* ── 더미 예약 필드값 ────────────────────────────── */
-  function dummyFieldValue(bk, field) {
-    var seed = (parseInt(bk.id, 10) || 0) + String(field.name_key || '').length * 17;
-    var opts = Array.isArray(field.options) ? field.options : [];
-    if (field.field_type === 'text')     return field.label + ' ' + (seed % 90 + 10);
-    if (field.field_type === 'phone')    return '010-' + (1000 + seed % 9000) + '-' + (1000 + (seed * 7) % 9000);
-    if (field.field_type === 'email')    return 'user' + (seed % 1000) + '@example.com';
-    if (field.field_type === 'radio')    return opts.length ? opts[seed % opts.length] : '-';
-    if (field.field_type === 'dropdown') return opts.length ? opts[(seed+3) % opts.length] : '-';
-    if (field.field_type === 'checkbox') { if (!opts.length) return '-'; var a = opts[seed % opts.length]; var b = opts[(seed+1) % opts.length]; return a === b ? a : a + ', ' + b; }
-    return '-';
+  /* ── 슬롯 캐시 키 ────────────────────────────────── */
+  function slotCacheKey(iid, bid, date) { return iid + ':' + bid + ':' + date; }
+
+  /* ── 예약 필드값 표시 (실제 extra_json 기반) ─────── */
+  function bookingFieldValue(bk, field) {
+    var extra = {};
+    try { extra = JSON.parse(bk.extra_json || '{}'); } catch(e) {}
+    var key = field.name_key || '';
+    if (key === 'customer_name')  return bk.customer_name  || '-';
+    if (key === 'customer_phone') return bk.customer_phone || '-';
+    if (key === 'customer_email') return bk.customer_email || '-';
+    var val = extra[key];
+    if (val == null) return '-';
+    if (Array.isArray(val)) return val.join(', ');
+    return String(val);
   }
 
   /* ── 모드 전환 ───────────────────────────────────── */
   function setModeList() {
     state.mode = 'list';
     state.editTab = 'steps';
-    render();
+    state.instanceId = null;
+    loadInstances();
   }
 
   function setModeEdit(instanceId) {
     state.mode = 'edit';
     state.instanceId = instanceId;
     state.editTab = 'steps';
-    var assigns = getBranchAssign(instanceId);
-    state.calendarBranchId     = assigns[0] || null;
-    state.branchItemBranchId   = assigns[0] || null;
-    // selectedDate 는 유지하되, 과거면 오늘로 리셋
+    state.calendarByInstance[instanceId] = {};
+    state.slotCache = {};
     var td = todayIso();
     if (!state.selectedDate || state.selectedDate < td) state.selectedDate = td;
-    render();
+    loadEditData(instanceId);
   }
 
+  /* ── 초기 로드 ───────────────────────────────────── */
+  function loadInstances() {
+    state.loading = true;
+    renderLoading();
+    apiGet({ action: 'instance_list' }).then(function(data) {
+      state.loading = false;
+      if (data.ok) {
+        state.instances = (data.instances || []).map(function(x){
+          return Object.assign({}, x, { id: parseInt(x.id, 10), is_active: !!parseInt(x.is_active, 10) });
+        });
+      }
+      render();
+    }).catch(function() { state.loading = false; render(); });
+  }
+
+  function loadEditData(iid) {
+    state.loading = true;
+    renderLoading();
+    /* 병렬 로드: 지역/지점 마스터 + 인스턴스 메타 */
+    Promise.all([
+      apiGet({ action: 'region_list' }),
+      apiGet({ action: 'branch_list' }),
+      apiGet({ action: 'steps_list', instance_id: iid }),
+      apiGet({ action: 'fields_list', instance_id: iid }),
+      apiGet({ action: 'instance_branch_list', instance_id: iid }),
+      apiGet({ action: 'settings_get', instance_id: iid }),
+    ]).then(function(results) {
+      state.loading = false;
+      var rReg = results[0], rBr = results[1], rSt = results[2], rFld = results[3], rIBr = results[4], rSet = results[5];
+
+      if (rReg.ok) state.regionsMaster = (rReg.regions || []).map(function(r){ return Object.assign({}, r, { id: parseInt(r.id, 10) }); });
+      if (rBr.ok)  state.branchesMaster = (rBr.branches || []).map(function(b){ return Object.assign({}, b, { id: parseInt(b.id, 10), region_id: parseInt(b.region_id, 10), is_active: !!parseInt(b.is_active, 10) }); });
+
+      if (rSt.ok) {
+        state.stepsByInstance[iid] = (rSt.steps || []).map(function(s){
+          return Object.assign({}, s, { is_active: !!parseInt(s.is_active, 10), sort_order: parseInt(s.sort_order, 10) });
+        });
+      }
+      if (rFld.ok) {
+        state.fieldsByInstance[iid] = (rFld.fields || []).map(function(f){
+          var opts = f.options || [];
+          if (typeof opts === 'string') { try { opts = JSON.parse(opts); } catch(e){ opts = []; } }
+          return Object.assign({}, f, { id: parseInt(f.id, 10), is_active: !!parseInt(f.is_active, 10), is_required: !!parseInt(f.is_required, 10), options: Array.isArray(opts) ? opts : [] });
+        });
+      }
+      if (rIBr.ok) {
+        state.branchAssignByInstance[iid] = (rIBr.assigned || []).map(function(x){ return parseInt(x.branch_id, 10); });
+      }
+
+      var assigns = getBranchAssign(iid);
+      state.calendarBranchId   = assigns[0] || null;
+      state.branchItemBranchId = assigns[0] || null;
+
+      /* 알림 설정 매핑 */
+      var s = rSet.ok && rSet.settings ? rSet.settings : {};
+      state.notificationByInstance[iid] = {
+        use_email:        !!parseInt(s.notify_use_email, 10),
+        use_sheet:        !!parseInt(s.notify_use_sheet, 10),
+        use_alimtalk:     !!parseInt(s.notify_use_alim, 10),
+        email_list:       s.notify_emails || '',
+        sheet_webhook:    s.spreadsheet_webhook || '',
+        alimtalk_webhook: s.alimtalk_webhook || '',
+      };
+
+      /* lookupByInstance: settings 테이블에 없으므로 기본값 유지 */
+      if (!state.lookupByInstance[iid]) {
+        state.lookupByInstance[iid] = { allow_by_reservation_no: true, allow_by_name_phone: true };
+      }
+
+      render();
+    }).catch(function(e) { state.loading = false; console.error(e); render(); });
+  }
+
+  /* ── 예약 접수 리스트 로드 ──────────────────────── */
+  function loadBookings(iid, filters) {
+    var params = Object.assign({ action: 'booking_list', instance_id: iid }, filters || {});
+    return apiGet(params).then(function(data) {
+      if (data.ok) {
+        state.bookingsByInstance[iid] = (data.rows || []).map(function(b){
+          return Object.assign({}, b, { id: parseInt(b.id, 10), branch_id: parseInt(b.branch_id, 10) });
+        });
+      }
+      return data;
+    });
+  }
+
+  /* ── 슬롯 로드 (캘린더 날짜 클릭) ──────────────── */
+  function loadSlotsForDate(iid, bid, date) {
+    var key = slotCacheKey(iid, bid, date);
+    return apiGet({ action: 'slot_list', instance_id: iid, branch_id: bid, date: date }).then(function(data) {
+      if (data.ok) {
+        /* calendarByInstance에 통합 */
+        var cal = getCalendar(iid);
+        if (!cal[date]) cal[date] = { closed: false, times: [], itemByBranch: {} };
+        cal[date].times = (data.slots || []).map(function(sl){
+          return {
+            id: parseInt(sl.id, 10),
+            time: (sl.slot_time || '').slice(0, 5),
+            capacity: parseInt(sl.capacity, 10),
+            booked: parseInt(sl.booked, 10),
+          };
+        });
+        state.slotCache[key] = true;
+      }
+      return data;
+    });
+  }
+
+  /* ── 항목(item) 로드 ────────────────────────────── */
+  function loadItems(iid) {
+    return apiGet({ action: 'item_list', instance_id: iid }).then(function(data) {
+      if (data.ok) {
+        /* branchId 무관 — instance 단위로 관리. UI는 branch별로 분리해 표시 */
+        var items = (data.items || []).map(function(it){
+          return Object.assign({}, it, { id: parseInt(it.id, 10), branch_id: parseInt(it.branch_id || 0, 10), is_active: !!parseInt(it.is_active, 10) });
+        });
+        /* branchId 별로 분리 */
+        var byBranch = {};
+        items.forEach(function(it){
+          var bid = it.branch_id || 0;
+          if (!byBranch[bid]) byBranch[bid] = [];
+          byBranch[bid].push(it);
+        });
+        state.itemsByBranchByInstance[iid] = byBranch;
+      }
+      return data;
+    });
+  }
+
+  /* ── 신규 인스턴스 생성 ─────────────────────────── */
   function createNewInstance() {
-    var newId = Math.max.apply(null, state.instances.map(function(x){ return x.id; }).concat([0])) + 1;
-    state.instances.unshift({ id: newId, name: '예약관리 ' + newId, slug: 'reservation-' + newId, is_active: true, description: '' });
-    state.stepsByInstance[newId]        = [ { step_key: 'branch', sort_order: 10, is_active: true }, { step_key: 'date', sort_order: 20, is_active: true }, { step_key: 'time', sort_order: 30, is_active: true }, { step_key: 'info', sort_order: 40, is_active: true } ];
-    state.fieldsByInstance[newId]       = [ { id: state.nextFieldId++, field_type: 'text', name_key: 'customer_name', label: '이름', is_required: true, is_active: true, options: [] }, { id: state.nextFieldId++, field_type: 'phone', name_key: 'customer_phone', label: '전화번호', is_required: true, is_active: true, options: [] } ];
-    var firstBranch = state.branchesMaster && state.branchesMaster[0] ? state.branchesMaster[0].id : null;
-    state.branchAssignByInstance[newId] = firstBranch ? [firstBranch] : [];
-    state.calendarByInstance[newId]     = {};
-    state.notificationByInstance[newId] = { use_email: true, use_sheet: false, use_alimtalk: false, email_list: '', sheet_webhook: '', alimtalk_webhook: '' };
-    state.bookingsByInstance[newId]     = [];
-    state.lookupByInstance[newId]       = { allow_by_reservation_no: true, allow_by_name_phone: true };
-    state.itemsByBranchByInstance[newId]= {};
-    state.instanceId    = newId;
-    state.mode          = 'edit';
-    state.editTab       = 'steps';
-    state.calendarBranchId   = firstBranch;
-    state.branchItemBranchId = firstBranch;
-    render();
-    toast('새 예약 테이블 생성됨', 'success');
+    openModal(
+      '<h3 style="margin-top:0">예약 테이블 추가</h3>' +
+      '<div class="rvmAdmin-grid" style="gap:12px">' +
+      '<div class="rvmAdmin-col-12"><label style="font-weight:900;color:var(--text2);font-size:.9rem;display:block;margin-bottom:6px">예약명</label><input class="rvmAdmin-input" type="text" id="rvmNewName" placeholder="예: 강남점 예약"/></div>' +
+      '<div class="rvmAdmin-col-12"><label style="font-weight:900;color:var(--text2);font-size:.9rem;display:block;margin-bottom:6px">slug (영문소문자·숫자·하이픈)</label><input class="rvmAdmin-input" type="text" id="rvmNewSlug" placeholder="예: gangnam-reservation"/></div>' +
+      '<div class="rvmAdmin-col-12"><label class="rvmAdmin-switch" style="gap:10px"><input type="checkbox" id="rvmNewActive" checked/><span style="font-weight:900;color:var(--text2)">사용</span></label></div>' +
+      '</div>' +
+      '<div style="margin-top:14px" class="rvmAdmin-btn-row"><button type="button" class="btn btn-primary" id="rvmNewSave">저장</button><button type="button" class="btn btn-ghost" id="rvmNewCancel">취소</button></div>'
+    );
+    modalEl.querySelector('#rvmNewCancel').onclick = closeModal;
+    modalEl.querySelector('#rvmNewSave').onclick = function() {
+      var name = (modalEl.querySelector('#rvmNewName').value || '').trim();
+      var slug = (modalEl.querySelector('#rvmNewSlug').value || '').trim();
+      var act  = !!modalEl.querySelector('#rvmNewActive').checked;
+      if (!name) return alert('예약명을 입력하세요.');
+      if (!slug) return alert('slug를 입력하세요.');
+      apiPost({ action: 'instance_save', name: name, slug: slug, is_active: act ? 1 : 0, sort_order: 0 }).then(function(data) {
+        if (!data.ok) return alert(data.msg || '저장 실패');
+        closeModal();
+        toast('예약 테이블 생성됨', 'success');
+        setModeEdit(parseInt(data.id, 10));
+      });
+    };
   }
 
   /* ════════════════════════════════════════════════════
      RENDER
   ════════════════════════════════════════════════════ */
+  function renderLoading() {
+    root.innerHTML = '<div class="rvmAdmin-card"><div class="rvmAdmin-card__body" style="color:var(--text3);font-weight:900;padding:24px">로딩 중…</div></div>';
+  }
+
   function render() {
     var instance = getInstance(state.instanceId);
     var html = '';
@@ -286,7 +357,6 @@
     if (state.mode === 'list') {
       html = renderInstanceList();
     } else {
-      // 탭 목록
       var tabs = [
         { id: 'steps',        label: '단계 구성' },
         { id: 'fields',       label: '정보입력 필드' },
@@ -313,17 +383,18 @@
     var rows = state.instances.map(function(ins) {
       return '<tr>' +
         '<td style="font-weight:900">' + esc(ins.name) + '</td>' +
+        '<td><code style="font-size:.82rem;color:var(--text3)">' + esc(ins.slug || '') + '</code></td>' +
         '<td><span class="rvmAdmin-pill ' + (ins.is_active ? 'ok' : 'bad') + '">' + (ins.is_active ? '사용' : '미사용') + '</span></td>' +
         '<td style="width:220px"><div class="rvmAdmin-btn-row">' +
         '<button type="button" class="btn btn-sm btn-outline" data-action="edit" data-inst="' + esc(ins.id) + '">수정</button>' +
         '<button type="button" class="btn btn-sm btn-danger" data-action="del" data-inst="' + esc(ins.id) + '">삭제</button>' +
         '</div></td>' + '</tr>';
-    }).join('') || '<tr><td colspan="3" style="color:var(--text3);padding:18px 8px">예약 테이블이 없습니다.</td></tr>';
+    }).join('') || '<tr><td colspan="4" style="color:var(--text3);padding:18px 8px">예약 테이블이 없습니다.</td></tr>';
 
     return '<div class="rvmAdmin__section"><div class="rvmAdmin-card">' +
       '<div class="rvmAdmin-card__head"><div><h3>예약 테이블 목록</h3><p>예약 테이블 단위로 단계/필드/지점/날짜를 독립 설정합니다.</p></div></div>' +
       '<div class="rvmAdmin-card__body"><div class="rvmAdmin-table-wrap"><table class="rvmAdmin-t">' +
-      '<thead><tr><th>예약명</th><th>상태</th><th>관리</th></tr></thead>' +
+      '<thead><tr><th>예약명</th><th>slug</th><th>상태</th><th>관리</th></tr></thead>' +
       '<tbody>' + rows + '</tbody></table></div></div></div></div>';
   }
 
@@ -331,6 +402,7 @@
   function renderInstanceEdit(instance) {
     instance = instance || getInstance(state.instanceId);
     var title  = instance ? instance.name : '';
+    var slug   = instance ? (instance.slug || '') : '';
     var desc   = instance ? (instance.description || '') : '';
     var active = instance ? !!instance.is_active : true;
 
@@ -344,6 +416,8 @@
       '<div class="rvmAdmin-card__body"><div class="rvmAdmin-grid">' +
       '<div class="rvmAdmin-col-6"><div class="rvmAdmin-form-row"><label>예약명</label>' +
       '<input class="rvmAdmin-input" type="text" id="rvm-edit-name" value="' + esc(title) + '"/></div></div>' +
+      '<div class="rvmAdmin-col-6"><div class="rvmAdmin-form-row"><label>slug</label>' +
+      '<input class="rvmAdmin-input" type="text" id="rvm-edit-slug" value="' + esc(slug) + '" placeholder="영문소문자·숫자·하이픈"/></div></div>' +
       '<div class="rvmAdmin-col-6"><div class="rvmAdmin-form-row"><label>사용 여부</label>' +
       '<label class="rvmAdmin-switch"><input type="checkbox" id="rvm-edit-active" ' + (active ? 'checked' : '') + '/>' +
       '<span style="font-weight:900">' + (active ? '사용' : '미사용') + '</span></label></div></div>' +
@@ -399,465 +473,260 @@
       var opts = Array.isArray(f.options) ? f.options : [];
       var optSummary = (f.field_type === 'radio' || f.field_type === 'checkbox' || f.field_type === 'dropdown') ? (opts.length ? opts.length + '개 옵션' : '옵션 없음') : '-';
       return '<tr>' +
-        '<td style="min-width:100px">' + esc(f.field_type) + '</td>' +
-        '<td style="min-width:140px">' + esc(f.name_key) + '</td>' +
-        '<td style="min-width:180px">' + esc(f.label) + '<br><span style="color:var(--text3);font-size:.82rem">옵션: ' + esc(optSummary) + '</span></td>' +
-        '<td><span class="rvmAdmin-pill ' + (f.is_required ? 'ok' : '') + '">' + (f.is_required ? '필수' : '선택') + '</span></td>' +
+        '<td style="font-weight:900">' + esc(f.label) + '</td>' +
+        '<td><code>' + esc(f.field_type) + '</code></td>' +
+        '<td><code>' + esc(f.name_key) + '</code></td>' +
+        '<td>' + esc(optSummary) + '</td>' +
+        '<td><span class="rvmAdmin-pill ' + (f.is_required ? 'warn' : '') + '">' + (f.is_required ? '필수' : '선택') + '</span></td>' +
         '<td><span class="rvmAdmin-pill ' + (f.is_active ? 'ok' : 'bad') + '">' + (f.is_active ? '활성' : '비활성') + '</span></td>' +
-        '<td style="width:180px"><div class="rvmAdmin-btn-row">' +
+        '<td><div class="rvmAdmin-btn-row">' +
         '<button type="button" class="btn btn-sm btn-outline rvmFieldEdit" data-id="' + esc(f.id) + '">수정</button>' +
         '<button type="button" class="btn btn-sm btn-danger rvmFieldDel" data-id="' + esc(f.id) + '">삭제</button>' +
         '</div></td></tr>';
-    }).join('');
+    }).join('') || '<tr><td colspan="7" style="color:var(--text3);padding:14px 8px">필드가 없습니다.</td></tr>';
 
     return '<div class="rvmAdmin__section"><div class="rvmAdmin-card">' +
-      '<div class="rvmAdmin-card__head"><div><h3>정보입력 필드 관리</h3><p>예약자 입력 항목(이름/전화/이메일/라디오/체크박스/드롭다운)을 구성합니다.</p></div>' +
+      '<div class="rvmAdmin-card__head"><div><h3>정보입력 필드</h3><p>예약 시 고객에게 보여줄 입력 항목을 관리합니다.</p></div>' +
       '<div class="rvmAdmin-actions"><button type="button" class="btn btn-primary" data-action="field-add">+ 필드 추가</button></div></div>' +
-      '<div class="rvmAdmin-card__body"><div class="rvmAdmin-table-wrap"><table class="rvmAdmin-t" style="min-width:900px">' +
-      '<thead><tr><th>타입</th><th>키(name_key)</th><th>라벨/옵션</th><th>필수</th><th>활성</th><th>관리</th></tr></thead>' +
-      '<tbody>' + (rows || '<tr><td colspan="6" style="color:var(--text3);padding:18px 8px">필드가 없습니다.</td></tr>') + '</tbody>' +
-      '</table></div></div></div></div>';
+      '<div class="rvmAdmin-card__body"><div class="rvmAdmin-table-wrap"><table class="rvmAdmin-t">' +
+      '<thead><tr><th>라벨</th><th>타입</th><th>name_key</th><th>옵션</th><th>필수</th><th>상태</th><th>관리</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody></table></div></div></div></div>';
   }
 
   /* ─── 지점 관리 탭 ──────────────────────────────── */
   function renderBranchesTab() {
-    var assigned = getBranchAssign(state.instanceId);
-    var assignedSet = {};
-    assigned.forEach(function(id){ assignedSet[id] = true; });
+    var assigns = getBranchAssign(state.instanceId);
+    var regions = state.regionsMaster || [];
+    var branches = state.branchesMaster || [];
 
-    // ① 지점 목록 + 연결 체크를 한 테이블에 통합 (지역별 그룹 제거 → 단순 평면 테이블)
-    var masterRows = (state.branchesMaster || []).slice()
-      .sort(function(a,b){ return a.region_id !== b.region_id ? a.region_id - b.region_id : a.id - b.id; })
-      .map(function(b) {
-        var rName = regionById(b.region_id) ? regionById(b.region_id).name : '-';
-        var isConn = !!assignedSet[b.id];
+    /* 지역별 그룹 */
+    var regionHtml = regions.map(function(r) {
+      var brs = branches.filter(function(b){ return b.region_id === r.id; });
+      var brRows = brs.map(function(b) {
+        var connected = assigns.indexOf(b.id) >= 0;
         return '<tr>' +
-          '<td style="color:var(--text3);font-size:.85rem">' + esc(rName) + '</td>' +
-          '<td style="font-weight:900">' + esc(b.name) + '</td>' +
-          '<td>' +
-          '<label class="rvmAdmin-switch" style="gap:8px">' +
-          '<input type="checkbox" class="rvmBranchActive" data-branch="' + esc(b.id) + '"' + (b.is_active ? ' checked' : '') + '/>' +
-          '<span style="font-weight:800;color:var(--text2)">' + (b.is_active ? '사용' : '미사용') + '</span>' +
-          '</label>' +
-          '</td>' +
-          '<td>' +
-          '<label class="rvmAdmin-switch" style="gap:8px">' +
-          '<input type="checkbox" class="rvmBranchConn" data-branch="' + esc(b.id) + '"' + (isConn ? ' checked' : '') + '/>' +
-          '<span style="font-weight:800;color:var(--text2)">' + (isConn ? '이 테이블에 연결됨' : '미연결') + '</span>' +
-          '</label>' +
-          '</td>' +
-          '<td style="width:160px"><div class="rvmAdmin-btn-row">' +
+          '<td>' + esc(b.name) + '</td>' +
+          '<td><span class="rvmAdmin-pill ' + (b.is_active ? 'ok' : 'bad') + '">' + (b.is_active ? '사용' : '미사용') + '</span></td>' +
+          '<td><label class="rvmAdmin-switch" style="gap:8px"><input type="checkbox" class="rvmBranchConn" data-branch="' + esc(b.id) + '"' + (connected ? ' checked' : '') + '/><span style="font-weight:900;font-size:.85rem">연결</span></label></td>' +
+          '<td><label class="rvmAdmin-switch" style="gap:8px"><input type="checkbox" class="rvmBranchActive" data-branch="' + esc(b.id) + '"' + (b.is_active ? ' checked' : '') + '/><span style="font-weight:900;font-size:.85rem">사용</span></label></td>' +
+          '<td><div class="rvmAdmin-btn-row">' +
           '<button type="button" class="btn btn-sm btn-outline rvmBranchMasterEdit" data-id="' + esc(b.id) + '">수정</button>' +
           '<button type="button" class="btn btn-sm btn-danger rvmBranchMasterDel" data-id="' + esc(b.id) + '">삭제</button>' +
-          '</div></td>' +
-          '</tr>';
-      }).join('');
+          '</div></td></tr>';
+      }).join('') || '<tr><td colspan="5" style="color:var(--text3)">지점 없음</td></tr>';
 
-    // ② 지점별 항목 관리 (단계에 item 이 있을 때만 의미있음)
-    var steps = getSteps(state.instanceId);
-    var hasItemStep = steps.some(function(s){ return s.is_active && s.step_key === 'item'; });
-
-    var selectedBranch = state.branchItemBranchId;
-    if (!selectedBranch || assigned.indexOf(selectedBranch) < 0) selectedBranch = assigned[0] || null;
-    var brOpts = assigned.map(function(bid) {
-      var br = branchById(bid);
-      return br ? '<option value="' + esc(bid) + '"' + (String(bid) === String(selectedBranch) ? ' selected' : '') + '>' + esc(br.name) + '</option>' : '';
-    }).join('');
-    var items = selectedBranch ? getItemsByBranch(state.instanceId, selectedBranch) : [];
-    var itemRows = items.map(function(it) {
-      return '<tr>' +
-        '<td style="font-weight:900">' + esc(it.name) + '</td>' +
-        '<td><span class="rvmAdmin-pill ' + (it.is_active ? 'ok' : 'bad') + '">' + (it.is_active ? '사용' : '미사용') + '</span></td>' +
-        '<td style="width:100px"><button type="button" class="btn btn-sm btn-danger rvmBranchItemDel" data-id="' + esc(it.id) + '">삭제</button></td>' +
-        '</tr>';
-    }).join('');
-
-    var itemSectionHtml = hasItemStep
-      ? '<div class="rvmAdmin-card" style="margin-top:10px">' +
-        '<div class="rvmAdmin-card__head">' +
-        '<div><h3>지점별 항목</h3><p>단계에 "항목"이 있을 때 지점별 예약 항목을 설정합니다.</p></div>' +
+      return '<div style="margin-bottom:18px">' +
+        '<div style="font-weight:900;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:8px">' +
+        esc(r.name) +
+        '<button type="button" class="btn btn-sm btn-outline rvmRegionEdit" data-id="' + esc(r.id) + '" style="margin-left:4px">수정</button>' +
+        '<button type="button" class="btn btn-sm btn-danger rvmRegionDel" data-id="' + esc(r.id) + '">삭제</button>' +
         '</div>' +
-        '<div class="rvmAdmin-card__body">' +
-        '<div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:12px">' +
-        '<div style="flex:1"><label style="font-weight:900;color:var(--text2);font-size:.86rem;display:block;margin-bottom:6px">지점 선택</label>' +
-        '<select class="rvmAdmin-select" id="rvmBranchItemSel">' + (brOpts || '<option value="">연결된 지점 없음</option>') + '</select></div>' +
-        '<button type="button" class="btn btn-primary" id="rvmBranchItemAdd"' + (!selectedBranch ? ' disabled' : '') + '>+ 항목 추가</button>' +
-        '</div>' +
-        '<div class="rvmAdmin-table-wrap"><table class="rvmAdmin-t" style="min-width:480px"><thead><tr><th>항목명</th><th>사용</th><th></th></tr></thead>' +
-        '<tbody>' + (itemRows || '<tr><td colspan="3" style="color:var(--text3);padding:14px 8px">"+ 항목 추가" 버튼으로 항목을 만드세요.</td></tr>') + '</tbody></table></div>' +
-        '</div></div>'
-      : '<div style="margin-top:10px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:#f8fafc;color:var(--text3);font-size:.86rem;font-weight:800">' +
-        '단계 구성에서 "항목" 단계를 활성화하면 지점별 항목 설정이 여기에 표시됩니다.' +
+        '<div class="rvmAdmin-table-wrap"><table class="rvmAdmin-t"><thead><tr><th>지점명</th><th>상태</th><th>이 인스턴스 연결</th><th>지점 사용여부</th><th>관리</th></tr></thead><tbody>' + brRows + '</tbody></table></div>' +
         '</div>';
-
-    // ③ 지역 마스터 관리
-    var regionRows = (state.regionsMaster || []).map(function(r) {
-      var branchCount = (state.branchesMaster || []).filter(function(b){ return b.region_id === r.id; }).length;
-      return '<tr>' +
-        '<td style="font-weight:900">' + esc(r.name) + '</td>' +
-        '<td style="color:var(--text3)">' + branchCount + '개 지점</td>' +
-        '<td style="width:160px"><div class="rvmAdmin-btn-row">' +
-        '<button type="button" class="btn btn-sm btn-outline rvmRegionEdit" data-id="' + esc(r.id) + '">수정</button>' +
-        '<button type="button" class="btn btn-sm btn-danger rvmRegionDel" data-id="' + esc(r.id) + '"' + (branchCount > 0 ? ' disabled title="소속 지점이 있어 삭제할 수 없습니다"' : '') + '>삭제</button>' +
-        '</div></td>' +
-        '</tr>';
-    }).join('');
-
-    return '<div class="rvmAdmin__section">' +
-
-      // ① 지역 관리
-      '<div class="rvmAdmin-card">' +
-      '<div class="rvmAdmin-card__head">' +
-      '<div><h3>지역 관리</h3><p>지점을 묶는 지역(시/도 단위 등)을 먼저 설정하세요. 지역이 있어야 지점을 추가할 수 있습니다.</p></div>' +
-      '<div class="rvmAdmin-actions"><button type="button" class="btn btn-primary" id="rvmRegionAdd">+ 지역 추가</button></div>' +
-      '</div>' +
-      '<div class="rvmAdmin-card__body">' +
-      '<div class="rvmAdmin-table-wrap"><table class="rvmAdmin-t" style="min-width:400px">' +
-      '<thead><tr><th>지역명</th><th>소속 지점 수</th><th>관리</th></tr></thead>' +
-      '<tbody>' + (regionRows || '<tr><td colspan="3" style="color:var(--text3);padding:18px 8px">지역이 없습니다. "+ 지역 추가"로 먼저 만드세요.</td></tr>') + '</tbody>' +
-      '</table></div>' +
-      '</div></div>' +
-
-      // ② 지점 관리
-      '<div class="rvmAdmin-card" style="margin-top:10px">' +
-      '<div class="rvmAdmin-card__head">' +
-      '<div><h3>지점 관리</h3><p>지점 추가/수정/삭제, 사용 여부, 이 예약 테이블에 연결할 지점을 체크하세요.</p></div>' +
-      '<div class="rvmAdmin-actions"><button type="button" class="btn btn-primary" id="rvmBranchMasterAdd"' + (!(state.regionsMaster && state.regionsMaster.length) ? ' disabled title="지역을 먼저 추가하세요"' : '') + '>+ 지점 추가</button></div>' +
-      '</div>' +
-      '<div class="rvmAdmin-card__body">' +
-      '<div class="rvmAdmin-table-wrap"><table class="rvmAdmin-t" style="min-width:680px">' +
-      '<thead><tr><th>지역</th><th>지점명</th><th>사용 여부</th><th>테이블 연결</th><th>관리</th></tr></thead>' +
-      '<tbody>' + (masterRows || '<tr><td colspan="5" style="color:var(--text3);padding:18px 8px">지점이 없습니다. "+ 지점 추가"로 만드세요.</td></tr>') + '</tbody>' +
-      '</table></div>' +
-      '</div></div>' +
-
-      itemSectionHtml +
-      '</div>';
-  }
-
-  /* ═══════════════════════════════════════════════════
-     ★ 캘린더 탭 — 핵심 재설계 부분 ★
-     
-     플로우:
-       1. 캘린더에서 날짜 클릭
-       2. 우측 패널 → 해당 날짜에 등록된 시간 슬롯 목록
-       3. "시간 추가" 버튼 → 모달에서 시간(HH:MM) + 정원 입력
-       4. 저장 → 캘린더 해당 날짜 셀에 "가능/마감" 배지 즉시 표시
-       5. 시간별 정원 수정 → 인풋에서 바로 수정
-       6. 시간 삭제 → 삭제 버튼으로 개별 제거
-       7. 날짜 마감/해제 → 우측 상단 토글
-       8. 일괄 설정 → 날짜 범위 + 시간 목록으로 한번에 적용
-  ═══════════════════════════════════════════════════ */
-  function renderCalendarTab() {
-    var instId  = state.instanceId;
-    var calMap  = getCalendar(instId);
-
-    var assigned = getBranchAssign(instId);
-    if (!state.calendarBranchId || assigned.indexOf(state.calendarBranchId) < 0) {
-      state.calendarBranchId = assigned[0] || null;
-    }
-    var selBranchId = state.calendarBranchId;
-
-    var steps = getSteps(instId).slice().sort(function(a,b){ return a.sort_order - b.sort_order; });
-    var hasItem = steps.some(function(s){ return s.is_active && s.step_key === 'item'; });
-    var anchorMode = hasItem ? 'item' : 'time';
-
-    var cur = state.monthCursor instanceof Date ? state.monthCursor : new Date();
-    var year = cur.getFullYear();
-    var mon  = cur.getMonth();
-    var now  = new Date();
-    var td   = todayIso();
-    var dayCount = new Date(year, mon + 1, 0).getDate();
-    var leading  = new Date(year, mon, 1).getDay();
-    var prevDisabled = (year < now.getFullYear() || (year === now.getFullYear() && mon <= now.getMonth()));
-    var monthTitle = year + '년 ' + (mon + 1) + '월';
-
-    var monthStart = formatISODate(new Date(year, mon, 1));
-    var monthEnd   = formatISODate(new Date(year, mon + 1, 0));
-    var selIso = state.selectedDate;
-    if (!selIso || selIso < monthStart || selIso > monthEnd) {
-      selIso = (td >= monthStart && td <= monthEnd) ? td : monthStart;
-    }
-    if (selIso < td) selIso = td;
-    state.selectedDate = selIso;
-
-    // ─ 달력 그리드
-    var DOW = ['일','월','화','수','목','금','토'];
-    var dowHtml = '<div class="rvmAdmin-dow">' +
-      DOW.map(function(x,i){
-        var col = i===0?'color:#c0392b':i===6?'color:#2563eb':'';
-        return '<span' + (col?' style="'+col+'"':'') + '>' + esc(x) + '</span>';
-      }).join('') + '</div>';
-
-    var totalCells = Math.ceil((leading + dayCount) / 7) * 7;
-    var cellsHtml = '';
-    for (var ci = 0; ci < totalCells; ci++) {
-      var dayNum = ci - leading + 1;
-      if (dayNum < 1 || dayNum > dayCount) { cellsHtml += '<div class="rvmAdmin-cal-empty"></div>'; continue; }
-      var iso  = formatISODate(new Date(year, mon, dayNum));
-      var data = calMap[iso];
-      var hasTimes = !!(data && data.times && data.times.length > 0);
-      var isClosed = hasTimes && !!data.closed;
-      var isPast   = iso < td;
-      var isOn     = selIso === iso;
-      var dow      = (leading + dayNum - 1) % 7;
-      var numCol   = dow===0?'#c0392b':dow===6?'#2563eb':'';
-      var badge = hasTimes
-        ? (isClosed ? '<span class="rvmAdmin-cal-badge closed">마감</span>' : '<span class="rvmAdmin-cal-badge open">가능</span>')
-        : '';
-      var cls = 'rvmAdmin-cal-day' + (isOn?' on':'') + (isPast?' past':'') + (isClosed?' closed':'');
-      cellsHtml += '<button type="button" class="' + cls + '" data-iso="' + esc(iso) + '"' + (isPast?' disabled':'') + '>' +
-        '<span class="rvm-cal-num"' + (numCol?' style="color:'+numCol+'"':'') + '>' + dayNum + '</span>' +
-        badge + '</button>';
-    }
-
-    // ─ 지점 셀렉트 (복수 지점일 때만)
-    var branchOpts = assigned.map(function(bid){
-      var br = branchById(bid);
-      return br ? '<option value="'+esc(bid)+'"'+(String(bid)===String(selBranchId)?' selected':'')+'>'+esc(br.name)+'</option>' : '';
-    }).join('');
-
-    // ─ 선택 날짜 데이터
-    var selData  = calMap[selIso] || { closed: false, times: [], itemByBranch: {} };
-    var isPastSel = selIso < td;
-    var hasTimes  = !!(selData.times && selData.times.length > 0);
-    var isClosed  = !!selData.closed;
-
-    // ─ 시간/항목 행
-    var timeRows = '';
-    if (anchorMode === 'time') {
-      if (hasTimes) {
-        timeRows = (selData.times || []).map(function(t) {
-          var booked   = parseInt(t.booked,   10) || 0;
-          var capacity = parseInt(t.capacity, 10) || 0;
-          var rem = Math.max(0, capacity - booked);
-          return '<tr>' +
-            '<td style="font-weight:900;width:90px">' + esc(t.time) + '</td>' +
-            '<td style="width:110px;color:var(--text3)">' + esc(booked) + ' / ' + esc(capacity) + '</td>' +
-            '<td style="width:160px"><input type="number" class="rvmTimeCap" data-time="' + esc(t.time) + '" value="' + esc(capacity) + '" min="' + esc(booked) + '"' + (isPastSel||isClosed?' disabled':'') + ' style="width:86px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:.9rem"/></td>' +
-            '<td style="width:90px"><span class="rvmAdmin-pill ' + (rem>0?'ok':'bad') + '">잔여 ' + esc(rem) + '</span></td>' +
-            '<td style="width:70px">' + (!isPastSel?'<button type="button" class="btn btn-sm btn-danger rvmTimeDel" data-time="'+esc(t.time)+'">삭제</button>':'') + '</td></tr>';
-        }).join('');
-      } else {
-        timeRows = '<tr><td colspan="5" style="color:var(--text3);padding:20px 8px">' +
-          (isPastSel ? '과거 날짜입니다.' : '"+ 시간 추가" 버튼으로 이 날짜에 시간 슬롯을 등록하세요.') + '</td></tr>';
-      }
-    } else {
-      var items = getItemsByBranch(instId, selBranchId) || [];
-      if (!selData.itemByBranch) selData.itemByBranch = {};
-      if (!selData.itemByBranch[selBranchId]) selData.itemByBranch[selBranchId] = { capacityByItemId:{}, bookedByItemId:{} };
-      var capMap = selData.itemByBranch[selBranchId].capacityByItemId || {};
-      var bkMap  = selData.itemByBranch[selBranchId].bookedByItemId  || {};
-      if (items.length) {
-        timeRows = items.map(function(it) {
-          var cap    = capMap[it.id]!=null ? parseInt(capMap[it.id],10) : 3;
-          var booked = bkMap[it.id] !=null ? parseInt(bkMap[it.id], 10) : 0;
-          var rem    = Math.max(0, cap - booked);
-          return '<tr>' +
-            '<td style="font-weight:900">' + esc(it.name) + '</td>' +
-            '<td style="width:110px;color:var(--text3)">' + esc(booked) + ' / ' + esc(cap) + '</td>' +
-            '<td style="width:160px"><input type="number" class="rvmItemCap" data-item-id="'+esc(it.id)+'" value="'+esc(cap)+'" min="'+esc(booked)+'"'+(isPastSel||isClosed?' disabled':'')+' style="width:86px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:.9rem"/></td>' +
-            '<td style="width:90px"><span class="rvmAdmin-pill ' + (rem>0?'ok':'bad') + '">잔여 ' + esc(rem) + '</span></td>' +
-            '<td style="width:70px"></td></tr>';
-        }).join('');
-      } else {
-        timeRows = '<tr><td colspan="5" style="color:var(--text3);padding:20px 8px">지점 관리 탭에서 항목을 먼저 추가하세요.</td></tr>';
-      }
-    }
-
-    // ─ 일괄 설정 (details 태그로 접힘/펼침)
-    var maxDate = formatISODate(new Date(now.getFullYear()+1, now.getMonth(), now.getDate()));
-    var defaultTo = formatISODate(new Date(now.getFullYear(), now.getMonth(), now.getDate()+6));
-    var bulkHtml = '';
-    if (anchorMode === 'time') {
-      bulkHtml =
-        '<details class="rvmAdmin-bulk-details">' +
-        '<summary class="rvmAdmin-bulk-summary">📅 날짜 범위 일괄 설정 (펼치기)</summary>' +
-        '<div class="rvmAdmin-bulk-body">' +
-        '<p style="color:var(--text3);font-size:.84rem;margin-bottom:12px">날짜 범위에 동일한 시간/정원을 한번에 적용합니다. 이미 있는 슬롯은 정원만 업데이트됩니다.</p>' +
-        '<div class="rvmAdmin-bulk-row">' +
-        '<div class="rvmAdmin-bulk-field"><label>시작일</label><input class="rvmAdmin-input" type="date" id="rvmBulkFrom" min="'+esc(td)+'" max="'+esc(maxDate)+'" value="'+esc(td)+'"/></div>' +
-        '<div class="rvmAdmin-bulk-field"><label>종료일</label><input class="rvmAdmin-input" type="date" id="rvmBulkTo" min="'+esc(td)+'" max="'+esc(maxDate)+'" value="'+esc(defaultTo)+'"/></div>' +
-        '<div class="rvmAdmin-bulk-field"><label>시간 (쉼표 구분)</label><input class="rvmAdmin-input" type="text" id="rvmBulkTimes" placeholder="09:00, 10:00, 14:00" value="09:00, 10:00, 11:00"/></div>' +
-        '<div class="rvmAdmin-bulk-field"><label>슬롯당 정원</label><input class="rvmAdmin-input" type="number" id="rvmBulkCap" value="3" min="1" style="max-width:90px"/></div>' +
-        '<div class="rvmAdmin-bulk-field" style="align-self:flex-end"><button type="button" class="btn btn-primary" id="rvmBulkApply">적용</button></div>' +
-        '</div></div></details>';
-    }
-
-    // ─ 선택 날짜 레이블
-    var selDateLabel = (function(){
-      var d = parseIso(selIso);
-      return selIso + ' (' + ['일','월','화','수','목','금','토'][d.getDay()] + ')';
-    })();
+    }).join('') || '<p style="color:var(--text3)">지역이 없습니다.</p>';
 
     return '<div class="rvmAdmin__section"><div class="rvmAdmin-card">' +
-      '<div class="rvmAdmin-card__head">' +
-      '<div><h3>날짜 / 시간 설정</h3><p>날짜 클릭 → 하단 패널에서 시간 추가/수정 → 캘린더 배지(가능·마감) 확인</p></div>' +
-      (assigned.length > 1 ? '<div><select class="rvmAdmin-select" id="rvmCalBranchSel" style="min-width:120px">' + branchOpts + '</select></div>' : '') +
-      '</div>' +
-      '<div class="rvmAdmin-card__body">' +
-      bulkHtml +
-
-      // ── 달력 풀 너비
-      '<div class="rvmAdmin-cal-wrap">' +
-      '<div class="rvmAdmin-month-nav">' +
-      '<button type="button" class="btn btn-sm btn-outline" data-action="cal-prev"' + (prevDisabled?' disabled':'') + '>◀</button>' +
-      '<span class="rvmAdmin-month-title">' + esc(monthTitle) + '</span>' +
-      '<button type="button" class="btn btn-sm btn-outline" data-action="cal-next">▶</button>' +
-      '</div>' +
-      dowHtml +
-      '<div class="rvmAdmin-cal-grid">' + cellsHtml + '</div>' +
-      '</div>' +
-
-      // ── 선택 날짜 패널 (달력 바로 아래)
-      '<div class="rvmAdmin-time-panel">' +
-      '<div class="rvmAdmin-time-panel__head">' +
-      '<div style="font-weight:900;font-size:.95rem">' + esc(selDateLabel) +
-      '<span style="color:var(--text3);font-size:.82rem;font-weight:800;margin-left:8px">' + (anchorMode==='item'?'항목별 정원':'시간대별 슬롯') + '</span>' +
-      '</div>' +
-      '<div style="display:flex;gap:8px;align-items:center">' +
-      (anchorMode==='time'&&!isPastSel ? '<button type="button" class="btn btn-sm btn-primary" id="rvmCalAddTime">+ 시간 추가</button>' : '') +
-      '<label class="rvmAdmin-switch" style="gap:6px">' +
-      '<input type="checkbox" class="rvmDateClosed"' + (isClosed?' checked':'') + (isPastSel||!hasTimes?' disabled':'') + '/>' +
-      '<span style="font-weight:900;font-size:.88rem;color:' + (isClosed?'#c0392b':'var(--text2)') + '">' + (hasTimes?(isClosed?'마감':'예약가능'):'미설정') + '</span>' +
-      '</label>' +
-      '</div>' +
-      '</div>' +
-      '<div class="rvmAdmin-table-wrap"><table class="rvmAdmin-t" style="min-width:440px">' +
-      '<thead><tr><th>' + (anchorMode==='item'?'항목':'시간') + '</th><th>예약/정원</th><th>정원 수정</th><th>잔여</th><th></th></tr></thead>' +
-      '<tbody>' + timeRows + '</tbody>' +
-      '</table></div>' +
-      '</div>' + // time-panel
-
-      '</div></div></div>';
+      '<div class="rvmAdmin-card__head"><div><h3>지점 관리</h3><p>지역/지점 마스터를 관리하고, 이 인스턴스에 연결할 지점을 체크하세요.</p></div>' +
+      '<div class="rvmAdmin-actions" style="gap:6px">' +
+      '<button type="button" class="btn btn-outline" id="rvmRegionAdd">+ 지역 추가</button>' +
+      '<button type="button" class="btn btn-primary" id="rvmBranchMasterAdd">+ 지점 추가</button>' +
+      '</div></div>' +
+      '<div class="rvmAdmin-card__body">' + regionHtml + '</div>' +
+      '</div></div>';
   }
 
+  /* ─── 캘린더/날짜 탭 ────────────────────────────── */
+  function renderCalendarTab() {
+    var iid = state.instanceId;
+    var assigns = getBranchAssign(iid);
+    var branchOpts = assigns.map(function(bid) {
+      var b = branchById(bid);
+      return '<option value="' + esc(bid) + '"' + (bid === state.calendarBranchId ? ' selected' : '') + '>' + esc(b ? b.name : bid) + '</option>';
+    }).join('');
+
+    /* 달력 */
+    var cursor  = state.monthCursor instanceof Date ? state.monthCursor : new Date();
+    var year    = cursor.getFullYear();
+    var month   = cursor.getMonth();
+    var today   = todayIso();
+    var cal     = getCalendar(iid);
+    var firstDay = new Date(year, month, 1).getDay(); // 0=일
+    var daysInMonth = new Date(year, month + 1, 0).getDate();
+    var monthLabel = year + '년 ' + (month + 1) + '월';
+
+    var cells = '';
+    for (var i = 0; i < firstDay; i++) cells += '<div class="rvmAdmin-cal-empty"></div>';
+    for (var d = 1; d <= daysInMonth; d++) {
+      var iso = formatISODate(new Date(year, month, d));
+      var isPast = iso < today;
+      var isSelected = iso === state.selectedDate;
+      var dayData = cal[iso];
+      var hasTimes = dayData && dayData.times && dayData.times.length > 0;
+      var isClosed = dayData && dayData.closed;
+      var badge = '';
+      if (hasTimes && !isClosed) {
+        var totalCap = dayData.times.reduce(function(a,t){ return a + (parseInt(t.capacity, 10)||0); }, 0);
+        var totalBk  = dayData.times.reduce(function(a,t){ return a + (parseInt(t.booked, 10)||0); }, 0);
+        badge = totalBk >= totalCap
+          ? '<span class="rvmAdmin-cal-badge bad">마감</span>'
+          : '<span class="rvmAdmin-cal-badge ok">가능</span>';
+      }
+      if (isClosed) badge = '<span class="rvmAdmin-cal-badge bad">휴무</span>';
+      cells += '<button type="button" class="rvmAdmin-cal-day' +
+        (isPast ? ' past' : '') + (isSelected ? ' selected' : '') + (isClosed ? ' closed' : '') +
+        '" data-iso="' + esc(iso) + '">' + d + badge + '</button>';
+    }
+
+    /* 선택일 패널 */
+    var panelHtml = '';
+    if (state.selectedDate) {
+      var sd = state.selectedDate;
+      var sdData = cal[sd] || { closed: false, times: [] };
+      var closedChecked = sdData.closed ? ' checked' : '';
+      var timeRows = (sdData.times || []).map(function(sl) {
+        var slId = sl.id || 0;
+        return '<tr>' +
+          '<td style="font-weight:900">' + esc(sl.time) + '</td>' +
+          '<td>' + esc(sl.booked) + ' / <input class="rvmAdmin-input rvmTimeCap" type="number" data-time="' + esc(sl.time) + '" data-slot-id="' + esc(slId) + '" value="' + esc(sl.capacity) + '" min="' + esc(sl.booked) + '" style="width:72px;display:inline-block;padding:4px 6px"/></td>' +
+          '<td><button type="button" class="btn btn-sm btn-danger rvmTimeDel" data-time="' + esc(sl.time) + '" data-slot-id="' + esc(slId) + '">삭제</button></td>' +
+          '</tr>';
+      }).join('') || '<tr><td colspan="3" style="color:var(--text3)">시간 없음</td></tr>';
+
+      panelHtml = '<div class="rvmAdmin-card" style="margin-top:14px">' +
+        '<div class="rvmAdmin-card__head"><div><h3>' + esc(sd) + ' 시간 슬롯</h3></div>' +
+        '<div class="rvmAdmin-actions">' +
+        '<label class="rvmAdmin-switch" style="gap:8px"><input type="checkbox" class="rvmDateClosed"' + closedChecked + '/><span style="font-weight:900;font-size:.88rem">휴무일</span></label>' +
+        '<button type="button" class="btn btn-primary" id="rvmCalAddTime">+ 시간 추가</button>' +
+        '</div></div>' +
+        '<div class="rvmAdmin-card__body"><div class="rvmAdmin-table-wrap"><table class="rvmAdmin-t"><thead><tr><th>시간</th><th>예약/정원</th><th>삭제</th></tr></thead><tbody>' + timeRows + '</tbody></table></div></div></div>';
+    }
+
+    /* 일괄 설정 */
+    var bulkHtml = '<div class="rvmAdmin-card" style="margin-top:14px">' +
+      '<div class="rvmAdmin-card__head"><div><h3>일괄 시간 등록</h3><p>날짜 범위 + 시간 목록으로 한 번에 슬롯을 만듭니다.</p></div></div>' +
+      '<div class="rvmAdmin-card__body"><div class="rvmAdmin-grid" style="gap:12px">' +
+      '<div class="rvmAdmin-col-4"><label style="font-weight:900;font-size:.85rem;display:block;margin-bottom:4px">시작일</label><input class="rvmAdmin-input" type="date" id="rvmBulkFrom" value="' + esc(todayIso()) + '"/></div>' +
+      '<div class="rvmAdmin-col-4"><label style="font-weight:900;font-size:.85rem;display:block;margin-bottom:4px">종료일</label><input class="rvmAdmin-input" type="date" id="rvmBulkTo" value="' + esc(todayIso()) + '"/></div>' +
+      '<div class="rvmAdmin-col-4"><label style="font-weight:900;font-size:.85rem;display:block;margin-bottom:4px">정원</label><input class="rvmAdmin-input" type="number" id="rvmBulkCap" value="3" min="1"/></div>' +
+      '<div class="rvmAdmin-col-12"><label style="font-weight:900;font-size:.85rem;display:block;margin-bottom:4px">시간 목록 (쉼표 구분, 예: 09:00,10:30,14:00)</label><input class="rvmAdmin-input" type="text" id="rvmBulkTimes" placeholder="09:00,10:00,11:00,14:00,15:00"/></div>' +
+      '<div class="rvmAdmin-col-12"><button type="button" class="btn btn-primary" id="rvmBulkApply">일괄 등록</button></div>' +
+      '</div></div></div>';
+
+    return '<div class="rvmAdmin__section"><div class="rvmAdmin-card">' +
+      '<div class="rvmAdmin-card__head"><div><h3>날짜/시간 설정</h3><p>지점을 선택하고 날짜를 클릭해 슬롯을 관리하세요.</p></div>' +
+      '<div class="rvmAdmin-actions">' +
+      '<select class="rvmAdmin-select" id="rvmCalBranchSel" style="min-width:120px">' + branchOpts + '</select>' +
+      '<button type="button" class="btn btn-ghost" data-action="cal-prev">‹</button>' +
+      '<span style="font-weight:900;font-size:1rem">' + esc(monthLabel) + '</span>' +
+      '<button type="button" class="btn btn-ghost" data-action="cal-next">›</button>' +
+      '</div></div>' +
+      '<div class="rvmAdmin-card__body">' +
+      '<div class="rvmAdmin-cal-grid">' +
+      '<div class="rvmAdmin-cal-head">일</div><div class="rvmAdmin-cal-head">월</div><div class="rvmAdmin-cal-head">화</div><div class="rvmAdmin-cal-head">수</div><div class="rvmAdmin-cal-head">목</div><div class="rvmAdmin-cal-head">금</div><div class="rvmAdmin-cal-head">토</div>' +
+      cells +
+      '</div>' +
+      panelHtml +
+      bulkHtml +
+      '</div></div></div>';
+  }
 
   /* ─── 알림 설정 탭 ──────────────────────────────── */
   function renderNotificationTab() {
     var n = getNotification(state.instanceId);
     return '<div class="rvmAdmin__section"><div class="rvmAdmin-card">' +
-      '<div class="rvmAdmin-card__head"><div><h3>알림 설정</h3><p>예약 접수 시 관리자에게 발송할 알림 방식을 설정합니다.</p></div>' +
+      '<div class="rvmAdmin-card__head"><div><h3>알림 설정</h3><p>예약 접수 시 관리자 알림 방식을 설정합니다.</p></div>' +
       '<div class="rvmAdmin-actions"><button type="button" class="btn btn-outline" data-action="dummy-save">저장</button></div></div>' +
-      '<div class="rvmAdmin-card__body"><div class="rvmAdmin-grid">' +
-      '<div class="rvmAdmin-col-12"><div style="display:flex;gap:18px;flex-wrap:wrap">' +
-      '<label class="rvmAdmin-switch" style="gap:8px"><input type="checkbox" class="rvmNotiUse" data-key="use_email"' + (n.use_email ? ' checked' : '') + '/><span style="font-weight:900;color:var(--text2)">이메일</span></label>' +
-      '<label class="rvmAdmin-switch" style="gap:8px"><input type="checkbox" class="rvmNotiUse" data-key="use_sheet"' + (n.use_sheet ? ' checked' : '') + '/><span style="font-weight:900;color:var(--text2)">구글 스프레드시트</span></label>' +
-      '<label class="rvmAdmin-switch" style="gap:8px"><input type="checkbox" class="rvmNotiUse" data-key="use_alimtalk"' + (n.use_alimtalk ? ' checked' : '') + '/><span style="font-weight:900;color:var(--text2)">알림톡</span></label>' +
+      '<div class="rvmAdmin-card__body"><div class="rvmAdmin-grid" style="gap:16px">' +
+      /* 이메일 */
+      '<div class="rvmAdmin-col-12"><div style="padding:12px;border:1px solid var(--border);border-radius:12px;background:#fbfcff">' +
+      '<label class="rvmAdmin-switch" style="gap:10px"><input type="checkbox" class="rvmNotiUse" data-key="use_email"' + (n.use_email ? ' checked' : '') + '/><span style="font-weight:900">이메일 알림</span></label>' +
+      '<div style="margin-top:10px"><input class="rvmAdmin-input" type="text" id="rvmNotiEmails" value="' + esc(n.email_list || '') + '" placeholder="admin@example.com (쉼표 구분)"/></div>' +
       '</div></div>' +
-      '<div class="rvmAdmin-col-12"><label style="font-weight:900;color:var(--text2);font-size:.9rem;display:block;margin-bottom:6px;margin-top:8px">이메일 주소 (쉼표로 구분)</label>' +
-      '<textarea class="rvmAdmin-textarea" id="rvmNotiEmails"' + (!n.use_email ? ' disabled' : '') + ' style="min-height:80px">' + esc(n.email_list || '') + '</textarea></div>' +
-      '<div class="rvmAdmin-col-6"><label style="font-weight:900;color:var(--text2);font-size:.9rem;display:block;margin-bottom:6px">구글 스프레드시트 웹훅</label>' +
-      '<input class="rvmAdmin-input" type="text" id="rvmNotiSheet" placeholder="https://..." ' + (!n.use_sheet ? 'disabled' : '') + ' value="' + esc(n.sheet_webhook || '') + '"/></div>' +
-      '<div class="rvmAdmin-col-6"><label style="font-weight:900;color:var(--text2);font-size:.9rem;display:block;margin-bottom:6px">알림톡 웹훅</label>' +
-      '<input class="rvmAdmin-input" type="text" id="rvmNotiAlim" placeholder="https://..." ' + (!n.use_alimtalk ? 'disabled' : '') + ' value="' + esc(n.alimtalk_webhook || '') + '"/></div>' +
+      /* 스프레드시트 */
+      '<div class="rvmAdmin-col-12"><div style="padding:12px;border:1px solid var(--border);border-radius:12px;background:#fbfcff">' +
+      '<label class="rvmAdmin-switch" style="gap:10px"><input type="checkbox" class="rvmNotiUse" data-key="use_sheet"' + (n.use_sheet ? ' checked' : '') + '/><span style="font-weight:900">스프레드시트 연동</span></label>' +
+      '<div style="margin-top:10px"><input class="rvmAdmin-input" type="text" id="rvmNotiSheet" value="' + esc(n.sheet_webhook || '') + '" placeholder="Webhook URL"/></div>' +
+      '</div></div>' +
+      /* 알림톡 */
+      '<div class="rvmAdmin-col-12"><div style="padding:12px;border:1px solid var(--border);border-radius:12px;background:#fbfcff">' +
+      '<label class="rvmAdmin-switch" style="gap:10px"><input type="checkbox" class="rvmNotiUse" data-key="use_alimtalk"' + (n.use_alimtalk ? ' checked' : '') + '/><span style="font-weight:900">알림톡</span></label>' +
+      '<div style="margin-top:10px"><input class="rvmAdmin-input" type="text" id="rvmNotiAlim" value="' + esc(n.alimtalk_webhook || '') + '" placeholder="알림톡 Webhook URL"/></div>' +
+      '</div></div>' +
       '</div></div></div></div>';
   }
 
   /* ─── 예약 접수 리스트 탭 ───────────────────────── */
   function renderBookingsTab() {
-    var bookings     = getBookings(state.instanceId);
-    var activeFields = getFields(state.instanceId).filter(function(f){ return !!f.is_active; });
-    var td = todayIso();
+    var iid = state.instanceId;
+    var bf = state.bkFilter || {};
+    var fq       = bf.q       || '';
+    var fStatus  = bf.status  || '';
+    var fBranch  = bf.branch  || '0';
+    var fDateFrom = bf.dateFrom || '';
+    var fDateTo   = bf.dateTo   || '';
 
-    // 저장된 필터 값 복원 (탭 전환 후에도 유지)
-    var fq      = state.bkFilter ? (state.bkFilter.q      || '') : '';
-    var fst     = state.bkFilter ? (state.bkFilter.status || '') : '';
-    var fbr     = state.bkFilter ? (state.bkFilter.branch || '0') : '0';
-    var fDateFrom = state.bkFilter ? (state.bkFilter.dateFrom || '') : '';
-    var fDateTo   = state.bkFilter ? (state.bkFilter.dateTo   || '') : '';
+    var activeFields = getFields(iid).filter(function(f){ return !!f.is_active; });
+    var assigns = getBranchAssign(iid);
 
+    var statusOpts = '<option value="">전체</option>' + ['접수','확인','완료','취소'].map(function(s){
+      return '<option value="' + esc(s) + '"' + (s === fStatus ? ' selected' : '') + '>' + esc(s) + '</option>';
+    }).join('');
+
+    var branchOpts = '<option value="0">전체</option>' + assigns.map(function(bid) {
+      var b = branchById(bid);
+      return '<option value="' + esc(bid) + '"' + (String(bid) === fBranch ? ' selected' : '') + '>' + esc(b ? b.name : bid) + '</option>';
+    }).join('');
+
+    var bookings = getBookings(iid);
+    var colCount = 6 + activeFields.length;
     var rows = bookings.map(function(bk) {
-      var statusOpts = ['접수','확인','완료','취소'].map(function(st){
-        return '<option value="' + esc(st) + '"' + (st === bk.status ? ' selected' : '') + '>' + esc(st) + '</option>';
-      }).join('');
-      var fieldTds = activeFields.map(function(f){ return '<td style="min-width:140px">' + esc(dummyFieldValue(bk, f)) + '</td>'; }).join('');
-      var pillCls = bk.status === '완료' ? 'ok' : bk.status === '취소' ? 'bad' : bk.status === '확인' ? 'warn' : '';
+      var statusOpts2 = ['접수','확인','완료','취소'].map(function(s){ return '<option value="' + esc(s) + '"' + (s === bk.status ? ' selected' : '') + '>' + esc(s) + '</option>'; }).join('');
+      var fieldTds    = activeFields.map(function(f){ return '<td style="min-width:140px">' + esc(bookingFieldValue(bk, f)) + '</td>'; }).join('');
+      var pillCls     = bk.status === '완료' ? 'ok' : bk.status === '취소' ? 'bad' : bk.status === '확인' ? 'warn' : '';
+      var atStr = bk.reservation_at || bk.at || '';
       return '<tr>' +
-        '<td style="font-weight:900;white-space:nowrap">' + esc(bk.no) + '</td>' +
+        '<td style="font-weight:900;white-space:nowrap">' + esc(bk.reservation_no || bk.no || '') + '</td>' +
         '<td><span class="rvmAdmin-pill ' + pillCls + '">' + esc(bk.status) + '</span></td>' +
-        '<td style="min-width:120px"><select class="rvmAdmin-select rvmBkStatusSel" data-bid="' + esc(bk.id) + '">' + statusOpts + '</select></td>' +
-        '<td style="white-space:nowrap">' + esc(bk.at) + '</td>' +
-        '<td>' + esc((branchById(bk.branch_id) || {}).name || '-') + '</td>' +
+        '<td style="min-width:120px"><select class="rvmAdmin-select rvmBkStatusSel" data-bid="' + esc(bk.id) + '">' + statusOpts2 + '</select></td>' +
+        '<td style="white-space:nowrap">' + esc(atStr) + '</td>' +
+        '<td>' + esc(bk.branch_name || (branchById(bk.branch_id) || {}).name || '-') + '</td>' +
         fieldTds +
         '<td><div class="rvmAdmin-actions">' +
         '<button type="button" class="btn btn-sm btn-outline rvmBkStatusSet" data-bid="' + esc(bk.id) + '">변경</button>' +
         '<button type="button" class="btn btn-sm btn-outline rvmBkDetail" data-bid="' + esc(bk.id) + '">상세</button>' +
         '</div></td></tr>';
-    }).join('');
-
-    var branchOpts = '<option value="0">전체</option>' +
-      (state.branchesMaster || []).map(function(b){ return '<option value="' + esc(b.id) + '"' + (String(b.id) === String(fbr) ? ' selected' : '') + '>' + esc(b.name) + '</option>'; }).join('');
-
-    var statusOpts = '<option value="">전체</option>' +
-      ['접수','확인','완료','취소'].map(function(st){ return '<option value="' + esc(st) + '"' + (st === fst ? ' selected' : '') + '>' + esc(st) + '</option>'; }).join('');
-
-    var colCount = 6 + activeFields.length;
+    }).join('') || '<tr><td colspan="' + colCount + '" style="color:var(--text3);padding:18px 8px">예약 데이터가 없습니다.<br><small style="font-weight:400">검색 버튼을 눌러 조회하세요.</small></td></tr>';
 
     return '<div class="rvmAdmin__section"><div class="rvmAdmin-card">' +
-      '<div class="rvmAdmin-card__head">' +
-      '<div><h3>예약 접수 리스트</h3><p>날짜·상태·지점·키워드로 필터링하고 상태를 변경합니다.</p></div>' +
+      '<div class="rvmAdmin-card__head"><div><h3>예약 접수 리스트</h3><p>실제 DB에서 예약 데이터를 조회합니다.</p></div>' +
       '<div class="rvmAdmin-actions"><button type="button" class="btn btn-success" data-action="bk-export">📥 엑셀 다운로드</button></div>' +
       '</div>' +
       '<div class="rvmAdmin-card__body">' +
-
-      // ── 검색 필터 행
       '<div class="rvmAdmin-bk-filters">' +
-
-      // 날짜 범위
-      '<div class="rvmAdmin-bk-filter-group">' +
-      '<label>날짜</label>' +
+      '<div class="rvmAdmin-bk-filter-group"><label>날짜</label>' +
       '<div style="display:flex;gap:6px;align-items:center">' +
       '<input class="rvmAdmin-input" type="date" id="rvmBkDateFrom" value="' + esc(fDateFrom) + '" style="min-width:0;flex:1"/>' +
       '<span style="color:var(--text3);font-weight:900;white-space:nowrap">~</span>' +
       '<input class="rvmAdmin-input" type="date" id="rvmBkDateTo" value="' + esc(fDateTo) + '" style="min-width:0;flex:1"/>' +
-      '</div>' +
-      '</div>' +
-
-      // 오늘 빠른 버튼
-      '<div class="rvmAdmin-bk-filter-group" style="justify-content:flex-end">' +
-      '<label>&nbsp;</label>' +
-      '<button type="button" class="btn btn-outline" id="rvmBkToday" style="white-space:nowrap">📅 오늘</button>' +
-      '</div>' +
-
-      // 키워드
-      '<div class="rvmAdmin-bk-filter-group">' +
-      '<label>검색</label>' +
-      '<input class="rvmAdmin-input" type="text" id="rvmBkQ" value="' + esc(fq) + '" placeholder="예약번호 / 이름 / 전화번호"/>' +
-      '</div>' +
-
-      // 상태
-      '<div class="rvmAdmin-bk-filter-group">' +
-      '<label>상태</label>' +
-      '<select class="rvmAdmin-select" id="rvmBkStatus">' + statusOpts + '</select>' +
-      '</div>' +
-
-      // 지점
-      '<div class="rvmAdmin-bk-filter-group">' +
-      '<label>지점</label>' +
-      '<select class="rvmAdmin-select" id="rvmBkBranch">' + branchOpts + '</select>' +
-      '</div>' +
-
-      // 버튼
-      '<div class="rvmAdmin-bk-filter-group" style="justify-content:flex-end">' +
-      '<label>&nbsp;</label>' +
+      '</div></div>' +
+      '<div class="rvmAdmin-bk-filter-group" style="justify-content:flex-end"><label>&nbsp;</label>' +
+      '<button type="button" class="btn btn-outline" id="rvmBkToday" style="white-space:nowrap">📅 오늘</button></div>' +
+      '<div class="rvmAdmin-bk-filter-group"><label>검색</label>' +
+      '<input class="rvmAdmin-input" type="text" id="rvmBkQ" value="' + esc(fq) + '" placeholder="예약번호 / 이름 / 전화번호"/></div>' +
+      '<div class="rvmAdmin-bk-filter-group"><label>상태</label><select class="rvmAdmin-select" id="rvmBkStatus">' + statusOpts + '</select></div>' +
+      '<div class="rvmAdmin-bk-filter-group"><label>지점</label><select class="rvmAdmin-select" id="rvmBkBranch">' + branchOpts + '</select></div>' +
+      '<div class="rvmAdmin-bk-filter-group" style="justify-content:flex-end"><label>&nbsp;</label>' +
       '<div style="display:flex;gap:6px">' +
       '<button type="button" class="btn btn-primary" data-action="bk-search">🔍 검색</button>' +
       '<button type="button" class="btn btn-ghost" data-action="bk-reset">초기화</button>' +
+      '</div></div>' +
       '</div>' +
-      '</div>' +
-
-      '</div>' + // rvmAdmin-bk-filters
-
-      // ── 결과 요약 배지
       '<div id="rvmBkSummary" style="margin:10px 0 4px;font-size:.85rem;font-weight:800;color:var(--text3)"></div>' +
-
-      // ── 테이블
       '<div class="rvmAdmin-table-wrap"><table class="rvmAdmin-t" style="min-width:960px"><thead><tr>' +
       '<th>예약번호</th><th>상태</th><th>상태 변경</th><th style="white-space:nowrap">예약 일시</th><th>지점</th>' +
       activeFields.map(function(f){ return '<th>' + esc(f.label) + '</th>'; }).join('') +
       '<th>관리</th></tr></thead>' +
-      '<tbody id="rvmBkBody">' + (rows || '<tr><td colspan="' + colCount + '" style="color:var(--text3);padding:18px 8px">예약 데이터가 없습니다.</td></tr>') + '</tbody>' +
+      '<tbody id="rvmBkBody">' + rows + '</tbody>' +
       '</table></div>' +
       '</div></div></div>';
   }
@@ -881,20 +750,24 @@
   }
 
   /* ════════════════════════════════════════════════════
-     WIRE UI — render 후 항상 새로 바인딩
-     (_rvmWired 패턴 완전 제거 → 단순하고 명확하게)
+     WIRE UI
   ════════════════════════════════════════════════════ */
   function wireUi() {
-    // ─ 탭 전환
     root.querySelectorAll('.rvmAdmin-tab[data-tab]').forEach(function(b) {
-      b.onclick = function() { state.editTab = b.getAttribute('data-tab'); render(); };
+      b.onclick = function() {
+        state.editTab = b.getAttribute('data-tab');
+        /* 예약 리스트 탭 전환 시 자동 로드 */
+        if (state.editTab === 'bookings') {
+          loadBookings(state.instanceId, buildBkFilter()).then(function(){ render(); });
+        } else {
+          render();
+        }
+      };
     });
 
-    // ─ 전역 버튼 (상단 생성 버튼은 root 바깥에 있을 수 있음)
     var btnCreate = document.getElementById('rvmAdmin__openCreate');
     if (btnCreate) btnCreate.onclick = function() { createNewInstance(); };
 
-    // ─ data-action 버튼들
     root.querySelectorAll('[data-action]').forEach(function(el) {
       var act = el.getAttribute('data-action');
       if (act === 'create')      el.onclick = function() { createNewInstance(); };
@@ -903,24 +776,15 @@
       if (act === 'del')         el.onclick = function() { deleteInstance(parseInt(el.getAttribute('data-inst'), 10)); };
       if (act === 'step-add')    el.onclick = function() { openStepModal(null); };
       if (act === 'field-add')   el.onclick = function() { openFieldModal(null); };
-      if (act === 'bk-export')   el.onclick = function() { toast('엑셀 다운로드 - 실제 파일 생성 없음', 'warning'); };
-      if (act === 'bk-search')   el.onclick = function() { filterAndRenderBookings(); };
-      if (act === 'bk-reset')    el.onclick = function() { resetBookingsFilters(); render(); };
+      if (act === 'bk-export')   el.onclick = function() { toast('엑셀 다운로드 — 준비 중', 'warning'); };
+      if (act === 'bk-search')   el.onclick = function() { doSearchBookings(); };
+      if (act === 'bk-reset')    el.onclick = function() { resetBookingsFilters(); };
       if (act === 'cal-prev')    el.onclick = function() { moveCalendar(-1); };
       if (act === 'cal-next')    el.onclick = function() { moveCalendar(1); };
       if (act === 'dummy-save')  el.onclick = function() { syncAndSave(); };
     });
 
-    // ─ 인스턴스 목록: 사용 여부 토글
-    root.querySelectorAll('input.rvmSwitch[data-inst]').forEach(function(cb) {
-      cb.onchange = function() {
-        var inst = getInstance(parseInt(cb.getAttribute('data-inst'), 10));
-        if (inst) inst.is_active = !!cb.checked;
-        render();
-      };
-    });
-
-    // ─ 단계 탭 컨트롤
+    /* 단계 탭 */
     root.querySelectorAll('.rvmStepActive[data-idx]').forEach(function(cb) {
       cb.onchange = function() { toggleStep(parseInt(cb.getAttribute('data-idx'), 10), !!cb.checked); };
     });
@@ -933,7 +797,6 @@
     root.querySelectorAll('.rvmStepDel[data-idx]').forEach(function(b) {
       b.onclick = function() { deleteStep(parseInt(b.getAttribute('data-idx'), 10)); };
     });
-    // 드래그 & 드롭
     root.querySelectorAll('.rvmAdmin-step-item[data-step-idx]').forEach(function(item) {
       item.ondragstart = function() { state.drag.fromIdx = parseInt(item.getAttribute('data-step-idx'), 10); };
       item.ondragover  = function(e) { e.preventDefault(); };
@@ -945,7 +808,7 @@
       };
     });
 
-    // ─ 필드 탭 컨트롤
+    /* 필드 탭 */
     root.querySelectorAll('.rvmFieldEdit[data-id]').forEach(function(b) {
       b.onclick = function() {
         var f = getFields(state.instanceId).find(function(x){ return x.id === parseInt(b.getAttribute('data-id'), 10); });
@@ -956,12 +819,15 @@
       b.onclick = function() {
         if (!confirm('필드를 삭제할까요?')) return;
         var id = parseInt(b.getAttribute('data-id'), 10);
-        state.fieldsByInstance[state.instanceId] = getFields(state.instanceId).filter(function(f){ return f.id !== id; });
-        toast('필드 삭제됨', 'success'); render();
+        apiPost({ action: 'field_delete', id: id, instance_id: state.instanceId }).then(function(data) {
+          if (!data.ok) return alert(data.msg || '삭제 실패');
+          state.fieldsByInstance[state.instanceId] = getFields(state.instanceId).filter(function(f){ return f.id !== id; });
+          toast('필드 삭제됨', 'success'); render();
+        });
       };
     });
 
-    // ─ 지역 관리
+    /* 지역 관리 */
     var btnRegionAdd = root.querySelector('#rvmRegionAdd');
     if (btnRegionAdd) btnRegionAdd.onclick = function() { openRegionModal(null); };
     root.querySelectorAll('button.rvmRegionEdit[data-id]').forEach(function(b) {
@@ -974,15 +840,16 @@
       b.onclick = function() {
         var id = parseInt(b.getAttribute('data-id'), 10);
         var r  = regionById(id);
-        var branchCount = (state.branchesMaster || []).filter(function(x){ return x.region_id === id; }).length;
-        if (branchCount > 0) { alert('"' + (r ? r.name : id) + '" 지역에 소속 지점(' + branchCount + '개)이 있어 삭제할 수 없습니다.\n지점을 먼저 삭제하거나 다른 지역으로 이동하세요.'); return; }
-        if (!confirm('"' + (r ? r.name : id) + '" 지역을 삭제할까요?')) return;
-        state.regionsMaster = (state.regionsMaster || []).filter(function(x){ return x.id !== id; });
-        toast('지역 삭제됨', 'success'); render();
+        if (!confirm('\"' + (r ? r.name : id) + '\" 지역을 삭제할까요?')) return;
+        apiPost({ action: 'region_delete', id: id }).then(function(data) {
+          if (!data.ok) return alert(data.msg || '삭제 실패');
+          state.regionsMaster = (state.regionsMaster || []).filter(function(x){ return x.id !== id; });
+          toast('지역 삭제됨', 'success'); render();
+        });
       };
     });
 
-    // ─ 지점 탭 컨트롤
+    /* 지점 탭 */
     root.querySelectorAll('input.rvmBranchConn[data-branch]').forEach(function(cb) {
       cb.onchange = function() {
         var bid = parseInt(cb.getAttribute('data-branch'), 10);
@@ -991,14 +858,22 @@
         if (cb.checked) { if (idx < 0) list.push(bid); }
         else            { if (idx >= 0) list.splice(idx, 1); }
         state.branchAssignByInstance[state.instanceId] = list;
-        toast('지점 연결 변경됨', 'success'); render();
+        /* DB 즉시 반영 */
+        apiPost({ action: 'instance_branch_set', instance_id: state.instanceId, branch_ids: list }).then(function(data) {
+          if (!data.ok) return alert(data.msg || '저장 실패');
+          toast('지점 연결 변경됨', 'success'); render();
+        });
       };
     });
     root.querySelectorAll('input.rvmBranchActive[data-branch]').forEach(function(cb) {
       cb.onchange = function() {
         var br = branchById(parseInt(cb.getAttribute('data-branch'), 10));
-        if (br) br.is_active = !!cb.checked;
-        toast('지점 사용 여부 변경됨', 'success'); render();
+        if (!br) return;
+        br.is_active = !!cb.checked;
+        apiPost({ action: 'branch_save', id: br.id, region_id: br.region_id, name: br.name, is_active: br.is_active ? 1 : 0, sort_order: br.sort_order || 0 }).then(function(data) {
+          if (!data.ok) return alert(data.msg || '저장 실패');
+          toast('지점 사용 여부 변경됨', 'success'); render();
+        });
       };
     });
     var btnBranchAdd = root.querySelector('#rvmBranchMasterAdd');
@@ -1013,109 +888,103 @@
       b.onclick = function() {
         var id = parseInt(b.getAttribute('data-id'), 10);
         var br = branchById(id);
-        if (!confirm('지점 "' + (br ? br.name : id) + '" 을 삭제할까요?')) return;
-        state.branchesMaster = (state.branchesMaster || []).filter(function(x){ return x.id !== id; });
-        Object.keys(state.branchAssignByInstance || {}).forEach(function(instId) {
-          state.branchAssignByInstance[instId] = (state.branchAssignByInstance[instId] || []).filter(function(bid){ return bid !== id; });
+        if (!confirm('지점 \"' + (br ? br.name : id) + '\" 을 삭제할까요?')) return;
+        apiPost({ action: 'branch_delete', id: id }).then(function(data) {
+          if (!data.ok) return alert(data.msg || '삭제 실패');
+          state.branchesMaster = (state.branchesMaster || []).filter(function(x){ return x.id !== id; });
+          var iid = state.instanceId;
+          state.branchAssignByInstance[iid] = (getBranchAssign(iid)).filter(function(bid){ return bid !== id; });
+          if (state.branchItemBranchId === id) state.branchItemBranchId = getBranchAssign(iid)[0] || null;
+          if (state.calendarBranchId   === id) state.calendarBranchId   = getBranchAssign(iid)[0] || null;
+          toast('지점 삭제됨', 'success'); render();
         });
-        if (state.branchItemBranchId === id) state.branchItemBranchId = getBranchAssign(state.instanceId)[0] || null;
-        if (state.calendarBranchId   === id) state.calendarBranchId   = getBranchAssign(state.instanceId)[0] || null;
-        toast('지점 삭제됨', 'success'); render();
-      };
-    });
-    var rvmBranchItemSel = root.querySelector('#rvmBranchItemSel');
-    if (rvmBranchItemSel) rvmBranchItemSel.onchange = function() {
-      state.branchItemBranchId = parseInt(rvmBranchItemSel.value, 10) || null;
-      render();
-    };
-    var rvmBranchItemAdd = root.querySelector('#rvmBranchItemAdd');
-    if (rvmBranchItemAdd) rvmBranchItemAdd.onclick = function() { openBranchItemModal(state.branchItemBranchId, null); };
-    root.querySelectorAll('button.rvmBranchItemDel[data-id]').forEach(function(b) {
-      b.onclick = function() {
-        var itemId = parseInt(b.getAttribute('data-id'), 10);
-        var bid = state.branchItemBranchId;
-        if (!bid) return;
-        setItemsByBranch(state.instanceId, bid, getItemsByBranch(state.instanceId, bid).filter(function(x){ return x.id !== itemId; }));
-        toast('항목 삭제됨', 'success'); render();
       };
     });
 
-    // ─ ★ 캘린더 탭 컨트롤
-    // 달력 날짜 클릭
+    /* 캘린더 탭 */
     root.querySelectorAll('.rvmAdmin-cal-day[data-iso]').forEach(function(b) {
       b.onclick = function() {
-        state.selectedDate = b.getAttribute('data-iso');
-        render();
+        var iso = b.getAttribute('data-iso');
+        state.selectedDate = iso;
+        /* 슬롯 DB 로드 후 재렌더 */
+        if (state.calendarBranchId && !state.slotCache[slotCacheKey(state.instanceId, state.calendarBranchId, iso)]) {
+          loadSlotsForDate(state.instanceId, state.calendarBranchId, iso).then(function(){ render(); });
+        } else {
+          render();
+        }
       };
     });
-    // 기준 지점 변경
     var calBranchSel = root.querySelector('#rvmCalBranchSel');
     if (calBranchSel) calBranchSel.onchange = function() {
       state.calendarBranchId = parseInt(calBranchSel.value, 10) || null;
+      state.slotCache = {};
+      state.calendarByInstance[state.instanceId] = {};
       render();
     };
-    // 날짜 마감/해제 토글
     var closeCb = root.querySelector('input.rvmDateClosed');
     if (closeCb) closeCb.onchange = function() {
       var iso = state.selectedDate;
-      if (!iso) return;
-      var m = getCalendar(state.instanceId);
-      if (!m[iso]) return;
-      m[iso].closed = !!closeCb.checked;
-      toast(closeCb.checked ? '해당일 마감 처리됨' : '해당일 예약가능으로 변경됨', 'success');
-      render();
+      var bid = state.calendarBranchId;
+      if (!iso || !bid) return;
+      var closed = !!closeCb.checked;
+      /* DB 반영: day_closure_save 또는 delete */
+      var action = closed ? 'day_closure_save' : 'day_closure_delete';
+      apiPost({ action: action, instance_id: state.instanceId, branch_id: bid, closure_date: iso }).then(function(data) {
+        if (!data.ok) return alert(data.msg || '처리 실패');
+        var m = getCalendar(state.instanceId);
+        if (!m[iso]) m[iso] = { closed: false, times: [] };
+        m[iso].closed = closed;
+        toast(closed ? '해당일 휴무 처리됨' : '해당일 예약가능으로 변경됨', 'success');
+        render();
+      });
     };
-    // ★ 시간 추가 버튼 (단건 추가)
     var btnAddTime = root.querySelector('#rvmCalAddTime');
     if (btnAddTime) btnAddTime.onclick = function() { openAddTimeModal(); };
-    // ★ 시간 삭제 버튼
     root.querySelectorAll('button.rvmTimeDel[data-time]').forEach(function(b) {
       b.onclick = function() {
+        var slotId = parseInt(b.getAttribute('data-slot-id') || '0', 10);
         var iso  = state.selectedDate;
         var time = b.getAttribute('data-time');
         if (!iso || !time) return;
-        var m = getCalendar(state.instanceId);
-        if (!m[iso]) return;
-        m[iso].times = (m[iso].times || []).filter(function(t){ return t.time !== time; });
-        // 시간이 모두 삭제되면 calMap에서 해당 날짜 항목도 제거
-        if (!m[iso].times.length) delete m[iso];
-        toast('시간 슬롯 삭제됨', 'success'); render();
+        if (slotId > 0) {
+          apiPost({ action: 'slot_delete', id: slotId }).then(function(data) {
+            if (!data.ok) return alert(data.msg || '삭제 실패 (예약이 있는 슬롯은 삭제 불가)');
+            var m = getCalendar(state.instanceId);
+            if (m[iso]) m[iso].times = (m[iso].times || []).filter(function(t){ return t.time !== time; });
+            var key = slotCacheKey(state.instanceId, state.calendarBranchId, iso);
+            delete state.slotCache[key];
+            toast('시간 슬롯 삭제됨', 'success'); render();
+          });
+        } else {
+          var m = getCalendar(state.instanceId);
+          if (m[iso]) m[iso].times = (m[iso].times || []).filter(function(t){ return t.time !== time; });
+          render();
+        }
       };
     });
-    // 시간 정원 수정
     root.querySelectorAll('input.rvmTimeCap[data-time]').forEach(function(inp) {
       inp.onchange = function() {
-        var iso  = state.selectedDate;
-        var time = inp.getAttribute('data-time');
-        var m = getCalendar(state.instanceId);
-        if (!m || !m[iso] || !m[iso].times) return;
-        var slot = m[iso].times.find(function(x){ return x.time === time; });
-        if (!slot) return;
-        var cap = Math.max(parseInt(inp.value, 10) || 0, parseInt(slot.booked, 10) || 0);
-        slot.capacity = cap;
-        toast('정원 반영됨', 'success'); render();
+        var slotId = parseInt(inp.getAttribute('data-slot-id') || '0', 10);
+        var cap = Math.max(parseInt(inp.value, 10) || 1, 1);
+        if (slotId > 0) {
+          apiPost({ action: 'slot_set_capacity', id: slotId, capacity: cap }).then(function(data) {
+            if (!data.ok) return alert(data.msg || '정원 변경 실패');
+            var iso  = state.selectedDate;
+            var time = inp.getAttribute('data-time');
+            var m = getCalendar(state.instanceId);
+            if (m[iso] && m[iso].times) {
+              var sl = m[iso].times.find(function(x){ return x.time === time; });
+              if (sl) sl.capacity = cap;
+            }
+            toast('정원 반영됨', 'success'); render();
+          });
+        }
       };
     });
-    // 항목 정원 수정
-    root.querySelectorAll('input.rvmItemCap[data-item-id]').forEach(function(inp) {
-      inp.onchange = function() {
-        var iso    = state.selectedDate;
-        var itemId = parseInt(inp.getAttribute('data-item-id'), 10);
-        var bid    = state.calendarBranchId;
-        var m      = getCalendar(state.instanceId);
-        if (!m[iso]) m[iso] = { closed: false, times: [], itemByBranch: {} };
-        if (!m[iso].itemByBranch) m[iso].itemByBranch = {};
-        if (!m[iso].itemByBranch[bid]) m[iso].itemByBranch[bid] = { capacityByItemId: {}, bookedByItemId: {} };
-        var booked = parseInt((m[iso].itemByBranch[bid].bookedByItemId || {})[itemId], 10) || 0;
-        m[iso].itemByBranch[bid].capacityByItemId[itemId] = Math.max(parseInt(inp.value, 10) || 0, booked);
-        toast('항목 정원 반영됨', 'success'); render();
-      };
-    });
-    // 일괄 설정 적용
     var bulkBtn = root.querySelector('#rvmBulkApply');
     if (bulkBtn) bulkBtn.onclick = function() { applyBulkCalendar(); };
 
-    // ─ 알림 설정
+    /* 알림 설정 */
     root.querySelectorAll('input.rvmNotiUse[data-key]').forEach(function(cb) {
       cb.onchange = function() { getNotification(state.instanceId)[cb.getAttribute('data-key')] = !!cb.checked; render(); };
     });
@@ -1126,13 +995,13 @@
     var notiAlim   = root.querySelector('#rvmNotiAlim');
     if (notiAlim)   notiAlim.oninput   = function() { getNotification(state.instanceId).alimtalk_webhook = notiAlim.value; };
 
-    // ─ 예약 조회 설정
+    /* 예약 조회 설정 */
     var lookupNo = root.querySelector('#rvmLookupNo');
     if (lookupNo) lookupNo.onchange = function() { getLookup(state.instanceId).allow_by_reservation_no = !!lookupNo.checked; };
     var lookupNP = root.querySelector('#rvmLookupNamePhone');
     if (lookupNP) lookupNP.onchange = function() { getLookup(state.instanceId).allow_by_name_phone = !!lookupNP.checked; };
 
-    // ─ 예약 접수 리스트
+    /* 예약 접수 리스트 */
     var btnToday = root.querySelector('#rvmBkToday');
     if (btnToday) btnToday.onclick = function() {
       var td = todayIso();
@@ -1140,7 +1009,7 @@
       var toEl   = document.getElementById('rvmBkDateTo');
       if (fromEl) fromEl.value = td;
       if (toEl)   toEl.value   = td;
-      filterAndRenderBookings();
+      doSearchBookings();
     };
     root.querySelectorAll('.rvmBkDetail[data-bid]').forEach(function(btn) {
       btn.onclick = function() { openBookingDetailModal(parseInt(btn.getAttribute('data-bid'), 10)); };
@@ -1151,10 +1020,12 @@
         var tr  = btn.closest('tr');
         var sel = tr ? tr.querySelector('select.rvmBkStatusSel') : null;
         if (!sel) return;
-        var bk = getBookings(state.instanceId).find(function(x){ return x.id === bid; });
-        if (!bk) return;
-        bk.status = sel.value;
-        toast('상태 변경: ' + sel.value, 'success'); render();
+        apiPost({ action: 'booking_set_status', id: bid, status: sel.value }).then(function(data) {
+          if (!data.ok) return alert(data.msg || '상태 변경 실패');
+          var bk = getBookings(state.instanceId).find(function(x){ return x.id === bid; });
+          if (bk) bk.status = sel.value;
+          toast('상태 변경: ' + sel.value, 'success'); render();
+        });
       };
     });
   }
@@ -1165,67 +1036,103 @@
 
   function deleteInstance(id) {
     var inst = getInstance(id);
-    if (!confirm('"' + (inst ? inst.name : id) + '" 예약 테이블을 삭제할까요?')) return;
-    state.instances = state.instances.filter(function(x){ return x.id !== id; });
-    ['stepsByInstance','fieldsByInstance','branchAssignByInstance','calendarByInstance','notificationByInstance','bookingsByInstance','lookupByInstance','itemsByBranchByInstance'].forEach(function(k){ delete state[k][id]; });
-    if (!state.instances.length) { state.instances = demo.instances.map(function(x){ return Object.assign({}, x); }); }
-    state.mode = 'list';
-    toast('삭제됨', 'success'); render();
+    if (!confirm('\"' + (inst ? inst.name : id) + '\" 예약 테이블을 삭제할까요?')) return;
+    apiPost({ action: 'instance_delete', id: id }).then(function(data) {
+      if (!data.ok) return alert(data.msg || '삭제 실패');
+      state.instances = state.instances.filter(function(x){ return x.id !== id; });
+      state.mode = 'list';
+      toast('삭제됨', 'success'); render();
+    });
   }
 
   function syncAndSave() {
     if (state.mode !== 'edit') { toast('저장됨', 'success'); return; }
     var inst = getInstance(state.instanceId);
     var nm = document.getElementById('rvm-edit-name');
+    var sl = document.getElementById('rvm-edit-slug');
     var ac = document.getElementById('rvm-edit-active');
     var ds = document.getElementById('rvm-edit-desc');
-    if (inst && nm && ac) {
-      inst.name        = (nm.value || '').trim() || inst.name;
-      inst.is_active   = !!ac.checked;
-      inst.description = ds ? (ds.value || '') : '';
-    }
-    toast('저장됨', 'success'); render();
+
+    var name = nm ? (nm.value || '').trim() : (inst ? inst.name : '');
+    var slug = sl ? (sl.value || '').trim() : (inst ? inst.slug : '');
+    var act  = ac ? !!ac.checked : (inst ? !!inst.is_active : true);
+    var desc = ds ? (ds.value || '') : (inst ? (inst.description || '') : '');
+
+    if (!name) return alert('예약명을 입력하세요.');
+    if (!slug) return alert('slug를 입력하세요.');
+
+    var payload = { action: 'instance_save', id: state.instanceId, name: name, slug: slug, is_active: act ? 1 : 0, sort_order: inst ? (inst.sort_order || 0) : 0 };
+
+    apiPost(payload).then(function(data) {
+      if (!data.ok) return alert(data.msg || '저장 실패');
+      if (inst) { inst.name = name; inst.slug = slug; inst.is_active = act; inst.description = desc; }
+
+      /* 알림 설정도 함께 저장 */
+      var n = getNotification(state.instanceId);
+      return apiPost({
+        action: 'settings_save',
+        instance_id: state.instanceId,
+        notify_emails: n.email_list || '',
+        spreadsheet_webhook: n.sheet_webhook || '',
+        alimtalk_webhook: n.alimtalk_webhook || '',
+        notify_use_email: n.use_email ? 1 : 0,
+        notify_use_sheet: n.use_sheet ? 1 : 0,
+        notify_use_alim:  n.use_alimtalk ? 1 : 0,
+      });
+    }).then(function(data) {
+      if (data && !data.ok) return alert(data.msg || '알림 설정 저장 실패');
+      toast('저장됨', 'success'); render();
+    }).catch(function(){ toast('저장됨', 'success'); render(); });
+  }
+
+  /* ── 단계 조작 ──────────────────────────────────── */
+  function sortedSteps() { return getSteps(state.instanceId).slice().sort(function(a,b){ return a.sort_order - b.sort_order; }); }
+  function saveStepsToDb(steps) {
+    state.stepsByInstance[state.instanceId] = steps.map(function(s,i){ return Object.assign({}, s, { sort_order: (i+1)*10 }); });
+    return apiPost({ action: 'steps_save', instance_id: state.instanceId, steps: state.stepsByInstance[state.instanceId] });
   }
 
   function toggleStep(idx, isActive) {
     var steps = sortedSteps();
     if (!steps[idx]) return;
     steps[idx].is_active = isActive;
-    saveSteps(steps); render();
+    saveStepsToDb(steps).then(function(data){ if (!data.ok) alert(data.msg || '저장 실패'); render(); });
   }
   function moveStep(idx, delta) {
     var steps = sortedSteps();
     var toIdx = idx + delta;
     if (toIdx < 0 || toIdx >= steps.length) return;
     var tmp = steps[idx]; steps[idx] = steps[toIdx]; steps[toIdx] = tmp;
-    saveSteps(steps); render();
+    saveStepsToDb(steps).then(function(data){ if (!data.ok) alert(data.msg || '저장 실패'); render(); });
   }
   function swapStep(from, to) {
     var steps = sortedSteps();
     var tmp = steps[from]; steps[from] = steps[to]; steps[to] = tmp;
-    saveSteps(steps); render();
+    saveStepsToDb(steps).then(function(data){ if (!data.ok) alert(data.msg || '저장 실패'); render(); });
   }
   function deleteStep(idx) {
     var steps = sortedSteps();
     steps.splice(idx, 1);
-    saveSteps(steps); toast('단계 삭제됨', 'success'); render();
+    saveStepsToDb(steps).then(function(data){
+      if (!data.ok) alert(data.msg || '저장 실패');
+      toast('단계 삭제됨', 'success'); render();
+    });
   }
-  function sortedSteps() { return getSteps(state.instanceId).slice().sort(function(a,b){ return a.sort_order - b.sort_order; }); }
-  function saveSteps(steps) { state.stepsByInstance[state.instanceId] = steps.map(function(s,i){ return Object.assign({}, s, { sort_order: (i+1)*10 }); }); }
 
+  /* ── 달력 이동 ──────────────────────────────────── */
   function moveCalendar(delta) {
     var cur  = state.monthCursor instanceof Date ? state.monthCursor : new Date();
     var next = new Date(cur.getFullYear(), cur.getMonth() + delta, 1);
     state.monthCursor = next;
+    state.slotCache = {};
+    state.calendarByInstance[state.instanceId] = {};
     var td = todayIso();
     var monthStart = formatISODate(new Date(next.getFullYear(), next.getMonth(), 1));
     state.selectedDate = td >= monthStart ? td : monthStart;
     render();
   }
 
-  /* ═══════════════════════════════════════════════════
-     ★ 일괄 캘린더 설정 (버그 수정: max 고정 제거)
-  ═══════════════════════════════════════════════════ */
+  /* ── 일괄 캘린더 설정 ───────────────────────────── */
   function applyBulkCalendar() {
     var fromEl  = root.querySelector('#rvmBulkFrom');
     var toEl    = root.querySelector('#rvmBulkTo');
@@ -1239,110 +1146,67 @@
     if (fromIso > toIso)    return alert('시작일은 종료일보다 이전이어야 합니다.');
 
     var cap = Math.max(1, parseInt(capEl.value, 10) || 1);
-    // ★ 임의 시간 형식(HH:MM) 허용 — 더 이상 기본 시간 목록 제약 없음
     var pickedTimes = (timesEl.value || '').split(',').map(function(x){ return x.trim(); }).filter(function(x){ return /^\d{2}:\d{2}$/.test(x); });
     if (!pickedTimes.length) return alert('시간 형식이 맞지 않습니다. 예: 09:00, 10:30');
-    pickedTimes = pickedTimes.filter(function(t, i){ return pickedTimes.indexOf(t) === i; }); // 중복 제거
+    pickedTimes = pickedTimes.filter(function(t, i){ return pickedTimes.indexOf(t) === i; });
 
-    var td = todayIso();
-    var m  = getCalendar(state.instanceId);
-    var inserted = 0;
+    var bid = state.calendarBranchId;
+    if (!bid) return alert('지점을 선택하세요.');
 
-    var cur = parseIso(fromIso);
-    var end = parseIso(toIso);
-    while (cur <= end) {
-      var isoKey = formatISODate(cur);
-      if (isoKey >= td) {
-        if (!m[isoKey]) m[isoKey] = { closed: false, times: [], itemByBranch: {} };
-        if (!m[isoKey].times) m[isoKey].times = [];
-        pickedTimes.forEach(function(pt) {
-          var slot = m[isoKey].times.find(function(x){ return x.time === pt; });
-          if (!slot) {
-            m[isoKey].times.push({ time: pt, capacity: cap, booked: 0 });
-            inserted++;
-          } else {
-            // 기존 슬롯의 정원만 업데이트(예약수 보존)
-            slot.capacity = Math.max(cap, parseInt(slot.booked, 10) || 0);
-          }
-        });
+    apiPost({
+      action: 'slot_bulk_create',
+      instance_id: state.instanceId,
+      branch_id: bid,
+      date_from: fromIso,
+      date_to: toIso,
+      times: pickedTimes,
+      capacity: cap,
+    }).then(function(data) {
+      if (!data.ok) return alert(data.msg || '일괄 등록 실패');
+      /* 캐시 초기화 후 재렌더 */
+      state.slotCache = {};
+      state.calendarByInstance[state.instanceId] = {};
+      toast('일괄 등록 완료: ' + (data.inserted_or_updated || 0) + '개 슬롯', 'success');
+      /* 선택된 날짜 슬롯 다시 로드 */
+      if (state.selectedDate && bid) {
+        loadSlotsForDate(state.instanceId, bid, state.selectedDate).then(function(){ render(); });
+      } else {
+        render();
       }
-      cur.setDate(cur.getDate() + 1);
-    }
-
-    toast('일괄 적용 완료: ' + inserted + '개 슬롯 추가됨', 'success');
-    render();
+    });
   }
 
-  function filterAndRenderBookings() {
-    var q        = ((document.getElementById('rvmBkQ')        || {}).value || '').toLowerCase().trim();
+  /* ── 예약 검색 ──────────────────────────────────── */
+  function buildBkFilter() {
+    var q        = ((document.getElementById('rvmBkQ')        || {}).value || '').trim();
     var st       = ((document.getElementById('rvmBkStatus')   || {}).value || '');
-    var br       = parseInt(((document.getElementById('rvmBkBranch') || {}).value || '0'), 10);
+    var br       = ((document.getElementById('rvmBkBranch')   || {}).value || '0');
     var dateFrom = ((document.getElementById('rvmBkDateFrom') || {}).value || '').trim();
     var dateTo   = ((document.getElementById('rvmBkDateTo')   || {}).value || '').trim();
+    return { q: q, status: st, branch_id: br !== '0' ? br : '', dateFrom: dateFrom, dateTo: dateTo };
+  }
 
-    // 필터 상태 저장 (탭 전환 후에도 유지)
-    state.bkFilter = { q: q, status: st, branch: String(br), dateFrom: dateFrom, dateTo: dateTo };
-
-    var activeFields = getFields(state.instanceId).filter(function(f){ return !!f.is_active; });
-
-    var filtered = getBookings(state.instanceId).filter(function(bk) {
-      var okSt = !st || bk.status === st;
-      var okBr = !br || bk.branch_id === br;
-      var text = (bk.no + ' ' + bk.name + ' ' + bk.phone).toLowerCase();
-      var okQ  = !q || text.indexOf(q) >= 0;
-
-      // 날짜 필터: bk.at = 'YYYY-MM-DD HH:MM' 앞 10자로 비교
-      var bkDate = (bk.at || '').slice(0, 10);
-      var okFrom = !dateFrom || bkDate >= dateFrom;
-      var okTo   = !dateTo   || bkDate <= dateTo;
-
-      return okSt && okBr && okQ && okFrom && okTo;
-    });
-
-    var body    = document.getElementById('rvmBkBody');
-    var summary = document.getElementById('rvmBkSummary');
-    if (!body) return;
-
-    // 결과 요약
-    if (summary) {
-      var hasFilter = q || st || br || dateFrom || dateTo;
-      summary.textContent = hasFilter
-        ? '검색 결과: ' + filtered.length + '건 / 전체 ' + getBookings(state.instanceId).length + '건'
-        : '전체 ' + getBookings(state.instanceId).length + '건';
-    }
-
-    var colCount = 6 + activeFields.length;
-    body.innerHTML = filtered.map(function(bk) {
-      var statusOpts = ['접수','확인','완료','취소'].map(function(s){ return '<option value="' + esc(s) + '"' + (s === bk.status ? ' selected' : '') + '>' + esc(s) + '</option>'; }).join('');
-      var fieldTds   = activeFields.map(function(f){ return '<td style="min-width:140px">' + esc(dummyFieldValue(bk, f)) + '</td>'; }).join('');
-      var pillCls    = bk.status === '완료' ? 'ok' : bk.status === '취소' ? 'bad' : bk.status === '확인' ? 'warn' : '';
-      return '<tr>' +
-        '<td style="font-weight:900;white-space:nowrap">' + esc(bk.no) + '</td>' +
-        '<td><span class="rvmAdmin-pill ' + pillCls + '">' + esc(bk.status) + '</span></td>' +
-        '<td style="min-width:120px"><select class="rvmAdmin-select rvmBkStatusSel" data-bid="' + esc(bk.id) + '">' + statusOpts + '</select></td>' +
-        '<td style="white-space:nowrap">' + esc(bk.at) + '</td>' +
-        '<td>' + esc((branchById(bk.branch_id) || {}).name || '-') + '</td>' +
-        fieldTds +
-        '<td><div class="rvmAdmin-actions">' +
-        '<button type="button" class="btn btn-sm btn-outline rvmBkStatusSet" data-bid="' + esc(bk.id) + '">변경</button>' +
-        '<button type="button" class="btn btn-sm btn-outline rvmBkDetail" data-bid="' + esc(bk.id) + '">상세</button>' +
-        '</div></td></tr>';
-    }).join('') || '<tr><td colspan="' + colCount + '" style="color:var(--text3);padding:18px 8px">검색 결과가 없습니다.</td></tr>';
-
-    body.querySelectorAll('.rvmBkDetail[data-bid]').forEach(function(btn) {
-      btn.onclick = function() { openBookingDetailModal(parseInt(btn.getAttribute('data-bid'), 10)); };
-    });
-    body.querySelectorAll('.rvmBkStatusSet[data-bid]').forEach(function(btn) {
-      btn.onclick = function() {
-        var bid = parseInt(btn.getAttribute('data-bid'), 10);
-        var tr  = btn.closest('tr');
-        var sel = tr ? tr.querySelector('select.rvmBkStatusSel') : null;
-        if (!sel) return;
-        var bk  = getBookings(state.instanceId).find(function(x){ return x.id === bid; });
-        if (!bk) return;
-        bk.status = sel.value;
-        toast('상태 변경: ' + sel.value, 'success'); render();
-      };
+  function doSearchBookings() {
+    var f = buildBkFilter();
+    state.bkFilter = { q: f.q, status: f.status, branch: f.branch_id, dateFrom: f.dateFrom, dateTo: f.dateTo };
+    var apiParams = { instance_id: state.instanceId };
+    if (f.q)          apiParams.q         = f.q;
+    if (f.status)     apiParams.status    = f.status;
+    if (f.branch_id)  apiParams.branch_id = f.branch_id;
+    /* 날짜 필터는 서버 쿼리에 없으므로 클라이언트에서 걸러냄 */
+    loadBookings(state.instanceId, apiParams).then(function(data) {
+      /* 날짜 필터 클라이언트 적용 */
+      if (f.dateFrom || f.dateTo) {
+        state.bookingsByInstance[state.instanceId] = getBookings(state.instanceId).filter(function(bk) {
+          var bkDate = (bk.reservation_at || bk.at || '').slice(0, 10);
+          var okFrom = !f.dateFrom || bkDate >= f.dateFrom;
+          var okTo   = !f.dateTo   || bkDate <= f.dateTo;
+          return okFrom && okTo;
+        });
+      }
+      var summary = document.getElementById('rvmBkSummary');
+      if (summary) summary.textContent = '전체 ' + getBookings(state.instanceId).length + '건';
+      render();
     });
   }
 
@@ -1353,28 +1217,23 @@
     var brEl = document.getElementById('rvmBkBranch');
     if (brEl) brEl.value = '0';
     toast('필터 초기화됨', 'success');
-    filterAndRenderBookings();
+    loadBookings(state.instanceId, {}).then(function(){ render(); });
   }
 
-  /* ════════════════════════════════════════════════════
-     ★ 시간 추가 모달 (신규)
-     - 단일 날짜에 시간(HH:MM) + 정원 직접 입력
-  ════════════════════════════════════════════════════ */
+  /* ── 시간 추가 모달 ─────────────────────────────── */
   function openAddTimeModal() {
     var iso = state.selectedDate;
+    var bid = state.calendarBranchId;
     if (!iso) return;
+    if (!bid) return alert('지점을 먼저 선택하세요.');
 
     var html = '<h3 style="margin-top:0">시간 슬롯 추가 — ' + esc(iso) + '</h3>' +
       '<div class="rvmAdmin-grid" style="gap:12px">' +
-      '<div class="rvmAdmin-col-6">' +
-      '<label style="font-weight:900;color:var(--text2);font-size:.9rem;display:block;margin-bottom:6px">시간 (HH:MM)</label>' +
-      '<input class="rvmAdmin-input" type="time" id="rvmAddTimeVal" value="09:00" required/>' +
-      '</div>' +
-      '<div class="rvmAdmin-col-6">' +
-      '<label style="font-weight:900;color:var(--text2);font-size:.9rem;display:block;margin-bottom:6px">정원</label>' +
-      '<input class="rvmAdmin-input" type="number" id="rvmAddTimeCap" value="3" min="1"/>' +
-      '</div>' +
-      '<div class="rvmAdmin-col-12" style="color:var(--text3);font-weight:800;font-size:.83rem">이미 동일 시간이 등록된 경우 중복 추가되지 않습니다.</div>' +
+      '<div class="rvmAdmin-col-6"><label style="font-weight:900;color:var(--text2);font-size:.9rem;display:block;margin-bottom:6px">시간 (HH:MM)</label>' +
+      '<input class="rvmAdmin-input" type="time" id="rvmAddTimeVal" value="09:00" required/></div>' +
+      '<div class="rvmAdmin-col-6"><label style="font-weight:900;color:var(--text2);font-size:.9rem;display:block;margin-bottom:6px">정원</label>' +
+      '<input class="rvmAdmin-input" type="number" id="rvmAddTimeCap" value="3" min="1"/></div>' +
+      '<div class="rvmAdmin-col-12" style="color:var(--text3);font-weight:800;font-size:.83rem">이미 동일 시간이 등록된 경우 정원만 업데이트됩니다.</div>' +
       '</div>' +
       '<div style="margin-top:16px" class="rvmAdmin-btn-row">' +
       '<button type="button" class="btn btn-primary" id="rvmAddTimeSave">추가</button>' +
@@ -1382,32 +1241,34 @@
       '</div>';
 
     openModal(html);
-
     modalEl.querySelector('#rvmAddTimeCancel').onclick = closeModal;
     modalEl.querySelector('#rvmAddTimeSave').onclick = function() {
       var timeVal = (modalEl.querySelector('#rvmAddTimeVal').value || '').trim();
       var capVal  = Math.max(1, parseInt(modalEl.querySelector('#rvmAddTimeCap').value, 10) || 1);
-
       if (!/^\d{2}:\d{2}$/.test(timeVal)) return alert('시간 형식이 올바르지 않습니다. 예: 09:30');
 
-      var m = getCalendar(state.instanceId);
-      if (!m[iso]) m[iso] = { closed: false, times: [], itemByBranch: {} };
-      if (!m[iso].times) m[iso].times = [];
-
-      var exists = m[iso].times.find(function(t){ return t.time === timeVal; });
-      if (exists) { alert(timeVal + ' 슬롯이 이미 등록되어 있습니다.'); return; }
-
-      m[iso].times.push({ time: timeVal, capacity: capVal, booked: 0 });
-      // 시간 순 정렬
-      m[iso].times.sort(function(a, b){ return a.time < b.time ? -1 : 1; });
-
-      closeModal();
-      toast(iso + ' · ' + timeVal + ' 슬롯 추가됨', 'success');
-      render();
+      apiPost({
+        action: 'slot_bulk_create',
+        instance_id: state.instanceId,
+        branch_id: bid,
+        date_from: iso,
+        date_to: iso,
+        times: [timeVal],
+        capacity: capVal,
+      }).then(function(data) {
+        if (!data.ok) return alert(data.msg || '추가 실패');
+        closeModal();
+        var key = slotCacheKey(state.instanceId, bid, iso);
+        delete state.slotCache[key];
+        return loadSlotsForDate(state.instanceId, bid, iso);
+      }).then(function() {
+        toast(iso + ' · ' + timeVal + ' 슬롯 추가됨', 'success');
+        render();
+      });
     };
   }
 
-  /* ─── 단계 추가/수정 모달 ──────────────────────── */
+  /* ── 단계 추가/수정 모달 ────────────────────────── */
   function openStepModal(step) {
     var curKey    = step ? step.step_key : 'branch';
     var curActive = step ? !!step.is_active : true;
@@ -1434,12 +1295,14 @@
       } else {
         steps.push({ step_key: type, sort_order: (steps.length + 1) * 10, is_active: act });
       }
-      saveSteps(steps);
-      closeModal(); toast('단계 반영됨', 'success'); render();
+      saveStepsToDb(steps).then(function(data) {
+        if (!data.ok) return alert(data.msg || '저장 실패');
+        closeModal(); toast('단계 반영됨', 'success'); render();
+      });
     };
   }
 
-  /* ─── 필드 추가/수정 모달 ──────────────────────── */
+  /* ── 필드 추가/수정 모달 ────────────────────────── */
   function openFieldModal(field) {
     var f            = field || null;
     var currentType  = f ? f.field_type : 'text';
@@ -1488,47 +1351,34 @@
         if (ta) opts = ta.value.split(/\r?\n/).map(function(x){ return x.trim(); }).filter(Boolean);
       }
       var fields = getFields(state.instanceId).slice();
-      if (f) {
-        var idx = fields.findIndex(function(x){ return x.id === f.id; });
-        if (idx >= 0) fields[idx] = Object.assign({}, fields[idx], { field_type: type, name_key: key, label: lab, is_required: req, is_active: act, options: opts });
-      } else {
-        fields.push({ id: state.nextFieldId++, field_type: type, name_key: key, label: lab, is_required: req, is_active: act, options: opts });
-      }
-      state.fieldsByInstance[state.instanceId] = fields;
-      closeModal(); toast('필드 반영됨', 'success'); render();
+      var sortOrd = f ? (f.sort_order || 0) : (fields.length + 1) * 10;
+      apiPost({
+        action: 'field_save',
+        instance_id: state.instanceId,
+        id: f ? f.id : 0,
+        field_type: type,
+        name_key: key,
+        label: lab,
+        options: opts,
+        sort_order: sortOrd,
+        is_required: req ? 1 : 0,
+        is_active:   act ? 1 : 0,
+      }).then(function(data) {
+        if (!data.ok) return alert(data.msg || '저장 실패');
+        var newField = { id: data.id || (f ? f.id : state.nextFieldId++), field_type: type, name_key: key, label: lab, is_required: req, is_active: act, options: opts, sort_order: sortOrd };
+        if (f) {
+          var idx = fields.findIndex(function(x){ return x.id === f.id; });
+          if (idx >= 0) fields[idx] = newField;
+        } else {
+          fields.push(newField);
+        }
+        state.fieldsByInstance[state.instanceId] = fields;
+        closeModal(); toast('필드 반영됨', 'success'); render();
+      });
     };
   }
 
-  /* ─── 지점별 항목 추가 모달 ───────────────────── */
-  function openBranchItemModal(branchId, item) {
-    var html = '<h3 style="margin-top:0">' + (item ? '항목 수정' : '항목 추가') + '</h3>' +
-      '<div class="rvmAdmin-grid" style="gap:12px">' +
-      '<div class="rvmAdmin-col-12"><label style="font-weight:900;color:var(--text2);font-size:.9rem;display:block;margin-bottom:6px">항목명</label>' +
-      '<input class="rvmAdmin-input" type="text" id="rvmItemName" value="' + esc(item ? item.name : '') + '" placeholder="예: 스케일링, 상담, 정기점검..."/></div>' +
-      '<div class="rvmAdmin-col-12"><label class="rvmAdmin-switch" style="gap:10px;margin-top:6px"><input type="checkbox" id="rvmItemActive"' + ((item ? !!item.is_active : true) ? ' checked' : '') + '/><span style="font-weight:900;color:var(--text2)">사용</span></label></div>' +
-      '</div>' +
-      '<div style="margin-top:14px" class="rvmAdmin-btn-row"><button type="button" class="btn btn-primary" id="rvmItemSave">저장</button><button type="button" class="btn btn-ghost" id="rvmItemCancel">취소</button></div>';
-
-    openModal(html);
-    modalEl.querySelector('#rvmItemCancel').onclick = closeModal;
-    modalEl.querySelector('#rvmItemSave').onclick = function() {
-      var name   = (modalEl.querySelector('#rvmItemName').value || '').trim();
-      var active = !!modalEl.querySelector('#rvmItemActive').checked;
-      if (!name)     return alert('항목명을 입력하세요.');
-      if (!branchId) return alert('대상 지점이 선택되지 않았습니다.');
-      var items = getItemsByBranch(state.instanceId, branchId).slice();
-      if (item) {
-        var idx = items.findIndex(function(x){ return x.id === item.id; });
-        if (idx >= 0) items[idx] = Object.assign({}, items[idx], { name: name, is_active: active });
-      } else {
-        items.push({ id: state.nextItemId++, name: name, is_active: active });
-      }
-      setItemsByBranch(state.instanceId, branchId, items);
-      closeModal(); toast('항목 반영됨', 'success'); render();
-    };
-  }
-
-  /* ─── 지역 추가/수정 모달 ──────────────────────── */
+  /* ── 지역 추가/수정 모달 ────────────────────────── */
   function openRegionModal(region) {
     var isEdit   = !!region;
     var curName  = region ? region.name : '';
@@ -1550,26 +1400,21 @@
     modalEl.querySelector('#rvmRegionSave').onclick = function() {
       var name = (modalEl.querySelector('#rvmRegionName').value || '').trim();
       if (!name) return alert('지역명을 입력하세요.');
-
-      // 중복 체크
-      var dup = (state.regionsMaster || []).find(function(r){
-        return r.name === name && (!isEdit || r.id !== region.id);
+      apiPost({ action: 'region_save', id: isEdit ? region.id : 0, name: name, is_active: 1, sort_order: 0 }).then(function(data) {
+        if (!data.ok) return alert(data.msg || '저장 실패');
+        if (isEdit) {
+          region.name = name;
+        } else {
+          state.regionsMaster.push({ id: parseInt(data.id, 10), name: name, is_active: 1, sort_order: 0 });
+        }
+        closeModal();
+        toast((isEdit ? '지역 수정됨: ' : '지역 추가됨: ') + name, 'success');
+        render();
       });
-      if (dup) return alert('"' + name + '" 은 이미 있는 지역명입니다.');
-
-      if (isEdit) {
-        region.name = name;
-      } else {
-        var maxId = (state.regionsMaster || []).reduce(function(acc, r){ return Math.max(acc, r.id || 0); }, 0);
-        state.regionsMaster.push({ id: maxId + 1, name: name });
-      }
-      closeModal();
-      toast((isEdit ? '지역 수정됨: ' : '지역 추가됨: ') + name, 'success');
-      render();
     };
   }
 
-  /* ─── 지점 마스터 추가/수정 모달 ──────────────── */
+  /* ── 지점 마스터 추가/수정 모달 ────────────────── */
   function openBranchMasterModal(branch) {
     var isEdit  = !!branch;
     var curRid  = branch ? branch.region_id : ((state.regionsMaster && state.regionsMaster[0]) ? state.regionsMaster[0].id : 1);
@@ -1593,29 +1438,31 @@
       var act  = !!modalEl.querySelector('#rvmBranchMasterActive').checked;
       if (!rid)  return alert('지역을 선택하세요.');
       if (!name) return alert('지점명을 입력하세요.');
-      if (isEdit) {
-        branch.region_id = rid; branch.name = name; branch.is_active = act;
-      } else {
-        var maxId = (state.branchesMaster || []).reduce(function(acc, b){ return Math.max(acc, b.id || 0); }, 0);
-        state.branchesMaster.push({ id: maxId + 1, region_id: rid, name: name, is_active: act });
-      }
-      closeModal(); toast('지점 반영됨', 'success'); render();
+      apiPost({ action: 'branch_save', id: isEdit ? branch.id : 0, region_id: rid, name: name, is_active: act ? 1 : 0, sort_order: 0 }).then(function(data) {
+        if (!data.ok) return alert(data.msg || '저장 실패');
+        if (isEdit) {
+          branch.region_id = rid; branch.name = name; branch.is_active = act;
+        } else {
+          state.branchesMaster.push({ id: parseInt(data.id, 10), region_id: rid, name: name, is_active: act, sort_order: 0 });
+        }
+        closeModal(); toast('지점 반영됨', 'success'); render();
+      });
     };
   }
 
-  /* ─── 예약 상세 모달 ────────────────────────────── */
+  /* ── 예약 상세 모달 ────────────────────────────── */
   function openBookingDetailModal(bookingId) {
     var bk = getBookings(state.instanceId).find(function(b){ return b.id === bookingId; });
     if (!bk) return;
     var br           = branchById(bk.branch_id) || {};
     var activeFields = getFields(state.instanceId).filter(function(f){ return !!f.is_active; });
     var statusOpts   = ['접수','확인','완료','취소'].map(function(s){ return '<option value="' + esc(s) + '"' + (bk.status === s ? ' selected' : '') + '>' + esc(s) + '</option>'; }).join('');
-    var fieldRows    = activeFields.map(function(f){ return '<tr><td style="font-weight:900;min-width:160px">' + esc(f.label) + '</td><td>' + esc(dummyFieldValue(bk, f)) + '</td></tr>'; }).join('');
+    var fieldRows    = activeFields.map(function(f){ return '<tr><td style="font-weight:900;min-width:160px">' + esc(f.label) + '</td><td>' + esc(bookingFieldValue(bk, f)) + '</td></tr>'; }).join('');
 
     var html = '<h3 style="margin-top:0">예약 상세</h3>' +
-      '<div style="margin-bottom:10px;color:var(--text3);font-weight:800">예약번호: ' + esc(bk.no) + '</div>' +
+      '<div style="margin-bottom:10px;color:var(--text3);font-weight:800">예약번호: ' + esc(bk.reservation_no || bk.no || '') + '</div>' +
       '<div class="rvmAdmin-grid" style="gap:12px">' +
-      '<div class="rvmAdmin-col-6"><div style="font-weight:900;color:var(--text2);margin-bottom:6px">지점</div><div style="padding:10px;border:1px solid var(--border);border-radius:10px;background:#fbfcff;font-weight:900">' + esc(br.name || '-') + '</div></div>' +
+      '<div class="rvmAdmin-col-6"><div style="font-weight:900;color:var(--text2);margin-bottom:6px">지점</div><div style="padding:10px;border:1px solid var(--border);border-radius:10px;background:#fbfcff;font-weight:900">' + esc(bk.branch_name || br.name || '-') + '</div></div>' +
       '<div class="rvmAdmin-col-6"><div style="font-weight:900;color:var(--text2);margin-bottom:6px">상태 변경</div><select class="rvmAdmin-select" id="rvmBkDetailStatus">' + statusOpts + '</select></div>' +
       '</div>' +
       (fieldRows ? '<div style="margin-top:12px" class="rvmAdmin-table-wrap"><table class="rvmAdmin-t"><thead><tr><th>필드</th><th>값</th></tr></thead><tbody>' + fieldRows + '</tbody></table></div>' : '') +
@@ -1624,15 +1471,19 @@
     openModal(html);
     modalEl.querySelector('#rvmBkDetailClose').onclick = closeModal;
     modalEl.querySelector('#rvmBkDetailSave').onclick = function() {
-      bk.status = modalEl.querySelector('#rvmBkDetailStatus').value;
-      closeModal(); toast('상태 변경: ' + bk.status, 'success'); render();
+      var newStatus = modalEl.querySelector('#rvmBkDetailStatus').value;
+      apiPost({ action: 'booking_set_status', id: bk.id, status: newStatus }).then(function(data) {
+        if (!data.ok) return alert(data.msg || '상태 변경 실패');
+        bk.status = newStatus;
+        closeModal(); toast('상태 변경: ' + newStatus, 'success'); render();
+      });
     };
   }
 
   /* ─── 초기화 ─────────────────────────────────────── */
   try {
     state.mode = 'list';
-    render();
+    loadInstances();
   } catch (e) {
     root.innerHTML = '<div class="rvmAdmin-card"><div class="rvmAdmin-card__body" style="color:#b91c1c;font-weight:900">UI 초기화 실패: ' + esc(e && e.message ? e.message : String(e)) + '</div></div>';
     console.error('[rvm_admin_ui] init error:', e);
