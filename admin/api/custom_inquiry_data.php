@@ -339,8 +339,18 @@ if ($action === 'save_reply') {
         }
     }
 
+    // ── 알림톡 / SMS 발송 (reply_method 가 alimtalk 또는 sms 인 경우)
+    $sendResult = ['ok' => false, 'msg' => ''];
+    if (!empty($content) && intval($form['reply_use'] ?? 0) === 1
+        && in_array($form['reply_method'] ?? '', ['alimtalk', 'sms'], true)) {
+        require_once __DIR__ . '/../api_front/ci_reply_send.php';
+        $sendResult = ciReplySend($pdo, $form, $id, $content, $form['reply_method']);
+    }
+
     $resp = ['ok' => true, 'mail_sent' => $mailSent];
-    if ($mailError) $resp['mail_error'] = $mailError;
+    if ($mailError)            $resp['mail_error']   = $mailError;
+    if ($sendResult['ok'])     $resp['send_sent']    = true;
+    if (!empty($sendResult['msg']) && !$sendResult['ok']) $resp['send_error'] = $sendResult['msg'];
     echo json_encode($resp);
     exit;
 }

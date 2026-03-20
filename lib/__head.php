@@ -35,6 +35,7 @@ $script = $pdo->query('SELECT head_code, body_code FROM scripts WHERE id = 1')->
 <link href="css/reset.css" rel="stylesheet">
 <link href="css/main.css" rel="stylesheet">
 <link href="css/customReser_public.css" rel="stylesheet">
+<link rel="stylesheet" href="css/custom_inquiry_front.css">
 
 <script>if(history.scrollRestoration){history.scrollRestoration="manual";}window.scrollTo(0,0);</script>
 
