@@ -166,13 +166,12 @@ if ($action === 'save_basic') {
         $id
     ]);
     logAdminAction($pdo, 'update', 'custom_inquiry_forms', (string)($id??''));
-    // product_use 켜면 동적 테이블 컬럼 + custom_inquiry_fields 레코드 추가
+    // product_use 켜면 동적 테이블 컬럼만 추가 (필드설정에는 추가하지 않음 - 제품선택은 상단 고정)
     if ($product_use) {
         $tblStmt = $pdo->prepare('SELECT table_name FROM custom_inquiry_forms WHERE id=?');
         $tblStmt->execute([$id]);
         $tbl = $tblStmt->fetchColumn();
         if ($tbl) {
-            // 동적 테이블 컬럼 추가
             $cols_to_add = [
                 'category_id'   => 'INT(11) DEFAULT NULL',
                 'category_name' => 'VARCHAR(255) DEFAULT NULL',
@@ -189,28 +188,6 @@ if ($action === 'save_basic') {
                 } catch (Exception $e) {}
             }
         }
-
-        // custom_inquiry_fields에 제품분류/제품명 필드 레코드 추가 (없을 때만)
-        $prodFields = [
-            ['category_id',  '제품 분류', 'select', 0],
-            ['product_id',   '제품명',    'select', 1],
-        ];
-        foreach ($prodFields as $pf) {
-            $chkPf = $pdo->prepare('SELECT COUNT(*) FROM custom_inquiry_fields WHERE form_id=? AND field_key=?');
-            $chkPf->execute([$id, $pf[0]]);
-            if (!$chkPf->fetchColumn()) {
-                // 현재 최대 sort_order 뒤에 추가
-                $maxSort = $pdo->prepare('SELECT COALESCE(MAX(sort_order),0)+1 FROM custom_inquiry_fields WHERE form_id=?');
-                $maxSort->execute([$id]);
-                $nextSort = $maxSort->fetchColumn();
-                $pdo->prepare('INSERT INTO custom_inquiry_fields (form_id, field_key, label, type, is_required, is_visible, sort_order) VALUES (?,?,?,?,?,?,?)')
-                    ->execute([$id, $pf[0], $pf[1], $pf[2], $product_req, 1, $nextSort + $pf[3]]);
-            }
-        }
-    } else {
-        // product_use 끄면 필드 레코드 삭제
-        $pdo->prepare("DELETE FROM custom_inquiry_fields WHERE form_id=? AND field_key IN ('category_id','product_id')")
-            ->execute([$id]);
     }
 
     // 답변/로그인/댓글 사용 시 동적 테이블 컬럼 자동 추가
@@ -241,9 +218,9 @@ if ($action === 'save_basic') {
    답변설정 저장
    ================================================================ */
 if ($action === 'save_reply') {
-    $id          = intval($_POST['id'] ?? 0);
-    $reply_use   = intval($_POST['reply_use'] ?? 0);
-    $reply_method= trim($_POST['reply_method'] ?? '');
+    $id           = intval($_POST['id'] ?? 0);
+    $reply_use    = intval($_POST['reply_use'] ?? 0);
+    $reply_method = trim($_POST['reply_method'] ?? '');
 
     // custom_inquiry_forms 테이블에 reply_use, reply_method 컬럼이 없으면 자동 추가
     $colCheck = $pdo->prepare("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='custom_inquiry_forms' AND column_name='reply_use'");
@@ -256,15 +233,14 @@ if ($action === 'save_reply') {
     $stmt = $pdo->prepare('UPDATE custom_inquiry_forms SET reply_use=?, reply_method=? WHERE id=?');
     $stmt->execute([$reply_use, ($reply_use ? $reply_method : null), $id]);
 
-    // 답변 발송 방법에 따라 필드 자동 추가/삭제
-    if ($reply_use && $reply_method) {
-        // 필요한 필드 결정
+    // 답변 발송 방법에 따라 필드 자동 추가
+    if ($reply_use === 1 && $reply_method) {
         $needed = [];
         if ($reply_method === 'email') {
-            $needed[] = ['email',    '이메일',   'input', 0];
+            $needed[] = ['email', '이메일', 'input'];
         } else {
             // alimtalk, sms
-            $needed[] = ['phone',    '연락처',   'input', 0];
+            $needed[] = ['phone', '연락처', 'input'];
         }
 
         foreach ($needed as $nf) {
@@ -273,7 +249,7 @@ if ($action === 'save_reply') {
             if (!$chk->fetchColumn()) {
                 $maxSort = $pdo->prepare('SELECT COALESCE(MAX(sort_order),0)+1 FROM custom_inquiry_fields WHERE form_id=?');
                 $maxSort->execute([$id]);
-                $nextSort = (int)$maxSort->fetchColumn() + $nf[3];
+                $nextSort = (int)$maxSort->fetchColumn();
                 $pdo->prepare('INSERT INTO custom_inquiry_fields (form_id, field_key, label, type, is_required, is_visible, sort_order) VALUES (?,?,?,?,?,?,?)')
                     ->execute([$id, $nf[0], $nf[1], $nf[2], 1, 1, $nextSort]);
             } else {
@@ -282,9 +258,23 @@ if ($action === 'save_reply') {
                     ->execute([$id, $nf[0]]);
             }
         }
-    } elseif (!$reply_use) {
-        // 답변 미사용으로 변경 시 자동 생성된 이메일/연락처 필드 삭제
-        // (단, 사용자가 직접 추가한 건지 구분 불가하므로 삭제하지 않고 필수 해제만)
+
+        // 동적 테이블에도 해당 컬럼 존재 확인 후 추가
+        $tblStmt = $pdo->prepare('SELECT table_name FROM custom_inquiry_forms WHERE id=?');
+        $tblStmt->execute([$id]);
+        $dynTbl = $tblStmt->fetchColumn();
+        if ($dynTbl) {
+            $colName = ($reply_method === 'email') ? 'email' : 'phone';
+            try {
+                $colChk = $pdo->prepare("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=? AND column_name=?");
+                $colChk->execute([$dynTbl, $colName]);
+                if (!$colChk->fetchColumn()) {
+                    $pdo->exec("ALTER TABLE `{$dynTbl}` ADD COLUMN `{$colName}` VARCHAR(500) DEFAULT NULL");
+                }
+            } catch (Exception $e) {}
+        }
+    } elseif ($reply_use === 0) {
+        // 답변 미사용으로 변경 시 필수 해제만 (삭제 안 함)
         $pdo->prepare("UPDATE custom_inquiry_fields SET is_required=0 WHERE form_id=? AND field_key IN ('email','phone')")
             ->execute([$id]);
     }

@@ -55,10 +55,14 @@ if ($action === 'list') {
     $where  = ['d.form_id = ?'];
     $params = [$form_id];
 
-    // 첫번째 필드 키 조회 (제목 대신 표시 + 키워드 검색)
-    $firstFieldStmt = $pdo->prepare('SELECT field_key FROM custom_inquiry_fields WHERE form_id=? AND is_visible=1 ORDER BY sort_order ASC LIMIT 1');
-    $firstFieldStmt->execute([$form_id]);
-    $firstFieldKey = $firstFieldStmt->fetchColumn();
+    // 모든 노출 필드 키 조회 (input/radio/checkbox 포함)
+    $allFieldsStmt = $pdo->prepare("SELECT field_key, type FROM custom_inquiry_fields WHERE form_id=? AND is_visible=1 AND type IN ('input','textarea','select','radio','checkbox') ORDER BY sort_order ASC");
+    $allFieldsStmt->execute([$form_id]);
+    $allVisibleFields = $allFieldsStmt->fetchAll();
+    $allFieldKeys = array_column($allVisibleFields, 'field_key');
+
+    // 첫번째 필드 키 (키워드 검색용)
+    $firstFieldKey = count($allFieldKeys) > 0 ? $allFieldKeys[0] : null;
 
     if ($keyword && $firstFieldKey) { $where[] = "d.`{$firstFieldKey}` LIKE ?"; $params[] = "%{$keyword}%"; }
     elseif ($keyword) { /* 필드 없으면 검색 스킵 */ }
@@ -81,8 +85,28 @@ if ($action === 'list') {
     $total->execute($params);
     $totalCount = $total->fetchColumn();
 
-    $firstFieldCol = $firstFieldKey ? ", d.`{$firstFieldKey}` as first_field_value" : '';
+    // 모든 visible 필드 컬럼 SELECT — 실제 테이블에 없는 컬럼은 제외 (나중에 추가된 필드 대응)
+    // 실제 존재하는 컬럼 목록 조회
+    $existColStmt = $pdo->prepare("SELECT column_name FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=?");
+    $existColStmt->execute([$tbl]);
+    $existCols = array_column($existColStmt->fetchAll(), 'column_name');
 
+    $fieldColsSQL = '';
+    $validFieldKeys = [];
+    foreach ($allFieldKeys as $fk) {
+        if (in_array($fk, $existCols)) {
+            $fieldColsSQL .= ", d.`{$fk}`";
+            $validFieldKeys[] = $fk;
+        } else {
+            // 컬럼 없으면 자동 추가
+            try {
+                $pdo->exec("ALTER TABLE `{$tbl}` ADD COLUMN `{$fk}` VARCHAR(500) DEFAULT NULL");
+                $fieldColsSQL .= ", d.`{$fk}`";
+                $validFieldKeys[] = $fk;
+            } catch (Exception $e) {}
+        }
+    }
+    $allFieldKeys = $validFieldKeys;
     // login/comment 컬럼 존재 여부 개별 확인
     $colExists = function($pdo, $tbl, $col) {
         $s = $pdo->prepare("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=? AND column_name=?");
@@ -96,7 +120,7 @@ if ($action === 'list') {
     $loginCol   = $loginCols ? ', ' . implode(', ', $loginCols) : '';
     $commentCol = $colExists($pdo, $tbl, 'comment_count') ? ', d.comment_count' : '';
 
-    $sql = "SELECT d.id, d.view_count, d.created_at, s.label as status_label, s.color as status_color{$firstFieldCol}{$loginCol}{$commentCol}
+    $sql = "SELECT d.id, d.view_count, d.created_at, s.label as status_label, s.color as status_color{$fieldColsSQL}{$loginCol}{$commentCol}
             FROM `{$tbl}` d
             LEFT JOIN custom_inquiry_statuses s ON d.status_id = s.id
             WHERE {$whereSQL}
@@ -106,11 +130,12 @@ if ($action === 'list') {
     $rows = $stmt->fetchAll();
 
     echo json_encode([
-        'ok'    => true,
-        'data'  => $rows,
-        'total' => $totalCount,
-        'page'  => $page,
-        'limit' => $limit,
+        'ok'         => true,
+        'data'       => $rows,
+        'total'      => $totalCount,
+        'page'       => $page,
+        'limit'      => $limit,
+        'field_keys' => $allFieldKeys,
     ]);
     exit;
 }
@@ -268,6 +293,12 @@ if ($action === 'save_reply') {
         $cols = $pdo->query("SHOW COLUMNS FROM `{$tbl}` LIKE 'reply_content'")->fetchAll();
         if (empty($cols)) {
             $pdo->exec("ALTER TABLE `{$tbl}` ADD COLUMN `reply_content` TEXT NULL, ADD COLUMN `reply_at` DATETIME NULL");
+        } else {
+            // reply_content는 있는데 reply_at이 없는 경우 단독 추가
+            $atCols = $pdo->query("SHOW COLUMNS FROM `{$tbl}` LIKE 'reply_at'")->fetchAll();
+            if (empty($atCols)) {
+                $pdo->exec("ALTER TABLE `{$tbl}` ADD COLUMN `reply_at` DATETIME NULL");
+            }
         }
     } catch (Exception $e) {}
 

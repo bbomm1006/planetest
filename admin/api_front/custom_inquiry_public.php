@@ -512,21 +512,49 @@ if ($action === 'comment_write') {
     if (!$sessionUser) { echo json_encode(['ok'=>false,'msg'=>'로그인 필요']); exit; }
 
     $comTable = 'ci_comments_' . $table_name;
-    // 테이블 없으면 생성
+
+    // 관리자 스키마와 통일된 테이블 생성
     $pdo->exec("CREATE TABLE IF NOT EXISTS `{$comTable}` (
-        `id`          INT UNSIGNED NOT NULL AUTO_INCREMENT,
-        `row_id`      INT UNSIGNED NOT NULL,
+        `id`          INT(11) NOT NULL AUTO_INCREMENT,
+        `row_id`      INT(11) NOT NULL,
+        `author`      VARCHAR(255) DEFAULT NULL,
         `author_id`   VARCHAR(255) DEFAULT NULL,
         `author_name` VARCHAR(100) DEFAULT NULL,
+        `login_type`  VARCHAR(20) DEFAULT NULL,
         `is_admin`    TINYINT(1) NOT NULL DEFAULT 0,
         `content`     TEXT NOT NULL,
-        `created_at`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        `updated_at`  DATETIME DEFAULT NULL,
-        PRIMARY KEY (`id`), KEY `idx_row` (`row_id`)
+        `visibility`  TINYINT(1) DEFAULT 1,
+        `created_at`  DATETIME DEFAULT CURRENT_TIMESTAMP,
+        `updated_at`  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`), KEY `idx_row_id` (`row_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
-    $pdo->prepare("INSERT INTO `{$comTable}` (row_id, author_id, author_name, content) VALUES (?,?,?,?)")
-        ->execute([$row_id, $sessionUser['id'], $sessionUser['name'], $content]);
+    // 기존 테이블 컬럼 누락 시 자동 추가
+    $missingCols = [
+        'author'      => 'VARCHAR(255) DEFAULT NULL',
+        'author_id'   => 'VARCHAR(255) DEFAULT NULL',
+        'author_name' => 'VARCHAR(100) DEFAULT NULL',
+        'login_type'  => 'VARCHAR(20) DEFAULT NULL',
+        'is_admin'    => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'visibility'  => 'TINYINT(1) DEFAULT 1',
+    ];
+    foreach ($missingCols as $col => $def) {
+        try {
+            $chk = $pdo->prepare("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=? AND column_name=?");
+            $chk->execute([$comTable, $col]);
+            if (!$chk->fetchColumn()) {
+                $pdo->exec("ALTER TABLE `{$comTable}` ADD COLUMN `{$col}` {$def}");
+            }
+        } catch (Exception $e) {}
+    }
+
+    $authorName = $sessionUser['name'] ?? $sessionUser['id'] ?? '익명';
+    $authorId   = $sessionUser['id'] ?? '';
+    $loginType  = $sessionUser['login_type'] ?? $sessionUser['provider'] ?? '';
+
+    $pdo->prepare("INSERT INTO `{$comTable}` (row_id, author, author_id, author_name, login_type, is_admin, content) VALUES (?,?,?,?,?,0,?)")
+        ->execute([$row_id, $authorName, $authorId, $authorName, $loginType, $content]);
+
     echo json_encode(['ok'=>true, 'id'=>(int)$pdo->lastInsertId()]);
     exit;
 }

@@ -100,7 +100,7 @@ async function ciLoadFormList() {
       <td>${f.created_at ? f.created_at.slice(0,16) : '-'}</td>
       <td>
         <button class="btn btn-sm btn-outline" onclick="ciOpenDetail(${f.id})">설정</button>
-        <button class="btn btn-sm btn-outline" onclick="showPage('customInquiryData_${f.id}')">내역</button>
+        <button class="btn btn-sm btn-outline" onclick="ciCurrentFormId=${f.id};document.getElementById('ciDataTitle').textContent=escHtml('${f.title.replace(/'/g,"\\'")}') + ' 문의내역';showPage('customInquiryData');ciLoadData(${f.id})">내역</button>
         <button class="btn btn-sm" style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;" onclick="ciShowPlacementCode('${escHtml(f.table_name)}', '${escHtml(f.title)}')">📋 적용코드</button>
       </td>
     </tr>`).join('');
@@ -159,8 +159,6 @@ async function ciOpenDetail(formId) {
   if (res.data.comment_use == 1) {
     document.getElementById('ci_comment_use').checked = true;
     document.getElementById('ci-feature-comment').style.display = '';
-    const r = document.querySelector(`input[name="ci_comment_visibility"][value="${res.data.comment_visibility}"]`);
-    if (r) r.checked = true;
   }
   if (res.data.product_use == 1) {
     document.getElementById('ci_product_use').checked = true;
@@ -236,7 +234,7 @@ async function ciSaveBasic() {
   const btn = event?.target || document.querySelector('#ci-panel-basic .btn-primary');
   ciLock(btn);
   const loginTypes = [...document.querySelectorAll('input[name="ci_login_type"]:checked')].map(c => c.value).join(',');
-  const commentVis = (document.querySelector('input[name="ci_comment_visibility"]:checked') || {}).value || '';
+  const commentVis = '';
   const isActive   = (document.querySelector('input[name="ci_is_active"]:checked') || {}).value || 1;
   const loginUse   = document.getElementById('ci_login_use').checked;
   const visUse     = document.getElementById('ci_visibility_use').checked;
@@ -625,8 +623,9 @@ async function ciOpenFieldModal(id = 0) {
     }
   } else {
     keyEl.disabled = false;
-    // 항목명 입력 시 필드 키 자동 생성
+    // 항목명 입력 시 필드 키 자동 생성 (이전 핸들러 초기화 후 재등록)
     const labelEl = document.getElementById('ci_field_label');
+    labelEl.oninput = null;
     labelEl.oninput = function() {
       if (!keyEl.disabled) {
         keyEl.value = ciAutoFieldKey(this.value);
@@ -844,10 +843,24 @@ async function ciRenderSearchFilters() {
   if (!filterWrap) return;
   filterWrap.innerHTML = '';
 
-  // 첫번째 필드 label로 테이블 헤더 업데이트
-  const firstField = (fieldRes.data || []).find(f => f.is_visible == 1);
-  const headTh = document.querySelector('#ciDataTableHead th:nth-child(2)');
-  if (headTh && firstField) headTh.textContent = firstField.label;
+  // 노출 필드(input/textarea/select/radio/checkbox) 헤더 전체 재구성
+  const visibleFields = (fieldRes.data || []).filter(f =>
+    f.is_visible == 1 && ['input','textarea','select','radio','checkbox'].includes(f.type)
+  );
+  const thead = document.getElementById('ciDataTableHead');
+  if (thead) {
+    const fieldThs = visibleFields.map(f =>
+      `<th class="ci-field-th" data-field-key="${f.field_key}">${escHtml(f.label)}</th>`
+    ).join('');
+    thead.innerHTML = `
+      <th class="ci-chk-th" style="width:36px;">☑</th>
+      <th class="ci-no-th" style="width:50px;">#</th>
+      ${fieldThs}
+      <th style="width:160px;">신청일시</th>
+      <th style="width:80px;">조회수</th>
+      <th style="width:100px;">상태</th>
+      <th style="width:80px;">상세</th>`;
+  }
 
   // 1행: 상태 셀렉트 → ciDynamicStatusFilter
   if (statusWrap) {
@@ -889,17 +902,12 @@ async function ciFetchData() {
   });
 
   const tbody = document.getElementById('ciDataTableBody');
-  // 헤더 체크박스 추가
+  // 현재 thead 컬럼 수 기준으로 colspan 동적 계산
   const thead = document.getElementById('ciDataTableHead');
-  if (thead && !thead.querySelector('th.ci-chk-th')) {
-    const chkTh = document.createElement('th');
-    chkTh.className = 'ci-chk-th';
-    chkTh.style = 'width:36px;';
-    chkTh.innerHTML = '☑';
-    thead.insertBefore(chkTh, thead.firstChild);
-  }
-  // 로딩 표시 (검색 중 피드백)
-  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#94a3b8;">조회 중...</td></tr>';
+  const colCount = thead ? thead.querySelectorAll('th').length : 7;
+
+  // 로딩 표시
+  tbody.innerHTML = `<tr><td colspan="${colCount}" style="text-align:center;padding:40px;color:#94a3b8;">조회 중...</td></tr>`;
 
   const res = await apiGet('api/custom_inquiry_data.php', {
     action:       'list',
@@ -921,13 +929,13 @@ async function ciFetchData() {
     [...document.querySelectorAll('#ciDynamicFilters select')].some(s => s.value);
 
   if (!res.ok) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#94a3b8;">데이터를 불러오지 못했습니다.</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="${colCount}" style="text-align:center;padding:40px;color:#94a3b8;">데이터를 불러오지 못했습니다.</td></tr>`;
     document.getElementById('ciDataPagination').innerHTML = '';
     return;
   }
   if (!res.data || !res.data.length) {
     const msg = hasFilter ? '검색 결과가 없습니다.' : '등록된 문의 내역이 없습니다.';
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:#94a3b8;">${msg}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${colCount}" style="text-align:center;padding:40px;color:#94a3b8;">${msg}</td></tr>`;
     document.getElementById('ciDataPagination').innerHTML = '';
     return;
   }
@@ -942,10 +950,15 @@ async function ciFetchData() {
       ? `<span style="font-size:.75rem;color:#64748b;margin-left:6px;">${escHtml(d.login_name || d.login_id)} (${escHtml(d.login_type||'')})</span>` : '';
     const commentBadge = formCfg.comment_use == 1
       ? `<span style="font-size:.75rem;color:#64748b;margin-left:4px;">💬${d.comment_count||0}</span>` : '';
+    const fieldKeys = res.field_keys || [];
+    const fieldValues = fieldKeys.map((key, idx) => {
+      const val = d[key] != null ? String(d[key]) : '-';
+      return `<td>${escHtml(val)}${idx === 0 ? loginInfo : ''}</td>`;
+    }).join('');
     return `<tr>
       <td><input type="checkbox" class="row-check" data-id="${d.id}" onchange="updateBulkBar('ciDataBulk')"></td>
       <td>${res.total - offset - i}</td>
-      <td>${escHtml(d.first_field_value || '-')}${loginInfo}</td>
+      ${fieldValues || `<td>-${loginInfo}</td>`}
       <td>${d.created_at ? d.created_at.slice(0,16) : '-'}</td>
       <td>${d.view_count || 0}${commentBadge}</td>
       <td><span class="badge" style="background:${d.status_color || '#e2e8f0'};color:#fff;">${escHtml(d.status_label || '-')}</span></td>

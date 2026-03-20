@@ -67,10 +67,19 @@
     var sheetName = data.sheet_name || 'Sheet1';
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = ss.getSheetByName(sheetName) || ss.getSheets()[0];
+    var newHeaders = data.headers || [];
 
-    // 헤더가 없으면 첫 행에 추가
     if (sheet.getLastRow() === 0) {
-      sheet.appendRow(data.headers || []);
+      // 시트가 비어있으면 헤더 먼저 추가
+      sheet.appendRow(newHeaders);
+    } else {
+      // 기존 헤더와 비교해서 다르면 1행 덮어쓰기
+      var existingHeaders = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), newHeaders.length)).getValues()[0];
+      var isSame = newHeaders.length === existingHeaders.filter(function(h){ return h !== ''; }).length
+        && newHeaders.every(function(h, i){ return h === existingHeaders[i]; });
+      if (!isSame) {
+        sheet.getRange(1, 1, 1, newHeaders.length).setValues([newHeaders]);
+      }
     }
 
     // 데이터 행 추가

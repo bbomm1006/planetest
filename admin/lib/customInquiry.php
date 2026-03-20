@@ -152,13 +152,7 @@
           <label class="ci-toggle-wrap"><input type="checkbox" id="ci_comment_use" onchange="ciToggleFeature('comment')"/><span class="ci-toggle"></span></label>
           <span>댓글</span>
         </div>
-        <div class="ci-feature-body" id="ci-feature-comment" style="display:none;">
-          <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;">
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:400;"><input type="radio" name="ci_comment_visibility" value="private"/> 비공개</label>
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:400;"><input type="radio" name="ci_comment_visibility" value="public"/> 공개</label>
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:400;"><input type="radio" name="ci_comment_visibility" value="both"/> 비공개/공개 선택</label>
-          </div>
-        </div>
+        <div class="ci-feature-body" id="ci-feature-comment" style="display:none;"></div>
       </div>
       <div class="ci-feature-row">
         <div class="ci-feature-label">

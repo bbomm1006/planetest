@@ -584,3 +584,114 @@
 
   .ci-visibility-wrap { flex-direction: column; }
 }
+
+/* ══════════════════════════════════════
+   댓글 board-comment-* 스타일
+══════════════════════════════════════ */
+.board-comments-wrap {
+  margin-top: 24px;
+  border-top: 1px solid var(--g2, #e8e8e8);
+  padding-top: 20px;
+}
+.board-comments-head {
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--ink, #222);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.board-comments-head span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 100px;
+  background: var(--blue, #1a6ef7);
+  color: #fff;
+  font-size: .72rem;
+  font-weight: 700;
+}
+.board-comment-item {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--g1, #f0f0f0);
+}
+.board-comment-item:last-of-type {
+  border-bottom: none;
+}
+.board-comment-item.admin-comment {
+  background: #f0f7ff;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 6px;
+}
+.board-comment-author-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.board-comment-admin-badge {
+  font-size: .68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 100px;
+  background: var(--blue, #1a6ef7);
+  color: #fff;
+}
+.board-comment-name {
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--ink2, #444);
+}
+.board-comment-date {
+  font-size: .75rem;
+  color: var(--g4, #999);
+}
+.board-comment-actions {
+  margin-left: auto;
+}
+.board-comment-content {
+  font-size: .88rem;
+  color: var(--ink2, #444);
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.board-comment-form-wrap {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--g1, #f0f0f0);
+}
+.board-comment-form-wrap textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1.5px solid var(--g2, #e0e0e0);
+  border-radius: 8px;
+  font-size: .88rem;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+  transition: border-color .15s;
+  font-family: inherit;
+  color: var(--ink, #222);
+  background: #fff;
+}
+.board-comment-form-wrap textarea:focus {
+  border-color: var(--blue, #1a6ef7);
+}
+.board-comment-submit-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+/* 비로그인 댓글 유도 */
+.board-comments-wrap .ci-login-nudge-btn {
+  padding: 5px 14px;
+  font-size: .78rem;
+}

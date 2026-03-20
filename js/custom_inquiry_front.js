@@ -358,13 +358,11 @@ function ciAfterLogin(t, form) {
   ciState(t)._pendingView = null;
 
   if (pending === 'submit') {
-    // 폼 제출 재실행
     ciSubmit(t);
     return;
   }
 
   if (pending === 'form') {
-    // 뷰 직접 전환 (ciShowView 거치면 로그인 체크 다시 걸릴 수 있으므로 직접 DOM 조작)
     ['form', 'list', 'detail'].forEach(v => {
       const el = document.getElementById(`ci-view-${v}-${t}`);
       if (el) el.classList.toggle('ci-active', v === 'form');
@@ -374,6 +372,17 @@ function ciAfterLogin(t, form) {
 
   if (pending === 'list') {
     ciShowView(t, 'list');
+    return;
+  }
+
+  if (pending === 'detail') {
+    // 현재 detailId로 상세 재로드 (댓글 로그인 후 복귀)
+    const detailId = ciState(t).detailId;
+    if (detailId) {
+      ciLoadDetail(t, detailId);
+    } else {
+      ciShowView(t, 'detail');
+    }
     return;
   }
 
@@ -421,10 +430,15 @@ async function ciLogout(t) {
   ciRenderConfig(t, config);
 }
 
-/* 계정 변경 — 세션 초기화 후 로그인 게이트 재표시 */
+/* 계정 변경 — 현재 세션 로그아웃 후 로그인 게이트 재표시 (화면 이동 없음) */
 async function ciSwitchAccount(t) {
   await ciFetch('/admin/api_front/user_auth.php?action=logout', { method: 'POST', body: '{}' });
   ciState(t).user = null;
+
+  // 유저바 숨김
+  const bar = document.getElementById('ci-user-bar-' + t);
+  if (bar) bar.style.display = 'none';
+
   // OTP UI 초기화
   const otpWrap = document.getElementById('ci-email-otp-' + t);
   if (otpWrap) {
@@ -439,14 +453,10 @@ async function ciSwitchAccount(t) {
     if (timerEl)  timerEl.textContent = '';
     if (_ciOtpTimers[t]) { clearInterval(_ciOtpTimers[t]); delete _ciOtpTimers[t]; }
   }
-  const bar2 = document.getElementById('ci-user-bar-' + t);
-  if (bar2) bar2.style.display = 'none';
 
-  const config2 = ciState(t).config;
-  if (!config2) return;
-
-  // 계정 변경 후 화면 재렌더링
-  ciRenderConfig(t, config2);
+  // 현재 뷰 유지한 채로 로그인 게이트만 띄움
+  const config = ciState(t).config;
+  if (config?.form) ciShowLoginGate(t, config.form);
 }
 
 function ciShowUserBar(t) {
@@ -964,16 +974,19 @@ async function ciLoadDetail(t, id) {
   let commentHtml = '';
   if (form.comment_use == 1) {
     const user = ciState(t).user;
-    const commentItems = comments.map(c => `
-      <div class="board-comment-item ${c.is_admin ? 'admin-comment' : ''}">
+    const commentItems = comments.map(c => {
+      const isAdmin = parseInt(c.is_admin) === 1;
+      return `
+      <div class="board-comment-item ${isAdmin ? 'admin-comment' : ''}">
         <div class="board-comment-author-row">
-          ${c.is_admin ? '<span class="board-comment-admin-badge">관리자</span>' : ''}
-          <span class="board-comment-name">${ciEsc(c.author_name || '익명')}</span>
+          ${isAdmin ? '<span class="board-comment-admin-badge">관리자</span>' : ''}
+          <span class="board-comment-name">${ciEsc(c.author_name || c.author || '익명')}</span>
           <span class="board-comment-date">${c.created_at ? c.created_at.slice(0,16) : ''}</span>
           ${user && c.author_id === user.id ? `<div class="board-comment-actions"><button class="board-btn board-btn-sm board-btn-red" onclick="ciDeleteComment('${t}', ${c.id}, ${id})">삭제</button></div>` : ''}
         </div>
         <div class="board-comment-content">${ciEsc(c.content || '')}</div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
 
     const writeForm = user
       ? `<div class="board-comment-form-wrap">
@@ -982,9 +995,9 @@ async function ciLoadDetail(t, id) {
              <button class="board-btn board-btn-blue" onclick="ciWriteComment('${t}', ${id})">댓글 등록</button>
            </div>
          </div>`
-      : `<div style="padding:12px 0;font-size:.82rem;color:var(--g4,#888);display:flex;align-items:center;gap:10px;">
-           <span>댓글을 작성하려면 로그인이 필요합니다.</span>
-           <button class="ci-login-nudge-btn" style="padding:5px 14px;font-size:.78rem;" onclick="ciState('${t}')._pendingView='list';ciShowLoginGate('${t}',ciState('${t}').config?.form)">로그인</button>
+      : `<div style="padding:14px 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;">
+           <span style="font-size:.82rem;color:var(--g4,#888);">댓글을 작성하려면 로그인이 필요합니다.</span>
+           <button class="ci-login-nudge-btn" style="padding:6px 20px;font-size:.8rem;" onclick="ciState('${t}')._pendingView='detail';ciShowLoginGate('${t}',ciState('${t}').config?.form)">로그인</button>
          </div>`;
 
     commentHtml = `
