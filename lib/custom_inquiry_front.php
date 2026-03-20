@@ -41,19 +41,26 @@ try {
       <div class="ci-login-gate-desc" id="ci-login-gate-desc-<?= $ci_table_safe ?>"></div>
       <div class="ci-social-btns" id="ci-social-btns-<?= $ci_table_safe ?>"></div>
 
-      <!-- 이메일+비밀번호 로그인 폼 -->
-      <div id="ci-email-login-<?= $ci_table_safe ?>" style="display:none;margin-top:16px;">
+      <!-- 이메일 인증번호 로그인 폼 -->
+      <div id="ci-email-otp-<?= $ci_table_safe ?>" style="display:none;margin-top:16px;">
         <div class="fg" style="margin-bottom:10px;">
           <label class="fl">이메일</label>
-          <input type="email" class="fi" id="ci-email-inp-<?= $ci_table_safe ?>" placeholder="이메일 주소">
+          <div style="display:flex;gap:8px;">
+            <input type="email" class="fi" id="ci-otp-email-<?= $ci_table_safe ?>" placeholder="이메일 주소" style="flex:1;">
+            <button class="f-sub" style="width:auto;padding:0 16px;white-space:nowrap;" id="ci-otp-send-btn-<?= $ci_table_safe ?>" onclick="ciSendOtp('<?= $ci_table_safe ?>')">인증번호 발송</button>
+          </div>
         </div>
-        <div class="fg" style="margin-bottom:14px;">
-          <label class="fl">비밀번호</label>
-          <input type="password" class="fi" id="ci-pw-inp-<?= $ci_table_safe ?>" placeholder="비밀번호">
+        <div class="fg" id="ci-otp-code-wrap-<?= $ci_table_safe ?>" style="display:none;margin-bottom:14px;">
+          <label class="fl">인증번호</label>
+          <div style="display:flex;gap:8px;">
+            <input type="text" class="fi" id="ci-otp-code-<?= $ci_table_safe ?>" placeholder="6자리 입력" maxlength="6" inputmode="numeric" style="flex:1;letter-spacing:4px;font-weight:700;">
+            <button class="f-sub" style="width:auto;padding:0 16px;white-space:nowrap;" onclick="ciVerifyOtp('<?= $ci_table_safe ?>')">확인</button>
+          </div>
+          <p id="ci-otp-timer-<?= $ci_table_safe ?>" style="font-size:.78rem;color:#e53e3e;margin-top:4px;"></p>
         </div>
-        <div id="ci-email-login-err-<?= $ci_table_safe ?>" class="ci-error" style="display:none;"></div>
-        <button class="f-sub" onclick="ciEmailLogin('<?= $ci_table_safe ?>')">로그인 / 가입</button>
+        <div id="ci-otp-err-<?= $ci_table_safe ?>" class="ci-error" style="display:none;"></div>
       </div>
+
     </div>
 
     <!-- 기간 외 안내 -->
@@ -82,7 +89,10 @@ try {
           <div class="ci-user-bar-info">
             <strong id="ci-user-name-<?= $ci_table_safe ?>"></strong>으로 작성합니다
           </div>
-          <button class="ci-logout-btn" onclick="ciLogout('<?= $ci_table_safe ?>')">로그아웃</button>
+          <div style="display:flex;gap:8px;">
+            <button class="ci-logout-btn" onclick="ciSwitchAccount('<?= $ci_table_safe ?>')">계정 변경</button>
+            <button class="ci-logout-btn" onclick="ciLogout('<?= $ci_table_safe ?>')">로그아웃</button>
+          </div>
         </div>
 
         <div class="fc">

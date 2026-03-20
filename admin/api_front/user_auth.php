@@ -38,13 +38,15 @@ if ($method === 'POST') {
     $provider = trim($input['provider'] ?? '');
     $token    = trim($input['token']    ?? '');
 
-    if (!$provider || !$token) {
+    // email(인증번호) / email_pw 방식은 token 불필요
+    $tokenFreeProviders = ['email', 'email_pw'];
+    if (!$provider || (!$token && !in_array($provider, $tokenFreeProviders, true))) {
         echo json_encode(['ok' => false, 'error' => '파라미터 오류']); exit;
     }
 
     $pdo = getDB();
-logAccess($pdo);
-logLanding($pdo);
+    logAccess($pdo);
+    logLanding($pdo);
 
     // social_links에서 API 키 조회
     $keys = $pdo->query('SELECT * FROM social_links WHERE id=1')->fetch();
@@ -109,6 +111,93 @@ logLanding($pdo);
         $userName = $info['name'] ?? $info['email'] ?? '구글사용자';
     }
 
+    /* ── 이메일 인증번호 ── */
+    elseif ($provider === 'email') {
+        $email   = trim($input['email']     ?? '');
+        $subact  = trim($input['subaction'] ?? '');
+        $code    = trim($input['code']      ?? '');
+
+        if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            echo json_encode(['ok' => false, 'error' => '이메일 주소를 올바르게 입력하세요.']); exit;
+        }
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `ci_email_otp` (
+            `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,
+            `email`      VARCHAR(200) NOT NULL,
+            `code`       VARCHAR(10)  NOT NULL,
+            `expires_at` DATETIME     NOT NULL,
+            `used`       TINYINT(1)   NOT NULL DEFAULT 0,
+            `created_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`),
+            KEY `idx_email` (`email`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+        if ($subact === 'send') {
+            $pdo->prepare("DELETE FROM ci_email_otp WHERE email=?")->execute([$email]);
+            $otp     = str_pad(random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+            $expires = date('Y-m-d H:i:s', time() + 600);
+            $pdo->prepare("INSERT INTO ci_email_otp (email, code, expires_at) VALUES (?,?,?)")
+                ->execute([$email, $otp, $expires]);
+
+            require_once __DIR__ . '/../../phpmailer/Exception.php';
+            require_once __DIR__ . '/../../phpmailer/PHPMailer.php';
+            require_once __DIR__ . '/../../phpmailer/SMTP.php';
+
+            try {
+                $siteRow   = $pdo->query("SELECT title FROM homepage_info WHERE id=1 LIMIT 1");
+                $siteTitle = ($siteRow ? $siteRow->fetchColumn() : '') ?: '관리자';
+
+                $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+                $mail->isSMTP();
+                $mail->Host       = 'smtp.gmail.com';
+                $mail->SMTPAuth   = true;
+                $mail->Username   = 'solha.jin90@gmail.com';
+                $mail->Password   = 'otud ocoq cmsv hvde';
+                $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+                $mail->Port       = 587;
+                $mail->CharSet    = 'UTF-8';
+                $mail->setFrom('solha.jin90@gmail.com', $siteTitle);
+                $mail->addAddress($email);
+                $mail->Subject = '[' . $siteTitle . '] 이메일 인증번호';
+                $mail->isHTML(true);
+                $mail->Body = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="font-family:sans-serif;background:#f8fafc;padding:0;margin:0;">'
+                    . '<div style="max-width:480px;margin:32px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);">'
+                    . '<div style="background:linear-gradient(90deg,#1255a6,#1e7fe8);padding:22px 28px;color:#fff;font-size:1rem;font-weight:700;">' . htmlspecialchars($siteTitle) . ' 이메일 인증</div>'
+                    . '<div style="padding:28px;text-align:center;">'
+                    . '<p style="color:#334155;font-size:.92rem;margin:0 0 18px;">아래 인증번호를 입력해 주세요.<br><span style="font-size:.8rem;color:#94a3b8;">10분 내 유효합니다.</span></p>'
+                    . '<div style="font-size:2.2rem;font-weight:900;letter-spacing:8px;color:#1255a6;background:#f0f9ff;border-radius:10px;padding:16px 0;">' . $otp . '</div>'
+                    . '</div>'
+                    . '<div style="background:#f1f5f9;padding:12px 28px;font-size:.72rem;color:#94a3b8;text-align:center;">본 메일은 자동 발송되었습니다.</div>'
+                    . '</div></body></html>';
+                $mail->send();
+                echo json_encode(['ok' => true, 'sent' => true]);
+            } catch (Exception $e) {
+                echo json_encode(['ok' => false, 'error' => '인증메일 발송 실패: ' . $e->getMessage()]);
+            }
+            exit;
+        }
+
+        if ($subact === 'verify') {
+            if (!$code) { echo json_encode(['ok' => false, 'error' => '인증번호를 입력하세요.']); exit; }
+            $stmt = $pdo->prepare("SELECT * FROM ci_email_otp WHERE email=? AND code=? AND used=0 AND expires_at > NOW() ORDER BY id DESC LIMIT 1");
+            $stmt->execute([$email, $code]);
+            $row = $stmt->fetch();
+            if (!$row) {
+                echo json_encode(['ok' => false, 'error' => '인증번호가 올바르지 않거나 만료되었습니다.']); exit;
+            }
+            $pdo->prepare("UPDATE ci_email_otp SET used=1 WHERE id=?")->execute([$row['id']]);
+            $userId   = 'email_' . md5($email);
+            $userName = explode('@', $email)[0];
+            $user = ['id' => $userId, 'name' => $userName, 'provider' => 'email'];
+            $_SESSION['board_user'] = $user;
+            logLogin($pdo, 'email', $userId, $userName, 'success');
+            echo json_encode(['ok' => true, 'user' => $user]);
+            exit;
+        }
+
+        echo json_encode(['ok' => false, 'error' => 'subaction 필요 (send|verify)']); exit;
+    }
+
     /* ── 이메일 + 비밀번호 ── */
     elseif ($provider === 'email_pw') {
         $email    = trim($input['email']    ?? '');
@@ -157,6 +246,9 @@ logLanding($pdo);
 
     if (!$userId) { echo json_encode(['ok' => false, 'error' => '사용자 정보 없음']); exit; }
 
+    // 기존 세션 초기화 후 새 계정으로 저장
+    unset($_SESSION['board_user']);
+    session_regenerate_id(true);
     $user = ['id' => $userId, 'name' => $userName, 'provider' => $provider];
     $_SESSION['board_user'] = $user;
 

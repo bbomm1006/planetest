@@ -130,8 +130,7 @@
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:400;"><input type="checkbox" name="ci_login_type" value="kakao"/> 카카오</label>
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:400;"><input type="checkbox" name="ci_login_type" value="naver"/> 네이버</label>
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:400;"><input type="checkbox" name="ci_login_type" value="google"/> 구글</label>
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:400;"><input type="checkbox" name="ci_login_type" value="email"/> 이메일</label>
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:400;"><input type="checkbox" name="ci_login_type" value="password"/> 비밀번호</label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:400;"><input type="checkbox" name="ci_login_type" value="email"/> 이메일 인증</label>
           </div>
         </div>
       </div>

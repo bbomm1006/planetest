@@ -193,16 +193,14 @@ async function ciOpenDetail(formId) {
     const header = document.getElementById('page-customInquiryDetail')?.querySelector('.page-header');
     if (header) header.insertAdjacentElement('afterend', banner);
   }
+  const placementCode = `<?php\n$ci_table = '${tbl}';   // 이 폼의 table_name\ninclude __DIR__ . '/lib/custom_inquiry_front.php';\n?>`;
   banner.innerHTML = `
     <div style="margin:0 0 18px;padding:16px 20px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;display:flex;align-items:flex-start;gap:14px;">
       <div style="font-size:1.3rem;line-height:1;margin-top:2px;">📋</div>
       <div style="flex:1;min-width:0;">
         <p style="font-size:.8rem;font-weight:700;color:#15803d;margin-bottom:8px;">프론트 적용 방법 — index.php 원하는 위치에 아래 코드를 붙여넣으세요</p>
         <div style="position:relative;">
-          <pre id="ci-place-code-${tbl}" style="background:#fff;border:1px solid #d1fae5;border-radius:8px;padding:12px 14px;font-size:.78rem;color:#166534;line-height:1.7;overflow-x:auto;margin:0;white-space:pre-wrap;word-break:break-all;"><?php
-$ci_table = '${tbl}';   // 이 폼의 table_name
-include __DIR__ . '/lib/custom_inquiry_front.php';
-?></pre>
+          <pre id="ci-place-code-${tbl}" style="background:#fff;border:1px solid #d1fae5;border-radius:8px;padding:12px 14px;font-size:.78rem;color:#166534;line-height:1.7;overflow-x:auto;margin:0;white-space:pre-wrap;word-break:break-all;">${escHtml(placementCode)}</pre>
           <button onclick="ciCopyPlacementCode('${tbl}')" style="position:absolute;top:8px;right:8px;padding:4px 12px;font-size:.72rem;font-weight:700;background:#16a34a;color:#fff;border:none;border-radius:6px;cursor:pointer;" id="ci-copy-btn-${tbl}">복사</button>
         </div>
         <p style="font-size:.73rem;color:#4ade80;margin-top:8px;">※ 이 폼이 <strong>미사용</strong> 상태이면 include해도 아무것도 출력되지 않습니다.</p>
@@ -1026,7 +1024,7 @@ async function ciOpenDataDetail(id) {
       <label style="font-size:.85rem;font-weight:600;color:#475569;">답변</label>
       ${d.reply_at ? `<span style="font-size:.75rem;color:#94a3b8;margin-left:8px;">최종 답변: ${d.reply_at.slice(0,16)}</span>` : ''}
       <textarea id="ciDetailReply" class="form-control" rows="4" style="margin-top:8px;resize:vertical;" placeholder="답변 내용을 입력하세요">${escHtml(d.reply_content || '')}</textarea>
-      <button class="btn btn-primary" style="margin-top:8px;" onclick="ciSaveReply(${d.id})">답변 저장</button>
+      <button class="btn btn-primary" style="margin-top:8px;" onclick="ciSaveDetailReply(${d.id})">답변 저장</button>
     </div>`;
   }
 
@@ -1058,7 +1056,7 @@ async function ciSaveDetailStatus(rowId, statusId) {
   else showToast(res.msg || '오류', 'error');
 }
 
-async function ciSaveReply(rowId) {
+async function ciSaveDetailReply(rowId) {
   const replyEl = document.getElementById('ciDetailReply');
   if (!replyEl) { showToast('답변 입력란을 찾을 수 없습니다.', 'error'); return; }
   const content = replyEl.value.trim();

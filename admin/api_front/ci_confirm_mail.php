@@ -1,4 +1,6 @@
 <?php
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception as MailException;
 /**
  * ci_confirm_mail.php — 고객 접수 확인 메일 발송
  *

@@ -55,6 +55,11 @@ if ($action === 'list') {
     $where  = ['d.form_id = ?'];
     $params = [$form_id];
 
+    // 첫번째 필드 키 조회 (제목 대신 표시 + 키워드 검색)
+    $firstFieldStmt = $pdo->prepare('SELECT field_key FROM custom_inquiry_fields WHERE form_id=? AND is_visible=1 ORDER BY sort_order ASC LIMIT 1');
+    $firstFieldStmt->execute([$form_id]);
+    $firstFieldKey = $firstFieldStmt->fetchColumn();
+
     if ($keyword && $firstFieldKey) { $where[] = "d.`{$firstFieldKey}` LIKE ?"; $params[] = "%{$keyword}%"; }
     elseif ($keyword) { /* 필드 없으면 검색 스킵 */ }
     if ($status)  { $where[] = 'd.status_id = ?'; $params[] = intval($status); }
@@ -76,10 +81,6 @@ if ($action === 'list') {
     $total->execute($params);
     $totalCount = $total->fetchColumn();
 
-    // 첫번째 필드 키 조회 (제목 대신 표시)
-    $firstFieldStmt = $pdo->prepare('SELECT field_key FROM custom_inquiry_fields WHERE form_id=? AND is_visible=1 ORDER BY sort_order ASC LIMIT 1');
-    $firstFieldStmt->execute([$form_id]);
-    $firstFieldKey = $firstFieldStmt->fetchColumn();
     $firstFieldCol = $firstFieldKey ? ", d.`{$firstFieldKey}` as first_field_value" : '';
 
     // login/comment 컬럼 존재 여부 개별 확인
@@ -285,8 +286,10 @@ if ($action === 'save_reply') {
 
         if ($toEmail && strpos($toEmail, '@') !== false) {
             try {
-                // 발신자 정보 (send_email.php 와 동일하게 유지)
-                $fromName         = 'PureBlue 고객센터';
+                // 사이트명 조회
+                $siteStmt  = $pdo->query("SELECT title FROM homepage_info WHERE id=1 LIMIT 1");
+                $siteTitle = ($siteStmt ? $siteStmt->fetchColumn() : '') ?: '관리자';
+                $fromName         = $siteTitle . ' 관리자';
                 $gmailEmail       = 'solha.jin90@gmail.com';
                 $gmailAppPassword = 'otud ocoq cmsv hvde';
 
@@ -297,8 +300,7 @@ if ($action === 'save_reply') {
                     . '<body style="font-family:\'Noto Sans KR\',sans-serif;background:#f8fafc;margin:0;padding:0;">'
                     . '<div style="max-width:560px;margin:32px auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08);">'
                     . '<div style="background:linear-gradient(90deg,#1255a6,#1e7fe8);padding:28px 32px;">'
-                    . '<div style="font-family:Montserrat,sans-serif;font-weight:900;font-size:1.3rem;color:#fff;letter-spacing:-0.5px;">Pure<span style="color:#00c6ff;">Blue</span></div>'
-                    . '<div style="color:rgba(255,255,255,.7);font-size:.8rem;margin-top:4px;">프리미엄 정수기 렌탈</div>'
+                    . '<div style="font-weight:900;font-size:1.3rem;color:#fff;">' . htmlspecialchars($siteTitle) . '</div>'
                     . '</div>'
                     . '<div style="padding:28px 32px;">'
                     . '<p style="font-size:.95rem;color:#1e293b;margin:0 0 16px;">안녕하세요, 문의하신 내용에 대한 답변을 드립니다.</p>'
@@ -309,7 +311,7 @@ if ($action === 'save_reply') {
                     . '</div>'
                     . '</div>'
                     . '<div style="background:#f1f5f9;padding:16px 32px;font-size:.75rem;color:#94a3b8;text-align:center;">'
-                    . '© 2026 PureBlue Corp. 고객센터: 1588-0000 | 평일 09~18시'
+                    . htmlspecialchars($siteTitle) . ' 관리자 시스템 자동 발송'
                     . '</div>'
                     . '</div></body></html>';
 
