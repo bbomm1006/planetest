@@ -8,6 +8,7 @@
  */
 
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/log_helper.php';
 
 // PHPMailer
 require_once __DIR__ . '/../../phpmailer/Exception.php';
@@ -140,8 +141,10 @@ if ($action === 'find_id') {
     $result = sendMail($email, $mailPrefix . ' 아이디 안내', $html, $gmailEmail, $gmailAppPassword, $fromName);
 
     if ($result === true) {
+        logEmail(getDB(), $email, $mailPrefix . ' 아이디 안내', 'find_id', 'success');
         echo json_encode(['ok' => true, 'msg' => '등록된 이메일이 있으면 아이디를 발송했습니다.']);
     } else {
+        logEmail(getDB(), $email, $mailPrefix . ' 아이디 안내', 'find_id', 'fail', is_string($result) ? $result : '');
         echo json_encode(['ok' => false, 'msg' => '메일 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.']);
     }
     exit;
@@ -202,8 +205,10 @@ if ($action === 'find_pw') {
     $result = sendMail($email, $mailPrefix . ' 임시 비밀번호 안내', $html, $gmailEmail, $gmailAppPassword, $fromName);
 
     if ($result === true) {
+        logEmail(getDB(), $email, $mailPrefix . ' 임시 비밀번호 안내', 'find_pw', 'success');
         echo json_encode(['ok' => true, 'msg' => '입력하신 정보와 일치하는 계정이 있으면 임시 비밀번호를 발송했습니다.']);
     } else {
+        logEmail(getDB(), $email, $mailPrefix . ' 임시 비밀번호 안내', 'find_pw', 'fail', is_string($result) ? $result : '');
         echo json_encode(['ok' => false, 'msg' => '메일 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.']);
     }
     exit;
