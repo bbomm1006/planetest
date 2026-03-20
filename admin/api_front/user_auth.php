@@ -109,6 +109,48 @@ logLanding($pdo);
         $userName = $info['name'] ?? $info['email'] ?? '구글사용자';
     }
 
+    /* ── 이메일 + 비밀번호 ── */
+    elseif ($provider === 'email_pw') {
+        $email    = trim($input['email']    ?? '');
+        $password = trim($input['password'] ?? '');
+
+        if (!$email || !$password) {
+            echo json_encode(['ok' => false, 'error' => '이메일과 비밀번호를 입력하세요.']); exit;
+        }
+
+        // ci_email_users 테이블 자동 생성
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `ci_email_users` (
+            `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,
+            `email`      VARCHAR(200) NOT NULL UNIQUE,
+            `password`   VARCHAR(255) NOT NULL,
+            `name`       VARCHAR(100) NOT NULL DEFAULT '',
+            `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+        $stmt = $pdo->prepare('SELECT * FROM ci_email_users WHERE email = ? LIMIT 1');
+        $stmt->execute([$email]);
+        $row = $stmt->fetch();
+
+        if ($row) {
+            // 기존 계정 — 비밀번호 검증
+            if (!password_verify($password, $row['password'])) {
+                echo json_encode(['ok' => false, 'error' => '이메일 또는 비밀번호가 올바르지 않습니다.']); exit;
+            }
+            $userId   = 'email_' . $row['id'];
+            $userName = $row['name'] ?: $email;
+        } else {
+            // 신규 — 자동 가입
+            $hash = password_hash($password, PASSWORD_DEFAULT);
+            $name = explode('@', $email)[0];
+            $pdo->prepare('INSERT INTO ci_email_users (email, password, name) VALUES (?,?,?)')
+                ->execute([$email, $hash, $name]);
+            $newId    = $pdo->lastInsertId();
+            $userId   = 'email_' . $newId;
+            $userName = $name;
+        }
+    }
+
     else {
         echo json_encode(['ok' => false, 'error' => '지원하지 않는 공급자']); exit;
     }

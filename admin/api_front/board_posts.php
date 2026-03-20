@@ -87,7 +87,44 @@ if ($method === 'GET' && !isset($_GET['id'])) {
     $offset = ($page - 1) * $limit;
 
     if (!$user) {
-        echo json_encode(['ok' => true, 'items' => [], 'total' => 0, 'pages' => 0]);
+        /* 비로그인: 공개글 전체 목록 반환 (제목/작성자/날짜/상태만, 내용 미노출) */
+        $where  = 'WHERE 1=1';
+        $params = [];
+        if ($kw) {
+            $where .= ' AND (i.name LIKE ? OR i.content LIKE ?)';
+            $params[] = "%$kw%";
+            $params[] = "%$kw%";
+        }
+        $stC = $pdo->prepare("SELECT COUNT(*) FROM `inquiries` i $where");
+        $stC->execute($params);
+        $total = (int)$stC->fetchColumn();
+
+        $st = $pdo->prepare(
+            "SELECT i.id, i.name, i.content, i.status, i.author_id, i.category_id,
+                    c.name AS cat_name, i.created_at
+             FROM `inquiries` i
+             LEFT JOIN `inquiry_categories` c ON c.id = i.category_id
+             $where ORDER BY i.id DESC LIMIT $limit OFFSET $offset"
+        );
+        $st->execute($params);
+        $rows = $st->fetchAll();
+
+        $items = array_map(function($r) {
+            $lines = explode("\n", trim($r['content']));
+            $title = mb_strimwidth(trim($lines[0]), 0, 80, '...');
+            return [
+                'id'          => (int)$r['id'],
+                'title'       => $title,
+                'cat_name'    => $r['cat_name'] ?? '',
+                'author_name' => $r['name'],
+                'author_id'   => $r['author_id'],
+                'status'      => statusLabel($r['status']),
+                'created_at'  => $r['created_at'],
+                'is_mine'     => false,
+            ];
+        }, $rows);
+
+        echo json_encode(['ok' => true, 'items' => $items, 'total' => $total, 'pages' => (int)ceil($total / $limit)]);
         exit;
     }
 

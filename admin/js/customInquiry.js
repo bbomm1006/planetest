@@ -805,22 +805,31 @@ async function ciRenderSearchFilters() {
     apiGet('api/custom_inquiry.php', { action: 'list_fields',   form_id: ciCurrentFormId }),
   ]);
 
-  const filterWrap = document.getElementById('ciDynamicFilters');
+  const filterWrap  = document.getElementById('ciDynamicFilters');
+  const statusWrap  = document.getElementById('ciDynamicStatusFilter');
   if (!filterWrap) return;
   filterWrap.innerHTML = '';
 
-  // 상태 셀렉트 (사용중인 것만)
-  const activeStatuses = (statusRes.data || []).filter(s => s.is_active == 1);
-  if (activeStatuses.length) {
-    const sel = document.createElement('select');
-    sel.className = 'form-control';
-    sel.id = 'ciFilterStatus';
-    sel.innerHTML = '<option value="">전체 상태</option>' +
-      activeStatuses.map(s => `<option value="${s.id}">${escHtml(s.label)}</option>`).join('');
-    filterWrap.appendChild(sel);
+  // 첫번째 필드 label로 테이블 헤더 업데이트
+  const firstField = (fieldRes.data || []).find(f => f.is_visible == 1);
+  const headTh = document.querySelector('#ciDataTableHead th:nth-child(2)');
+  if (headTh && firstField) headTh.textContent = firstField.label;
+
+  // 1행: 상태 셀렉트 → ciDynamicStatusFilter
+  if (statusWrap) {
+    statusWrap.innerHTML = '';
+    const activeStatuses = (statusRes.data || []).filter(s => s.is_active == 1);
+    if (activeStatuses.length) {
+      const sel = document.createElement('select');
+      sel.className = 'form-control';
+      sel.id = 'ciFilterStatus';
+      sel.innerHTML = '<option value="">전체 상태</option>' +
+        activeStatuses.map(s => `<option value="${s.id}">${escHtml(s.label)}</option>`).join('');
+      statusWrap.appendChild(sel);
+    }
   }
 
-  // select/radio/checkbox 필드 셀렉트 (노출 중인 것만)
+  // 2행: select/radio/checkbox 필드 → ciDynamicFilters
   const choiceFields = (fieldRes.data || []).filter(f =>
     f.is_visible == 1 && ['select','radio','checkbox'].includes(f.type)
   );
@@ -828,7 +837,6 @@ async function ciRenderSearchFilters() {
     const sel = document.createElement('select');
     sel.className = 'form-control';
     sel.dataset.fieldKey = f.field_key;
-    sel.dataset.fieldId  = f.id;
     sel.innerHTML = `<option value="">${escHtml(f.label)} 전체</option>` +
       (f.options || [])
         .filter(o => o.is_visible == 1)
@@ -863,6 +871,7 @@ async function ciFetchData() {
     action:       'list',
     form_id:      ciCurrentFormId,
     keyword:      document.getElementById('ciDataSearchKeyword').value.trim(),
+    keyword_text_only: '1',
     status:       statusEl ? statusEl.value : '',
     from:         document.getElementById('ciDataSearchFrom').value,
     to:           document.getElementById('ciDataSearchTo').value,
@@ -926,6 +935,8 @@ function ciResetSearch() {
   document.getElementById('ciDataSearchFrom').value    = '';
   document.getElementById('ciDataSearchTo').value      = '';
   document.querySelectorAll('#ciDynamicFilters select').forEach(sel => { sel.value = ''; });
+  const statusEl = document.getElementById('ciFilterStatus');
+  if (statusEl) statusEl.value = '';
   ciCurrentDataPage = 1;
   ciFetchData();
 }
@@ -938,6 +949,7 @@ async function ciOpenDataDetail(id) {
   const fields   = res.fields   || [];
   const statuses = res.statuses || [];
   const form     = res.form     || {};
+  console.log('[CI Detail] form:', form, 'reply_use:', form.reply_use, 'comment_use:', form.comment_use);
 
   // 상태 변경 select
   const statusOpts = statuses.map(s =>
@@ -981,7 +993,7 @@ async function ciOpenDataDetail(id) {
   });
 
   // 답변 영역
-  if (form.reply_use == 1) {
+  if (parseInt(form.reply_use) === 1) {
     html += `<hr style="border:none;border-top:1px solid var(--border);margin:16px 0;">
     <div>
       <label style="font-size:.85rem;font-weight:600;color:#475569;">답변</label>
@@ -992,7 +1004,7 @@ async function ciOpenDataDetail(id) {
   }
 
   // 댓글 영역
-  if (form.comment_use == 1) {
+  if (parseInt(form.comment_use) === 1) {
     html += `<hr style="border:none;border-top:1px solid var(--border);margin:16px 0;">
     <div>
       <label style="font-size:.85rem;font-weight:600;color:#475569;">댓글</label>
@@ -1008,7 +1020,7 @@ async function ciOpenDataDetail(id) {
   openModal('ciDataDetailModal');
 
   // 댓글 로드
-  if (form.comment_use == 1) {
+  if (parseInt(form.comment_use) === 1) {
     ciLoadComments(d.id);
   }
 }
@@ -1020,10 +1032,15 @@ async function ciSaveDetailStatus(rowId, statusId) {
 }
 
 async function ciSaveReply(rowId) {
-  const content = document.getElementById('ciDetailReply').value.trim();
+  const replyEl = document.getElementById('ciDetailReply');
+  if (!replyEl) { showToast('답변 입력란을 찾을 수 없습니다.', 'error'); return; }
+  const content = replyEl.value.trim();
   const res = await apiPost('api/custom_inquiry_data.php', { action: 'save_reply', form_id: ciCurrentFormId, id: rowId, reply_content: content });
-  if (res.ok) showToast('답변이 저장되었습니다.');
-  else showToast(res.msg || '오류', 'error');
+  if (res.ok) {
+    if (res.mail_sent) showToast('답변이 저장되었으며 이메일이 발송되었습니다.');
+    else if (res.mail_error) showToast('답변은 저장되었으나 이메일 발송 실패: ' + res.mail_error, 'error');
+    else showToast('답변이 저장되었습니다.');
+  } else showToast(res.msg || '오류', 'error');
 }
 
 async function ciLoadComments(rowId) {

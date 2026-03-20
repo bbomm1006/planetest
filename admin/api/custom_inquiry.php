@@ -166,6 +166,73 @@ if ($action === 'save_basic') {
         $id
     ]);
     logAdminAction($pdo, 'update', 'custom_inquiry_forms', (string)($id??''));
+    // product_use 켜면 동적 테이블 컬럼 + custom_inquiry_fields 레코드 추가
+    if ($product_use) {
+        $tblStmt = $pdo->prepare('SELECT table_name FROM custom_inquiry_forms WHERE id=?');
+        $tblStmt->execute([$id]);
+        $tbl = $tblStmt->fetchColumn();
+        if ($tbl) {
+            // 동적 테이블 컬럼 추가
+            $cols_to_add = [
+                'category_id'   => 'INT(11) DEFAULT NULL',
+                'category_name' => 'VARCHAR(255) DEFAULT NULL',
+                'product_id'    => 'INT(11) DEFAULT NULL',
+                'product_name'  => 'VARCHAR(255) DEFAULT NULL',
+            ];
+            foreach ($cols_to_add as $col => $def) {
+                try {
+                    $colChk = $pdo->prepare("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=? AND column_name=?");
+                    $colChk->execute([$tbl, $col]);
+                    if (!$colChk->fetchColumn()) {
+                        $pdo->exec("ALTER TABLE `{$tbl}` ADD COLUMN `{$col}` {$def}");
+                    }
+                } catch (Exception $e) {}
+            }
+        }
+
+        // custom_inquiry_fields에 제품분류/제품명 필드 레코드 추가 (없을 때만)
+        $prodFields = [
+            ['category_id',  '제품 분류', 'select', 0],
+            ['product_id',   '제품명',    'select', 1],
+        ];
+        foreach ($prodFields as $pf) {
+            $chkPf = $pdo->prepare('SELECT COUNT(*) FROM custom_inquiry_fields WHERE form_id=? AND field_key=?');
+            $chkPf->execute([$id, $pf[0]]);
+            if (!$chkPf->fetchColumn()) {
+                // 현재 최대 sort_order 뒤에 추가
+                $maxSort = $pdo->prepare('SELECT COALESCE(MAX(sort_order),0)+1 FROM custom_inquiry_fields WHERE form_id=?');
+                $maxSort->execute([$id]);
+                $nextSort = $maxSort->fetchColumn();
+                $pdo->prepare('INSERT INTO custom_inquiry_fields (form_id, field_key, label, type, is_required, is_visible, sort_order) VALUES (?,?,?,?,?,?,?)')
+                    ->execute([$id, $pf[0], $pf[1], $pf[2], $product_req, 1, $nextSort + $pf[3]]);
+            }
+        }
+    } else {
+        // product_use 끄면 필드 레코드 삭제
+        $pdo->prepare("DELETE FROM custom_inquiry_fields WHERE form_id=? AND field_key IN ('category_id','product_id')")
+            ->execute([$id]);
+    }
+
+    // 답변/로그인/댓글 사용 시 동적 테이블 컬럼 자동 추가
+    $tblStmt2 = $pdo->prepare('SELECT table_name FROM custom_inquiry_forms WHERE id=?');
+    $tblStmt2->execute([$id]);
+    $tbl2 = $tblStmt2->fetchColumn();
+    if ($tbl2) {
+        $extra_cols = [
+            'reply_content' => 'TEXT DEFAULT NULL',
+            'reply_at'      => 'DATETIME DEFAULT NULL',
+            'login_name'    => 'VARCHAR(255) DEFAULT NULL',
+            'comment_count' => 'INT(11) DEFAULT 0',
+        ];
+        foreach ($extra_cols as $col => $def) {
+            try {
+                $cc = $pdo->prepare("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=? AND column_name=?");
+                $cc->execute([$tbl2, $col]);
+                if (!$cc->fetchColumn()) $pdo->exec("ALTER TABLE `{$tbl2}` ADD COLUMN `{$col}` {$def}");
+            } catch (Exception $e) {}
+        }
+    }
+
     echo json_encode(['ok' => true]);
     exit;
 }
@@ -177,8 +244,51 @@ if ($action === 'save_reply') {
     $id          = intval($_POST['id'] ?? 0);
     $reply_use   = intval($_POST['reply_use'] ?? 0);
     $reply_method= trim($_POST['reply_method'] ?? '');
+
+    // custom_inquiry_forms 테이블에 reply_use, reply_method 컬럼이 없으면 자동 추가
+    $colCheck = $pdo->prepare("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='custom_inquiry_forms' AND column_name='reply_use'");
+    $colCheck->execute();
+    if (!$colCheck->fetchColumn()) {
+        $pdo->exec("ALTER TABLE custom_inquiry_forms ADD COLUMN reply_use TINYINT(1) NOT NULL DEFAULT 0");
+        $pdo->exec("ALTER TABLE custom_inquiry_forms ADD COLUMN reply_method VARCHAR(20) DEFAULT NULL");
+    }
+
     $stmt = $pdo->prepare('UPDATE custom_inquiry_forms SET reply_use=?, reply_method=? WHERE id=?');
     $stmt->execute([$reply_use, ($reply_use ? $reply_method : null), $id]);
+
+    // 답변 발송 방법에 따라 필드 자동 추가/삭제
+    if ($reply_use && $reply_method) {
+        // 필요한 필드 결정
+        $needed = [];
+        if ($reply_method === 'email') {
+            $needed[] = ['email',    '이메일',   'input', 0];
+        } else {
+            // alimtalk, sms
+            $needed[] = ['phone',    '연락처',   'input', 0];
+        }
+
+        foreach ($needed as $nf) {
+            $chk = $pdo->prepare('SELECT COUNT(*) FROM custom_inquiry_fields WHERE form_id=? AND field_key=?');
+            $chk->execute([$id, $nf[0]]);
+            if (!$chk->fetchColumn()) {
+                $maxSort = $pdo->prepare('SELECT COALESCE(MAX(sort_order),0)+1 FROM custom_inquiry_fields WHERE form_id=?');
+                $maxSort->execute([$id]);
+                $nextSort = (int)$maxSort->fetchColumn() + $nf[3];
+                $pdo->prepare('INSERT INTO custom_inquiry_fields (form_id, field_key, label, type, is_required, is_visible, sort_order) VALUES (?,?,?,?,?,?,?)')
+                    ->execute([$id, $nf[0], $nf[1], $nf[2], 1, 1, $nextSort]);
+            } else {
+                // 이미 있으면 필수로만 업데이트
+                $pdo->prepare('UPDATE custom_inquiry_fields SET is_required=1 WHERE form_id=? AND field_key=?')
+                    ->execute([$id, $nf[0]]);
+            }
+        }
+    } elseif (!$reply_use) {
+        // 답변 미사용으로 변경 시 자동 생성된 이메일/연락처 필드 삭제
+        // (단, 사용자가 직접 추가한 건지 구분 불가하므로 삭제하지 않고 필수 해제만)
+        $pdo->prepare("UPDATE custom_inquiry_fields SET is_required=0 WHERE form_id=? AND field_key IN ('email','phone')")
+            ->execute([$id]);
+    }
+
     echo json_encode(['ok' => true]);
     exit;
 }
@@ -258,6 +368,34 @@ if ($action === 'save_manager') {
         $pdo->prepare('INSERT INTO custom_inquiry_manager_history (form_id, manager_id, changed_by, change_desc) VALUES (?,?,?,?)')
             ->execute([$form_id, $new_id, $changed_by, json_encode(['action'=>'created'], JSON_UNESCAPED_UNICODE)]);
     }
+    // 알림 설정에 따른 필드 자동 추가
+    // 알림 이메일 설정 시 이메일 필드 자동 추가
+    if ($notify_email) {
+        $chk = $pdo->prepare('SELECT COUNT(*) FROM custom_inquiry_fields WHERE form_id=? AND field_key=?');
+        $chk->execute([$form_id, 'email']);
+        if (!$chk->fetchColumn()) {
+            $ms = $pdo->query("SELECT COALESCE(MAX(sort_order),0)+1 FROM custom_inquiry_fields WHERE form_id={$form_id}");
+            $nextSort = (int)$ms->fetchColumn();
+            $pdo->prepare('INSERT INTO custom_inquiry_fields (form_id, field_key, label, type, is_required, is_visible, sort_order) VALUES (?,?,?,?,?,?,?)')
+                ->execute([$form_id, 'email', '이메일', 'input', 1, 1, $nextSort]);
+        } else {
+            $pdo->prepare('UPDATE custom_inquiry_fields SET is_required=1 WHERE form_id=? AND field_key=?')->execute([$form_id, 'email']);
+        }
+    }
+    // 알림톡/문자 설정 시 연락처 필드 자동 추가
+    if ($notify_sms || $notify_alimtalk) {
+        $chk2 = $pdo->prepare('SELECT COUNT(*) FROM custom_inquiry_fields WHERE form_id=? AND field_key=?');
+        $chk2->execute([$form_id, 'phone']);
+        if (!$chk2->fetchColumn()) {
+            $ms2 = $pdo->query("SELECT COALESCE(MAX(sort_order),0)+1 FROM custom_inquiry_fields WHERE form_id={$form_id}");
+            $nextSort2 = (int)$ms2->fetchColumn();
+            $pdo->prepare('INSERT INTO custom_inquiry_fields (form_id, field_key, label, type, is_required, is_visible, sort_order) VALUES (?,?,?,?,?,?,?)')
+                ->execute([$form_id, 'phone', '연락처', 'input', 1, 1, $nextSort2]);
+        } else {
+            $pdo->prepare('UPDATE custom_inquiry_fields SET is_required=1 WHERE form_id=? AND field_key=?')->execute([$form_id, 'phone']);
+        }
+    }
+
     echo json_encode(['ok' => true]);
     exit;
 }
@@ -544,6 +682,59 @@ if ($action === 'sort_terms') {
             ->execute([intval($item['sort']), intval($item['id'])]);
     }
     echo json_encode(['ok' => true]);
+    exit;
+}
+
+/* ================================================================
+   댓글 목록
+   ================================================================ */
+if ($action === 'list_comments') {
+    $form_id    = intval($_GET['form_id'] ?? 0);
+    $row_id     = intval($_GET['row_id'] ?? 0);
+    $admin_view = true; // 관리자는 전체 조회
+
+    $form = $pdo->prepare('SELECT table_name FROM custom_inquiry_forms WHERE id=?');
+    $form->execute([$form_id]);
+    $tbl = $form->fetchColumn();
+    if (!$tbl) { echo json_encode(['ok'=>false,'msg'=>'폼 없음']); exit; }
+
+    $ctbl = 'ci_comments_' . $tbl;
+    // 댓글 테이블 없으면 생성
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `{$ctbl}` (
+        `id`          INT(11) NOT NULL AUTO_INCREMENT,
+        `row_id`      INT(11) NOT NULL,
+        `author`      VARCHAR(255) DEFAULT NULL,
+        `login_type`  VARCHAR(20) DEFAULT NULL,
+        `content`     TEXT NOT NULL,
+        `visibility`  TINYINT(1) DEFAULT 1,
+        `created_at`  DATETIME DEFAULT CURRENT_TIMESTAMP,
+        `updated_at`  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`),
+        KEY `idx_row_id` (`row_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    $stmt = $pdo->prepare("SELECT * FROM `{$ctbl}` WHERE row_id=? ORDER BY id ASC");
+    $stmt->execute([$row_id]);
+    echo json_encode(['ok'=>true,'data'=>$stmt->fetchAll()]);
+    exit;
+}
+
+/* ================================================================
+   댓글 공개/비공개 토글
+   ================================================================ */
+if ($action === 'toggle_comment_visibility') {
+    $form_id    = intval($_POST['form_id'] ?? 0);
+    $comment_id = intval($_POST['comment_id'] ?? 0);
+    $visibility = intval($_POST['visibility'] ?? 1);
+
+    $form = $pdo->prepare('SELECT table_name FROM custom_inquiry_forms WHERE id=?');
+    $form->execute([$form_id]);
+    $tbl = $form->fetchColumn();
+    if (!$tbl) { echo json_encode(['ok'=>false,'msg'=>'폼 없음']); exit; }
+
+    $ctbl = 'ci_comments_' . $tbl;
+    $pdo->prepare("UPDATE `{$ctbl}` SET visibility=? WHERE id=?")->execute([$visibility, $comment_id]);
+    echo json_encode(['ok'=>true]);
     exit;
 }
 

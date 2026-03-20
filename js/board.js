@@ -118,14 +118,18 @@ function boardRenderList(data) {
     var total = data.total || 0;
     listEl.innerHTML = items.map(function (item, idx) {
       var num = total - ((_boardPage - 1) * 10) - idx;
-      /* [분류] 제목 형식 */
       var catBadge = item.cat_name
         ? '<span style="color:var(--primary,#1e7fe8);font-weight:700;margin-right:4px;">[' + bEsc(item.cat_name) + ']</span>'
         : '';
-      return '<div class="board-list-item' + (item.is_mine ? '' : ' board-list-locked') + '" onclick="boardOpenPost(\'' + item.id + '\',' + (item.is_mine ? 1 : 0) + ')">'
+
+      /* ── 비로그인이거나 남의 글이면 자물쇠 아이콘 표시 ── */
+      var isLocked = !item.is_mine;
+      var lockIcon = isLocked ? ' <span style="font-size:.7rem;color:var(--g4)">🔒</span>' : '';
+
+      return '<div class="board-list-item' + (isLocked ? ' board-list-locked' : '') + '" onclick="boardOpenPost(\'' + item.id + '\',' + (item.is_mine ? 1 : 0) + ')">'
         + '<span class="board-list-num">' + num + '</span>'
         + '<div class="board-list-body">'
-        + '<div class="board-list-title">' + catBadge + bEsc(item.title) + (item.is_mine ? '' : ' <span style="font-size:.7rem;color:var(--g4)">🔒</span>') + '</div>'
+        + '<div class="board-list-title">' + catBadge + bEsc(item.title) + lockIcon + '</div>'
         + '<div class="board-list-meta"><span>' + bEsc(item.author_name) + '</span><span>' + bDate(item.created_at) + '</span>'
         + '<span class="board-status-badge board-status-' + bEsc(item.status || '접수') + '">' + bEsc(item.status || '접수') + '</span></div>'
         + '</div>'
@@ -141,9 +145,16 @@ function boardRenderList(data) {
   pager.innerHTML = html;
 }
 
+/* ── 글 클릭: 비로그인이면 로그인 모달, 남의 글이면 안내 ── */
 function boardOpenPost(id, isMine) {
-  if (!_boardUser.loggedIn) { openBoardLogin(); return; }
-  if (!isMine) { alert('본인이 작성한 글만 확인할 수 있습니다.'); return; }
+  if (!_boardUser.loggedIn) {
+    openBoardLogin();
+    return;
+  }
+  if (!isMine) {
+    alert('본인이 작성한 글만 확인할 수 있습니다.');
+    return;
+  }
   boardFetchPost(id);
 }
 
@@ -160,7 +171,6 @@ async function boardFetchPost(id) {
 function boardRenderDetail(item) {
   _boardPostId = item.id;
 
-  /* [분류] 제목 형식 */
   var catPrefix = item.cat_name ? '[' + item.cat_name + '] ' : '';
   document.getElementById('bdTitle').textContent   = catPrefix + item.title;
   document.getElementById('bdAuthor').textContent  = bMaskSocialId(_boardUser.id, false, item.author_name);
