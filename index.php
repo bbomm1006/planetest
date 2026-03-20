@@ -2,60 +2,138 @@
 <?php include 'lib/__head.php'; ?>
 <body>
 
+<?php
+  // menus 테이블의 is_active 값을 기반으로 프론트 lib 단락 노출/미노출 처리
+  $frontSectionState = [];
+  $frontKeys = [
+    'front_service_switch',
+    'front_user_menu',
+    'front_hero_banner',
+    'front_products',
+    'front_benefits',
+    'front_videos',
+    'front_reviews',
+    'front_event',
+    'front_stores',
+    'front_reservation',
+    'front_reservation_lookup',
+    'front_notices',
+    'front_faq',
+    'front_gallery',
+    'front_photo_gallery',
+    'front_slide_gallery',
+    'front_board',
+    'front_consult',
+    'front_footer',
+  ];
+
+  if (!empty($frontKeys)) {
+    $placeholders = implode(',', array_fill(0, count($frontKeys), '?'));
+    $stmt = $pdo->prepare("SELECT `key`, is_active FROM menus WHERE `key` IN ($placeholders)");
+    $stmt->execute($frontKeys);
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+      $frontSectionState[$row['key']] = (int)$row['is_active'];
+    }
+  }
+
+  $frontIsVisible = function ($key) use ($frontSectionState) {
+    if (!array_key_exists($key, $frontSectionState)) return true; // 미설정이면 기본 노출
+    return (int)$frontSectionState[$key] !== 0;
+  };
+?>
+
   <!-- 서비스 전환 바 -->
-  <?php include 'lib/_site.php'; ?>
+  <div data-front-section-key="front_service_switch" <?php if (!$frontIsVisible('front_service_switch')) echo 'style="display:none;"'; ?>>
+    <?php include 'lib/_site.php'; ?>
+  </div>
 
   <!-- NAV -->
-  <?php include 'lib/_nav.php'; ?>
+  <div data-front-section-key="front_user_menu" <?php if (!$frontIsVisible('front_user_menu')) echo 'style="display:none;"'; ?>>
+    <?php include 'lib/_nav.php'; ?>
+  </div>
 
   <!-- HERO -->
-  <?php include 'lib/top_banner.php'; ?>
+  <div data-front-section-key="front_hero_banner" <?php if (!$frontIsVisible('front_hero_banner')) echo 'style="display:none;"'; ?>>
+    <?php include 'lib/top_banner.php'; ?>
+  </div>
 
   <!-- PRODUCTS -->
-  <?php include 'lib/products.php'; ?>
+  <div data-front-section-key="front_products" <?php if (!$frontIsVisible('front_products')) echo 'style="display:none;"'; ?>>
+    <?php include 'lib/products.php'; ?>
+  </div>
 
   <!-- BENEFITS -->
-  <?php include 'lib/benefits.php'; ?>
+  <div data-front-section-key="front_benefits" <?php if (!$frontIsVisible('front_benefits')) echo 'style="display:none;"'; ?>>
+    <?php include 'lib/benefits.php'; ?>
+  </div>
 
   <!-- VIDEOS -->
-  <?php include 'lib/bbs_video.php'; ?>
+  <div data-front-section-key="front_videos" <?php if (!$frontIsVisible('front_videos')) echo 'style="display:none;"'; ?>>
+    <?php include 'lib/bbs_video.php'; ?>
+  </div>
 
   <!-- REVIEWS -->
-  <?php include 'lib/bbs_review.php'; ?>
+  <div data-front-section-key="front_reviews" <?php if (!$frontIsVisible('front_reviews')) echo 'style="display:none;"'; ?>>
+    <?php include 'lib/bbs_review.php'; ?>
+  </div>
 
   <!-- EVENT -->
-  <?php include 'lib/bbs_event.php'; ?>
+  <div data-front-section-key="front_event" <?php if (!$frontIsVisible('front_event')) echo 'style="display:none;"'; ?>>
+    <?php include 'lib/bbs_event.php'; ?>
+  </div>
 
   <!-- STORES -->
-  <?php include 'lib/stores.php'; ?>
+  <div data-front-section-key="front_stores" <?php if (!$frontIsVisible('front_stores')) echo 'style="display:none;"'; ?>>
+    <?php include 'lib/stores.php'; ?>
+  </div>
 
   <!-- RESERVATION -->
-  <?php include 'lib/reservation.php'; ?>
+  <div data-front-section-key="front_reservation" <?php if (!$frontIsVisible('front_reservation')) echo 'style="display:none;"'; ?>>
+    <?php include 'lib/reservation.php'; ?>
+  </div>
 
   <!-- RESERVATION LOOKUP -->
-  <?php include 'lib/reservationLookup.php'; ?>
+  <div data-front-section-key="front_reservation_lookup" <?php if (!$frontIsVisible('front_reservation_lookup')) echo 'style="display:none;"'; ?>>
+    <?php include 'lib/reservationLookup.php'; ?>
+  </div>
 
   <!-- NOTICES -->
-  <?php include 'lib/bbs_notice.php'; ?>
+  <div data-front-section-key="front_notices" <?php if (!$frontIsVisible('front_notices')) echo 'style="display:none;"'; ?>>
+    <?php include 'lib/bbs_notice.php'; ?>
+  </div>
 
   <!-- FAQ -->
-  <?php include 'lib/bbs_faq.php'; ?>
+  <div data-front-section-key="front_faq" <?php if (!$frontIsVisible('front_faq')) echo 'style="display:none;"'; ?>>
+    <?php include 'lib/bbs_faq.php'; ?>
+  </div>
 
   <!-- GALLERY -->
-  <?php include 'lib/bbs_gallery.php'; ?>
+  <div data-front-section-key="front_gallery" <?php if (!$frontIsVisible('front_gallery')) echo 'style="display:none;"'; ?>>
+    <?php include 'lib/bbs_gallery.php'; ?>
+  </div>
 
   <!-- PHOTO GALLERY -->
-  <?php include 'lib/bbs_photogallery.php'; ?>
+  <div data-front-section-key="front_photo_gallery" <?php if (!$frontIsVisible('front_photo_gallery')) echo 'style="display:none;"'; ?>>
+    <?php include 'lib/bbs_photogallery.php'; ?>
+  </div>
 
   <!-- SLIDE GALLERY -->
-  <?php include 'lib/bbs_slidegallery.php'; ?>
+  <div data-front-section-key="front_slide_gallery" <?php if (!$frontIsVisible('front_slide_gallery')) echo 'style="display:none;"'; ?>>
+    <?php include 'lib/bbs_slidegallery.php'; ?>
+  </div>
 
   <!-- BOARD (문의게시판) -->
-  <?php include 'lib/qna.php'; ?>
-  <?php include 'lib/consult.php'; ?>
+  <div data-front-section-key="front_board" <?php if (!$frontIsVisible('front_board')) echo 'style="display:none;"'; ?>>
+    <?php include 'lib/qna.php'; ?>
+  </div>
+  <div data-front-section-key="front_consult" <?php if (!$frontIsVisible('front_consult')) echo 'style="display:none;"'; ?>>
+    <?php include 'lib/consult.php'; ?>
+  </div>
 
   <!-- 풋터 -->
-  <?php include 'lib/_ft.php'; ?>
+  <div data-front-section-key="front_footer" <?php if (!$frontIsVisible('front_footer')) echo 'style="display:none;"'; ?>>
+    <?php include 'lib/_ft.php'; ?>
+  </div>
 
   <!-- PRODUCT DETAIL MODAL -->
   <?php include 'lib/modalPm.php'; ?>

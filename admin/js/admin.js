@@ -17,6 +17,30 @@ const MENU_LIST_BASE = [
   { key:'rsvList',   label:'예약 내역' },
 ];
 
+// 프론트(홈) 섹션 노출 설정
+// - is_active=0 이면 해당 lib 단락을 display:none 처리합니다.
+const FRONT_SECTION_LIST = [
+  { key:'front_service_switch', label:'프론트 서비스 전환 바' },
+  { key:'front_user_menu',      label:'프론트 사용자 메뉴(상단 NAV)' },
+  { key:'front_hero_banner',    label:'프론트 HERO(상단 배너)' },
+  { key:'front_products',      label:'프론트 제품 섹션' },
+  { key:'front_benefits',       label:'프론트 혜택 섹션' },
+  { key:'front_videos',         label:'프론트 영상 섹션' },
+  { key:'front_reviews',        label:'프론트 후기 섹션' },
+  { key:'front_event',          label:'프론트 이벤트 섹션' },
+  { key:'front_stores',         label:'프론트 매장찾기 섹션' },
+  { key:'front_reservation',    label:'프론트 예약하기 섹션' },
+  { key:'front_reservation_lookup', label:'프론트 예약 조회(변경)' },
+  { key:'front_notices',       label:'프론트 공지사항 섹션' },
+  { key:'front_faq',            label:'프론트 FAQ 섹션' },
+  { key:'front_gallery',       label:'프론트 갤러리 섹션' },
+  { key:'front_photo_gallery', label:'프론트 포토 갤러리' },
+  { key:'front_slide_gallery', label:'프론트 슬라이드 갤러리' },
+  { key:'front_board',         label:'프론트 문의게시판(BOARD)' },
+  { key:'front_consult',       label:'프론트 상담신청(상담폼)' },
+  { key:'front_footer',        label:'프론트 풋터' },
+];
+
 let menuState = {};
 let createdBoards = [];
 
@@ -94,6 +118,7 @@ window.addEventListener('load', function() {
   });
 
   MENU_LIST_BASE.forEach(m => { menuState[m.key] = true; });
+  FRONT_SECTION_LIST.forEach(m => { menuState[m.key] = true; });
   if (typeof renderMenuChecks  === 'function') renderMenuChecks();
   if (typeof renderBoardFields === 'function') renderBoardFields();
   if (typeof fillTimeSelects   === 'function') fillTimeSelects();
@@ -469,13 +494,23 @@ async function loadMenuList() {
 function renderMenuChecks() {
   const container = document.getElementById('menuCheckList');
   if (!container) return;
-  let html = '<p style="font-size:.82rem;font-weight:700;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;">기본 메뉴</p>';
+
+  let html = '<p style="font-size:.82rem;font-weight:700;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;">관리자 메뉴</p>';
   html += '<div class="checkbox-group" style="margin-bottom:20px;">';
   MENU_LIST_BASE.forEach(m => {
     const chk = menuState[m.key] !== false ? 'checked' : '';
     html += `<div class="checkbox-item"><input type="checkbox" id="menu_${m.key}" ${chk} onchange="menuState['${m.key}']=this.checked"><span>${m.label}</span></div>`;
   });
   html += '</div>';
+
+  html += '<p style="font-size:.82rem;font-weight:700;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;margin-top:18px;">프론트 노출 설정</p>';
+  html += '<div class="checkbox-group" style="margin-bottom:0;">';
+  FRONT_SECTION_LIST.forEach(m => {
+    const chk = menuState[m.key] !== false ? 'checked' : '';
+    html += `<div class="checkbox-item"><input type="checkbox" id="menu_${m.key}" ${chk} onchange="menuState['${m.key}']=this.checked"><span>${m.label}</span></div>`;
+  });
+  html += '</div>';
+
   if (createdBoards.length > 0) {
     html += '<p style="font-size:.82rem;font-weight:700;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;">게시판 메뉴</p>';
     html += '<div class="checkbox-group">';
@@ -496,6 +531,7 @@ async function saveMenuMgmt() {
   const boardItems = createdBoards.map(b => ({ key: 'board_'+b.table, label: b.name, is_active: menuState['board_'+b.table] ? 1 : 0 }));
   const items = [
     ...MENU_LIST_BASE.map(m => ({ key: m.key, label: m.label, is_active: menuState[m.key] ? 1 : 0 })),
+    ...FRONT_SECTION_LIST.map(m => ({ key: m.key, label: m.label, is_active: menuState[m.key] ? 1 : 0 })),
     ...boardItems,
   ];
   const res = await apiPost('api/system.php', { action: 'menuSave', items: JSON.stringify(items) });
