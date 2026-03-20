@@ -21,6 +21,19 @@ function buildDateWhere(string $col, string $start, string $end): array {
     return [$conds, $params];
 }
 
+// PHP 7.3 PDO JSON 컬럼 stream 변환 헬퍼
+function fixJsonCols(array &$rows): void {
+    $jsonCols = ['before_data', 'after_data', 'stack_trace'];
+    foreach ($rows as &$row) {
+        foreach ($jsonCols as $col) {
+            if (isset($row[$col]) && is_resource($row[$col])) {
+                $row[$col] = stream_get_contents($row[$col]);
+            }
+        }
+    }
+    unset($row);
+}
+
 $TABLE_MAP = [
     'access'       => 'logs_access',
     'login'        => 'logs_login',
@@ -85,7 +98,8 @@ if ($action === 'list') {
 
     $dataStmt = $pdo->prepare("SELECT * FROM `$table` $where ORDER BY id DESC LIMIT $limit OFFSET $offset");
     $dataStmt->execute($params);
-    $rows = $dataStmt->fetchAll();
+    $rows = $dataStmt->fetchAll(PDO::FETCH_ASSOC);
+    fixJsonCols($rows);
 
     echo json_encode([
         'ok'        => true,
@@ -112,9 +126,15 @@ if ($action === 'detail') {
 
     $stmt = $pdo->prepare("SELECT * FROM `{$TABLE_MAP[$logType]}` WHERE id = ?");
     $stmt->execute([$id]);
-    $row = $stmt->fetch();
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$row) { echo json_encode(['ok' => false, 'msg' => '데이터 없음']); exit; }
+    // JSON stream 처리
+    foreach (['before_data', 'after_data', 'stack_trace'] as $col) {
+        if (isset($row[$col]) && is_resource($row[$col])) {
+            $row[$col] = stream_get_contents($row[$col]);
+        }
+    }
     echo json_encode(['ok' => true, 'data' => $row], JSON_UNESCAPED_UNICODE);
     exit;
 }
@@ -169,7 +189,13 @@ if ($action === 'export') {
     $out = fopen('php://output', 'w');
     fwrite($out, "\xEF\xBB\xBF");
     $first = true;
-    while ($row = $stmt->fetch()) {
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        // JSON stream 처리
+        foreach (['before_data', 'after_data', 'stack_trace'] as $col) {
+            if (isset($row[$col]) && is_resource($row[$col])) {
+                $row[$col] = stream_get_contents($row[$col]);
+            }
+        }
         if ($first) { fputcsv($out, array_keys($row)); $first = false; }
         fputcsv($out, array_values($row));
     }
