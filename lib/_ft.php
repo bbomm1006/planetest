@@ -46,8 +46,6 @@ $snsLabels = [
         </div>
         <div class="ft-company-detail" id="ft-company-detail">
           <p class="ft-info-row"><?= nl2br(htmlspecialchars($site['address'] ?? '')) ?></p>
-          <p class="ft-info-row"><?= htmlspecialchars($site['hours1'] ?? '') ?></p>
-          <p class="ft-info-row"><?= htmlspecialchars($site['hours2'] ?? '') ?></p>
         </div>
       </div>
 
