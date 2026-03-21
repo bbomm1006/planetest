@@ -1198,3 +1198,38 @@ async function ciFetch(url, options = {}) {
   `;
   document.head.appendChild(style);
 })();
+
+/* ════════════════════════════════════════════════
+   외부 호출용 — 특정 폼의 제품 선택 세팅
+   products.js의 applyProdToForm() 에서 호출
+════════════════════════════════════════════════ */
+function ciSelectProduct(t, pid) {
+  var MAX_WAIT = 3000;  // 최대 3초 대기
+  var INTERVAL = 100;
+  var elapsed  = 0;
+
+  function trySet() {
+    var catSel  = document.getElementById('ci-cat-select-' + t);
+    var prodSel = document.getElementById('ci-prod-select-' + t);
+
+    // 아직 렌더 전이면 재시도
+    if (!catSel || !prodSel || !catSel.dataset.prods) {
+      elapsed += INTERVAL;
+      if (elapsed < MAX_WAIT) { setTimeout(trySet, INTERVAL); }
+      return;
+    }
+
+    var allProdsInForm = JSON.parse(catSel.dataset.prods || '[]');
+    var prod = allProdsInForm.find(function (p) { return String(p.id) === String(pid); });
+    if (!prod) return;
+
+    // 카테고리 먼저 선택
+    catSel.value = String(prod.category_id);
+    ciOnCatChange(t);
+
+    // 제품 선택
+    prodSel.value = String(prod.id);
+  }
+
+  trySet();
+}

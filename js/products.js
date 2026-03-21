@@ -442,3 +442,17 @@ document.addEventListener('DOMContentLoaded', function () {
   var capPhone = document.getElementById('cap-phone');
   if (capPhone) capPhone.addEventListener('input', function () { fmtPhone(this); });
 });
+
+/* ─────────────────────────────────────────────────────────
+   렌탈 신청 버튼 → form2 문의폼으로 앵커 이동 + 제품 자동 선택
+   ───────────────────────────────────────────────────────── */
+function applyProdToForm(pid) {
+  var target = document.getElementById('ci-section-form2');
+  if (!target) return;
+
+  // 1) 스크롤 이동
+  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // 2) 제품 선택 — form2 렌더 완료 대기 후 세팅
+  ciSelectProduct('form2', pid);
+}
