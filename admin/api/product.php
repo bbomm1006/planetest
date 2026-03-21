@@ -46,7 +46,6 @@ if ($action === 'catUpdate') {
 if ($action === 'catDelete') {
     $id = (int)($_POST['id'] ?? 0);
     if ($id <= 0) { echo json_encode(['ok' => false, 'msg' => '잘못된 ID']); exit; }
-    // 해당 분류 제품이 있으면 거부
     $ck = $pdo->prepare('SELECT COUNT(*) FROM product_products WHERE category_id=?');
     $ck->execute([$id]);
     if ((int)$ck->fetchColumn() > 0) {
@@ -165,22 +164,28 @@ if ($action === 'productGet') {
     $st->execute([$id]);
     $row = $st->fetch();
     if (!$row) { echo json_encode(['ok' => false, 'msg' => '없는 제품']); exit; }
+
+    // specs 조회
+    $ss = $pdo->prepare('SELECT id, spec_name, spec_value, sort_order FROM product_specs WHERE product_id=? ORDER BY sort_order, id');
+    $ss->execute([$id]);
+    $row['specs'] = $ss->fetchAll();
+
     echo json_encode(['ok' => true, 'data' => $row]);
     exit;
 }
 
 if ($action === 'productCreate') {
-    $cat_id     = (int)($_POST['category_id']  ?? 0);
-    $model_no   = trim($_POST['model_no']       ?? '');
-    $name       = trim($_POST['name']           ?? '');
-    $badge_text = trim($_POST['badge_text']     ?? '');
-    $badge_color= trim($_POST['badge_color']    ?? '');
-    $price      = (int)($_POST['price']         ?? 0);
-    $discount   = (int)($_POST['discount']      ?? 0);
-    $short_desc = trim($_POST['short_desc']     ?? '');
-    $detail_desc= trim($_POST['detail_desc']    ?? '');
-    $image      = trim($_POST['image']          ?? '');
-    $tags       = trim($_POST['tags']           ?? '');
+    $cat_id      = (int)($_POST['category_id']  ?? 0);
+    $model_no    = trim($_POST['model_no']       ?? '');
+    $name        = trim($_POST['name']           ?? '');
+    $badge_text  = trim($_POST['badge_text']     ?? '');
+    $badge_color = trim($_POST['badge_color']    ?? '');
+    $price       = (int)($_POST['price']         ?? 0);
+    $discount    = (int)($_POST['discount']      ?? 0);
+    $short_desc  = trim($_POST['short_desc']     ?? '');
+    $detail_desc = trim($_POST['detail_desc']    ?? '');
+    $image       = trim($_POST['image']          ?? '');
+    $tags        = trim($_POST['tags']           ?? '');
     if ($cat_id <= 0 || $model_no === '' || $name === '') {
         echo json_encode(['ok' => false, 'msg' => '분류·모델명·제품명은 필수입니다.']); exit;
     }
@@ -190,25 +195,38 @@ if ($action === 'productCreate') {
          (category_id,model_no,name,badge_text,badge_color,price,discount,short_desc,detail_desc,image,tags,sort_order)
          VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'
     )->execute([$cat_id,$model_no,$name,$badge_text,$badge_color,$price,$discount,$short_desc,$detail_desc,$image,$tags,$max+1]);
-    $newId = $pdo->lastInsertId();
+    $newId = (int)$pdo->lastInsertId();
+
+    // specs 저장
+    $specs = json_decode($_POST['specs'] ?? '[]', true) ?: [];
+    if ($specs) {
+        $ss = $pdo->prepare('INSERT INTO product_specs (product_id, spec_name, spec_value, sort_order) VALUES (?,?,?,?)');
+        foreach ($specs as $i => $s) {
+            $sname = trim($s['spec_name'] ?? '');
+            $sval  = trim($s['spec_value'] ?? '');
+            if ($sname === '') continue;
+            $ss->execute([$newId, $sname, $sval, $i + 1]);
+        }
+    }
+
     logAdminAction($pdo, 'create', 'product_products', (string)$newId, [], ['name' => $name, 'model_no' => $model_no]);
-    echo json_encode(['ok' => true, 'id' => (int)$newId]);
+    echo json_encode(['ok' => true, 'id' => $newId]);
     exit;
 }
 
 if ($action === 'productUpdate') {
-    $id         = (int)($_POST['id']           ?? 0);
-    $cat_id     = (int)($_POST['category_id']  ?? 0);
-    $model_no   = trim($_POST['model_no']       ?? '');
-    $name       = trim($_POST['name']           ?? '');
-    $badge_text = trim($_POST['badge_text']     ?? '');
-    $badge_color= trim($_POST['badge_color']    ?? '');
-    $price      = (int)($_POST['price']         ?? 0);
-    $discount   = (int)($_POST['discount']      ?? 0);
-    $short_desc = trim($_POST['short_desc']     ?? '');
-    $detail_desc= trim($_POST['detail_desc']    ?? '');
-    $image      = trim($_POST['image']          ?? '');
-    $tags       = trim($_POST['tags']           ?? '');
+    $id          = (int)($_POST['id']           ?? 0);
+    $cat_id      = (int)($_POST['category_id']  ?? 0);
+    $model_no    = trim($_POST['model_no']       ?? '');
+    $name        = trim($_POST['name']           ?? '');
+    $badge_text  = trim($_POST['badge_text']     ?? '');
+    $badge_color = trim($_POST['badge_color']    ?? '');
+    $price       = (int)($_POST['price']         ?? 0);
+    $discount    = (int)($_POST['discount']      ?? 0);
+    $short_desc  = trim($_POST['short_desc']     ?? '');
+    $detail_desc = trim($_POST['detail_desc']    ?? '');
+    $image       = trim($_POST['image']          ?? '');
+    $tags        = trim($_POST['tags']           ?? '');
     if ($id <= 0 || $cat_id <= 0 || $model_no === '' || $name === '') {
         echo json_encode(['ok' => false, 'msg' => '잘못된 요청']); exit;
     }
@@ -217,6 +235,20 @@ if ($action === 'productUpdate') {
          category_id=?,model_no=?,name=?,badge_text=?,badge_color=?,price=?,discount=?,
          short_desc=?,detail_desc=?,image=?,tags=? WHERE id=?'
     )->execute([$cat_id,$model_no,$name,$badge_text,$badge_color,$price,$discount,$short_desc,$detail_desc,$image,$tags,$id]);
+
+    // specs 저장 (기존 삭제 후 재INSERT)
+    $pdo->prepare('DELETE FROM product_specs WHERE product_id=?')->execute([$id]);
+    $specs = json_decode($_POST['specs'] ?? '[]', true) ?: [];
+    if ($specs) {
+        $ss = $pdo->prepare('INSERT INTO product_specs (product_id, spec_name, spec_value, sort_order) VALUES (?,?,?,?)');
+        foreach ($specs as $i => $s) {
+            $sname = trim($s['spec_name'] ?? '');
+            $sval  = trim($s['spec_value'] ?? '');
+            if ($sname === '') continue;
+            $ss->execute([$id, $sname, $sval, $i + 1]);
+        }
+    }
+
     logAdminAction($pdo, 'update', 'product_products', (string)$id, [], ['name' => $name, 'model_no' => $model_no]);
     echo json_encode(['ok' => true]);
     exit;
@@ -225,6 +257,7 @@ if ($action === 'productUpdate') {
 if ($action === 'productDelete') {
     $id = (int)($_POST['id'] ?? 0);
     if ($id <= 0) { echo json_encode(['ok' => false, 'msg' => '잘못된 ID']); exit; }
+    $pdo->prepare('DELETE FROM product_specs WHERE product_id=?')->execute([$id]);
     $pdo->prepare('DELETE FROM product_products WHERE id=?')->execute([$id]);
     logAdminAction($pdo, 'delete', 'product_products', (string)$id);
     echo json_encode(['ok' => true]);
@@ -234,6 +267,60 @@ if ($action === 'productDelete') {
 if ($action === 'productReorder') {
     $ids  = json_decode($_POST['ids'] ?? '[]', true) ?: [];
     $stmt = $pdo->prepare('UPDATE product_products SET sort_order=? WHERE id=?');
+    foreach ($ids as $i => $id) $stmt->execute([$i + 1, (int)$id]);
+    echo json_encode(['ok' => true]);
+    exit;
+}
+
+/* =====================================================
+   PRODUCT SPECS (product_specs)
+   ===================================================== */
+
+if ($action === 'specList') {
+    $product_id = (int)($_GET['product_id'] ?? 0);
+    if ($product_id <= 0) { echo json_encode(['ok' => false, 'msg' => '잘못된 요청']); exit; }
+    $st = $pdo->prepare('SELECT id, spec_name, spec_value, sort_order FROM product_specs WHERE product_id=? ORDER BY sort_order, id');
+    $st->execute([$product_id]);
+    echo json_encode(['ok' => true, 'data' => $st->fetchAll()]);
+    exit;
+}
+
+if ($action === 'specCreate') {
+    $product_id = (int)($_POST['product_id'] ?? 0);
+    $spec_name  = trim($_POST['spec_name']   ?? '');
+    $spec_value = trim($_POST['spec_value']  ?? '');
+    if ($product_id <= 0 || $spec_name === '') { echo json_encode(['ok' => false, 'msg' => '잘못된 요청']); exit; }
+    $max = $pdo->prepare('SELECT COALESCE(MAX(sort_order),0) FROM product_specs WHERE product_id=?');
+    $max->execute([$product_id]);
+    $sort = (int)$max->fetchColumn() + 1;
+    $pdo->prepare('INSERT INTO product_specs (product_id, spec_name, spec_value, sort_order) VALUES (?,?,?,?)')
+        ->execute([$product_id, $spec_name, $spec_value, $sort]);
+    echo json_encode(['ok' => true, 'id' => (int)$pdo->lastInsertId()]);
+    exit;
+}
+
+if ($action === 'specUpdate') {
+    $id         = (int)($_POST['id']         ?? 0);
+    $spec_name  = trim($_POST['spec_name']   ?? '');
+    $spec_value = trim($_POST['spec_value']  ?? '');
+    if ($id <= 0 || $spec_name === '') { echo json_encode(['ok' => false, 'msg' => '잘못된 요청']); exit; }
+    $pdo->prepare('UPDATE product_specs SET spec_name=?, spec_value=? WHERE id=?')
+        ->execute([$spec_name, $spec_value, $id]);
+    echo json_encode(['ok' => true]);
+    exit;
+}
+
+if ($action === 'specDelete') {
+    $id = (int)($_POST['id'] ?? 0);
+    if ($id <= 0) { echo json_encode(['ok' => false, 'msg' => '잘못된 ID']); exit; }
+    $pdo->prepare('DELETE FROM product_specs WHERE id=?')->execute([$id]);
+    echo json_encode(['ok' => true]);
+    exit;
+}
+
+if ($action === 'specReorder') {
+    $ids  = json_decode($_POST['ids'] ?? '[]', true) ?: [];
+    $stmt = $pdo->prepare('UPDATE product_specs SET sort_order=? WHERE id=?');
     foreach ($ids as $i => $id) $stmt->execute([$i + 1, (int)$id]);
     echo json_encode(['ok' => true]);
     exit;

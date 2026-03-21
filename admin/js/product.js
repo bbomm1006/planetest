@@ -79,7 +79,7 @@ async function saveCatModal() {
     showToast('저장되었습니다.', 'success');
     closeModal('catModal');
     loadCatList();
-    loadProductCatOptions(); // 제품 모달 분류 select 갱신
+    loadProductCatOptions();
   } else {
     showToast(res.msg || '저장 실패', 'error');
   }
@@ -244,19 +244,16 @@ async function saveProductOrder() {
   await apiPost('api/product.php', { action: 'productReorder', ids: JSON.stringify(ids) });
 }
 
-// 분류 select 옵션 동적 채우기 (모달 + 필터)
 async function loadProductCatOptions() {
   const res = await apiGet('api/product.php', { action: 'catList' });
   if (!res.ok) return;
   const cats = res.data.filter(c => c.is_active);
 
-  // 제품 모달 분류 select
   const sel = document.getElementById('productCategoryId');
   if (sel) {
     sel.innerHTML = '<option value="">-- 분류 선택 --</option>' +
       cats.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
   }
-  // 필터 select
   const flt = document.getElementById('productCatFilter');
   if (flt) {
     const cur = flt.value;
@@ -270,7 +267,7 @@ function openProductModal(id) {
   productEditTarget = id || null;
   document.getElementById('productModal').querySelector('.modal-header h3').textContent = id ? '제품 수정' : '제품 추가';
 
-  // 초기화
+  // 기본 필드 초기화
   ['productCategoryId','productModelNo','productName','productBadgeText',
    'productPrice','productDiscount','productShortDesc','productDetailDesc',
    'productImage','productTags'].forEach(elId => {
@@ -279,37 +276,46 @@ function openProductModal(id) {
   });
   document.getElementById('productBadgeColor').value = '#dc2626';
   document.getElementById('productBadgeColorText').value = '#dc2626';
+
   // 태그 초기화
   const tagsArea = document.getElementById('productTagsArea');
-  if (tagsArea) {
-    tagsArea.querySelectorAll('.tag').forEach(t => t.remove());
-  }
-  // 이미지 미리보기 초기화
+  if (tagsArea) tagsArea.querySelectorAll('.tag').forEach(t => t.remove());
+
+  // 이미지 초기화
   resetUploadArea('productImgArea', '📸', '클릭하여 업로드');
+
+  // 스팩 초기화
+  clearSpecRows();
 
   loadProductCatOptions().then(() => {
     if (id) {
       apiGet('api/product.php', { action: 'productGet', id }).then(res => {
         if (!res.ok) return;
         const p = res.data;
-        document.getElementById('productCategoryId').value  = p.category_id;
-        document.getElementById('productModelNo').value     = p.model_no;
-        document.getElementById('productName').value        = p.name;
-        document.getElementById('productBadgeText').value   = p.badge_text  || '';
-        document.getElementById('productBadgeColor').value  = p.badge_color || '#dc2626';
+        document.getElementById('productCategoryId').value     = p.category_id;
+        document.getElementById('productModelNo').value        = p.model_no;
+        document.getElementById('productName').value           = p.name;
+        document.getElementById('productBadgeText').value      = p.badge_text  || '';
+        document.getElementById('productBadgeColor').value     = p.badge_color || '#dc2626';
         document.getElementById('productBadgeColorText').value = p.badge_color || '#dc2626';
-        document.getElementById('productPrice').value       = p.price;
-        document.getElementById('productDiscount').value    = p.discount;
-        document.getElementById('productShortDesc').value   = p.short_desc  || '';
-        document.getElementById('productDetailDesc').value  = p.detail_desc || '';
-        document.getElementById('productImage').value       = p.image       || '';
-        document.getElementById('productTags').value        = p.tags        || '';
+        document.getElementById('productPrice').value          = p.price;
+        document.getElementById('productDiscount').value       = p.discount;
+        document.getElementById('productShortDesc').value      = p.short_desc  || '';
+        document.getElementById('productDetailDesc').value     = p.detail_desc || '';
+        document.getElementById('productImage').value          = p.image       || '';
+        document.getElementById('productTags').value           = p.tags        || '';
         if (p.image) setUploadPreview('productImgArea', p.image, 'productImage');
+
         // 태그 렌더
         if (p.tags) {
           p.tags.split(',').map(t => t.trim()).filter(Boolean).forEach(t => {
             appendTagToArea('productTagsArea', t);
           });
+        }
+
+        // 스팩 렌더
+        if (p.specs && p.specs.length) {
+          p.specs.forEach(s => addSpecRow(s.spec_name, s.spec_value));
         }
       });
     }
@@ -329,6 +335,9 @@ async function saveProductModal() {
   const tagEls = document.querySelectorAll('#productTagsArea .tag');
   const tags   = Array.from(tagEls).map(t => t.childNodes[0].textContent.trim()).join(',');
 
+  // 스팩 수집
+  const specs = collectSpecRows();
+
   const data = {
     action:      productEditTarget ? 'productUpdate' : 'productCreate',
     category_id: cat_id,
@@ -342,6 +351,7 @@ async function saveProductModal() {
     detail_desc: document.getElementById('productDetailDesc').value.trim(),
     image:       document.getElementById('productImage').value.trim(),
     tags,
+    specs:       JSON.stringify(specs),
   };
   if (productEditTarget) data.id = productEditTarget;
 
@@ -362,7 +372,81 @@ async function deleteProduct(id) {
   else showToast(res.msg || '삭제 실패', 'error');
 }
 
+// ===========================
+// PRODUCT SPECS (모달 내 행 편집)
+// ===========================
+
+function clearSpecRows() {
+  const wrap = document.getElementById('specRows');
+  if (wrap) wrap.innerHTML = '';
+  const msg = document.getElementById('specEmptyMsg');
+  if (msg) msg.style.display = '';
+}
+
+function addSpecRow(specName, specValue) {
+  const wrap = document.getElementById('specRows');
+  if (!wrap) return;
+
+  const msg = document.getElementById('specEmptyMsg');
+  if (msg) msg.style.display = 'none';
+
+  const row = document.createElement('div');
+  row.className = 'spec-row';
+  row.draggable = true;
+  row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:6px;';
+  row.innerHTML = `
+    <span class="sort-handle" style="cursor:grab;color:var(--text-muted);font-size:1rem;">⠿</span>
+    <input type="text" class="form-control spec-name" placeholder="스팩명 (예: 필터방식)"
+           style="flex:1;" value="${esc(specName || '')}"/>
+    <input type="text" class="form-control spec-value" placeholder="스팩내용 (예: RO역삼투)"
+           style="flex:2;" value="${esc(specValue || '')}"/>
+    <button type="button" class="btn btn-sm btn-danger" onclick="removeSpecRow(this)">삭제</button>
+  `;
+  wrap.appendChild(row);
+  initSpecSort();
+}
+
+function removeSpecRow(btn) {
+  const row = btn.closest('.spec-row');
+  if (row) row.remove();
+  const wrap = document.getElementById('specRows');
+  const msg  = document.getElementById('specEmptyMsg');
+  if (msg) msg.style.display = (wrap && wrap.children.length === 0) ? '' : 'none';
+}
+
+function collectSpecRows() {
+  const rows = document.querySelectorAll('#specRows .spec-row');
+  const result = [];
+  rows.forEach(row => {
+    const sname = row.querySelector('.spec-name')?.value.trim()  || '';
+    const sval  = row.querySelector('.spec-value')?.value.trim() || '';
+    if (sname) result.push({ spec_name: sname, spec_value: sval });
+  });
+  return result;
+}
+
+function initSpecSort() {
+  const wrap = document.getElementById('specRows');
+  if (!wrap) return;
+  let dragging = null;
+
+  wrap.querySelectorAll('.spec-row').forEach(row => {
+    row.addEventListener('dragstart', () => { dragging = row; row.style.opacity = '0.4'; });
+    row.addEventListener('dragend',   () => { dragging = null; row.style.opacity = ''; });
+    row.addEventListener('dragover',  e => {
+      e.preventDefault();
+      if (!dragging || dragging === row) return;
+      const rect = row.getBoundingClientRect();
+      const mid  = rect.top + rect.height / 2;
+      if (e.clientY < mid) wrap.insertBefore(dragging, row);
+      else wrap.insertBefore(dragging, row.nextSibling);
+    });
+  });
+}
+
+// ===========================
 // 배지 색상 picker ↔ text 동기화
+// ===========================
 document.addEventListener('input', function(e) {
   if (e.target.id === 'productBadgeColor')
     document.getElementById('productBadgeColorText').value = e.target.value;

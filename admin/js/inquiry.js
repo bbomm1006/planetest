@@ -1,211 +1,348 @@
-// ===========================
-// INQUIRY CATEGORY
-// ===========================
-let inquiryCatData = [];
-let inquiryCatEditTarget = null;
+/* ═══════════════════════════════════════
+   inquiry.js — 상담 신청 폼 & 이메일 모달
+═══════════════════════════════════════ */
 
-async function loadInquiryCatList() {
-  const res = await apiGet('api/inquiry.php', { action:'catList' });
-  if (res.ok) { inquiryCatData = res.data; renderInquiryCatTable(); }
+var _consultConfig = {};
+var _consultFields = [];
+
+/* ─── 폼 설정 로드 ─── */
+function loadConsultForm() {
+  fetch('/admin/api_front/consult_public.php?action=config')
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (!res.ok) return;
+      _consultConfig = res.config || {};
+      _consultFields = res.fields || [];
+      var terms = res.terms || {};
+
+      // 타이틀/설명
+      var t  = document.getElementById('inqTitle');
+      var d  = document.getElementById('inqDesc');
+      var d2 = document.getElementById('inqDesc2');
+      if (t)  t.textContent  = _consultConfig.title        || '';
+      if (d)  d.textContent  = _consultConfig.description  || '';
+      if (d2) d2.textContent = _consultConfig.description2 || '';
+
+      // 제품분류/제품명 표시여부
+      var useProduct = +(_consultConfig.use_product || 0);
+      var bw = document.getElementById('fBrandWrap');
+      var pw = document.getElementById('fProductWrap');
+      if (bw) bw.style.display = useProduct ? '' : 'none';
+      if (pw) pw.style.display = useProduct ? '' : 'none';
+
+      // 추가 필드 렌더링
+      renderExtraFields(_consultFields);
+
+      // 약관
+      var tw = document.getElementById('fTermsWrap');
+      if (tw) tw.style.display = (terms.term_name || terms.term_body) ? '' : 'none';
+      var tb = document.getElementById('fTermsBody');
+      var tn = document.getElementById('fTermsName');
+      if (tb) tb.textContent = terms.term_body  || '';
+      if (tn) tn.textContent = (terms.term_name || '개인정보 수집 및 이용에 동의합니다') + ' (필수)';
+    }).catch(function() {});
 }
 
-function renderInquiryCatTable() {
-  const tbody = document.getElementById('inquiryCatBody');
-  if (!tbody) return;
-  if (!inquiryCatData.length) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:24px;">등록된 분류가 없습니다.</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = inquiryCatData.map((c, i) => `
-    <tr draggable="true" data-id="${c.id}">
-      <td><input type="checkbox" class="row-check" onchange="updateBulkBar('inquiryCatBulk')"></td>
-      <td><span class="sort-handle">⠿</span></td>
-      <td class="row-num">${i+1}</td>
-      <td><strong>${esc(c.name)}</strong></td>
-      <td><span class="status-badge ${c.is_active?'status-사용':'status-미사용'}" style="cursor:pointer"
-            onclick="toggleInquiryCat(${c.id},this)">${c.is_active?'사용':'미사용'}</span></td>
-      <td><div class="table-actions">
-        <button class="btn btn-sm btn-outline" onclick="openInquiryCatModal(${c.id})">수정</button>
-        <button class="btn btn-sm btn-danger"  onclick="deleteInquiryCat(${c.id})">삭제</button>
-      </div></td>
-    </tr>`).join('');
-  initTableDrag(tbody, () => {
-    const ids = Array.from(tbody.querySelectorAll('tr[data-id]')).map(r=>r.dataset.id);
-    apiPost('api/inquiry.php', { action:'catReorder', ids:JSON.stringify(ids) });
-  });
-}
-
-async function toggleInquiryCat(id, el) {
-  const res = await apiPost('api/inquiry.php', { action:'catToggle', id });
-  if (res.ok) {
-    const c = inquiryCatData.find(x=>x.id==id);
-    if (c) c.is_active = res.is_active;
-    el.className = `status-badge ${res.is_active?'status-사용':'status-미사용'}`;
-    el.textContent = res.is_active ? '사용' : '미사용';
-  }
-}
-
-function openInquiryCatModal(id) {
-  inquiryCatEditTarget = id || null;
-  document.getElementById('inquiryCatModal').querySelector('.modal-header h3').textContent = id ? '분류 수정' : '분류 추가';
-  document.getElementById('inquiryCatName').value = '';
-  document.getElementById('inquiryCatActive').checked = true;
-  document.getElementById('inquiryCatActiveLabel').textContent = '사용';
-  if (id) {
-    const c = inquiryCatData.find(x=>x.id==id);
-    if (c) {
-      document.getElementById('inquiryCatName').value = c.name;
-      document.getElementById('inquiryCatActive').checked = !!c.is_active;
-      document.getElementById('inquiryCatActiveLabel').textContent = c.is_active ? '사용' : '미사용';
+/* ─── 추가 필드 렌더링 ─── */
+function renderExtraFields(fields) {
+  var wrap = document.getElementById('fExtraFields');
+  if (!wrap) return;
+  wrap.innerHTML = fields.map(function(f) {
+    var id = 'f-extra-' + f.id;
+    var label = '<label class="fl">' + esc(f.field_name) + '</label>';
+    var input = '';
+    if (f.field_type === 'input') {
+      input = '<input class="fi" type="text" id="' + id + '" placeholder="' + esc(f.placeholder || '') + '">';
+    } else if (f.field_type === 'textarea') {
+      input = '<textarea class="fta" id="' + id + '" placeholder="' + esc(f.placeholder || '') + '"></textarea>';
+    } else if (f.field_type === 'select') {
+      var opts = (f.options || '').split('\n').filter(function(o) { return o.trim(); });
+      input = '<select class="fs" id="' + id + '"><option value="">선택하세요</option>'
+        + opts.map(function(o) { return '<option value="' + esc(o.trim()) + '">' + esc(o.trim()) + '</option>'; }).join('')
+        + '</select>';
+    } else if (f.field_type === 'radio') {
+      var opts = (f.options || '').split('\n').filter(function(o) { return o.trim(); });
+      input = '<div class="time-slots">'
+        + opts.map(function(o, idx) {
+            var oid = id + '-' + idx;
+            return '<div class="fts" id="' + oid + '" onclick="selectExtraRadio(\'' + id + '\',' + idx + ',\'' + esc(o.trim()) + '\')">'
+              + '<div class="fts-dot"></div>'
+              + '<span class="fts-lbl">' + esc(o.trim()) + '</span>'
+              + '</div>';
+          }).join('') + '</div>'
+        + '<input type="hidden" id="' + id + '" value="">';
+    } else if (f.field_type === 'check') {
+      var opts = (f.options || '').split('\n').filter(function(o) { return o.trim(); });
+      input = '<div class="time-slots">'
+        + opts.map(function(o, idx) {
+            var oid = id + '-' + idx;
+            return '<div class="fts fts-check" id="' + oid + '" onclick="toggleExtraCheck(\'' + id + '\',' + idx + ',\'' + esc(o.trim()) + '\')">'
+              + '<div class="fts-dot"></div>'
+              + '<span class="fts-lbl">' + esc(o.trim()) + '</span>'
+              + '</div>';
+          }).join('') + '</div>';
     }
-  }
-  openModal('inquiryCatModal');
+    return '<div class="fg s2">' + label + input + '</div>';
+  }).join('');
 }
 
-async function saveInquiryCatModal() {
-  const name = document.getElementById('inquiryCatName').value.trim();
-  if (!name) { showToast('분류명을 입력하세요.', 'error'); return; }
-  const data = { action: inquiryCatEditTarget ? 'catUpdate' : 'catCreate', name };
-  if (inquiryCatEditTarget) data.id = inquiryCatEditTarget;
-  const res = await apiPost('api/inquiry.php', data);
-  if (res.ok) {
-    showToast('저장되었습니다.', 'success');
-    closeModal('inquiryCatModal');
-    loadInquiryCatList();
-    loadInquiryCatOptions();
-  } else showToast(res.msg||'저장 실패','error');
-}
-
-async function deleteInquiryCat(id) {
-  if (!confirm('분류를 삭제하시겠습니까?')) return;
-  const res = await apiPost('api/inquiry.php', { action:'catDelete', id });
-  if (res.ok) { showToast('삭제되었습니다.', 'success'); loadInquiryCatList(); }
-}
-
-// ===========================
-// INQUIRY LIST
-// ===========================
-let inquiryListData = [];
-let inquiryDetailId = null;
-
-async function loadInquiryCatOptions() {
-  const res = await apiGet('api/inquiry.php', { action:'catList' });
-  if (!res.ok) return;
-  const sel = document.getElementById('inquiryCatFilter');
-  if (!sel) return;
-  const cur = sel.value;
-  sel.innerHTML = '<option value="">전체 분류</option>' +
-    res.data.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
-  sel.value = cur;
-}
-
-async function loadInquiryList() {
-  await loadInquiryCatOptions();
-  const cat_id    = document.getElementById('inquiryCatFilter')?.value || '';
-  const status    = document.getElementById('inquiryStatusFilter')?.value || '';
-  const is_public = document.getElementById('inquiryPublicFilter')?.value ?? '';
-  const kw        = document.getElementById('inquirySearch')?.value || '';
-  const res = await apiGet('api/inquiry.php', { action:'list', cat_id, status, is_public, kw });
-  if (res.ok) { inquiryListData = res.data; renderInquiryTable(); }
-}
-
-function renderInquiryTable() {
-  const tbody = document.getElementById('inquiryBody');
-  if (!tbody) return;
-  if (!inquiryListData.length) {
-    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:32px;">문의 내역이 없습니다.</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = inquiryListData.map((q, i) => `
-    <tr>
-      <td><input type="checkbox" class="row-check" data-id="${q.id}" onchange="updateBulkBar('inquiryBulk')"></td>
-      <td class="row-num">${i+1}</td>
-      <td>${q.cat_name?`<span class="badge badge-secondary">${esc(q.cat_name)}</span>`:'—'}</td>
-      <td>${esc(q.name)}</td>
-      <td>${esc(q.phone||'—')}</td>
-      <td>${esc(q.email||'—')}</td>
-      <td><span class="status-badge status-${q.status==='pending'?'접수':q.status==='confirmed'?'확인':q.status==='cancelled'?'취소':'완료'}"
-        >${q.status==='pending'?'접수':q.status==='confirmed'?'확인':q.status==='cancelled'?'취소':'완료'}</span></td>
-      <td>${q.is_public?'<span class="badge badge-secondary">공개</span>':'<span class="badge">비밀</span>'}</td>
-      <td>${q.answer_cnt>0?'<span class="badge badge-success">답변완료</span>':'<span class="badge badge-secondary">미답변</span>'}</td>
-      <td>${q.created_at}</td>
-      <td><div class="table-actions">
-        <button class="btn btn-sm btn-outline" onclick="openInquiryDetail(${q.id})">상세/답변</button>
-        <button class="btn btn-sm btn-danger"  onclick="deleteInquiry(${q.id})">삭제</button>
-      </div></td>
-    </tr>`).join('');
-}
-
-async function openInquiryDetail(id) {
-  const res = await apiGet('api/inquiry.php', { action:'get', id });
-  if (!res.ok) { showToast(res.msg||'로드 실패','error'); return; }
-  const q = res.data;
-  inquiryDetailId = id;
-  document.getElementById('inqDetailCat').value     = q.cat_name || '—';
-  document.getElementById('inqDetailStatus').value  = q.status;
-  document.getElementById('inqDetailName').value    = q.name;
-  document.getElementById('inqDetailPhone').value   = q.phone || '';
-  document.getElementById('inqDetailEmail').value   = q.email || '';
-  document.getElementById('inqDetailContent').value = q.content;
-  document.getElementById('inqDetailPublic').value  = q.is_public;
-  // 답변
-  const answers = q.answers || [];
-  const answerArea = document.getElementById('inqAnswerArea');
-  if (answerArea) {
-    if (answers.length > 0) {
-      const a = answers[0];
-      document.getElementById('inqAnswerId').value      = a.id;
-      document.getElementById('inqAnswerContent').value = a.content;
-      document.getElementById('inqAnswerDate').value    = a.created_at;
+/* ─── 추가 필드 값 수집 ─── */
+function getExtraFieldValues() {
+  var result = [];
+  _consultFields.forEach(function(f) {
+    var id = 'f-extra-' + f.id;
+    var val = '';
+    if (f.field_type === 'radio') {
+      var hidden = document.getElementById(id);
+      val = hidden ? hidden.value : '';
+    } else if (f.field_type === 'check') {
+      var checked = document.querySelectorAll('[id^="' + id + '-"].checked');
+      val = Array.from(checked).map(function(el) {
+        return el.querySelector('.fts-lbl').textContent;
+      }).join(', ');
     } else {
-      document.getElementById('inqAnswerId').value      = '';
-      document.getElementById('inqAnswerContent').value = '';
-      document.getElementById('inqAnswerDate').value    = '';
+      var el = document.getElementById(id);
+      val = el ? el.value.trim() : '';
     }
+    result.push({ field_name: f.field_name, field_type: f.field_type, value: val });
+  });
+  return result;
+}
+
+/* ─── 셀렉트 동기화 (products.js에서 호출) ─── */
+function syncInqSelects(data) {
+  syncBrandSelect(data);
+}
+
+function syncBrandSelect(data) {
+  var cats = (data.categories || []).filter(function(c) { return c.active; });
+  var brandSel = document.getElementById('f-brand');
+  if (brandSel) brandSel.innerHTML = '<option value="">분류 선택</option>'
+    + cats.map(function(c) {
+        return '<option value="' + c.id + '">' + esc(c.name) + '</option>';
+      }).join('');
+  var prodSel = document.getElementById('f-product');
+  if (prodSel) prodSel.innerHTML = '<option value="">제품 선택 (분류 먼저 선택)</option>';
+}
+
+function onBrandChange() {
+  var catId = document.getElementById('f-brand').value;
+  var prods = (_pbData.products || []).filter(function(p) {
+    return p.active && (!catId || p.categoryId === catId);
+  });
+  var sel = document.getElementById('f-product');
+  if (sel) sel.innerHTML = '<option value="">제품 선택</option>'
+    + prods.map(function(p) {
+        return '<option value="' + p.id + '">' + esc(p.name) + '</option>';
+      }).join('');
+  showProdInfo(null);
+}
+
+function onProdChange() {
+  var pid = document.getElementById('f-product').value;
+  var p = pid ? (allProds || []).find(function(x) { return x.id === pid; }) : null;
+  showProdInfo(p || null);
+}
+
+function showProdInfo(p) {
+  var box = document.getElementById('fProdInfo');
+  if (!box) return;
+  if (!p) { box.style.display = 'none'; return; }
+  box.style.display = 'flex';
+  box.innerHTML = '<div style="display:flex;align-items:center;gap:11px;width:100%">'
+    + '<div style="width:40px;height:40px;border-radius:9px;background:' + esc(p.bgColor || '#dbeeff') + ';display:grid;place-items:center;flex-shrink:0;overflow:hidden">'
+    + (p.imageUrl ? '<img src="' + esc(p.imageUrl) + '" style="width:100%;height:100%;object-fit:cover">' : '<span style="font-size:1.1rem">💧</span>')
+    + '</div>'
+    + '<div style="flex:1;min-width:0"><div style="font-size:.68rem;color:var(--g5)">선택 제품</div>'
+    + '<div style="font-weight:700;font-size:.87rem">' + esc(p.name) + '</div></div>'
+    + '<div style="text-align:right;flex-shrink:0">'
+    + '<div style="font-size:1rem;font-weight:900;color:var(--blue)">' + comma(p.priceMonthly || 0)
+    + '<span style="font-size:.66rem;font-weight:500">원/월</span></div>'
+    + (p.priceOriginal ? '<div style="font-size:.68rem;color:var(--g4);text-decoration:line-through">' + comma(p.priceOriginal) + '원</div>' : '')
+    + '</div></div>';
+}
+
+function applyProdToForm(prodId) {
+  var p = (allProds || []).find(function(x) { return x.id === prodId; });
+  goto('#inquiry');
+  setTimeout(function() {
+    if (!p) return;
+    var bSel = document.getElementById('f-brand');
+    if (bSel) { bSel.value = p.categoryId || ''; onBrandChange(); }
+    setTimeout(function() {
+      var pSel = document.getElementById('f-product');
+      if (pSel) { pSel.value = prodId; showProdInfo(p); }
+    }, 100);
+  }, 400);
+}
+
+/* ─── 상담 신청 제출 ─── */
+function submitForm() {
+  var n  = document.getElementById('f-name').value.trim();
+  var ph = document.getElementById('f-phone').value.trim();
+
+  if (!n || !ph) {
+    alert('필수 항목(이름·연락처)을 모두 입력해주세요.');
+    return;
   }
-  openModal('inquiryDetailModal');
-}
-
-async function saveInquiryDetail() {
-  if (!inquiryDetailId) return;
-  const status    = document.getElementById('inqDetailStatus').value;
-  const is_public = document.getElementById('inqDetailPublic').value;
-  const content   = document.getElementById('inqAnswerContent').value.trim();
-  const answer_id = document.getElementById('inqAnswerId').value;
-
-  // 상태/공개 저장
-  await apiPost('api/inquiry.php', { action:'update', id:inquiryDetailId, status, is_public });
-
-  // 답변 저장 (내용 있을 때만)
-  if (content) {
-    const res = await apiPost('api/inquiry.php', {
-      action:'answerSave', inquiry_id:inquiryDetailId,
-      answer_id: answer_id||0, content
-    });
-    if (!res.ok) { showToast(res.msg||'답변 저장 실패','error'); return; }
+  if (!document.getElementById('f-priv').checked) {
+    alert('개인정보 수집·이용에 동의해주세요.');
+    return;
   }
-  showToast('저장되었습니다.', 'success');
-  closeModal('inquiryDetailModal');
-  loadInquiryList();
+
+  var bSel = document.getElementById('f-brand');
+  var pSel = document.getElementById('f-product');
+  var brandName = bSel ? (bSel.selectedOptions[0] || {}).text || '' : '';
+  var prodName  = pSel ? (pSel.selectedOptions[0] || {}).text || '' : '';
+
+  var _inqPayload = {
+    name:        n,
+    phone:       ph,
+    brandId:     bSel ? bSel.value : '',
+    brandName:   brandName,
+    productId:   pSel ? pSel.value : '',
+    productName: prodName,
+    extraFields: getExtraFieldValues(),
+    status:      '접수'
+  };
+
+  fetch('/admin/api_front/consult_public.php?action=create', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(_inqPayload)
+  }).then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (res.ok) {
+        window._lastInqData = _inqPayload;
+        document.getElementById('frontEmlBody').style.display = 'block';
+        document.getElementById('frontEmlDone').style.display = 'none';
+        document.getElementById('frontEmlAddr').value = '';
+        document.getElementById('fContent').style.display = 'none';
+        document.getElementById('fOk').style.display = 'block';
+      } else {
+        alert('신청 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      }
+    }).catch(function() { alert('네트워크 오류가 발생했습니다. 다시 시도해 주세요.'); });
 }
 
-async function deleteInquiry(id) {
-  if (!confirm('삭제하시겠습니까?')) return;
-  const res = await apiPost('api/inquiry.php', { action:'delete', id });
-  if (res.ok) { showToast('삭제되었습니다.', 'success'); loadInquiryList(); }
-}
-
-async function bulkDeleteInquiry() {
-  const ids = Array.from(document.querySelectorAll('#inquiryBody .row-check:checked')).map(cb=>cb.dataset.id);
-  if (!ids.length) return;
-  if (!confirm(`선택한 ${ids.length}건을 삭제하시겠습니까?`)) return;
-  const res = await apiPost('api/inquiry.php', { action:'bulkDelete', ids:JSON.stringify(ids) });
-  if (res.ok) { showToast(`${ids.length}건 삭제되었습니다.`, 'success'); loadInquiryList(); }
-}
-
-document.addEventListener('change', function(e) {
-  if (e.target?.id === 'inquiryCatActive') {
-    const l = document.getElementById('inquiryCatActiveLabel');
-    if (l) l.textContent = e.target.checked ? '사용' : '미사용';
-  }
+/* ─── DOMContentLoaded ─── */
+document.addEventListener('DOMContentLoaded', function() {
+  var fPhone = document.getElementById('f-phone');
+  if (fPhone) fPhone.addEventListener('input', function() { fmtPhone(this); });
+  loadConsultForm();
 });
+
+/* ─── 이메일 모달 ─── */
+var _frontEmlType = null;
+
+function openFrontEml(type) {
+  _frontEmlType = type;
+  var bg = document.getElementById('frontEmlBg');
+  var summaryEl = document.getElementById('frontEmlSummary');
+  document.getElementById('frontEmlAddr').value = '';
+  document.getElementById('frontEmlBody').style.display = 'block';
+  document.getElementById('frontEmlDone').style.display = 'none';
+
+  if (type === 'inq') {
+    var last = window._lastInqData || {};
+    summaryEl.innerHTML = '<b>' + esc(last.name || '') + '</b>님 상담 신청'
+      + (last.productName ? '<br>제품: ' + esc(last.productName) : '');
+  } else if (type === 'combo') {
+    var last = window._lastComboData || {};
+    summaryEl.innerHTML = '<b>' + esc(last.name || '') + '</b>님 결합 신청<br>제품: ' + esc(last.productName || '')
+      + '<br>최종 납부: <b>' + (last.finalPrice ? (+last.finalPrice).toLocaleString('ko-KR') : '0') + '원/월</b>';
+  } else if (type === 'cmp') {
+    var prods = window._cmpProds || [];
+    summaryEl.innerHTML = '비교 제품: ' + prods.map(function(p) { return '<b>' + esc(p.name) + '</b>'; }).join(' vs ');
+  }
+
+  bg.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeFrontEml() {
+  document.getElementById('frontEmlBg').style.display = 'none';
+  document.body.style.overflow = '';
+  _frontEmlType = null;
+}
+
+function sendFrontEml() {
+  var addr = (document.getElementById('frontEmlAddr').value || '').trim();
+  if (!addr || addr.indexOf('@') < 0) { alert('이메일 주소를 올바르게 입력하세요.'); return; }
+
+  var subj, body;
+  } else if (_frontEmlType === 'inq') {
+    var last = window._lastInqData || {};
+    var sn = (window._pbData && window._pbData.siteTitle) ? window._pbData.siteTitle : 'PureBlue';
+    subj = '[' + sn + '] ' + (last.name || '') + '님 상담 신청 완료 안내';
+    body = '안녕하세요, ' + (last.name || '') + '님.\n\n' + sn + ' 상담 신청이 정상적으로 접수되었습니다.\n\n'
+      + (last.brandName && last.brandName !== '분류 선택' ? '■ 분류: ' + last.brandName + '\n' : '')
+      + (last.productName && last.productName !== '제품 선택' ? '■ 관심 제품: ' + last.productName + '\n' : '')
+      + (last.extraFields && last.extraFields.length
+          ? last.extraFields.filter(function(f) { return f.value; })
+              .map(function(f) { return '■ ' + f.field_name + ': ' + f.value; }).join('\n') + '\n'
+          : '')
+      + '\n빠른 시간 내에 전문 상담사가 연락드립니다 (평균 30분 이내).\n감사합니다.\n\n' + sn + ' 고객센터';
+  } else if (_frontEmlType === 'combo') {
+    var last = window._lastComboData || {};
+    var sn = (window._pbData && window._pbData.siteTitle) ? window._pbData.siteTitle : 'PureBlue';
+    subj = '[' + sn + '] ' + (last.name || '') + '님 결합 신청 완료 안내';
+    body = '안녕하세요, ' + (last.name || '') + '님.\n\n' + sn + ' 결합 할인 신청이 정상적으로 접수되었습니다.\n\n'
+      + '■ 신청 제품: ' + (last.productName || '') + '\n■ 결합 할인: 10%\n'
+      + ((last.cardDiscount || 0) > 0 ? '■ 카드사 할인: ' + (last.cardDiscountName || '') + '\n' : '')
+      + '■ 최종 월 납부액: ' + ((+last.finalPrice || 0).toLocaleString('ko-KR')) + '원/월\n'
+      + '\n빠른 시간 내에 전문 상담사가 연락드립니다.\n감사합니다.\n\n' + sn + ' 고객센터';
+  } else if (_frontEmlType === 'cmp') {
+    var prods = window._cmpProds || [];
+    var sn = (window._pbData && window._pbData.siteTitle) ? window._pbData.siteTitle : 'PureBlue';
+    subj = '[' + sn + '] 제품 비교 내역 안내';
+    body = '안녕하세요.\n\n' + sn + ' 제품 비교 내역을 안내드립니다.\n\n'
+      + prods.map(function(p) {
+          var specLines = (p.specs || []).map(function(s) {
+            return '    · ' + s[0] + ': ' + (s[1] || '—');
+          }).join('\n');
+          return '■ ' + p.name + ' (' + (p.model || '') + ')\n'
+            + '  월 렌탈: ' + (+p.priceMonthly || 0).toLocaleString('ko-KR') + '원/월\n'
+            + (specLines ? '  [스팩]\n' + specLines + '\n' : '')
+            + ((p.features || []).length ? '  특징: ' + p.features.join(', ') : '');
+        }).join('\n\n')
+      + '\n\n감사합니다.\n\n' + sn + ' 고객센터';
+  }
+}
+
+function _doSendEml(addr, subj, body) {
+  var btn = document.querySelector('#frontEmlBg button[onclick="sendFrontEml()"]');
+  if (btn) { btn.disabled = true; btn.textContent = '전송 중...'; }
+  fetch('/admin/api_front/send_email.php', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ to: addr, subject: subj, body: body })
+  }).then(function(r) { return r.json(); })
+    .then(function(res) {
+      document.getElementById('frontEmlBody').style.display = 'none';
+      document.getElementById('frontEmlDone').style.display = 'block';
+      document.getElementById('frontEmlDoneAddr').textContent = res.ok
+        ? addr + '으로 발송되었습니다.'
+        : '발송 실패: ' + (res.error || '다시 시도해주세요');
+    }).catch(function() {
+      document.getElementById('frontEmlBody').style.display = 'none';
+      document.getElementById('frontEmlDone').style.display = 'block';
+      document.getElementById('frontEmlDoneAddr').textContent = '네트워크 오류. 다시 시도해주세요.';
+    }).finally(function() {
+      if (btn) { btn.disabled = false; btn.textContent = '이메일 전송'; }
+    });
+}
+
+function selectExtraRadio(fieldId, idx, val) {
+  document.querySelectorAll('[id^="' + fieldId + '-"]').forEach(function(el) {
+    el.classList.remove('checked');
+  });
+  var el = document.getElementById(fieldId + '-' + idx);
+  if (el) el.classList.add('checked');
+  var hidden = document.getElementById(fieldId);
+  if (hidden) hidden.value = val;
+}
+
+function toggleExtraCheck(fieldId, idx, val) {
+  var el = document.getElementById(fieldId + '-' + idx);
+  if (el) el.classList.toggle('checked');
+}

@@ -63,6 +63,23 @@
           <input type="hidden" id="productTags">
           <p class="form-hint">Enter 키로 태그 추가</p>
         </div>
+
+        <!-- ====== 스팩 편집 섹션 ====== -->
+        <div class="form-group col-span-2">
+          <label style="display:flex;align-items:center;justify-content:space-between;">
+            <span>스팩</span>
+            <button type="button" class="btn btn-sm btn-outline" onclick="addSpecRow()">+ 행 추가</button>
+          </label>
+          <div id="specRowsWrap" style="margin-top:8px;">
+            <div id="specRows">
+              <!-- 행은 JS로 추가됨 -->
+            </div>
+            <p id="specEmptyMsg" style="color:var(--text-muted);font-size:.82rem;padding:8px 0;">등록된 스팩이 없습니다. 행 추가 버튼을 눌러 추가하세요.</p>
+          </div>
+          <p class="form-hint">스팩명이 같은 제품끼리 비교 화면에서 자동으로 대조됩니다.</p>
+        </div>
+        <!-- ====== /스팩 편집 섹션 ====== -->
+
       </div>
     </div>
     <div class="modal-footer">

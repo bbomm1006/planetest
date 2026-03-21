@@ -2,17 +2,7 @@
 // ===========================
 // REPEAT ROWS
 // ===========================
-function addSpecRow() {
-  const g = document.getElementById('productSpecGroup');
-  const row = document.createElement('div');
-  row.className = 'repeat-row';
-  row.innerHTML = `<span class="drag-handle">⠿</span>
-    <input type="text" class="form-control" placeholder="라벨" style="flex:.4"/>
-    <input type="text" class="form-control" placeholder="내용" style="flex:.6"/>
-    <button class="btn btn-sm btn-ghost" onclick="removeRepeatRow(this)">🗑</button>`;
-  g.appendChild(row);
-  initRepeatDrag(g);
-}
+
 
 function addReserveItem() {
   const g = document.getElementById('reserveItemGroup');

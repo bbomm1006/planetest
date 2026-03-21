@@ -36,23 +36,25 @@ $prods = $pdo->query(
      ORDER BY p.sort_order, p.id'
 )->fetchAll();
 
-$products = array_map(function($p) {
-    // tags → features 배열
+/* 제품별 스팩 한 번에 조회 */
+$allSpecs = $pdo->query(
+    'SELECT product_id, spec_name, spec_value
+     FROM product_specs
+     ORDER BY product_id, sort_order, id'
+)->fetchAll();
+
+$specsMap = [];
+foreach ($allSpecs as $s) {
+    $specsMap[$s['product_id']][] = [$s['spec_name'], $s['spec_value']];
+}
+
+$products = array_map(function($p) use ($specsMap) {
     $features = [];
     if ($p['tags']) {
         $features = array_values(array_filter(array_map('trim', explode(',', $p['tags']))));
     }
 
-    // short_desc → specs 배열 ("|"로 구분된 "항목:값" 형식 지원, 없으면 빈 배열)
-    $specs = [];
-    if ($p['short_desc']) {
-        foreach (explode('|', $p['short_desc']) as $item) {
-            $parts = array_map('trim', explode(':', $item, 2));
-            if (count($parts) === 2 && $parts[0] !== '') {
-                $specs[] = [$parts[0], $parts[1]];
-            }
-        }
-    }
+    $specs = $specsMap[$p['id']] ?? [];
 
     return [
         'id'           => (string)$p['id'],
@@ -91,8 +93,13 @@ $cardDiscounts = array_map(function($c) {
     ];
 }, $cards);
 
+/* 사이트 타이틀 */
+$siteRow = $pdo->query("SELECT title FROM homepage_info WHERE id=1 LIMIT 1")->fetch();
+$siteTitle = $siteRow ? $siteRow['title'] : 'PureBlue';
+
 echo json_encode([
     'ok'            => true,
+    'siteTitle'     => $siteTitle,
     'categories'    => $categories,
     'products'      => $products,
     'cardDiscounts' => $cardDiscounts,
