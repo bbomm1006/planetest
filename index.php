@@ -71,11 +71,6 @@
     <?php include 'lib/products.php'; ?>
   </div>
 <?php
-$ci_table = 'test22';
-include __DIR__ . '/lib/custom_inquiry_front.php';
-?>
-
-<?php
 $ci_table = 'form1';
 include __DIR__ . '/lib/custom_inquiry_front.php';
 ?>

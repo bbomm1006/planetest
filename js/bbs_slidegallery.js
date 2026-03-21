@@ -443,8 +443,9 @@
 
   function scrollActiveThumbIntoView() {
     var active = document.querySelector('#sgThumbs .sg-thumb.on');
-    if (!active || typeof active.scrollIntoView !== 'function') return;
-    active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    if (!active) return;
+    var vp = active.closest('.sg-thumbs-vp') || active.parentElement;
+    if (vp) vp.scrollLeft = active.offsetLeft - (vp.clientWidth / 2) + (active.offsetWidth / 2);
   }
 
   window.sgMove = function (dir) {

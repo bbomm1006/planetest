@@ -320,8 +320,6 @@ function faqEsc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').r
 
   window.glGoPage = function(p) {
     _glPage = p; glRender();
-    var sec = document.getElementById('gallery');
-    if (sec) setTimeout(function() { sec.scrollIntoView({ behavior:'smooth', block:'start' }); }, 80);
   };
 
   window.glOpenModal = function(p) {
