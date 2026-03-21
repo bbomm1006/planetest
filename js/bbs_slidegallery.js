@@ -245,9 +245,15 @@
   }
 
   function scrollActiveThumbIntoView() {
+    var vp = document.getElementById('sgThumbViewport');
     var active = document.querySelector('#sgThumbs .sg-thumb.on');
-    if (!active || typeof active.scrollIntoView !== 'function') return;
-    active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    if (!vp || !active) return;
+    // 페이지 스크롤에 영향 없이 썸네일 뷰포트 내에서만 가로 스크롤
+    var vpRect     = vp.getBoundingClientRect();
+    var activeRect = active.getBoundingClientRect();
+    var activeCenter = active.offsetLeft + active.offsetWidth / 2;
+    var targetLeft   = activeCenter - vp.clientWidth / 2;
+    vp.scrollLeft = Math.max(0, Math.min(targetLeft, vp.scrollWidth - vp.clientWidth));
   }
 
   window.sgMove = function (dir) {
