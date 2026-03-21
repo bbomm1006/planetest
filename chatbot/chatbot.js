@@ -106,8 +106,28 @@
     ).join('');
   }
 
-  function inject() {
-    // CONFIG 로드 후 inject() 호출되므로 여기서 CONFIG 사용 가능
+  /* ══════════════════════════════════════════
+     CSS 로드 — 완료 콜백 지원
+  ══════════════════════════════════════════ */
+  function injectCSS(onLoaded) {
+    const s = [...document.querySelectorAll('script')].find(s => s.src.includes('chatbot'));
+    const base = s ? s.src.replace(/chatbot\.js(\?.*)?$/, '') : '';
+    // 이미 로드됐으면 바로 콜백
+    if (document.querySelector(`link[href*="chatbot"][href*="style.css"]`)) {
+      if (onLoaded) onLoaded();
+      return;
+    }
+    const link = document.createElement('link');
+    link.rel = 'stylesheet'; link.type = 'text/css';
+    link.href = base + 'style.css';
+    if (onLoaded) {
+      link.onload  = onLoaded;
+      link.onerror = onLoaded; // 실패해도 진행
+    }
+    document.head.appendChild(link);
+  }
+
+  function injectHTML() {
     const botName   = CONFIG.bot_name    || '스마트 AI 상담';
     const botStatus = CONFIG.bot_status  || '온라인 · 즉시 응답';
     const footerNote= CONFIG.footer_note || 'AI 답변은 참고용이며, 정확한 상담은 전화로 문의하세요.';
@@ -123,7 +143,7 @@
   <span class="cb-badge" id="cbBadge">1</span>
 </button>
 
-<div class="cb-panel" id="cbPanel">
+<div class="cb-panel cb-ready" id="cbPanel">
   <div class="cb-header">
     <div class="cb-header-left">
       <div class="cb-avatar">🤖</div>
@@ -153,8 +173,16 @@
   </div>
   <div class="cb-note">${esc(footerNote)}</div>
 </div>`);
+  }
 
-    injectCSS();
+  function inject() {
+    // CSS를 먼저 로드하고, 완료 후 HTML 삽입 → CSS 없이 렌더링되는 flash 원천 차단
+    injectCSS(function() {
+      injectHTML();
+      requestAnimationFrame(function() {
+        showWelcome();
+      });
+    });
   }
 
   /* ══════════════════════════════════════════
@@ -297,29 +325,34 @@
   function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function getNow() { const d = new Date(); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
 
-  /* ══════════════════════════════════════════
-     CSS 로드
-  ══════════════════════════════════════════ */
-  function injectCSS() {
-    const s = [...document.querySelectorAll('script')].find(s => s.src.includes('chatbot'));
-    const base = s ? s.src.replace(/chatbot\.js(\?.*)?$/, '') : '';
-    const link = document.createElement('link');
-    link.rel = 'stylesheet'; link.type = 'text/css';
-    link.href = base + 'style.css';
-    document.head.appendChild(link);
-  }
-
-  /* ── 초기화 순서 변경: loadChatbotData → inject → showWelcome ── */
+  /* ── 초기화 ── */
   async function init() {
-    await loadChatbotData();  // ← CONFIG 먼저 로드
-    inject();                 // ← CONFIG 값으로 HTML 생성
-    showWelcome();            // ← CONFIG 값으로 인사말
+    await loadChatbotData();
+    inject(); // CSS 로드 → HTML 삽입 → showWelcome 순서로 내부 처리
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+  if (document.readyState === 'complete') {
+    setTimeout(init, 100);
   } else {
-    init();
+    window.addEventListener('load', function() {
+      setTimeout(init, 100);
+    });
   }
+
+  // bfcache 복원 시 챗봇 강제 닫기 (크롬 뒤로가기 캐시 대응)
+  window.addEventListener('pageshow', function(e) {
+    if (e.persisted) {
+      // bfcache에서 복원된 경우 패널 강제 닫기
+      const panel = document.getElementById('cbPanel');
+      const fab   = document.getElementById('cbFab');
+      const iconChat  = document.getElementById('cbIconChat');
+      const iconClose = document.getElementById('cbIconClose');
+      if (panel) panel.classList.remove('open');
+      if (fab)   fab.classList.remove('active');
+      if (iconChat)  iconChat.style.display  = 'flex';
+      if (iconClose) iconClose.style.display = 'none';
+      state.open = false;
+    }
+  });
 
 })();

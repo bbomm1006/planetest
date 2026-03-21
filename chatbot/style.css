@@ -5,10 +5,10 @@
 /* ── FAB 버튼 ── */
 .cb-fab {
   position: fixed;
-  bottom: 100px;           /* 탑버튼(bottom:30px + h:52px) 위로 띄움 */
+  bottom: 88px;            /* backToTop(bottom:24 + h:52) + 12px 간격 */
   right: 32px;
-  width: 62px;
-  height: 62px;
+  width: 52px;
+  height: 52px;
   background: linear-gradient(135deg, #1a3a8f, #2563eb);
   border: none;
   border-radius: 50%;
@@ -34,8 +34,8 @@
   justify-content: center;
 }
 .cb-fab-icon svg {
-  width: 27px;
-  height: 27px;
+  width: 24px;
+  height: 24px;
 }
 
 /* ── 알림 뱃지 ── */
@@ -67,28 +67,36 @@
 /* ── 패널 ── */
 .cb-panel {
   position: fixed;
-  bottom: 176px;           /* FAB(bottom:100 + h:62) + 14px 여백 */
+  bottom: 152px;           /* FAB(bottom:88 + h:52) + 12px 여백 */
   right: 32px;
   width: 370px;
   max-height: 590px;
   background: #fff;
   border-radius: 20px;
   box-shadow: 0 24px 80px rgba(0, 0, 0, .2), 0 0 0 1px rgba(37, 99, 235, .12);
-  display: flex;
+  display: none;
   flex-direction: column;
   overflow: hidden;
   z-index: 7999;
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
   transform: translateY(18px) scale(.96);
   transform-origin: bottom right;
-  transition: opacity .3s ease, transform .32s cubic-bezier(.22, 1, .36, 1);
+  transition: opacity .3s ease, transform .32s cubic-bezier(.22, 1, .36, 1), visibility 0s linear .32s;
   font-family: 'Noto Sans KR', sans-serif;
+  will-change: opacity, transform;
+}
+/* JS가 inject 후 display:flex로 전환 */
+.cb-panel.cb-ready {
+  display: flex;
 }
 .cb-panel.open {
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
   transform: translateY(0) scale(1);
+  transition: opacity .3s ease, transform .32s cubic-bezier(.22, 1, .36, 1), visibility 0s linear 0s;
 }
 
 /* ── 헤더 ── */
@@ -401,7 +409,13 @@
     max-height: 82vh;
   }
   .cb-fab {
-    bottom: 90px;
+    bottom: 80px;          /* 모바일 backToTop(bottom:16 + h:48) + 16px */
     right: 20px;
+    width: 48px;
+    height: 48px;
+  }
+  .cb-fab-icon svg {
+    width: 22px;
+    height: 22px;
   }
 }
