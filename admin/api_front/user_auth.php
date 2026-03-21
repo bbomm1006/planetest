@@ -45,7 +45,7 @@ if ($method === 'POST') {
     }
 
     $pdo = getDB();
-    logAccess($pdo);
+    // logAccess($pdo);
     logLanding($pdo);
 
     // social_links에서 API 키 조회

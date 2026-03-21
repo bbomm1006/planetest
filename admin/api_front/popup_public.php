@@ -4,7 +4,7 @@ require_once __DIR__ . '/../config/log_helper.php';
 header('Content-Type: application/json; charset=utf-8');
 
 $pdo = getDB();
-logAccess($pdo);
+// logAccess($pdo);
 logLanding($pdo);
 $now = date('Y-m-d H:i:s');
 

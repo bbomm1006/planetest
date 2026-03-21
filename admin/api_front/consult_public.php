@@ -6,7 +6,7 @@ set_error_handler(function($no,$str,$file,$line){ echo json_encode(['ok'=>false,
 set_exception_handler(function($e){ echo json_encode(['ok'=>false,'msg'=>$e->getMessage()]); exit; });
 
 $pdo    = getDB();
-logAccess($pdo);
+// logAccess($pdo);
 logLanding($pdo);
 $action = $_GET['action'] ?? $_POST['action'] ?? 'config';
 

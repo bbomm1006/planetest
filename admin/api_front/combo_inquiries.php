@@ -8,7 +8,7 @@ $body = json_decode(file_get_contents('php://input'), true);
 if (!$body) { echo json_encode(['ok' => false, 'msg' => '잘못된 요청']); exit; }
 
 $pdo = getDB();
-try { logAccess($pdo); } catch(Throwable $e) {}
+// logAccess($pdo);
 
 try {
     $stmt = $pdo->prepare(

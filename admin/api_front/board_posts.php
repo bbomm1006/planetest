@@ -13,7 +13,7 @@ set_exception_handler(function($e){ echo json_encode(['ok'=>false,'error'=>$e->g
 if (session_status() === PHP_SESSION_NONE) session_start();
 
 $pdo    = getDB();
-logAccess($pdo);
+// logAccess($pdo);
 logLanding($pdo);
 $method = $_SERVER['REQUEST_METHOD'];
 $user   = $_SESSION['board_user'] ?? null;

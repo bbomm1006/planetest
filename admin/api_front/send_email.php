@@ -17,7 +17,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 header('Content-Type: application/json; charset=utf-8');
-try { $_lp = getDB(); logAccess($_lp); logLanding($_lp); } catch(Throwable $_le) {}
+try { $_lp = getDB(); logLanding($_lp); } catch(Throwable $_le) {}
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); echo json_encode(['ok'=>false,'error'=>'POST only']); exit; }
 

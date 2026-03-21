@@ -1,0 +1,726 @@
+/* ══════════════════════════════════════════════════
+   bkf_public.css
+   예약 폼 프론트 UI 스타일
+   main.css 토큰 재사용 전제 (--white, --off, --sky,
+   --blue, --ink, --ink2, --g2~g7, --mist, --pale 등)
+   접두어: .bkf-*
+══════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────
+   섹션 래퍼
+───────────────────────────────────── */
+.bkf-section {
+  padding: 80px 5vw;
+  background: var(--white, #fff);
+  position: relative;
+}
+
+.bkf-wrap {
+  max-width: 660px;
+  margin: 0 auto;
+}
+
+/* ─────────────────────────────────────
+   뷰 전환 (wizard / done / lookup)
+───────────────────────────────────── */
+.bkf-view { display: none; }
+.bkf-view.bkf-active { display: block; animation: bkfFadeIn .22s ease; }
+
+@keyframes bkfFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─────────────────────────────────────
+   로딩 스피너
+───────────────────────────────────── */
+.bkf-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 80px 20px;
+  color: var(--g4, #9ca3af);
+  font-size: .86rem;
+}
+.bkf-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2.5px solid var(--g2, #e5e7eb);
+  border-top-color: var(--sky, #2563eb);
+  border-radius: 50%;
+  animation: bkfSpin .65s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes bkfSpin { to { transform: rotate(360deg); } }
+
+/* ─────────────────────────────────────
+   헤더
+───────────────────────────────────── */
+.bkf-head {
+  margin-bottom: 24px;
+}
+.bkf-title {
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: -.4px;
+  color: var(--ink, #111827);
+  margin: 0 0 6px;
+}
+.bkf-sub {
+  font-size: .88rem;
+  color: var(--g5, #6b7280);
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* ─────────────────────────────────────
+   진행 스텝 바
+───────────────────────────────────── */
+.bkf-progress {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 28px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+.bkf-progress::-webkit-scrollbar { display: none; }
+
+.bkf-progress-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--g4, #9ca3af);
+  white-space: nowrap;
+  padding: 4px 0;
+}
+.bkf-progress-step::before {
+  content: attr(data-step);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--g2, #e5e7eb);
+  color: var(--g4, #9ca3af);
+  font-size: .7rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.bkf-progress-step.on {
+  color: var(--blue, #1d4ed8);
+}
+.bkf-progress-step.on::before {
+  background: var(--sky, #2563eb);
+  color: #fff;
+}
+.bkf-progress-step.done {
+  color: var(--g5, #6b7280);
+}
+.bkf-progress-step.done::before {
+  background: #10b981;
+  color: #fff;
+  content: "✓";
+}
+/* 스텝 사이 구분선 */
+.bkf-progress-step + .bkf-progress-step {
+  margin-left: 4px;
+}
+.bkf-progress-step + .bkf-progress-step::after {
+  content: "";
+  display: inline-block;
+  width: 16px;
+  height: 1px;
+  background: var(--g2, #e5e7eb);
+  margin-right: 4px;
+  order: -1;
+}
+
+/* ─────────────────────────────────────
+   스텝 콘텐츠
+───────────────────────────────────── */
+.bkf-step-title {
+  font-size: .78rem;
+  font-weight: 800;
+  color: var(--g5, #6b7280);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+/* ─────────────────────────────────────
+   지점 카드 그리드
+───────────────────────────────────── */
+.bkf-store-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.bkf-store-card {
+  padding: 16px 18px;
+  border: 2px solid var(--g2, #e5e7eb);
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  transition: all .18s;
+  text-align: center;
+}
+.bkf-store-card:hover {
+  border-color: var(--sky, #2563eb);
+  background: #eff6ff;
+}
+.bkf-store-card.bkf-selected {
+  border-color: var(--blue, #1d4ed8);
+  background: var(--mist, #eff6ff);
+  box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+}
+.bkf-store-name {
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--ink, #111827);
+  margin-bottom: 4px;
+}
+.bkf-store-addr {
+  font-size: .76rem;
+  color: var(--g5, #6b7280);
+  line-height: 1.4;
+}
+
+/* ─────────────────────────────────────
+   캘린더
+───────────────────────────────────── */
+.bkf-calendar {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 4px;
+}
+.bkf-calendar th {
+  padding: 8px 4px;
+  text-align: center;
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--g5, #6b7280);
+}
+.bkf-calendar td {
+  width: calc(100% / 7);
+  aspect-ratio: 1;
+  text-align: center;
+  vertical-align: middle;
+  font-size: .86rem;
+  font-weight: 600;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background .15s;
+  position: relative;
+}
+.bkf-calendar td:hover:not(.bkf-cal-past):not(.bkf-cal-full):not(.bkf-cal-empty) {
+  background: #eff6ff;
+}
+.bkf-calendar td.bkf-cal-today {
+  border: 2px solid var(--sky, #2563eb);
+  color: var(--blue, #1d4ed8);
+}
+.bkf-calendar td.bkf-cal-selected {
+  background: var(--sky, #2563eb);
+  color: #fff;
+}
+.bkf-calendar td.bkf-cal-full {
+  color: #ef4444;
+  cursor: not-allowed;
+}
+.bkf-calendar td.bkf-cal-full::after {
+  content: "마감";
+  display: block;
+  font-size: .62rem;
+  font-weight: 700;
+  color: #ef4444;
+  margin-top: 1px;
+}
+.bkf-calendar td.bkf-cal-past {
+  color: var(--g3, #d1d5db);
+  cursor: not-allowed;
+}
+.bkf-calendar td.bkf-cal-empty { cursor: default; }
+
+/* 캘린더 월 이동 */
+.bkf-cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.bkf-cal-nav-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid var(--g2, #e5e7eb);
+  background: #fff;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--ink2, #374151);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .15s;
+}
+.bkf-cal-nav-btn:hover {
+  border-color: var(--sky, #2563eb);
+  color: var(--blue, #1d4ed8);
+}
+.bkf-cal-month {
+  font-size: .95rem;
+  font-weight: 800;
+  color: var(--ink, #111827);
+}
+
+/* ─────────────────────────────────────
+   시간 슬롯
+───────────────────────────────────── */
+.bkf-slot-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.bkf-slot-btn {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 2px solid var(--g2, #e5e7eb);
+  background: #fff;
+  font-family: inherit;
+  font-size: .88rem;
+  font-weight: 700;
+  color: var(--ink2, #374151);
+  cursor: pointer;
+  transition: all .18s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.bkf-slot-btn:hover:not(:disabled) {
+  border-color: var(--sky, #2563eb);
+  background: #eff6ff;
+  color: var(--blue, #1d4ed8);
+}
+.bkf-slot-btn.bkf-selected {
+  border-color: var(--blue, #1d4ed8);
+  background: var(--sky, #2563eb);
+  color: #fff;
+}
+.bkf-slot-btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  background: var(--g1, #f9fafb);
+  color: var(--g4, #9ca3af);
+}
+.bkf-slot-remaining {
+  font-size: .65rem;
+  font-weight: 600;
+  opacity: .7;
+}
+.bkf-slot-btn.bkf-selected .bkf-slot-remaining { opacity: .85; color: #fff; }
+
+/* ─────────────────────────────────────
+   항목 선택 (item_select)
+───────────────────────────────────── */
+.bkf-item-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.bkf-item-card {
+  padding: 14px 16px;
+  border: 2px solid var(--g2, #e5e7eb);
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  transition: all .18s;
+  text-align: center;
+  font-size: .88rem;
+  font-weight: 700;
+  color: var(--ink2, #374151);
+}
+.bkf-item-card:hover { border-color: var(--sky, #2563eb); background: #eff6ff; }
+.bkf-item-card.bkf-selected {
+  border-color: var(--blue, #1d4ed8);
+  background: var(--mist, #eff6ff);
+}
+
+/* ─────────────────────────────────────
+   정보입력 폼 필드
+───────────────────────────────────── */
+.bkf-fg {
+  margin-bottom: 16px;
+}
+.bkf-label {
+  display: block;
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--ink2, #374151);
+  margin-bottom: 6px;
+}
+.bkf-label em {
+  color: #ef4444;
+  font-style: normal;
+  margin-left: 2px;
+}
+.bkf-fi {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--g2, #e5e7eb);
+  background: #fff;
+  font-family: inherit;
+  font-size: .9rem;
+  color: var(--ink, #111827);
+  outline: none;
+  transition: border-color .2s;
+  box-sizing: border-box;
+}
+.bkf-fi:focus { border-color: var(--sky, #2563eb); }
+.bkf-fi::placeholder { color: var(--g4, #9ca3af); }
+
+/* 라디오/체크박스 그룹 */
+.bkf-radio-group,
+.bkf-check-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.bkf-radio-opt,
+.bkf-check-opt {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--g2, #e5e7eb);
+  background: #fff;
+  cursor: pointer;
+  font-size: .86rem;
+  font-weight: 600;
+  color: var(--ink2, #374151);
+  transition: all .15s;
+  user-select: none;
+}
+.bkf-radio-opt:hover,
+.bkf-check-opt:hover { border-color: var(--sky, #2563eb); }
+.bkf-radio-opt.bkf-selected,
+.bkf-check-opt.bkf-selected {
+  border-color: var(--blue, #1d4ed8);
+  background: var(--mist, #eff6ff);
+  color: var(--blue, #1d4ed8);
+}
+.bkf-radio-opt input,
+.bkf-check-opt input { display: none; }
+
+/* ─────────────────────────────────────
+   번호인증 UI
+───────────────────────────────────── */
+.bkf-phone-row {
+  display: flex;
+  gap: 8px;
+}
+.bkf-phone-row .bkf-fi { flex: 1; }
+.bkf-btn-verify {
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1.5px solid var(--sky, #2563eb);
+  background: #eff6ff;
+  color: var(--blue, #1d4ed8);
+  font-family: inherit;
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .15s;
+  flex-shrink: 0;
+}
+.bkf-btn-verify:hover { background: var(--sky, #2563eb); color: #fff; }
+.bkf-btn-verify:disabled { opacity: .5; cursor: not-allowed; }
+.bkf-otp-timer {
+  font-size: .76rem;
+  color: #ef4444;
+  margin-top: 4px;
+}
+
+/* ─────────────────────────────────────
+   에러 메시지
+───────────────────────────────────── */
+.bkf-error {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fef2f2;
+  border: 1px solid rgba(220,38,38,.2);
+  color: #b91c1c;
+  font-size: .86rem;
+  font-weight: 600;
+  line-height: 1.5;
+  margin-top: 12px;
+}
+
+/* ─────────────────────────────────────
+   이전 / 다음 / 제출 버튼
+───────────────────────────────────── */
+.bkf-nav {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+.bkf-btn-back {
+  padding: 13px 22px;
+  border-radius: 12px;
+  border: 1.5px solid var(--g2, #e5e7eb);
+  background: #fff;
+  color: var(--g5, #6b7280);
+  font-family: inherit;
+  font-size: .9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .18s;
+}
+.bkf-btn-back:hover { border-color: var(--g3, #d1d5db); color: var(--ink2, #374151); }
+.bkf-btn-next,
+.bkf-btn-submit,
+.bkf-btn-primary {
+  flex: 1;
+  padding: 13px 22px;
+  border-radius: 12px;
+  border: none;
+  background: var(--sky, #2563eb);
+  color: #fff;
+  font-family: inherit;
+  font-size: .9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .18s;
+  min-width: 120px;
+}
+.bkf-btn-next:hover,
+.bkf-btn-submit:hover,
+.bkf-btn-primary:hover {
+  background: var(--blue, #1d4ed8);
+  transform: translateY(-1px);
+}
+.bkf-btn-next:disabled,
+.bkf-btn-submit:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+
+.bkf-btn-outline {
+  padding: 12px 22px;
+  border-radius: 12px;
+  border: 1.5px solid var(--sky, #2563eb);
+  background: #fff;
+  color: var(--blue, #1d4ed8);
+  font-family: inherit;
+  font-size: .9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .18s;
+}
+.bkf-btn-outline:hover { background: #eff6ff; }
+
+.bkf-btn-text {
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  color: var(--sky, #2563eb);
+  font-family: inherit;
+  font-size: .84rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.bkf-btn-text:hover { color: var(--blue, #1d4ed8); }
+
+/* ─────────────────────────────────────
+   예약 완료 화면
+───────────────────────────────────── */
+.bkf-done-box {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 60px 20px;
+  text-align: center;
+}
+.bkf-done-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--ink, #111827);
+  margin: 0 0 10px;
+}
+.bkf-done-sub {
+  font-size: .9rem;
+  color: var(--g5, #6b7280);
+  line-height: 1.7;
+  margin: 0 0 16px;
+}
+.bkf-done-no {
+  display: inline-block;
+  padding: 8px 20px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  font-size: .88rem;
+  font-weight: 700;
+  color: #15803d;
+  letter-spacing: 1px;
+  margin-bottom: 24px;
+}
+.bkf-done-btns {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ─────────────────────────────────────
+   예약 조회
+───────────────────────────────────── */
+.bkf-lookup-box {
+  max-width: 480px;
+  margin: 0 auto;
+}
+.bkf-lookup-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--g2, #e5e7eb);
+  margin-bottom: 24px;
+}
+.bkf-lookup-tab {
+  flex: 1;
+  padding: 10px 0;
+  border: none;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  font-family: inherit;
+  font-size: .86rem;
+  font-weight: 700;
+  color: var(--g5, #6b7280);
+  cursor: pointer;
+  margin-bottom: -2px;
+  transition: all .15s;
+}
+.bkf-lookup-tab:hover { color: var(--blue, #1d4ed8); }
+.bkf-lookup-tab.active {
+  color: var(--blue, #1d4ed8);
+  border-bottom-color: var(--sky, #2563eb);
+}
+
+/* 조회 결과 카드 */
+.bkf-lookup-card {
+  padding: 18px 20px;
+  border: 1.5px solid var(--g2, #e5e7eb);
+  border-radius: 14px;
+  margin-bottom: 12px;
+  background: #fff;
+}
+.bkf-lookup-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.bkf-lookup-card-no {
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--g5, #6b7280);
+  letter-spacing: .5px;
+}
+.bkf-status-badge {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: .74rem;
+  font-weight: 700;
+}
+.bkf-lookup-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: .86rem;
+}
+.bkf-lookup-row-label {
+  color: var(--g5, #6b7280);
+  min-width: 60px;
+  flex-shrink: 0;
+}
+.bkf-lookup-row-val {
+  color: var(--ink, #111827);
+  font-weight: 600;
+}
+.bkf-lookup-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+.bkf-btn-cancel {
+  padding: 9px 18px;
+  border-radius: 10px;
+  border: 1.5px solid #fca5a5;
+  background: #fff;
+  color: #dc2626;
+  font-family: inherit;
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .15s;
+}
+.bkf-btn-cancel:hover { background: #fef2f2; }
+
+/* ─────────────────────────────────────
+   예약 조회 링크 (위자드 하단)
+───────────────────────────────────── */
+.bkf-lookup-link {
+  text-align: center;
+  margin-top: 12px;
+}
+
+/* ─────────────────────────────────────
+   선택 요약 칩
+───────────────────────────────────── */
+.bkf-summary-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+.bkf-chip {
+  padding: 5px 12px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 20px;
+  font-size: .76rem;
+  font-weight: 600;
+  color: var(--blue, #1d4ed8);
+}
+
+/* ─────────────────────────────────────
+   반응형
+───────────────────────────────────── */
+@media (max-width: 600px) {
+  .bkf-section { padding: 60px 4vw; }
+  .bkf-title   { font-size: 1.3rem; }
+
+  .bkf-store-grid  { grid-template-columns: 1fr 1fr; }
+  .bkf-item-grid   { grid-template-columns: 1fr 1fr; }
+  .bkf-slot-btn    { padding: 9px 14px; font-size: .82rem; }
+
+  .bkf-calendar td { font-size: .78rem; }
+
+  .bkf-nav         { flex-direction: column; }
+  .bkf-btn-next,
+  .bkf-btn-submit  { min-width: unset; }
+
+  .bkf-done-btns { flex-direction: column; align-items: center; }
+}

@@ -13,7 +13,7 @@ require_once $_ltb;
 header('Content-Type: application/json; charset=utf-8');
 
 $pdo = getDB();
-logAccess($pdo);
+// logAccess($pdo);
 logLanding($pdo);
 legal_terms_ensure_tables($pdo);
 

@@ -229,7 +229,6 @@ function submitForm() {
 document.addEventListener('DOMContentLoaded', function() {
   var fPhone = document.getElementById('f-phone');
   if (fPhone) fPhone.addEventListener('input', function() { fmtPhone(this); });
-  loadConsultForm();
 });
 
 /* ─── 이메일 모달 ─── */

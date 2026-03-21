@@ -1,5 +1,5 @@
 <?php
-define('DB_HOST', 'db.plane01.gabia.io');
+define('DB_HOST', '211.47.74.10'); //db.plane01.gabia.io
 define('DB_USER', 'plane01');       // DB 계정으로 변경
 define('DB_PASS', 'plane01!@#');           // DB 비밀번호로 변경
 define('DB_NAME', 'dbplane01');    // DB명으로 변경

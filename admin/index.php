@@ -7,10 +7,10 @@
 <link rel="stylesheet" href="css/admin.css"/>
 <link rel="stylesheet" href="css/find_account.css"/>
 
-<link rel="stylesheet" href="css/customReser_admin.css"/>
+<link rel="stylesheet" href="css/bkf_admin.css"/>
 
 <!-- 카카오 주소검색 (Daum 우편번호) -->
-<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js" defer></script>
 </head>
 <body>
 
@@ -77,6 +77,7 @@
             문의 폼 관리
             ======================== -->
       <?php include 'lib/customInquiry.php'; ?>
+      <?php include 'lib/bookingForm.php'; ?>
       <?php include 'lib/alimtalkMgmt.php'; ?>
 
     
@@ -157,58 +158,57 @@
 
   <!-- 문의 폼 Modal -->
   <?php include 'modals/customInquiryModal.php'; ?>
+  <?php include 'modals/bookingFormModal.php'; ?>
 
 
 <div class="toast-container" id="toastContainer"></div>
 
 <!-- 의존 파일들 먼저 -->
-<script src="js/drag.js"></script>
-<script src="js/time.js"></script>
-<script src="js/board.js"></script>
+<script src="js/drag.js" defer></script>
+<script src="js/time.js" defer></script>
+<script src="js/board.js" defer></script>
 
 <!-- admin.js: 전역 변수·헬퍼 정의 -->
-<script src="js/admin.js"></script>
-<script src="js/find_account.js"></script>
+<script src="js/admin.js" defer></script>
+<script src="js/find_account.js" defer></script>
 
 <!-- file_upload.js: resetUploadArea/setUploadPreview 공통 함수 -->
-<script src="js/file_upload.js"></script>
+<script src="js/file_upload.js" defer></script>
 
 <!-- admin.js 이후: bannerData, esc 등 전역 변수 사용 -->
-<script src="js/menu.js"></script>
-<script src="js/banner.js"></script>
-<script src="js/popup.js"></script>
-<script src="js/product.js"></script>
-<script src="js/combo.js"></script>
-<script src="js/store.js"></script>
+<script src="js/menu.js" defer></script>
+<script src="js/banner.js" defer></script>
+<script src="js/popup.js" defer></script>
+<script src="js/product.js" defer></script>
+<script src="js/combo.js" defer></script>
+<script src="js/store.js" defer></script>
 
-<script src="js/consultField.js"></script>
-<script src="js/consultTerms.js"></script>
-<script src="js/legalTerms.js"></script>
-<script src="js/consult.js"></script> 
+<script src="js/consultField.js" defer></script>
+<script src="js/consultTerms.js" defer></script>
+<script src="js/legalTerms.js" defer></script>
+<script src="js/consult.js" defer></script>
 
-<script src="js/inquiry.js"></script>
-<script src="js/reserve.js"></script>
-
-<script src="js/customReser_admin.js"></script>
-<script src="js/rvm_admin_ui.js"></script>
+<script src="js/inquiry.js" defer></script>
+<script src="js/reserve.js" defer></script>
 
 <!-- 나머지 -->
-<script src="js/social.js"></script>
-<script src="js/bulk_selectDelete.js"></script>
-<script src="js/repeat.js"></script>
-<script src="js/tag.js"></script>
-<script src="js/excel.js"></script>
+<script src="js/social.js" defer></script>
+<script src="js/bulk_selectDelete.js" defer></script>
+<script src="js/repeat.js" defer></script>
+<script src="js/tag.js" defer></script>
+<script src="js/excel.js" defer></script>
 
-<script src="js/site.js"></script>
+<script src="js/site.js" defer></script>
 
-<script src="js/homepageInfo.js"></script>
+<script src="js/homepageInfo.js" defer></script>
 
-<script src="js/chatbot.js"></script>
+<script src="js/chatbot.js" defer></script>
 
-<script src="js/log.js"></script>
+<script src="js/log.js" defer></script>
 
-<script src="js/customInquiry.js"></script>
-<script src="js/alimtalk.js"></script>
+<script src="js/customInquiry.js" defer></script>
+<script src="js/bkf_admin.js" defer></script>
+<script src="js/alimtalk.js" defer></script>
 
 </body>
 </html>

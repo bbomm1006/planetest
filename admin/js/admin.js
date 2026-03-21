@@ -281,18 +281,24 @@ function enterAdmin(name, username, email = '') {
   if (emEl) emEl.value = email;
 
   // DB에서 메뉴 상태 로드 후 사이드바 반영
+  // 사이드바 구성 완료 후 동적 메뉴(게시판·예약폼·문의폼) 순차 로드
   apiGet('api/system.php', { action: 'menuList' }).then(res => {
     if (res.ok && res.data.length > 0) {
       res.data.forEach(m => { menuState[m.key] = !!m.is_active; });
     }
     renderSidebar();
+
+    // 사이드바 동적 메뉴 – 현재 페이지 데이터 로드와 경쟁하지 않도록 살짝 지연
+    setTimeout(() => {
+      if (typeof loadBoardList === 'function') loadBoardList();
+      if (typeof bkfLoadFormList === 'function') bkfLoadFormList();
+      if (typeof ciLoadCustomInquirySidebar === 'function') ciLoadCustomInquirySidebar();
+    }, 300);
   });
 
+  // showPage 내부에서 해당 페이지 데이터 로드(loadAdminList 등)가 이미 호출되므로 중복 제거
   const savedPage = localStorage.getItem('adminPage') || 'adminMgmt';
   showPage(savedPage);
-  loadAdminList();
-  if (typeof loadBoardList === 'function') loadBoardList();
-  if (typeof ciLoadCustomInquirySidebar === 'function') ciLoadCustomInquirySidebar();
 }
 
 async function doLogout() {
@@ -312,7 +318,8 @@ function showPage(pageId) {
 
   localStorage.setItem('adminPage', pageId);
 
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const prev = document.querySelector('.page.active');
+  if (prev) prev.classList.remove('active');
   const t = document.getElementById('page-' + pageId);
   if (t) t.classList.add('active');
 

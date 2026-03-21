@@ -113,14 +113,26 @@ if ($action === 'create_form') {
    ================================================================ */
 if ($action === 'list_forms') {
     $rows = $pdo->query('SELECT id, title, table_name, is_active, created_at FROM custom_inquiry_forms ORDER BY id DESC')->fetchAll(PDO::FETCH_ASSOC);
-    foreach ($rows as &$row) {
-        try {
-            $tbl = $row['table_name'];
-            $cnt = $pdo->query("SELECT COUNT(*) FROM `{$tbl}`")->fetchColumn();
-            $row['inquiry_count'] = (int)$cnt;
-        } catch (Exception $e) {
-            $row['inquiry_count'] = 0;
+
+    // N+1 제거: information_schema에서 테이블 행 수를 한 번에 조회
+    $countMap = [];
+    if (!empty($rows)) {
+        $tblNames     = array_column($rows, 'table_name');
+        $placeholders = implode(',', array_fill(0, count($tblNames), '?'));
+        $cntStmt = $pdo->prepare(
+            "SELECT table_name, table_rows
+             FROM information_schema.tables
+             WHERE table_schema = DATABASE()
+               AND table_name IN ({$placeholders})"
+        );
+        $cntStmt->execute($tblNames);
+        foreach ($cntStmt->fetchAll(PDO::FETCH_ASSOC) as $cr) {
+            $countMap[$cr['table_name']] = (int)$cr['table_rows'];
         }
+    }
+
+    foreach ($rows as &$row) {
+        $row['inquiry_count'] = $countMap[$row['table_name']] ?? 0;
     }
     unset($row);
     echo json_encode(['ok' => true, 'data' => $rows]);
