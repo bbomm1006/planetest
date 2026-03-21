@@ -341,7 +341,7 @@ function showPage(pageId) {
   if (pageId === 'catMgmt')      loadCatList();
   if (pageId === 'cardDiscMgmt') loadCardList();
   if (pageId === 'productMgmt')  { loadProductCatOptions(); loadProductList(); }
-  if (pageId === 'comboInquiryMgmt')  loadComboInquiryList();
+  if (pageId === 'comboInquiryMgmt')  { loadComboProductFilter(); loadComboInquiryList(); }
   if (pageId === 'comboManagerMgmt')  loadComboManagerList();
   if (pageId === 'comboTimeslotMgmt') loadComboTimeslotList();
   if (pageId === 'comboTermsMgmt')    loadComboTerms();

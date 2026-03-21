@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/../config/log_helper.php';
+require_once __DIR__ . '/../config/combo_notify.php';
 header('Content-Type: application/json; charset=utf-8');
 requireLogin();
 
@@ -14,18 +15,20 @@ $changedBy  = $_SESSION['admin_user'] ?? 'system';
    ===================================================== */
 
 if ($action === 'inquiryList') {
-    $kw     = trim($_GET['kw']     ?? '');
-    $status = trim($_GET['status'] ?? '');
+    $kw      = trim($_GET['kw']      ?? '');
+    $status  = trim($_GET['status']  ?? '');
+    $product = trim($_GET['product'] ?? '');
     $sql    = 'SELECT i.*, m.name AS manager_name
                FROM combo_inquiries i
                LEFT JOIN combo_managers m ON m.id = i.manager_id
                WHERE 1=1';
     $params = [];
     if ($kw) {
-        $sql .= ' AND (i.name LIKE ? OR i.phone LIKE ? OR i.product_name LIKE ?)';
-        $params = array_merge($params, ["%$kw%", "%$kw%", "%$kw%"]);
+        $sql .= ' AND (i.name LIKE ? OR i.phone LIKE ?)';
+        $params = array_merge($params, ["%$kw%", "%$kw%"]);
     }
-    if ($status) { $sql .= ' AND i.status=?'; $params[] = $status; }
+    if ($product) { $sql .= ' AND i.product_name=?'; $params[] = $product; }
+    if ($status)  { $sql .= ' AND i.status=?';       $params[] = $status; }
     $sql .= ' ORDER BY i.id DESC';
     $st = $pdo->prepare($sql); $st->execute($params);
     echo json_encode(['ok' => true, 'data' => $st->fetchAll()]);
@@ -53,8 +56,34 @@ if ($action === 'inquirySave') {
     $manager_id = $_POST['manager_id'] !== '' ? (int)$_POST['manager_id'] : null;
     $memo       = trim($_POST['manager_memo'] ?? '');
     if ($id <= 0) { echo json_encode(['ok' => false, 'msg' => '잘못된 요청']); exit; }
+
+    // 변경 전 상태 조회 (신규 접수 알림 발송 여부 판단용)
+    $prev = $pdo->prepare('SELECT status FROM combo_inquiries WHERE id=?');
+    $prev->execute([$id]);
+    $prevRow = $prev->fetch(PDO::FETCH_ASSOC);
+
     $pdo->prepare('UPDATE combo_inquiries SET status=?, manager_id=?, manager_memo=? WHERE id=?')
         ->execute([$status, $manager_id, $memo, $id]);
+    logAdminAction($pdo, 'update', 'combo_inquiries', (string)$id);
+
+    // 상태가 '접수'로 변경될 때 담당자들에게 알림 발송
+    if ($status === '접수' && ($prevRow['status'] ?? '') !== '접수') {
+        $inq = $pdo->prepare('SELECT * FROM combo_inquiries WHERE id=?');
+        $inq->execute([$id]);
+        $inqRow = $inq->fetch(PDO::FETCH_ASSOC);
+        if ($inqRow) comboSendNotifications($pdo, $inqRow);
+    }
+
+    echo json_encode(['ok' => true]);
+    exit;
+}
+
+if ($action === 'inquiryStatusUpdate') {
+    $id     = (int)($_POST['id']     ?? 0);
+    $status = trim($_POST['status']  ?? '');
+    $allowed = ['접수','확인','완료','취소'];
+    if ($id <= 0 || !in_array($status, $allowed)) { echo json_encode(['ok' => false, 'msg' => '잘못된 요청']); exit; }
+    $pdo->prepare('UPDATE combo_inquiries SET status=? WHERE id=?')->execute([$status, $id]);
     logAdminAction($pdo, 'update', 'combo_inquiries', (string)$id);
     echo json_encode(['ok' => true]);
     exit;
@@ -66,6 +95,25 @@ if ($action === 'inquiryDelete') {
     $pdo->prepare('DELETE FROM combo_inquiries WHERE id=?')->execute([$id]);
     logAdminAction($pdo, 'delete', 'combo_inquiries', (string)$id);
     echo json_encode(['ok' => true]);
+    exit;
+}
+
+if ($action === 'inquiryBulkDelete') {
+    $ids = json_decode($_POST['ids'] ?? '[]', true) ?: [];
+    $ids = array_values(array_filter(array_map('intval', $ids), function($v) { return $v > 0; }));
+    if (empty($ids)) { echo json_encode(['ok' => false, 'msg' => '선택된 항목이 없습니다.']); exit; }
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $pdo->prepare("DELETE FROM combo_inquiries WHERE id IN ($placeholders)")->execute($ids);
+    logAdminAction($pdo, 'delete', 'combo_inquiries', implode(',', $ids));
+    echo json_encode(['ok' => true, 'count' => count($ids)]);
+    exit;
+}
+
+if ($action === 'productList') {
+    $rows = $pdo->query(
+        "SELECT DISTINCT product_name FROM combo_inquiries WHERE product_name IS NOT NULL AND product_name != '' ORDER BY product_name"
+    )->fetchAll(PDO::FETCH_COLUMN);
+    echo json_encode(['ok' => true, 'data' => $rows]);
     exit;
 }
 
@@ -82,7 +130,7 @@ if ($action === 'managerList') {
 if ($action === 'managerSave') {
     $id             = (int)($_POST['id']             ?? 0);
     $name           = trim($_POST['name']            ?? '');
-    $dept           = trim($_POST['department']      ?? '');
+    $department     = trim($_POST['department']      ?? '');
     $phone          = trim($_POST['phone']           ?? '');
     $email          = trim($_POST['email']           ?? '');
     $notify_email   = (int)($_POST['notify_email']   ?? 0);
@@ -94,6 +142,8 @@ if ($action === 'managerSave') {
     $is_active      = (int)($_POST['is_active']      ?? 1);
 
     if (!$name) { echo json_encode(['ok' => false, 'msg' => '이름을 입력하세요.']); exit; }
+    if (!$department) { echo json_encode(['ok' => false, 'msg' => '담당부서를 입력하세요.']); exit; }
+    try {
 
     if ($id > 0) {
         // 변경 전 데이터 조회
@@ -105,11 +155,11 @@ if ($action === 'managerSave') {
             'UPDATE combo_managers SET name=?, department=?, phone=?, email=?,
              notify_email=?, notify_sheet=?, notify_alimtalk=?, notify_sms=?,
              sheet_id=?, sheet_name=?, is_active=? WHERE id=?'
-        )->execute([$name, $dept, $phone, $email, $notify_email, $notify_sheet, $notify_alimtalk, $notify_sms, $sheet_id, $sheet_name, $is_active, $id]);
+        )->execute([$name, $department, $phone, $email, $notify_email, $notify_sheet, $notify_alimtalk, $notify_sms, $sheet_id, $sheet_name, $is_active, $id]);
 
         // 변경 히스토리
         $fieldMap = [
-            'name' => $name, 'department' => $dept, 'phone' => $phone, 'email' => $email,
+            'name' => $name, 'department' => $department, 'phone' => $phone, 'email' => $email,
             'notify_email' => $notify_email, 'notify_sheet' => $notify_sheet,
             'notify_alimtalk' => $notify_alimtalk, 'notify_sms' => $notify_sms,
             'is_active' => $is_active,
@@ -129,13 +179,16 @@ if ($action === 'managerSave') {
     } else {
         $max = $pdo->query('SELECT COALESCE(MAX(sort_order),0) FROM combo_managers')->fetchColumn();
         $pdo->prepare(
-            'INSERT INTO combo_managers (name, department, phone, email, notify_email, notify_alimtalk, notify_sms, is_active, sort_order)
-             VALUES (?,?,?,?,?,?,?,?,?)'
-        )->execute([$name, $dept, $phone, $email, $notify_email, $notify_alimtalk, $notify_sms, $is_active, $max + 1]);
+            'INSERT INTO combo_managers (name, department, phone, email, notify_email, notify_sheet, notify_alimtalk, notify_sms, sheet_id, sheet_name, is_active, sort_order)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'
+        )->execute([$name, $department, $phone, $email, $notify_email, $notify_sheet, $notify_alimtalk, $notify_sms, $sheet_id, $sheet_name, $is_active, $max + 1]);
         $newId = (int)$pdo->lastInsertId();
         $pdo->prepare('INSERT INTO combo_manager_history (manager_id, changed_by, change_desc) VALUES (?,?,?)')
             ->execute([$newId, $changedBy, json_encode(['action' => 'created'], JSON_UNESCAPED_UNICODE)]);
         echo json_encode(['ok' => true, 'id' => $newId]);
+    }
+    } catch (\Throwable $e) {
+        echo json_encode(['ok' => false, 'msg' => 'DB 오류: ' . $e->getMessage()]);
     }
     exit;
 }
@@ -221,8 +274,9 @@ if ($action === 'slotReorder') {
    ===================================================== */
 
 if ($action === 'inquiryExcel') {
-    $kw     = trim($_GET['kw']     ?? '');
-    $status = trim($_GET['status'] ?? '');
+    $kw      = trim($_GET['kw']      ?? '');
+    $status  = trim($_GET['status']  ?? '');
+    $product = trim($_GET['product'] ?? '');
     $sql    = 'SELECT i.name, i.phone, i.product_name, i.time_slot, i.message,
                       i.card_discount_name, i.original_price, i.final_price,
                       i.status, m.name AS manager_name, i.manager_memo, i.created_at
@@ -231,10 +285,11 @@ if ($action === 'inquiryExcel') {
                WHERE 1=1';
     $params = [];
     if ($kw) {
-        $sql .= ' AND (i.name LIKE ? OR i.phone LIKE ? OR i.product_name LIKE ?)';
-        $params = array_merge($params, ["%$kw%", "%$kw%", "%$kw%"]);
+        $sql .= ' AND (i.name LIKE ? OR i.phone LIKE ?)';
+        $params = array_merge($params, ["%$kw%", "%$kw%"]);
     }
-    if ($status) { $sql .= ' AND i.status=?'; $params[] = $status; }
+    if ($product) { $sql .= ' AND i.product_name=?'; $params[] = $product; }
+    if ($status)  { $sql .= ' AND i.status=?';       $params[] = $status; }
     $sql .= ' ORDER BY i.id DESC';
     $st = $pdo->prepare($sql); $st->execute($params);
     $rows = $st->fetchAll();

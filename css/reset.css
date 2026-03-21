@@ -44,7 +44,7 @@ body{font-family:'DM Sans','Noto Sans KR',sans-serif;background:var(--white);col
 position: fixed;
 bottom: 24px;
 right: 32px;
-z-index: 8001;
+z-index: 81;
 width: 52px;
 height: 52px;
 background-color: #ffffff;

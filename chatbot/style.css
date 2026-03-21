@@ -17,7 +17,7 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 6px 24px rgba(37, 99, 235, .45), 0 2px 8px rgba(0, 0, 0, .18);
-  z-index: 8000;
+  z-index: 80;
   transition: transform .25s cubic-bezier(.175, .885, .32, 1.275), box-shadow .25s;
   color: #fff;
 }

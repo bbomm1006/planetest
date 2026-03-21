@@ -18,7 +18,7 @@
     'front_reservation',
     'front_reservation_lookup',
 
-    'front_customReser_suite',
+    // 'front_customReser_suite',
     'front_notices',
     'front_faq',
     'front_gallery',
@@ -165,8 +165,8 @@ include __DIR__ . '/lib/custom_inquiry_front.php';
   <!-- EMAIL MODAL -->
   <?php include 'lib/modalEmail.php'; ?>
 
-  <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"></script>
-  <script src="https://static.nid.naver.com/js/naveridlogin_js_sdk_2.0.2.js" charset="utf-8"></script>
+  <script async src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"></script>
+  <script async src="https://static.nid.naver.com/js/naveridlogin_js_sdk_2.0.2.js" charset="utf-8"></script>
   <script src="https://accounts.google.com/gsi/client" async></script>
   <div id="naver_id_login" style="display:none"></div>
   <script src="js/board.js"></script>
@@ -174,9 +174,20 @@ include __DIR__ . '/lib/custom_inquiry_front.php';
   <script src="js/countdown.js"></script>
   <script src="js/hero.js"></script>
   <script>
-    fetch('/admin/api_front/banner_public.php')
-      .then(r => r.json())
-      .then(data => { window._pbData = data; renderHero(data); });
+    // 배너/팝업/제품 데이터 병렬 로딩 (성능 개선)
+    Promise.all([
+      fetch('/admin/api_front/banner_public.php').then(r => r.json()),
+      fetch('/admin/api_front/popup_public.php').then(r => r.json()),
+      fetch('/admin/api_front/product_public.php').then(r => r.json()),
+    ]).then(function([bannerData, popupData, productData]) {
+      window._pbData = bannerData;
+      renderHero(bannerData);
+      if (popupData.ok) renderPopupBanner(popupData);
+      if (productData.ok) {
+        window._pbData = Object.assign(window._pbData || {}, productData);
+        renderProducts(productData);
+      }
+    }).catch(function() {});
   </script>
   <script src="js/inquiry.js"></script>
   <script src="js/nav-fade.js"></script>
@@ -184,51 +195,34 @@ include __DIR__ . '/lib/custom_inquiry_front.php';
   <script src="js/bbs_photogallery.js"></script>
   <script src="js/bbs_slidegallery.js"></script>
   <script src="js/popup.js"></script><!-- 팝업 -->
-  <script>
-    fetch('/admin/api_front/popup_public.php')
-      .then(r => r.json())
-      .then(data => { if (data.ok) renderPopupBanner(data); });
-  </script>
+
   <script src="js/products.js"></script>
-  <script>
-    fetch('/admin/api_front/product_public.php')
-      .then(r => r.json())
-      .then(data => { if (data.ok) { window._pbData = Object.assign(window._pbData || {}, data); renderProducts(data); } });
-  </script>
+
   <script src="js/recommend.js"></script>
-  <script src="js/reservation.js"></script>
-  <script src="js/reservationLookup.js"></script>
-  <script src="js/customReser_public.js"></script>
+  <!-- <script src="js/reservation.js"></script>
+  <script src="js/reservationLookup.js"></script> -->
 
   <script src="js/store.js"></script>
   <script src="js/timeslots.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/video-reviews.js"></script>
   <script>
-    // 공지사항
-    fetch('/admin/api_front/board_public.php?table=notice')
-      .then(r => r.json())
-      .then(data => { if (data.ok) ntInit(data.posts); });
-    // FAQ
-    fetch('/admin/api_front/board_public.php?table=faq')
-      .then(r => r.json())
-      .then(data => { if (data.ok) faqInit(data.posts); });
-    // 영상
-    fetch('/admin/api_front/board_public.php?table=video')
-      .then(r => r.json())
-      .then(data => {
-        if (data.ok) renderVideos({ videos: data.posts.map(function(p) {
-          return { active: true, order: p.id, title: p.title, youtubeUrl: p.youtubeUrl, desc: '' };
-        })});
-      });
-    // 후기
-    fetch('/admin/api_front/board_public.php?table=review')
-      .then(r => r.json())
-      .then(data => {
-        if (data.ok) renderReviews({ reviews: data.posts.map(function(p) {
-          return { active: true, order: p.id, name: p.author, text: p.title, rating: p.rating, imageUrl: p.imageUrl, date: p.date };
-        })});
-      });
+    // 게시판 데이터 병렬 로딩 (성능 개선)
+    Promise.all([
+      fetch('/admin/api_front/board_public.php?table=notice').then(r => r.json()),
+      fetch('/admin/api_front/board_public.php?table=faq').then(r => r.json()),
+      fetch('/admin/api_front/board_public.php?table=video').then(r => r.json()),
+      fetch('/admin/api_front/board_public.php?table=review').then(r => r.json()),
+    ]).then(function([noticeData, faqData, videoData, reviewData]) {
+      if (noticeData.ok) ntInit(noticeData.posts);
+      if (faqData.ok) faqInit(faqData.posts);
+      if (videoData.ok) renderVideos({ videos: videoData.posts.map(function(p) {
+        return { active: true, order: p.id, title: p.title, youtubeUrl: p.youtubeUrl, desc: '' };
+      })});
+      if (reviewData.ok) renderReviews({ reviews: reviewData.posts.map(function(p) {
+        return { active: true, order: p.id, name: p.author, text: p.title, rating: p.rating, imageUrl: p.imageUrl, date: p.date };
+      })});
+    }).catch(function() {});
   </script>
 
   <script src="js/custom_inquiry_front.js"></script>

@@ -7,33 +7,87 @@ function comboToggleSheetPanel(cb) {
   if (panel) panel.style.display = cb.checked ? '' : 'none';
 }
 
+function comboMgrCopyScript() {
+  const code = document.getElementById('combo_mgr_script_code')?.innerText || '';
+  navigator.clipboard.writeText(code).then(() => {
+    showToast('코드가 복사되었습니다.', 'success');
+  }).catch(() => {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = code;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('코드가 복사되었습니다.', 'success');
+  });
+}
+
 
 let comboInquiryData = [];
 let comboDetailTarget = null;
 let _comboMgrCache = [];
 
-async function loadComboInquiryList() {
-  const kw     = document.getElementById('comboInqSearch')?.value || '';
-  const status = document.getElementById('comboInqStatusFilter')?.value || '';
-  const res = await apiGet('api/combo.php', { action: 'inquiryList', kw, status });
+async function loadComboProductFilter() {
+  const sel = document.getElementById('comboInqProductFilter');
+  if (!sel) return;
+  const res = await apiGet('api/combo.php', { action: 'productList' });
   if (!res.ok) return;
-  comboInquiryData = res.data;
-  renderComboInquiryTable();
+  const current = sel.value;
+  sel.innerHTML = '<option value="">전체 제품</option>'
+    + res.data.map(p => `<option value="${esc(p)}" ${p === current ? 'selected' : ''}>${esc(p)}</option>`).join('');
+}
+
+async function loadComboInquiryList() {
+  const kw      = document.getElementById('comboInqSearch')?.value       || '';
+  const status  = document.getElementById('comboInqStatusFilter')?.value  || '';
+  const product = document.getElementById('comboInqProductFilter')?.value || '';
+  try {
+    const res = await apiGet('api/combo.php', { action: 'inquiryList', kw, status, product });
+    if (!res.ok) { showToast(res.msg || '목록 조회 실패', 'error'); return; }
+    comboInquiryData = res.data;
+    renderComboInquiryTable();
+    _updateComboBulkDeleteBtn();
+  } catch(e) {
+    showToast('네트워크 오류: ' + e.message, 'error');
+  }
+}
+
+function comboInquiryResetFilter() {
+  const s = document.getElementById('comboInqSearch');
+  const st = document.getElementById('comboInqStatusFilter');
+  const pr = document.getElementById('comboInqProductFilter');
+  if (s) s.value = '';
+  if (st) st.value = '';
+  if (pr) pr.value = '';
+  loadComboInquiryList();
 }
 
 function renderComboInquiryTable() {
   const tbody = document.getElementById('comboInquiryTableBody');
   if (!tbody) return;
+  const checkAll = document.getElementById('comboInqCheckAll');
+  if (checkAll) checkAll.checked = false;
+
   const sc = { '접수': '#3b82f6', '확인': '#f59e0b', '완료': '#10b981', '취소': '#94a3b8' };
   if (!comboInquiryData.length) {
-    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:32px;">신청 내역이 없습니다.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:32px;">신청 내역이 없습니다.</td></tr>`;
     return;
   }
   tbody.innerHTML = comboInquiryData.map((r, i) => {
     const c = sc[r.status] || '#94a3b8';
     return `<tr>
+      <td><input type="checkbox" class="combo-inq-chk" data-id="${r.id}" onchange="_updateComboBulkDeleteBtn()"/></td>
       <td>${comboInquiryData.length - i}</td>
-      <td><span class="status-badge" style="background:${c}20;color:${c};border:1px solid ${c}40">${esc(r.status)}</span></td>
+      <td>
+        <select class="status-inline-select" data-id="${r.id}" onchange="updateComboInquiryStatus(this)"
+          style="background:${c}20;color:${c};border:1px solid ${c}40;border-radius:6px;padding:3px 6px;font-size:.8rem;font-weight:600;cursor:pointer;outline:none;">
+          <option value="접수"  ${r.status==='접수'  ? 'selected':''}>접수</option>
+          <option value="확인"  ${r.status==='확인'  ? 'selected':''}>확인</option>
+          <option value="완료"  ${r.status==='완료'  ? 'selected':''}>완료</option>
+          <option value="취소"  ${r.status==='취소'  ? 'selected':''}>취소</option>
+        </select>
+      </td>
       <td>${esc(r.name)}</td>
       <td>${esc(r.phone)}</td>
       <td>${esc(r.product_name)}</td>
@@ -46,6 +100,55 @@ function renderComboInquiryTable() {
       </div></td>
     </tr>`;
   }).join('');
+}
+
+function comboToggleCheckAll(cb) {
+  document.querySelectorAll('.combo-inq-chk').forEach(el => el.checked = cb.checked);
+  _updateComboBulkDeleteBtn();
+}
+
+function _updateComboBulkDeleteBtn() {
+  const checked = document.querySelectorAll('.combo-inq-chk:checked');
+  const btn = document.getElementById('comboBulkDeleteBtn');
+  const cnt = document.getElementById('comboSelectedCount');
+  if (btn) btn.style.display = checked.length > 0 ? '' : 'none';
+  if (cnt) cnt.textContent = checked.length;
+}
+
+async function deleteComboInquirySelected() {
+  const ids = Array.from(document.querySelectorAll('.combo-inq-chk:checked')).map(el => el.dataset.id);
+  if (!ids.length) return;
+  if (!confirm(`선택한 ${ids.length}건을 삭제하시겠습니까?`)) return;
+  const res = await apiPost('api/combo.php', { action: 'inquiryBulkDelete', ids: JSON.stringify(ids) });
+  if (res.ok) {
+    showToast(`${res.count}건 삭제되었습니다.`, 'success');
+    loadComboInquiryList();
+  } else showToast(res.msg || '삭제 실패', 'error');
+}
+
+async function updateComboInquiryStatus(sel) {
+  const id     = sel.dataset.id;
+  const status = sel.value;
+  const sc = { '접수': '#3b82f6', '확인': '#f59e0b', '완료': '#10b981', '취소': '#94a3b8' };
+  const c  = sc[status] || '#94a3b8';
+  sel.style.background = c + '20';
+  sel.style.color      = c;
+  sel.style.borderColor= c + '40';
+  try {
+    const res = await apiPost('api/combo.php', { action: 'inquiryStatusUpdate', id, status });
+    if (res.ok) {
+      showToast('상태가 변경되었습니다.', 'success');
+      // 로컬 데이터도 업데이트
+      const row = comboInquiryData.find(r => r.id == id);
+      if (row) row.status = status;
+    } else {
+      showToast(res.msg || '저장 실패', 'error');
+      loadComboInquiryList(); // 실패 시 원래 값으로 복원
+    }
+  } catch(e) {
+    showToast('네트워크 오류', 'error');
+    loadComboInquiryList();
+  }
 }
 
 async function openComboDetail(id) {
@@ -110,9 +213,10 @@ async function deleteComboInquiry(id) {
 
 
 function comboInquiryExcelDownload() {
+  const product = document.getElementById('comboInqProductFilter')?.value || '';
   const kw     = document.getElementById('comboInqSearch')?.value     || '';
   const status = document.getElementById('comboInqStatusFilter')?.value || '';
-  const params = new URLSearchParams({ action: 'inquiryExcel', kw, status });
+  const params = new URLSearchParams({ action: 'inquiryExcel', kw, status, product });
   window.location.href = 'api/combo.php?' + params.toString();
 }
 
@@ -132,7 +236,7 @@ function renderComboManagerTable() {
   const tbody = document.getElementById('comboManagerTableBody');
   if (!tbody) return;
   if (!comboManagerData.length) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:32px;">담당자가 없습니다.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:32px;">담당자가 없습니다.</td></tr>`;
     return;
   }
   tbody.innerHTML = comboManagerData.map(m => {
@@ -167,7 +271,7 @@ async function loadComboManagerHistory() {
     return;
   }
   const fieldLabels = {
-    name: '이름', department: '담당부서', phone: '연락처', email: '이메일',
+    name: '이름', phone: '연락처', email: '이메일',
     notify_email: '이메일알림', notify_sheet: '구글시트알림', notify_alimtalk: '알림톡', notify_sms: '문자알림', is_active: '사용여부'
   };
   tbody.innerHTML = res.data.map(h => {
@@ -198,7 +302,7 @@ async function saveComboManagerOrder() {
 function openComboManagerModal(id) {
   document.getElementById('comboManagerModalTitle').textContent = id ? '담당자 수정' : '담당자 추가';
   document.getElementById('combo_mgr_id').value = id || '';
-  ['combo_mgr_name','combo_mgr_dept','combo_mgr_phone','combo_mgr_email'].forEach(f => {
+  ['combo_mgr_name','combo_mgr_department','combo_mgr_phone','combo_mgr_email'].forEach(f => {
     const el = document.getElementById(f); if (el) el.value = '';
   });
   ['combo_mgr_notify_email','combo_mgr_notify_sheet','combo_mgr_notify_alimtalk','combo_mgr_notify_sms'].forEach(f => {
@@ -216,7 +320,7 @@ function openComboManagerModal(id) {
     const m = comboManagerData.find(x => x.id == id);
     if (m) {
       document.getElementById('combo_mgr_name').value               = m.name        || '';
-      document.getElementById('combo_mgr_dept').value               = m.department  || '';
+      document.getElementById('combo_mgr_department').value         = m.department  || '';
       document.getElementById('combo_mgr_phone').value              = m.phone       || '';
       document.getElementById('combo_mgr_email').value              = m.email       || '';
       document.getElementById('combo_mgr_notify_email').checked     = +m.notify_email    === 1;
@@ -238,15 +342,17 @@ function openComboManagerModal(id) {
 
 async function saveComboManager() {
   const id        = parseInt(document.getElementById('combo_mgr_id').value) || 0;
-  const name      = document.getElementById('combo_mgr_name').value.trim();
-  const is_active = (document.querySelector('input[name="combo_mgr_active"]:checked') || {}).value || 1;
-  if (!name) { showToast('이름을 입력하세요.', 'error'); return; }
+  const name       = document.getElementById('combo_mgr_name').value.trim();
+  const department = document.getElementById('combo_mgr_department').value.trim();
+  const is_active  = (document.querySelector('input[name="combo_mgr_active"]:checked') || {}).value || 1;
+  if (!name)       { showToast('이름을 입력하세요.', 'error');       return; }
+  if (!department) { showToast('담당부서를 입력하세요.', 'error');    return; }
 
   const data = {
     action:          'managerSave',
     id,
     name,
-    department:      document.getElementById('combo_mgr_dept').value.trim(),
+    department,
     phone:           document.getElementById('combo_mgr_phone').value.trim(),
     email:           document.getElementById('combo_mgr_email').value.trim(),
     notify_email:    document.getElementById('combo_mgr_notify_email').checked    ? 1 : 0,
@@ -257,12 +363,18 @@ async function saveComboManager() {
     sheet_name:      document.getElementById('combo_mgr_sheet_name')?.value.trim() || '',
     is_active,
   };
-  const res = await apiPost('api/combo.php', data);
-  if (res.ok) {
-    showToast('저장되었습니다.', 'success');
-    closeModal('comboManagerModal');
-    loadComboManagerList();
-  } else showToast(res.msg || '저장 실패', 'error');
+  try {
+    const res = await apiPost('api/combo.php', data);
+    if (res.ok) {
+      showToast('저장되었습니다.', 'success');
+      closeModal('comboManagerModal');
+      loadComboManagerList();
+    } else {
+      showToast(res.msg || '저장 실패', 'error');
+    }
+  } catch(e) {
+    showToast('네트워크 오류: ' + e.message, 'error');
+  }
 }
 
 async function deleteComboManager(id) {
