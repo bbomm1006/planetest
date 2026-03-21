@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="css/admin.css"/>
 <link rel="stylesheet" href="css/find_account.css"/>
 
-<link rel="stylesheet" href="css/customReser_admin.css"/>
+
 
 <!-- 카카오 주소검색 (Daum 우편번호) -->
 <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
@@ -191,8 +191,6 @@
 <script src="js/inquiry.js"></script>
 <script src="js/reserve.js"></script>
 
-<script src="js/customReser_admin.js"></script>
-<script src="js/rvm_admin_ui.js"></script>
 
 <!-- 나머지 -->
 <script src="js/social.js"></script>

@@ -835,23 +835,23 @@ async function saveBoardPost(tableKey) {
     } else if (f.type === 'images') {
       const uid     = `fi_${f.key}_${board.table}`;
       const multiEl = modal.querySelector(`#multi_${uid}`);
-      // 기존 미리보기 아이템의 url 수집
+      // 기존 저장된 이미지 url 수집 (data-url 속성이 있는 항목)
       const existingUrls = multiEl
         ? Array.from(multiEl.querySelectorAll('.image-preview-item[data-url]')).map(el => el.dataset.url)
         : [];
-      // 새로 선택된 파일 업로드
-      const fileInput = modal.querySelector(`#${uid}`);
-      const newUrls   = [];
-      if (fileInput && fileInput.files && fileInput.files.length > 0) {
-        for (const file of Array.from(fileInput.files)) {
-          const fd = new FormData();
-          fd.append('file', file);
-          try {
-            const up = await fetch('api/upload.php', { method: 'POST', body: fd });
-            const ud = await up.json();
-            if (ud.ok) newUrls.push(ud.url);
-          } catch(e) {}
-        }
+      // 새로 추가된 파일 업로드 (_file이 보존된 프리뷰 항목 순서대로 처리)
+      const newUrls  = [];
+      const newItems = multiEl
+        ? Array.from(multiEl.querySelectorAll('.image-preview-item:not([data-url])')).filter(el => el._file)
+        : [];
+      for (const item of newItems) {
+        const fd = new FormData();
+        fd.append('file', item._file);
+        try {
+          const up = await fetch('api/upload.php', { method: 'POST', body: fd });
+          const ud = await up.json();
+          if (ud.ok) newUrls.push(ud.url);
+        } catch(e) {}
       }
       extra[f.key] = JSON.stringify([...existingUrls, ...newUrls]);
     } else if (!['files'].includes(f.type)) {
@@ -932,7 +932,7 @@ async function deleteBoard(tableKey) {
 function openBoardDetailModal(tableKey, postId) {
   const board = getBoardByTable(tableKey);
   if (!board) return;
-  const post = (board.posts||[]).find(p => p.id === postId);
+  const post = (board.posts||[]).find(p => p.id == postId);
   if (!post) return;
 
   const mid = `boardDetailModal_${tableKey}_${postId}`;
@@ -971,6 +971,32 @@ function buildDetailModalHTML(board, post, modalId) {
             ${[1,2,3,4,5].map(n=>`<span style="font-size:1.4rem;color:${n<=rv?'#f59e0b':'#e2e8f0'};">★</span>`).join('')}
             <span style="margin-left:8px;font-size:.85rem;">${rv}점</span>
           </div></div>`;
+      } else if (f.type === 'image') {
+        rows += `<div class="form-group" style="grid-column:span 2;"><label>${escHtml(f.label)}</label>
+          ${val
+            ? `<div style="margin-top:4px;"><img src="${esc(val)}" alt="${escHtml(f.label)}" style="max-width:100%;max-height:200px;border-radius:var(--radius);border:1px solid var(--border);display:block;"/></div>`
+            : `<input type="text" class="form-control" value="—" readonly/>`}
+        </div>`;
+      } else if (f.type === 'images') {
+        let imgUrls = [];
+        if (val) { try { imgUrls = JSON.parse(val); } catch(e) { if (val) imgUrls = [val]; } }
+        rows += `<div class="form-group" style="grid-column:span 2;"><label>${escHtml(f.label)}</label>
+          ${imgUrls.length
+            ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">
+                ${imgUrls.map(u => `<img src="${esc(u)}" alt="image" style="max-height:130px;border-radius:var(--radius);border:1px solid var(--border);object-fit:cover;"/>`).join('')}
+               </div>`
+            : `<input type="text" class="form-control" value="—" readonly/>`}
+        </div>`;
+      } else if (f.type === 'files') {
+        let fileList = [];
+        if (val) { try { fileList = JSON.parse(val); } catch(e) { if (val) fileList = [val]; } }
+        rows += `<div class="form-group" style="grid-column:span 2;"><label>${escHtml(f.label)}</label>
+          ${fileList.length
+            ? `<div style="display:flex;flex-direction:column;gap:4px;margin-top:4px;">
+                ${fileList.map(fp => `<a href="${esc(fp)}" target="_blank" style="font-size:.85rem;color:var(--primary);text-decoration:none;">📎 ${escHtml(fp.split('/').pop())}</a>`).join('')}
+               </div>`
+            : `<input type="text" class="form-control" value="—" readonly/>`}
+        </div>`;
       } else {
         rows += `<div class="form-group"><label>${escHtml(f.label)}</label>
           <input type="text" class="form-control" value="${escHtml(val)}" readonly/></div>`;

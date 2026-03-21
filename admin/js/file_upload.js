@@ -76,6 +76,7 @@ function handleMultiImagePreview(input, previewId) {
       const item = document.createElement('div');
       item.className = 'image-preview-item';
       item.setAttribute('draggable','true');
+      item._file = file;
       item.innerHTML = `
         <img src="${ev.target.result}" alt="preview"/>
         <span class="img-drag-icon">⠿</span>

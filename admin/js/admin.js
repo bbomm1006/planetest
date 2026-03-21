@@ -369,9 +369,6 @@ function showPage(pageId) {
   if (pageId === 'customInquiryList')   ciLoadFormList();
   if (pageId === 'alimtalkMgmt')        loadAlimtalkSettings();
 
-  if (pageId === 'customReserModule' && typeof window.initCustomReserAdmin === 'function') {
-    window.initCustomReserAdmin();
-  }
 }
 
 function toggleNav(el) {

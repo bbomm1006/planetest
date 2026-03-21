@@ -216,8 +216,7 @@ if ($action === 'dynSectionInit') {
             ['front_stores',            '매장찾기 섹션',              'stores',            1, '', '', '매장찾기','stores',           8],
             ['front_reservation',       '예약(System1, 비활성)',      'reservation',       0, '', '', '',        '',                 9],
             ['front_reservation_lookup','예약조회(System1, 비활성)',  'reservationLookup', 0, '', '', '',        '',                 10],
-            ['front_rv2_suite',         '예약 V2',                    'rv2_suite',         0, '', '', '예약하기','rv2-book-anchor',  11],
-            ['front_customReser_suite', '예약(rvmReser)',             'rvmReser_front',    0, '', '', '',        '',                 12],
+
             ['front_notices',           '공지사항 섹션',              'bbs_notice',        1, '', '', '공지사항','notices',          13],
             ['front_faq',               'FAQ 섹션',                   'bbs_faq',           1, '', '', 'FAQ',     'faq',              14],
             ['front_gallery',           '갤러리 섹션',                'bbs_gallery',       1, '', '', '갤러리',  'gallery',          15],
