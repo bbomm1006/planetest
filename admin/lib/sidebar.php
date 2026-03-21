@@ -97,15 +97,7 @@
           </div>
         </div>
       </div>
-      <div class="nav-section" data-menu-keys="rsvTime rsvList">
-        <div class="nav-item">
-          <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">📅</span>예약 관리<span class="nav-arrow">›</span></div>
-          <div class="nav-sub">
-            <div class="nav-sub-link" data-menu-key="rsvTime" onclick="showPage('reserveTime')">예약 시간 관리</div>
-            <div class="nav-sub-link" data-menu-key="rsvList" onclick="showPage('reserveList')">예약 내역</div>
-          </div>
-        </div>
-      </div> -->
+       -->
       <!--<div class="nav-section">
         <div class="nav-item">
           <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">📅</span>예약(신규)<span class="nav-arrow">›</span></div>
@@ -116,6 +108,15 @@
           </div>
         </div>
       </div> -->
+      <div class="nav-section" data-menu-keys="rsvTime rsvList">
+        <div class="nav-item">
+          <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">📅</span>예약 관리<span class="nav-arrow">›</span></div>
+          <div class="nav-sub">
+            <div class="nav-sub-link" data-menu-key="rsvTime" onclick="showPage('reserveTime')">예약 시간 관리</div>
+            <div class="nav-sub-link" data-menu-key="rsvList" onclick="showPage('reserveList')">예약 내역</div>
+          </div>
+        </div>
+      </div>
       <div class="nav-section">
         <div class="nav-item">
           <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">🤖</span>챗봇 관리<span class="nav-arrow">›</span></div>

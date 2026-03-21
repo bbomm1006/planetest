@@ -5,9 +5,9 @@
     <p class="s-p">제품과 서비스를 영상으로 만나보세요.</p>
     <div class="vwrap" id="vwrap"></div>
     <div class="vnav">
-      <button class="vnarr" onclick="vidNav(-1)"><svg viewBox="0 0 24 24" fill="none"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button type="button" class="vnarr" onclick="vidNav(-1)" aria-label="이전 영상"><svg viewBox="0 0 24 24" fill="none"><polyline points="15 18 9 12 15 6"/></svg></button>
       <div class="vdots" id="vdots"></div>
-      <button class="vnarr" onclick="vidNav(1)"><svg viewBox="0 0 24 24" fill="none"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <button type="button" class="vnarr" onclick="vidNav(1)" aria-label="다음 영상"><svg viewBox="0 0 24 24" fill="none"><polyline points="9 18 15 12 9 6"/></svg></button>
     </div>
   </div>
 </section>

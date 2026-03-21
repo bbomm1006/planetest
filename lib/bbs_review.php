@@ -5,9 +5,9 @@
     <p class="s-p">24만 명의 고객이 경험한 퓨어블루의 차이</p>
     <div class="rvwrap" id="rvwrap"></div>
     <div class="rvnav">
-      <button class="rvnarr" onclick="rvNav(-1)"><svg viewBox="0 0 24 24" fill="none"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button type="button" class="rvnarr" onclick="rvNav(-1)" aria-label="이전 후기"><svg viewBox="0 0 24 24" fill="none"><polyline points="15 18 9 12 15 6"/></svg></button>
       <div class="rvdots" id="rvdots"></div>
-      <button class="rvnarr" onclick="rvNav(1)"><svg viewBox="0 0 24 24" fill="none"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <button type="button" class="rvnarr" onclick="rvNav(1)" aria-label="다음 후기"><svg viewBox="0 0 24 24" fill="none"><polyline points="9 18 15 12 9 6"/></svg></button>
     </div>
   </div>
 </section>

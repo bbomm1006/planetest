@@ -253,23 +253,77 @@ function _slBuildDetailHTML(s) {
     + mapBtnHtml + '</div>';
 }
 
-/* ── 캐러셀 ── */
+/* ── 캐러셀: 2장↑ 무한 루프·터치 스와이프, 1장이면 롤링 없음 ── */
 var _slCarouselIdx = 0, _slCarouselLen = 0;
+function _slUpdateCarouselArrows() {
+  var prev = document.querySelector('#slCarousel .sl-carousel-prev');
+  var next = document.querySelector('#slCarousel .sl-carousel-next');
+  if (!prev || !next || _slCarouselLen <= 1) return;
+  prev.style.opacity = '1';
+  prev.style.pointerEvents = '';
+  next.style.opacity = '1';
+  next.style.pointerEvents = '';
+}
 function _slInitCarousel() {
   var track = document.getElementById('slCarouselTrack');
   if (!track) return;
   _slCarouselLen = track.children.length;
   _slCarouselIdx = 0;
   _slCarouselUpdate();
+  _slBindCarouselSwipe();
 }
 function _slCarouselUpdate() {
   var track = document.getElementById('slCarouselTrack');
   if (!track) return;
   track.style.transform = 'translateX(-' + (_slCarouselIdx * 100) + '%)';
   document.querySelectorAll('#slCarouselDots .sl-carousel-dot').forEach(function(d,i) { d.classList.toggle('on', i === _slCarouselIdx); });
+  _slUpdateCarouselArrows();
 }
-function _slCarouselPrev() { _slCarouselIdx = Math.max(0, _slCarouselIdx-1); _slCarouselUpdate(); }
-function _slCarouselNext() { _slCarouselIdx = Math.min(_slCarouselLen-1, _slCarouselIdx+1); _slCarouselUpdate(); }
+function _slCarouselSnapWrap(fn) {
+  var track = document.getElementById('slCarouselTrack');
+  if (track) track.style.transition = 'none';
+  fn();
+  _slCarouselUpdate();
+  if (track) {
+    void track.offsetHeight;
+    track.style.transition = '';
+  }
+}
+function _slCarouselPrev() {
+  if (_slCarouselLen <= 0) return;
+  if (_slCarouselLen > 1 && _slCarouselIdx <= 0) {
+    _slCarouselSnapWrap(function () { _slCarouselIdx = _slCarouselLen - 1; });
+    return;
+  }
+  _slCarouselIdx = Math.max(0, _slCarouselIdx - 1);
+  _slCarouselUpdate();
+}
+function _slCarouselNext() {
+  if (_slCarouselLen <= 0) return;
+  if (_slCarouselLen > 1 && _slCarouselIdx >= _slCarouselLen - 1) {
+    _slCarouselSnapWrap(function () { _slCarouselIdx = 0; });
+    return;
+  }
+  _slCarouselIdx = Math.min(_slCarouselLen - 1, _slCarouselIdx + 1);
+  _slCarouselUpdate();
+}
+function _slBindCarouselSwipe() {
+  var el = document.getElementById('slCarousel');
+  if (!el || el.dataset.slSwipe === '1') return;
+  el.dataset.slSwipe = '1';
+  var sx = 0;
+  el.addEventListener('touchstart', function (e) {
+    if (!e.touches || !e.touches[0]) return;
+    sx = e.touches[0].clientX;
+  }, { passive: true });
+  el.addEventListener('touchend', function (e) {
+    if (_slCarouselLen <= 1 || !e.changedTouches || !e.changedTouches[0]) return;
+    var dx = e.changedTouches[0].clientX - sx;
+    if (Math.abs(dx) < 40) return;
+    if (dx < 0) _slCarouselNext();
+    else _slCarouselPrev();
+  }, { passive: true });
+}
 
 /* ── 목록 렌더 ── */
 function _slRenderList() {
@@ -617,6 +671,7 @@ document.addEventListener('DOMContentLoaded', function() {
     el.innerHTML = window.innerWidth <= 860
       ? '아래 목록에서 매장을 탭하면<br>지도와 상세 정보를 확인할 수 있습니다'
       : '왼쪽 목록에서 매장을 클릭하면<br>지도와 상세 정보를 확인할 수 있습니다';
+    if (document.getElementById('slCarouselTrack')) _slUpdateCarouselArrows();
   }
   _slUpdatePhDesc();
   window.addEventListener('resize', _slUpdatePhDesc);

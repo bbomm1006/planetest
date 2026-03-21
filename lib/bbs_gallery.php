@@ -5,6 +5,7 @@
     <p class="s-p">다양한 이미지와 콘텐츠를 확인해보세요.</p>
 
     <div class="gl-cat-tabs" id="glCatTabs"></div>
+    <select class="gl-cat-sel" id="glCatDropdown"></select>
 
     <div class="gl-grid" id="glGrid">
       <div class="gl-empty">불러오는 중...</div>

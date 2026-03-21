@@ -18,8 +18,9 @@
         <button class="faq-reset-btn" onclick="faqReset()">초기화</button>
       </div>
 
-      <!-- 분류 탭 (검색바 아래) -->
+      <!-- 분류 탭 (PC) / 드롭다운 (모바일) -->
       <div class="faq-cats" id="faqCatTabs"></div>
+      <select class="faq-cat-sel" id="faqCatDropdown" onchange="faqSetCat(this.value)"></select>
 
       <!-- 결과 정보 -->
       <div class="faq-result-info" id="faqResultInfo"></div>

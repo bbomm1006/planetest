@@ -4,8 +4,9 @@
     <h2 class="s-h">포토 갤러리</h2>
     <p class="s-p">다양한 현장 사진을 감상해보세요.</p>
 
-    <!-- 분류 탭 -->
+    <!-- 분류 탭 (PC) / 드롭다운 (모바일) -->
     <div class="pg-cat-tabs" id="pgCatTabs"></div>
+    <select class="pg-cat-sel" id="pgCatDropdown"></select>
 
     <!-- 검색 -->
     <div class="pg-search-bar">

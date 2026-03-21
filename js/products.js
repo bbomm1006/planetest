@@ -164,21 +164,58 @@ function toggleCmp(id) {
   });
 }
 
+window.toggleCmpSlots = function () {
+  var tog   = document.getElementById('cbarTog');
+  var slots = document.getElementById('cslots');
+  if (!tog || !slots) return;
+  var isOpen = slots.classList.toggle('open');
+  tog.classList.toggle('open', isOpen);
+  requestAnimationFrame(function () {
+    var bar    = document.getElementById('cmpBar');
+    var fab    = document.getElementById('cbFab');
+    var topBtn = document.getElementById('backToTop');
+    if (!bar) return;
+    var barH = bar.offsetHeight || 72;
+    if (window.innerWidth <= 960) {
+      var fabBase = window.innerWidth <= 480 ? 90 : 100;
+      if (fab)    fab.style.bottom    = (fabBase + barH) + 'px';
+      if (topBtn) topBtn.style.bottom = (30 + barH) + 'px';
+    }
+  });
+};
+
 function updateCmpBar() {
   var bar = document.getElementById('cmpBar');
   var float = document.querySelector('.float');
+  var isMo = window.innerWidth <= 960;
+  var fab   = document.getElementById('cbFab');
+  var topBtn = document.getElementById('backToTop');
   if (!cmpIds.length) {
     bar.classList.remove('show');
+    var slots2 = document.getElementById('cslots');
+    var tog2   = document.getElementById('cbarTog');
+    if (slots2) slots2.classList.remove('open');
+    if (tog2)   tog2.classList.remove('open');
     if (float) float.style.bottom = '26px';
+    if (fab)   fab.style.bottom   = '';
+    if (topBtn) topBtn.style.bottom = '';
     return;
   }
   bar.classList.add('show');
-  if (float) {
-    requestAnimationFrame(function () {
-      var barH = bar.offsetHeight || 72;
-      float.style.bottom = (barH + 12) + 'px';
-    });
-  }
+  var togLabel = document.getElementById('cbarTogLabel');
+  if (togLabel) togLabel.textContent = '선택 ' + cmpIds.length + '개';
+  requestAnimationFrame(function () {
+    var barH = bar.offsetHeight || 72;
+    if (float) float.style.bottom = (barH + 12) + 'px';
+    if (isMo) {
+      var fabBase = window.innerWidth <= 480 ? 90 : 100;
+      if (fab)   fab.style.bottom   = (fabBase + barH) + 'px';
+      if (topBtn) topBtn.style.bottom = (30 + barH) + 'px';
+    } else {
+      if (fab)   fab.style.bottom   = '';
+      if (topBtn) topBtn.style.bottom = '';
+    }
+  });
 
   var sel = cmpIds.map(function (id) { return allProds.find(function (p) { return p.id === id; }); }).filter(Boolean);
   var slots = '';
@@ -338,13 +375,7 @@ function openComboApply() {
     prods.map(function (p) { return '<div class="cap-prod-pill"><div class="cap-prod-dot"></div><div class="cap-prod-nm">' + esc(p.name) + '</div></div>'; }).join('<div class="cap-plus">+</div>')
     + '<div class="cap-disc-badge">월 ' + saveStr + '원 절약!</div>';
 
-  fetch('/admin/api_front/combo_public.php')
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      buildCapTimeSlots(data.slots || []);
-      var privEl = document.getElementById('capPrivScroll');
-      if (privEl && data.termBody) privEl.innerHTML = data.termBody.replace(/\n/g,'<br>');
-    });
+  buildCapTimeSlots();
   document.getElementById('capContent').style.display = 'block';
   document.getElementById('capOk').style.display = 'none';
   document.getElementById('cap-name').value = '';
@@ -391,7 +422,7 @@ function submitComboApply() {
     status: '접수', type: 'combo'
   };
 
-  fetch('/admin/api_front/combo_inquiries.php', {
+  fetch('/api/combo_inquiries.php', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(_comboPayload)
   }).then(function (r) { return r.json(); }).then(function (res) {

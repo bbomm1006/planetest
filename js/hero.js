@@ -4,6 +4,17 @@
 
 var hSlides = [], hCur = 0, hTimer = null, hTrans = 'fade';
 
+function updateHeroArrows() {
+  var ctrl = document.getElementById('hCtrl');
+  if (!ctrl || hSlides.length < 2) return;
+  var btns = ctrl.querySelectorAll('.h-arr');
+  if (btns.length < 2) return;
+  btns[0].style.opacity = '';
+  btns[0].style.pointerEvents = '';
+  btns[1].style.opacity = '';
+  btns[1].style.pointerEvents = '';
+}
+
 function renderHero(data) {
   var cfg = data.bannerConfig || {};
   hTrans = cfg.transition || 'fade';
@@ -76,12 +87,21 @@ function renderHero(data) {
 
   document.querySelectorAll('#hSlides .h-slide video').forEach(function (v) { v.currentTime = 0; });
   hGoTo(hCur, true);
+  updateHeroArrows();
   startHA(cfg.interval || 0);
 }
 
 function hGoTo(idx, instant) {
   var slides = document.querySelectorAll('#hSlides .h-slide');
-  if (!slides.length) return;
+  var n = hSlides.length;
+  if (!slides.length || !n) return;
+
+  var next = (((idx % n) + n) % n);
+
+  if (next === hCur && slides[hCur] && slides[hCur].classList.contains('active')) {
+    updateHeroArrows();
+    return;
+  }
 
   if (hTrans === 'slide' && !instant) {
     slides[hCur].classList.remove('active');
@@ -92,7 +112,7 @@ function hGoTo(idx, instant) {
     slides[hCur].classList.remove('active');
   }
 
-  hCur = ((idx % hSlides.length) + hSlides.length) % hSlides.length;
+  hCur = next;
   slides[hCur].classList.add('active');
 
   (function () {
@@ -104,6 +124,7 @@ function hGoTo(idx, instant) {
 
   var ct = document.getElementById('hCount');
   if (ct) ct.textContent = String(hCur + 1).padStart(2, '0') + ' / ' + String(hSlides.length).padStart(2, '0');
+  updateHeroArrows();
 }
 
 function startHA(ivl) {
@@ -135,7 +156,7 @@ function heroNav(dir) {
   clearInterval(hTimer);
   var bar = document.getElementById('hProgBar');
   if (bar) { bar.style.transition = 'none'; bar.style.width = '0%'; }
-  hGoTo(hCur + dir);
+  hGoTo(hCur + dir, false);
   startHA((_pbData.bannerConfig || {}).interval || 0);
 }
 

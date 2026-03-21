@@ -119,10 +119,13 @@ function renderPopupBanner(data) {
   var navArea = document.createElement('div'); navArea.className = 'pb-popup-nav';
 
   function goTo(idx) {
-    if (idx < 0 || idx >= visible.length) return;
+    var n = visible.length;
+    if (!n) return;
+    var i = n > 1 ? (((idx % n) + n) % n) : 0;
+    if (n === 1 && idx !== 0) return;
     body.querySelectorAll('.pb-popup-slide').forEach(function (s) { s.classList.remove('pb-active'); });
-    body.querySelectorAll('.pb-popup-slide')[idx].classList.add('pb-active');
-    curIdx = idx;
+    body.querySelectorAll('.pb-popup-slide')[i].classList.add('pb-active');
+    curIdx = i;
     todayCb.checked = false;
     updateNav();
   }
@@ -134,7 +137,10 @@ function renderPopupBanner(data) {
   nextBtn2.onclick = function () { goTo(curIdx + 1); };
 
   function updateNav() {
-    prevBtn2.disabled = (curIdx === 0); nextBtn2.disabled = (curIdx === visible.length - 1);
+    if (visible.length > 1) {
+      prevBtn2.disabled = false;
+      nextBtn2.disabled = false;
+    }
     if (visible.length > 1) counter.textContent = (curIdx + 1) + ' / ' + visible.length;
   }
 

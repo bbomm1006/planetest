@@ -90,9 +90,22 @@
           btn.classList.add('on');
           _cat = btn.getAttribute('data-cat');
           _page = 1;
+          var pgDrop = document.getElementById('pgCatDropdown');
+          if (pgDrop) pgDrop.value = _cat;
           render();
         });
       });
+      // 모바일 드롭다운 채우기 및 이벤트 연결
+      var pgDrop = document.getElementById('pgCatDropdown');
+      if (pgDrop) {
+        pgDrop.innerHTML = '<option value="">전체</option>'
+          + cats.map(function (c) { return '<option value="' + attr(c) + '">' + esc(c) + '</option>'; }).join('');
+        pgDrop.addEventListener('change', function () {
+          _cat = pgDrop.value; _page = 1;
+          tabs.querySelectorAll('.pg-ct').forEach(function (b) { b.classList.toggle('on', b.dataset.cat === _cat); });
+          render();
+        });
+      }
     }
     render();
   }
@@ -288,13 +301,18 @@
     var cnt = document.getElementById('pgLbCounter');
     if (cnt) cnt.textContent = (_lbImages.length > 1) ? (_lbIdx + 1) + ' / ' + n : '';
 
-    /* 화살표 가시성 */
+    /* 다장이면 무한 루프 — 화살표 항상 활성 / 단일이면 경계·다음 글 이동용 기존 처리 */
     var prev = document.getElementById('pgLbPrev');
     var next = document.getElementById('pgLbNext');
-    if (prev) prev.style.opacity = _lbIdx === 0 ? '0' : '1';
-    if (prev) prev.style.pointerEvents = _lbIdx === 0 ? 'none' : 'all';
-    if (next) next.style.opacity = _lbIdx === n - 1 ? '0' : '1';
-    if (next) next.style.pointerEvents = _lbIdx === n - 1 ? 'none' : 'all';
+    if (n > 1) {
+      if (prev) { prev.style.opacity = '1'; prev.style.pointerEvents = 'all'; }
+      if (next) { next.style.opacity = '1'; next.style.pointerEvents = 'all'; }
+    } else {
+      if (prev) prev.style.opacity = _lbIdx === 0 ? '0' : '1';
+      if (prev) prev.style.pointerEvents = _lbIdx === 0 ? 'none' : 'all';
+      if (next) next.style.opacity = _lbIdx === n - 1 ? '0' : '1';
+      if (next) next.style.pointerEvents = _lbIdx === n - 1 ? 'none' : 'all';
+    }
 
     /* 썸네일 활성 */
     var thumbs = document.querySelectorAll('#pgLbThumbs .pg-lb-thumb');
@@ -305,10 +323,18 @@
     if (activeTh) activeTh.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   }
 
-  /* 좌우 이동 */
+  /* 같은 글 이미지 2장↑: 앨범 내 무한 루프 / 이미지 1장: 이전·다음 글 */
   window.pgLbMove = function (dir) {
+    var n = _lbImages.length;
+    if (n > 1) {
+      var ni = _lbIdx + dir;
+      if (ni < 0) lbGoTo(n - 1, true);
+      else if (ni >= n) lbGoTo(0, true);
+      else lbGoTo(ni, true);
+      return;
+    }
     var newIdx = _lbIdx + dir;
-    if (newIdx >= 0 && newIdx < _lbImages.length) {
+    if (newIdx >= 0 && newIdx < n) {
       lbGoTo(newIdx, true);
     } else {
       var newPost = _lbPostIdx + dir;

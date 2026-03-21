@@ -5,6 +5,7 @@
     <p class="s-p">다양한 슬라이드를 감상해보세요.</p>
 
     <div class="sg-cat-tabs" id="sgCatTabs"></div>
+    <select class="sg-cat-sel" id="sgCatDropdown"></select>
 
     <div class="sg-block">
       <div class="sg-slide-stack">

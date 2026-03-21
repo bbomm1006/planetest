@@ -134,8 +134,13 @@ function faqInit(posts) {
   });
   var tabs = document.getElementById('faqCatTabs');
   if (tabs) {
-    tabs.innerHTML = '<button class="faq-cat-btn on" onclick="faqSetCat(\'\',this)">전체</button>'
-      + cats.map(function(c) { return '<button class="faq-cat-btn" onclick="faqSetCat(\'' + faqEsc(c) + '\',this)">' + faqEsc(c) + '</button>'; }).join('');
+    tabs.innerHTML = '<button class="faq-cat-btn on" data-cat="" onclick="faqSetCat(\'\',this)">전체</button>'
+      + cats.map(function(c) { return '<button class="faq-cat-btn" data-cat="' + faqEsc(c) + '" onclick="faqSetCat(\'' + faqEsc(c) + '\',this)">' + faqEsc(c) + '</button>'; }).join('');
+  }
+  var faqDrop = document.getElementById('faqCatDropdown');
+  if (faqDrop) {
+    faqDrop.innerHTML = '<option value="">전체</option>'
+      + cats.map(function(c) { return '<option value="' + faqEsc(c) + '">' + faqEsc(c) + '</option>'; }).join('');
   }
   var info = document.getElementById('faqResultInfo');
   if (info) info.innerHTML = '전체 <strong>' + posts.length + '</strong>건';
@@ -191,8 +196,11 @@ function faqRender(reset) {
 
 function faqSetCat(catId, btn) {
   _faqCatId = catId;
-  document.querySelectorAll('.faq-cat-btn').forEach(function(b) { b.classList.remove('on'); });
-  if (btn) btn.classList.add('on');
+  document.querySelectorAll('.faq-cat-btn').forEach(function(b) {
+    b.classList.toggle('on', b.dataset.cat === catId);
+  });
+  var drop = document.getElementById('faqCatDropdown');
+  if (drop) drop.value = catId;
   faqRender(true);
 }
 function faqSearch()  { _faqKw = document.getElementById('faqSearchInp').value.trim(); _faqField = (document.getElementById('faqFieldSel')||{value:'all'}).value; faqRender(true); }
@@ -202,6 +210,7 @@ function faqReset()   {
   if (inp) inp.value = ''; if (sel) sel.value = 'all';
   document.querySelectorAll('.faq-cat-btn').forEach(function(b) { b.classList.remove('on'); });
   var first = document.querySelector('.faq-cat-btn'); if (first) first.classList.add('on');
+  var drop = document.getElementById('faqCatDropdown'); if (drop) drop.value = '';
   faqRender(true);
 }
 function faqLoadMore() { _faqPage++; faqRender(false); }
@@ -242,9 +251,23 @@ function faqEsc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').r
       wrap.querySelectorAll('.gl-ct').forEach(function(btn) {
         btn.addEventListener('click', function() {
           wrap.querySelectorAll('.gl-ct').forEach(function(b) { b.classList.remove('on'); });
-          btn.classList.add('on'); _glCat = btn.getAttribute('data-cat'); _glPage = 1; glRender();
+          btn.classList.add('on'); _glCat = btn.getAttribute('data-cat'); _glPage = 1;
+          var drop = document.getElementById('glCatDropdown');
+          if (drop) drop.value = _glCat;
+          glRender();
         });
       });
+      // 모바일 드롭다운 채우기 및 이벤트 연결
+      var glDrop = document.getElementById('glCatDropdown');
+      if (glDrop) {
+        glDrop.innerHTML = '<option value="">전체</option>'
+          + cats.map(function(c) { return '<option value="' + glAttr(c) + '">' + glEsc(c) + '</option>'; }).join('');
+        glDrop.addEventListener('change', function() {
+          _glCat = glDrop.value; _glPage = 1;
+          wrap.querySelectorAll('.gl-ct').forEach(function(b) { b.classList.toggle('on', b.dataset.cat === _glCat); });
+          glRender();
+        });
+      }
     }
     glRender();
   }

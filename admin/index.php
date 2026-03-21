@@ -82,6 +82,8 @@
     
       <?php include 'lib/legalTermsMgmt.php'; ?>
       
+      <!-- 7-2. 예약 내역 -->
+      <?php include 'lib/reserve.php'; ?>   
 
 
       <!-- ========================

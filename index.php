@@ -199,8 +199,8 @@ include __DIR__ . '/lib/custom_inquiry_front.php';
   <script src="js/products.js"></script>
 
   <script src="js/recommend.js"></script>
-  <!-- <script src="js/reservation.js"></script>
-  <script src="js/reservationLookup.js"></script> -->
+  <script src="js/reservation.js"></script>
+  <script src="js/reservationLookup.js"></script>
 
   <script src="js/store.js"></script>
   <script src="js/timeslots.js"></script>
