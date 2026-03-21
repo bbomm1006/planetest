@@ -14,7 +14,7 @@
             <div class="fg s2"><label class="fl">추가 내용</label><textarea class="fta" id="cap-msg" placeholder="추가로 궁금한 점을 적어주세요."></textarea></div>
           </div>
           <div class="priv-wrap">
-            <div class="priv-scroll">개인정보 수집·이용 동의<br>수집 항목: 이름, 연락처, 상담내용<br>수집 목적: 결합 상담 서비스 제공<br>보유 기간: 상담 완료 후 1년</div>
+            <div class="priv-scroll" id="capPrivScroll">개인정보 수집·이용 동의<br>수집 항목: 이름, 연락처, 상담내용<br>수집 목적: 결합 상담 서비스 제공<br>보유 기간: 상담 완료 후 1년</div>
             <label class="priv-check"><input type="checkbox" id="cap-priv"><span>개인정보 수집 및 이용에 동의합니다 (필수)</span></label>
           </div>
           <button class="combo-apply-btn" onclick="submitComboApply()" style="margin-top:4px">결합 상담 신청 완료 →</button>

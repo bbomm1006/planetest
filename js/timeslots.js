@@ -2,11 +2,16 @@
    timeslots.js — 공통 상담 시간 슬롯
 ═══════════════════════════════════════ */
 
-var TIME_SLOTS = ['오전 9~11시', '오전 11~1시', '오후 1~3시', '오후 3~5시', '오후 5~7시', '저녁 7시 이후'];
+var TIME_SLOTS = [];
 
-function buildTimeSlots(containerId, prefix) {
+function buildTimeSlots(containerId, prefix, slots) {
+  if (slots) TIME_SLOTS = slots;
   var el = document.getElementById(containerId);
   if (!el) return;
+  if (!TIME_SLOTS.length) {
+    el.innerHTML = '<p style="color:var(--text-muted);font-size:.85rem;padding:8px 0;">상담 가능 시간이 없습니다.</p>';
+    return;
+  }
   el.innerHTML = TIME_SLOTS.map(function (ts, i) {
     return '<div class="fts" id="' + prefix + 'ts-' + i + '" onclick="selectFTS(\'' + prefix + '\',' + i + ')">'
       + '<div class="fts-dot"></div>'
@@ -31,8 +36,8 @@ function getSelectedFTS(prefix) {
   return sel;
 }
 
-/* capBg 시간 슬롯 별칭 */
-function buildCapTimeSlots() { buildTimeSlots('capTimeSlots', 'cap'); }
+/* capBg 시간 슬롯 — DB에서 로드한 슬롯으로 빌드 */
+function buildCapTimeSlots(slots) { buildTimeSlots('capTimeSlots', 'cap', slots); }
 function selectTS(prefix, idx) { selectFTS(prefix, idx); }
 function getSelectedTS(prefix) { return getSelectedFTS(prefix); }
 

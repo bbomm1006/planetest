@@ -90,7 +90,11 @@ const PAGE_LABELS = {
   popupMgmt:   ['콘텐츠','팝업 관리'],
   catMgmt:     ['상품','분류 관리'],
   productMgmt: ['상품','제품 관리'],
-  cardDiscMgmt:['상품','카드사 할인율 관리'],
+  cardDiscMgmt:      ['상품','카드사 할인율 관리'],
+  comboInquiryMgmt:  ['상품','결합 상담 신청 내역'],
+  comboManagerMgmt:  ['상품','결합 상담 담당관리자'],
+  comboTimeslotMgmt: ['상품','결합 상담 가능 시간'],
+  comboTermsMgmt:    ['상품','결합 상담 약관'],
   kakaoApiMgmt:['매장','카카오 API 관리'],
   storeMgmt:   ['매장','매장(지점) 관리'],
   boardCreate: ['게시판','게시판 추가'],
@@ -337,6 +341,10 @@ function showPage(pageId) {
   if (pageId === 'catMgmt')      loadCatList();
   if (pageId === 'cardDiscMgmt') loadCardList();
   if (pageId === 'productMgmt')  { loadProductCatOptions(); loadProductList(); }
+  if (pageId === 'comboInquiryMgmt')  loadComboInquiryList();
+  if (pageId === 'comboManagerMgmt')  loadComboManagerList();
+  if (pageId === 'comboTimeslotMgmt') loadComboTimeslotList();
+  if (pageId === 'comboTermsMgmt')    loadComboTerms();
   if (pageId === 'kakaoApiMgmt') loadKakaoApi();
   if (pageId === 'storeMgmt')    loadStoreList();
   if (pageId === 'boardCreate')  renderBoardFields();

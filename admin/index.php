@@ -58,6 +58,12 @@
       <!-- 2-3. 카드사 할인율 -->
       <?php include 'lib/cardDiscMgmt.php'; ?>
 
+      <!-- 2-4. 결합 상담 -->
+      <?php include 'lib/comboInquiryMgmt.php'; ?>
+      <?php include 'lib/comboManagerMgmt.php'; ?>
+      <?php include 'lib/comboTimeslotMgmt.php'; ?>
+      <?php include 'lib/comboTermsMgmt.php'; ?>
+
       <!-- 3-1. 카카오 API 관리 --> <!-- 3-2. 매장(지점) 관리 -->
       <?php include 'lib/store.php'; ?>
 
@@ -120,6 +126,11 @@
   <!-- 제품 Modal -->
   <?php include 'modals/productModal.php'; ?>
 
+  <!-- 결합 상담 Modals -->
+  <?php include 'modals/comboDetailModal.php'; ?>
+  <?php include 'modals/comboManagerModal.php'; ?>
+  <?php include 'modals/comboSlotModal.php'; ?>
+
 
   <!-- 매장 Modal -->
   <?php include 'modals/storeModal.php'; ?>
@@ -167,6 +178,7 @@
 <script src="js/banner.js"></script>
 <script src="js/popup.js"></script>
 <script src="js/product.js"></script>
+<script src="js/combo.js"></script>
 <script src="js/store.js"></script>
 
 <script src="js/consultField.js"></script>

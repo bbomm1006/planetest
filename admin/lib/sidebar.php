@@ -37,6 +37,10 @@
             <div class="nav-sub-link" data-menu-key="catMgmt" onclick="showPage('catMgmt')">분류 관리</div>
             <div class="nav-sub-link" data-menu-key="product" onclick="showPage('productMgmt')">제품 관리</div>
             <div class="nav-sub-link" data-menu-key="card" onclick="showPage('cardDiscMgmt')">카드사 할인율 관리</div>
+            <div class="nav-sub-link" onclick="showPage('comboInquiryMgmt')">결합 상담 신청 내역</div>
+            <div class="nav-sub-link" onclick="showPage('comboManagerMgmt')">결합 상담 담당관리자</div>
+            <div class="nav-sub-link" onclick="showPage('comboTimeslotMgmt')">결합 상담 가능 시간</div>
+            <div class="nav-sub-link" onclick="showPage('comboTermsMgmt')">결합 상담 약관</div>
           </div>
         </div>
       </div>
