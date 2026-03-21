@@ -113,7 +113,58 @@ if ($action === 'create_form') {
    ================================================================ */
 if ($action === 'list_forms') {
     $rows = $pdo->query('SELECT id, title, table_name, is_active, created_at FROM custom_inquiry_forms ORDER BY id DESC')->fetchAll();
+    // 각 폼의 문의 건수 조회
+    foreach ($rows as &$row) {
+        try {
+            $tbl = $row['table_name'];
+            $cnt = $pdo->query("SELECT COUNT(*) FROM `{$tbl}`")->fetchColumn();
+            $row['inquiry_count'] = (int)$cnt;
+        } catch (Exception $e) {
+            $row['inquiry_count'] = 0;
+        }
+    }
     echo json_encode(['ok' => true, 'data' => $rows]);
+    exit;
+}
+
+/* ================================================================
+   폼 삭제
+   ================================================================ */
+if ($action === 'delete_form') {
+    $id = intval($_POST['id'] ?? 0);
+    if (!$id) { echo json_encode(['ok' => false, 'msg' => '잘못된 요청']); exit; }
+
+    $row = $pdo->prepare('SELECT table_name FROM custom_inquiry_forms WHERE id=?');
+    $row->execute([$id]);
+    $form = $row->fetch();
+    if (!$form) { echo json_encode(['ok' => false, 'msg' => '폼을 찾을 수 없습니다.']); exit; }
+
+    $tbl = $form['table_name'];
+
+    try {
+        // 연관 테이블 모두 삭제
+        $pdo->exec("DROP TABLE IF EXISTS `{$tbl}`");
+        $pdo->exec("DROP TABLE IF EXISTS `ci_comments_{$tbl}`");
+        $pdo->exec("DROP TABLE IF EXISTS `ci_answers_{$tbl}`");
+
+        // 메타 데이터 삭제
+        $fieldIds = $pdo->prepare('SELECT id FROM custom_inquiry_fields WHERE form_id=?');
+        $fieldIds->execute([$id]);
+        foreach ($fieldIds->fetchAll() as $fid) {
+            $pdo->prepare('DELETE FROM custom_inquiry_field_options WHERE field_id=?')->execute([$fid['id']]);
+        }
+        $pdo->prepare('DELETE FROM custom_inquiry_fields WHERE form_id=?')->execute([$id]);
+        $pdo->prepare('DELETE FROM custom_inquiry_statuses WHERE form_id=?')->execute([$id]);
+        $pdo->prepare('DELETE FROM custom_inquiry_terms WHERE form_id=?')->execute([$id]);
+        $pdo->prepare('DELETE FROM custom_inquiry_manager_history WHERE form_id=?')->execute([$id]);
+        $pdo->prepare('DELETE FROM custom_inquiry_managers WHERE form_id=?')->execute([$id]);
+        $pdo->prepare('DELETE FROM custom_inquiry_forms WHERE id=?')->execute([$id]);
+
+        logAdminAction($pdo, 'delete', 'custom_inquiry_forms', (string)$id);
+        echo json_encode(['ok' => true]);
+    } catch (Exception $e) {
+        echo json_encode(['ok' => false, 'msg' => '삭제 실패: ' . $e->getMessage()]);
+    }
     exit;
 }
 
@@ -331,11 +382,23 @@ if ($action === 'save_manager') {
             $is_active, $id]);
 
         $diff = [];
-        $fields = ['name','department','phone','email','notify_email','notify_sheet','notify_alimtalk','notify_sms','is_active'];
-        foreach ($fields as $f) {
-            $newVal = $$f ?? '';
-            if ((string)$oldData[$f] !== (string)$newVal) {
-                $diff[$f] = ['before' => $oldData[$f], 'after' => $newVal];
+        $fieldMap = [
+            'name'            => $name,
+            'department'      => $dept,
+            'phone'           => $phone,
+            'email'           => $email,
+            'notify_email'    => $notify_email,
+            'notify_sheet'    => $notify_sheet,
+            'notify_alimtalk' => $notify_alimtalk,
+            'notify_sms'      => $notify_sms,
+            'is_active'       => $is_active,
+        ];
+        foreach ($fieldMap as $f => $newVal) {
+            // NULL과 빈 문자열을 동일하게 처리 (담당부서 등 nullable 필드 오탐 방지)
+            $oldVal  = (string)($oldData[$f] ?? '');
+            $newVal  = (string)($newVal ?? '');
+            if ($oldVal !== $newVal) {
+                $diff[$f] = ['before' => $oldData[$f] ?? '', 'after' => $newVal];
             }
         }
         if ($diff) {

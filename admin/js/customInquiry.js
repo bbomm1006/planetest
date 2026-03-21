@@ -88,7 +88,7 @@ async function ciLoadFormList() {
   const res = await apiGet('api/custom_inquiry.php', { action: 'list_forms' });
   const tbody = document.getElementById('ciFormTableBody');
   if (!res.ok || !res.data.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#94a3b8;">등록된 폼이 없습니다.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#94a3b8;">등록된 폼이 없습니다.</td></tr>';
     return;
   }
   tbody.innerHTML = res.data.map((f, i) => `
@@ -97,13 +97,39 @@ async function ciLoadFormList() {
       <td>${escHtml(f.title)}</td>
       <td><code style="font-size:.78rem;">${escHtml(f.table_name)}</code></td>
       <td><span class="badge ${f.is_active == 1 ? 'badge-success' : 'badge-gray'}">${f.is_active == 1 ? '사용' : '미사용'}</span></td>
+      <td style="text-align:center;">${f.inquiry_count ?? 0}건</td>
       <td>${f.created_at ? f.created_at.slice(0,16) : '-'}</td>
       <td>
         <button class="btn btn-sm btn-outline" onclick="ciOpenDetail(${f.id})">설정</button>
         <button class="btn btn-sm btn-outline" onclick="ciCurrentFormId=${f.id};document.getElementById('ciDataTitle').textContent=escHtml('${f.title.replace(/'/g,"\\'")}') + ' 문의내역';showPage('customInquiryData');ciLoadData(${f.id})">내역</button>
         <button class="btn btn-sm" style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;" onclick="ciShowPlacementCode('${escHtml(f.table_name)}', '${escHtml(f.title)}')">📋 적용코드</button>
+        <button class="btn btn-sm btn-danger" onclick="ciDeleteForm(${f.id}, '${escHtml(f.title)}', '${escHtml(f.table_name)}')">삭제</button>
       </td>
     </tr>`).join('');
+}
+
+// =====================================================
+// 폼 삭제
+// =====================================================
+async function ciDeleteForm(formId, title, tableName) {
+  const confirmed = confirm(
+    `⚠️ 폼을 삭제하시겠습니까?\n\n` +
+    `폼명: ${title}\n` +
+    `테이블: ${tableName}\n\n` +
+    `삭제 시 해당 폼의 모든 문의 내역, 필드, 담당자, 상태, 약관 데이터가\n` +
+    `영구적으로 삭제되며 복구할 수 없습니다.\n\n` +
+    `정말 삭제하시겠습니까?`
+  );
+  if (!confirmed) return;
+
+  const res = await apiPost('api/custom_inquiry.php', { action: 'delete_form', id: formId });
+  if (res.ok) {
+    showToast('폼이 삭제되었습니다.');
+    await ciLoadFormList();
+    ciLoadCustomInquirySidebar();
+  } else {
+    showToast(res.msg || '삭제 실패', 'error');
+  }
 }
 
 // =====================================================
@@ -332,12 +358,20 @@ async function ciLoadManagers() {
     hbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:#94a3b8;">이력이 없습니다.</td></tr>';
   } else {
     hbody.innerHTML = hres.data.map(h => {
+      const fieldLabels = {
+        name: '이름', department: '담당부서', phone: '연락처', email: '이메일',
+        notify_email: '이메일알림', notify_sheet: '시트알림',
+        notify_alimtalk: '알림톡', notify_sms: '문자', is_active: '사용여부'
+      };
       let desc = '';
       try {
         const d = JSON.parse(h.change_desc);
         if (d.action === 'created') desc = '담당자 등록';
         else if (d.action === 'deleted') desc = '담당자 삭제';
-        else desc = Object.keys(d).map(k => `${k}: ${d[k].before} → ${d[k].after}`).join(', ');
+        else desc = Object.keys(d).map(k => {
+          const label = fieldLabels[k] || k;
+          return `${label}: ${d[k].before} → ${d[k].after}`;
+        }).join(', ');
       } catch (e) { desc = h.change_desc || ''; }
       return `<tr>
         <td>${h.changed_at ? h.changed_at.slice(0,16) : '-'}</td>
@@ -1150,7 +1184,7 @@ async function ciLoadCustomInquirySidebar() {
   const dynamicItems = sub.querySelectorAll('.ci-dynamic-nav');
   dynamicItems.forEach(el => el.remove());
 
-  (res.data || []).forEach(f => {
+  (res.data || []).filter(f => f.is_active == 1).forEach(f => {
     const pageId = `customInquiryData_${f.id}`;
     const div    = document.createElement('div');
     div.className = 'nav-sub-link ci-dynamic-nav';
