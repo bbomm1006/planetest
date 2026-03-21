@@ -32,7 +32,7 @@ const FRONT_SECTION_LIST = [
   { key:'front_stores',         label:'프론트 매장찾기 섹션' },
   { key:'front_reservation',    label:'프론트 예약하기 섹션' },
   { key:'front_reservation_lookup', label:'프론트 예약 조회(변경)' },
-  { key:'front_customReser_suite',    label:'프론트 예약(customReser DB)' },
+
   { key:'front_notices',       label:'프론트 공지사항 섹션' },
   { key:'front_faq',            label:'프론트 FAQ 섹션' },
   { key:'front_gallery',       label:'프론트 갤러리 섹션' },
@@ -111,15 +111,15 @@ const PAGE_LABELS = {
   legalTermsMgmt: ['시스템','법적 약관 관리'],
 
   homepageInfo: ['시스템','홈페이지 정보 관리'],
+  colorMgmt:    ['시스템','컬러 설정'],
   logMgmt:      ['로그 관리','로그 관리'],
 
   customInquiryCreate: ['문의 폼','문의 폼 추가'],
   customInquiryList:   ['문의 폼','문의 폼 목록'],
   customInquiryDetail: ['문의 폼','폼 설정'],
   customInquiryData:   ['문의 폼','문의 내역'],
-  alimtalkMgmt:        ['알림톡 관리','알림톡 설정'],
 
-  customReserModule: ['예약(신규)', '예약 모듈 (customReser)'],
+  alimtalkMgmt:        ['알림톡 관리','알림톡 설정'],
 };
 
 // ===========================
@@ -283,7 +283,7 @@ function enterAdmin(name, username, email = '') {
   // DB에서 메뉴 상태 로드 후 사이드바 반영
   apiGet('api/system.php', { action: 'menuList' }).then(res => {
     if (res.ok && res.data.length > 0) {
-      res.data.forEach(m => { menuState[m.key] = !!m.is_active; });
+      res.data.forEach(m => { menuState[m.key] = +m.is_active !== 0; });
     }
     renderSidebar();
   });
@@ -362,6 +362,7 @@ function showPage(pageId) {
   if (pageId === 'legalTermsMgmt') loadLegalTermsAdmin();
 
   if (pageId === 'homepageInfo') hiLoad();
+  if (pageId === 'colorMgmt')   colorLoad();
   if (pageId === 'logMgmt')     initLogMgmt();
 
   if (pageId === 'customInquiryCreate') { /* 별도 로드 없음 */ }
@@ -519,17 +520,174 @@ async function saveMyInfo() {
 async function loadMenuList() {
   const res = await apiGet('api/system.php', { action: 'menuList' });
   if (res.ok && res.data.length > 0) {
-    res.data.forEach(m => { menuState[m.key] = !!m.is_active; });
+    res.data.forEach(m => { menuState[m.key] = +m.is_active !== 0; });
   }
   renderMenuChecks();
 }
 
 async function loadSectionMgmt() {
-  const res = await apiGet('api/system.php', { action: 'menuList' });
-  if (res.ok && res.data.length > 0) {
-    res.data.forEach(m => { menuState[m.key] = !!m.is_active; });
+  // 고정 섹션 토글 패널 제거됨 — 모든 섹션이 동적 섹션으로 통합 관리
+  loadDynSectionList();
+}
+
+// ===========================
+// DYNAMIC SECTIONS
+// ===========================
+let dynSectionList = [];
+
+async function loadDynSectionList() {
+  const res = await apiGet('api/system.php', { action: 'dynSectionList' });
+  if (res.ok) {
+    dynSectionList = res.data || [];
+  } else {
+    dynSectionList = [];
   }
-  renderSectionChecks();
+  renderDynSectionList();
+}
+
+function renderDynSectionList() {
+  const tbody = document.getElementById('dynSectionTbody');
+  if (!tbody) return;
+  if (dynSectionList.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#aaa;padding:20px;">등록된 섹션이 없습니다. [기본값 초기화] 버튼을 눌러 기존 섹션을 불러오세요.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = dynSectionList.map((s, idx) => {
+    const isOn      = +s.is_active !== 0;
+    const isMissing = !!s.file_missing;
+    const sid       = String(s.id);
+    const navLabel  = s.nav_label || '';
+    const anchorId  = s.anchor_id || '';
+    const navText   = navLabel
+      ? `${escapeHtmlMgmt(navLabel)}<br><span style="color:var(--text3);font-size:.73rem;">#${escapeHtmlMgmt(anchorId)}</span>`
+      : '<span style="color:var(--text3);">—</span>';
+    const isFirst   = idx === 0;
+    const isLast    = idx === dynSectionList.length - 1;
+    const svgUp     = `<svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="2,8 5.5,3.5 9,8"/></svg>`;
+    const svgDown   = `<svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="2,3.5 5.5,8 9,3.5"/></svg>`;
+    const upBtn     = `<button class="btn btn-sm btn-ghost" style="padding:4px 8px;line-height:1;" ${isFirst ? 'disabled' : ''} onclick="reorderDynSection('${sid}','up')" title="위로 이동">${svgUp}</button>`;
+    const dnBtn     = `<button class="btn btn-sm btn-ghost" style="padding:4px 8px;line-height:1;" ${isLast  ? 'disabled' : ''} onclick="reorderDynSection('${sid}','down')" title="아래로 이동">${svgDown}</button>`;
+
+    // 노출 배지: 파일 없음 > 일반 미노출 > 노출 순으로 우선순위 구분
+    const badge = isMissing
+      ? `<span class="badge badge-warning" title="lib/${escapeHtmlMgmt(s.file_name)}.php 파일이 없어 프론트에 출력되지 않습니다.">파일 없음</span>`
+      : (isOn
+          ? '<span class="badge badge-success">노출</span>'
+          : '<span class="badge badge-secondary">미노출</span>');
+
+    // 파일 없음 시 파일명에 경고 표시
+    const fileCell = isMissing
+      ? `<code style="white-space:nowrap;color:var(--danger);">lib/${escapeHtmlMgmt(s.file_name)}.php</code>`
+      : `<code style="white-space:nowrap;">lib/${escapeHtmlMgmt(s.file_name)}.php</code>`;
+
+    // 파일 없음 행 배경 연하게 하이라이트
+    const rowStyle = isMissing ? ' style="background:rgba(245,158,11,.06);"' : '';
+
+    return `<tr${rowStyle}>
+      <td><div class="table-actions" style="justify-content:center;gap:2px;">${upBtn}${dnBtn}</div></td>
+      <td>${escapeHtmlMgmt(s.name)}</td>
+      <td>${fileCell}</td>
+      <td style="font-size:.82rem;">${navText}</td>
+      <td style="text-align:center;">${badge}</td>
+      <td><div class="table-actions">
+        <button class="btn btn-sm btn-outline" onclick="openDynSectionModal('${sid}')">수정</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteDynSection('${sid}', '${escapeAttrMgmt(s.name)}')">삭제</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function openDynSectionModal(id) {
+  const sec = (id !== null && id !== undefined && id !== '')
+    ? dynSectionList.find(s => String(s.id) === String(id))
+    : null;
+  document.getElementById('dynSecModalTitle').textContent = sec ? '섹션 수정' : '섹션 추가';
+  document.getElementById('dynSecId').value         = sec ? sec.id : '';
+  document.getElementById('dynSecName').value       = sec ? sec.name : '';
+  document.getElementById('dynSecFile').value       = (sec ? (sec.file_name || '') : '').replace(/\.php$/i, '');
+  document.getElementById('dynSecTitle').value      = sec ? (sec.title || '') : '';
+  document.getElementById('dynSecSubtitle').value   = sec ? (sec.subtitle || '') : '';
+  document.getElementById('dynSecNavLabel').value   = sec ? (sec.nav_label || '') : '';
+  document.getElementById('dynSecAnchorId').value   = sec ? (sec.anchor_id || '') : '';
+  document.getElementById('dynSecOrder').value      = sec ? (sec.sort_order ?? 0) : 0;
+  const isActive = sec ? +sec.is_active !== 0 : true;
+  document.getElementById('dynSecActive').checked   = isActive;
+  document.getElementById('dynSecActiveLabel').textContent = isActive ? '노출' : '미노출';
+  document.getElementById('dynSectionModal').style.display = 'flex';
+  document.getElementById('dynSecActive').onchange = function() {
+    document.getElementById('dynSecActiveLabel').textContent = this.checked ? '노출' : '미노출';
+  };
+}
+
+function closeDynSectionModal() {
+  document.getElementById('dynSectionModal').style.display = 'none';
+}
+
+async function saveDynSection() {
+  const id       = document.getElementById('dynSecId').value;
+  const name     = document.getElementById('dynSecName').value.trim();
+  const fileName = document.getElementById('dynSecFile').value.trim();
+  const title    = document.getElementById('dynSecTitle').value.trim();
+  const subtitle = document.getElementById('dynSecSubtitle').value.trim();
+  const isActive = document.getElementById('dynSecActive').checked ? 1 : 0;
+  const sortOrder= parseInt(document.getElementById('dynSecOrder').value) || 0;
+
+  if (!name)     { showToast('섹션명을 입력하세요.', 'error'); return; }
+  if (!fileName) { showToast('파일명을 입력하세요.', 'error'); return; }
+  // .php 확장자 포함 여부 모두 허용, 기본 이름 부분만 검사
+  const fileBase = fileName.replace(/\.php$/i, '');
+  if (!/^[a-zA-Z0-9_\-]+$/.test(fileBase)) {
+    showToast('파일명은 영문, 숫자, _, - 만 사용 가능합니다.', 'error');
+    return;
+  }
+
+  const navLabel  = document.getElementById('dynSecNavLabel').value.trim();
+  const anchorId  = document.getElementById('dynSecAnchorId').value.trim();
+
+  const res = await apiPost('api/system.php', {
+    action: 'dynSectionSave',
+    id, name, file_name: fileBase, title, subtitle,
+    nav_label: navLabel, anchor_id: anchorId,
+    is_active: isActive, sort_order: sortOrder
+  });
+  if (res.ok) {
+    showToast(id ? '수정되었습니다.' : '추가되었습니다.', 'success');
+    closeDynSectionModal();
+    loadDynSectionList();
+  } else {
+    showToast(res.msg || '저장 실패', 'error');
+  }
+}
+
+async function initDynSections() {
+  if (!confirm('기존 섹션 기본값을 삽입합니다.\n이미 등록된 섹션(key 동일)은 변경되지 않습니다.\n계속하시겠습니까?')) return;
+  const res = await apiPost('api/system.php', { action: 'dynSectionInit' });
+  if (res.ok) {
+    showToast('기본 섹션이 초기화되었습니다.', 'success');
+    loadDynSectionList();
+  } else {
+    showToast(res.msg || '초기화 실패', 'error');
+  }
+}
+
+async function reorderDynSection(id, direction) {
+  const res = await apiPost('api/system.php', { action: 'dynSectionReorder', id, direction });
+  if (res.ok) {
+    loadDynSectionList();
+  } else {
+    showToast(res.msg || '순서 변경 실패', 'error');
+  }
+}
+
+async function deleteDynSection(id, name) {
+  if (!confirm(`"${name}" 섹션을 삭제하시겠습니까?`)) return;
+  const res = await apiPost('api/system.php', { action: 'dynSectionDelete', id });
+  if (res.ok) {
+    showToast('삭제되었습니다.', 'success');
+    loadDynSectionList();
+  } else {
+    showToast(res.msg || '삭제 실패', 'error');
+  }
 }
 
 function escapeHtmlMgmt(s) {

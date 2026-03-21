@@ -43,6 +43,13 @@
   };
 
   $legalSlug = isset($_GET['legal']) ? preg_replace('/[^a-zA-Z0-9\-_]/', '', (string) $_GET['legal']) : '';
+
+  // front_sections 동적 섹션 로드
+  $dynSections = [];
+  try {
+    $stmt = $pdo->query("SELECT * FROM front_sections WHERE is_active = 1 ORDER BY sort_order, id");
+    $dynSections = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  } catch (Exception $e) {}
 ?>
 
   <!-- 서비스 전환 바 -->
@@ -130,6 +137,17 @@ include __DIR__ . '/lib/custom_inquiry_front.php';
     <?php include 'lib/bbs_slidegallery.php'; ?>
   </div>
 
+
+  <!-- 동적 섹션 (front_sections 테이블 기반) -->
+  <?php foreach ($dynSections as $sec):
+    $filePath = __DIR__ . '/lib/' . basename($sec['file_name']);
+    if (!file_exists($filePath)) continue;
+    $anchorId = htmlspecialchars($sec['anchor_id'] ?? '');
+  ?>
+  <div<?= $anchorId ? ' id="' . $anchorId . '"' : '' ?> data-dyn-section-id="<?= (int)$sec['id'] ?>">
+    <?php include $filePath; ?>
+  </div>
+  <?php endforeach; ?>
 
   <?php endif; ?>
 
