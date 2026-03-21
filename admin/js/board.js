@@ -204,6 +204,13 @@ async function loadBoardPostsAndRender(board, activeTab) {
     const res = await apiGet('api/board.php', { action: 'postList', table: board.table });
     if (res.ok) board.posts = res.data;
     else showToast('게시물 로드 오류: ' + (res.msg || '알 수 없는 오류'), 'error');
+    const tbody = document.getElementById('boardBody_' + board.table);
+    if (tbody) {
+      tbody.innerHTML = renderBoardRows(board, board.posts);
+      const ph = document.querySelector('#page-board_' + board.table + ' .page-header p');
+      if (ph) ph.textContent = '테이블: ' + board.table + ' · 총 ' + board.posts.length + '개 게시물';
+      return;
+    }
   }
   if (activeTab === 'cats') {
     if (board.id) {
@@ -330,7 +337,7 @@ function renderBoardRows(board, posts) {
     <tr>
       <td><input type="checkbox" class="row-check" data-post-id="${p.id}" onchange="updateBulkBar('boardBulk_${board.table}')"></td>
       <td class="row-num">${i + 1}</td>
-      <td><strong>${escHtml(p.title)}</strong>${p.is_notice ? ' <span class="badge badge-danger" style="font-size:.7rem;">공지</span>' : ''}</td>
+      <td><strong>${escHtml(p.title)}</strong>${+p.is_notice !== 0 ? ' <span class="badge badge-danger" style="font-size:.7rem;">공지</span>' : ''}</td>
       ${catCell}
       <td>${escHtml(p.author)}</td>
       <td>${p.views}</td>
@@ -553,7 +560,7 @@ async function openBoardWriteModal(tableKey, postId) {
   modal.id = 'boardWriteModal_' + tableKey;
   modal.innerHTML = buildBoardWriteModalHTML(board);
   document.body.appendChild(modal);
-  modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
   const isEdit = postId != null;
   modal.querySelector('.modal-header h3').textContent = isEdit ? `${board.name} - 수정` : `${board.name} - 글 작성`;
   modal.dataset.postId = isEdit ? postId : '';
@@ -603,7 +610,7 @@ function buildBoardWriteModalHTML(board) {
     <div class="modal modal-lg">
       <div class="modal-header">
         <h3>${board.name} - 글 작성</h3>
-        <button class="modal-close" onclick="this.closest('.modal-overlay').classList.remove('open')">✕</button>
+        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
       </div>
       <div class="modal-body">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
@@ -639,7 +646,7 @@ function buildBoardWriteModalHTML(board) {
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline" onclick="this.closest('.modal-overlay').classList.remove('open')">취소</button>
+        <button class="btn btn-outline" onclick="this.closest('.modal-overlay').remove()">취소</button>
         <button class="btn btn-primary" onclick="saveBoardPost('${board.table}')">저장</button>
       </div>
     </div>`;
@@ -738,7 +745,7 @@ function populateBoardWriteModal(modal, board, post) {
     set('[data-field="작성일시"]', post.created_at.replace(' ', 'T').substring(0, 16));
   }
   const noticeEl = modal.querySelector(`#boardIsNotice_${board.table}`);
-  if (noticeEl) noticeEl.checked = !!post.is_notice;
+  if (noticeEl) noticeEl.checked = +post.is_notice !== 0;
 
   const extra = post.extra || {};
   board.fields.forEach(f => {
@@ -876,7 +883,7 @@ async function saveBoardPost(tableKey) {
   const res = await apiPost('api/board.php', data);
   if (res.ok) {
     showToast('저장되었습니다.', 'success');
-    modal.classList.remove('open');
+    modal.remove();
     await loadBoardPostsAndRender(board, 'posts');
   } else {
     showToast(res.msg || '저장 실패', 'error');
@@ -929,29 +936,31 @@ async function deleteBoard(tableKey) {
 // ===========================
 // 상세 + 댓글
 // ===========================
-function openBoardDetailModal(tableKey, postId) {
+async function openBoardDetailModal(tableKey, postId) {
   const board = getBoardByTable(tableKey);
   if (!board) return;
-  const post = (board.posts||[]).find(p => p.id == postId);
-  if (!post) return;
+
+  document.querySelectorAll('[id^="boardDetailModal_' + tableKey + '"]').forEach(el => el.remove());
 
   const mid = `boardDetailModal_${tableKey}_${postId}`;
-  const old = document.getElementById(mid);
-  if (old) old.remove();
   const modal = document.createElement('div');
   modal.className = 'modal-overlay';
   modal.id = mid;
 
-  // 댓글 DB 로드 후 렌더
-  apiGet('api/board.php', { action: 'commentList', post_id: postId }).then(res => {
-    post.comments = res.ok ? res.data : [];
-    modal.innerHTML = buildDetailModalHTML(board, post, mid);
-    document.body.appendChild(modal);
-    modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
-    modal.classList.add('open');
-  });
-}
+  const [postRes, commentRes] = await Promise.all([
+    apiGet('api/board.php', { action: 'postGet', table: tableKey, id: postId }),
+    apiGet('api/board.php', { action: 'commentList', post_id: postId }),
+  ]);
 
+  if (!postRes.ok) { showToast(postRes.msg || '게시물 로드 실패', 'error'); return; }
+  const post = postRes.data;
+  post.comments = commentRes.ok ? commentRes.data : [];
+
+  modal.innerHTML = buildDetailModalHTML(board, post, mid);
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  modal.classList.add('open');
+}
 function buildDetailModalHTML(board, post, modalId) {
   const extra = post.extra || {};
   let rows = `
@@ -1024,14 +1033,14 @@ function buildDetailModalHTML(board, post, modalId) {
     <div class="modal modal-lg">
       <div class="modal-header">
         <h3>📄 ${escHtml(board.name)} — 상세</h3>
-        <button class="modal-close" onclick="document.getElementById('${modalId}').classList.remove('open')">✕</button>
+        <button class="modal-close" onclick="document.getElementById('${modalId}').remove()">✕</button>
       </div>
       <div class="modal-body">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">${rows}${commentSection}</div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline" onclick="document.getElementById('${modalId}').classList.remove('open')">닫기</button>
-        <button class="btn btn-primary" onclick="openBoardWriteModal('${board.table}',${post.id});document.getElementById('${modalId}').classList.remove('open')">수정</button>
+        <button class="btn btn-outline" onclick="document.getElementById('${modalId}').remove()">닫기</button>
+        <button class="btn btn-primary" onclick="openBoardWriteModal('${board.table}',${post.id});document.getElementById('${modalId}').remove()">수정</button>
       </div>
     </div>`;
 }

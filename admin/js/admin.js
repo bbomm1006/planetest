@@ -125,7 +125,7 @@ const PAGE_LABELS = {
 // ===========================
 // INIT
 // ===========================
-window.addEventListener('load', function() {
+document.addEventListener('DOMContentLoaded', function() {
   updateClock();
   setInterval(updateClock, 1000);
 
@@ -288,8 +288,9 @@ function enterAdmin(name, username, email = '') {
     renderSidebar();
   });
 
-  const savedPage = localStorage.getItem('adminPage') || 'adminMgmt';
-  showPage(savedPage);
+  const _saved = localStorage.getItem('adminPage') || 'adminMgmt';
+  const _savedEl = document.getElementById('page-' + _saved);
+  showPage(_savedEl ? _saved : 'adminMgmt');
   loadAdminList();
   if (typeof loadBoardList === 'function') loadBoardList();
   if (typeof ciLoadCustomInquirySidebar === 'function') ciLoadCustomInquirySidebar();
@@ -310,7 +311,7 @@ async function doLogout() {
 // ===========================
 function showPage(pageId) {
 
-  localStorage.setItem('adminPage', pageId);
+  if (!pageId.startsWith('board_')) localStorage.setItem('adminPage', pageId);
 
   const t = document.getElementById('page-' + pageId);
   if (t && t.classList.contains('active')) return; // 이미 활성 페이지는 리트리거 안함
