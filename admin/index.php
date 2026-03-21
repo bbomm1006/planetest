@@ -6,9 +6,6 @@
 <title>관리자 시스템</title>
 <link rel="stylesheet" href="css/admin.css"/>
 <link rel="stylesheet" href="css/find_account.css"/>
-
-
-
 <!-- 카카오 주소검색 (Daum 우편번호) -->
 <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 </head>
@@ -40,6 +37,7 @@
 
       <?php include 'lib/siteMgmt.php'; ?>
       <?php include 'lib/homepageInfo.php'; ?>
+      <?php include 'lib/colorMgmt.php'; ?>
 
       <!-- ========================
             1-1. 상단 메인 배너
@@ -79,12 +77,13 @@
       <?php include 'lib/customInquiry.php'; ?>
       <?php include 'lib/alimtalkMgmt.php'; ?>
 
-    
       <?php include 'lib/legalTermsMgmt.php'; ?>
-      
-      <!-- 7-2. 예약 내역 -->
-      <?php include 'lib/reserve.php'; ?>   
 
+
+      <!-- 7-1. 예약 시간 관리 -->
+      <!-- 7-2. 예약 내역 -->
+      <?php include 'lib/reserve.php'; ?>
+    
 
       <!-- ========================
             8. 챗봇 관리
@@ -127,7 +126,6 @@
 
   <!-- 제품 Modal -->
   <?php include 'modals/productModal.php'; ?>
-
   <!-- 결합 상담 Modals -->
   <?php include 'modals/comboDetailModal.php'; ?>
   <?php include 'modals/comboManagerModal.php'; ?>
@@ -191,7 +189,6 @@
 <script src="js/inquiry.js"></script>
 <script src="js/reserve.js"></script>
 
-
 <!-- 나머지 -->
 <script src="js/social.js"></script>
 <script src="js/bulk_selectDelete.js"></script>
@@ -202,6 +199,7 @@
 <script src="js/site.js"></script>
 
 <script src="js/homepageInfo.js"></script>
+<script src="js/colorMgmt.js"></script>
 
 <script src="js/chatbot.js"></script>
 

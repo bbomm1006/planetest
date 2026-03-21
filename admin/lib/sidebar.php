@@ -17,6 +17,7 @@
             <div class="nav-sub-link" onclick="showPage('socialMgmt')">소셜 관리</div>
             <!-- <div class="nav-sub-link" onclick="showPage('siteMgmt')">사이트 정보 관리</div> -->
             <div class="nav-sub-link" onclick="showPage('homepageInfo')">홈페이지 정보 관리</div>
+            <div class="nav-sub-link" onclick="showPage('colorMgmt')">컬러 설정</div>
             <div class="nav-sub-link" onclick="showPage('legalTermsMgmt')">법적 약관 관리</div>
           </div>
         </div>
