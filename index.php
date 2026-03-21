@@ -17,7 +17,7 @@
     'front_stores',
     'front_reservation',
     'front_reservation_lookup',
-    'front_rv2_suite',
+
     'front_customReser_suite',
     'front_notices',
     'front_faq',
@@ -71,7 +71,7 @@
     <?php include 'lib/products.php'; ?>
   </div>
 <?php
-$ci_table = 'abcd';
+$ci_table = 'test22';
 include __DIR__ . '/lib/custom_inquiry_front.php';
 ?>
 
@@ -191,7 +191,7 @@ include __DIR__ . '/lib/custom_inquiry_front.php';
   <script src="js/reservation.js"></script>
   <script src="js/reservationLookup.js"></script>
   <script src="js/customReser_public.js"></script>
-  <script src="js/rvmReser_public.js"></script>
+
   <script src="js/store.js"></script>
   <script src="js/timeslots.js"></script>
   <script src="js/utils.js"></script>

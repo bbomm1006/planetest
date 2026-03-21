@@ -97,28 +97,12 @@
         </div>
       </div>
 
-      <!-- 알림톡 설정 -->
-      <div id="ci-mgr-panel-alimtalk" style="display:none;background:#f8fafc;border-radius:8px;padding:14px;margin-bottom:12px;">
-        <p style="font-size:.83rem;font-weight:600;margin-bottom:8px;">문자(SMS) / 알림톡 설정 (Solapi)</p>
-        <div class="form-group" style="margin-bottom:10px;">
-          <label style="font-size:.8rem;">API Key <span class="req">*</span></label>
-          <input type="text" class="form-control" id="ci_mgr_alimtalk_key" placeholder="Solapi API Key"/>
-        </div>
-        <div class="form-group" style="margin-bottom:10px;">
-          <label style="font-size:.8rem;">API Secret <span class="req">*</span></label>
-          <input type="text" class="form-control" id="ci_mgr_alimtalk_secret" placeholder="Solapi API Secret"/>
-        </div>
-        <div class="form-group" style="margin-bottom:10px;">
-          <label style="font-size:.8rem;">발신번호 <span class="req">*</span></label>
-          <input type="text" class="form-control" id="ci_mgr_alimtalk_sender" placeholder="01012345678 (- 없이 입력)"/>
-        </div>
-        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:10px 12px;font-size:.78rem;color:#1e40af;line-height:1.7;">
-          <strong>Solapi 설정 방법</strong><br>
-          1. <a href="https://solapi.com/" target="_blank" style="color:#2563eb;">Solapi 로그인</a> → API Key 관리에서 Key/Secret 발급<br>
-          2. 발송 준비 → 발신번호 등록 (심사 후 사용 가능)<br>
-          3. 알림톡은 카카오 비즈니스 채널 등록 및 템플릿 승인 필요<br>
-          ※ SMS는 별도 템플릿 없이 바로 발송 가능
-        </div>
+      <!-- 알림톡/SMS 설정 안내 -->
+      <div id="ci-mgr-panel-alimtalk" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:14px;margin-bottom:12px;">
+        <p style="font-size:.82rem;color:#1e40af;line-height:1.7;margin:0;">
+          💬 알림톡/SMS 발송 설정은 <strong>알림톡 관리</strong> 메뉴에서 공통으로 설정합니다.<br>
+          담당자 전화번호가 입력되어 있으면 선택한 방식으로 알림이 발송됩니다.
+        </p>
       </div>
 
       <div class="form-group">

@@ -1,11 +1,8 @@
 <?php
 /**
- * ci_reply_send.php — 관리자 답변 발송 (SMS/알림톡) - Solapi 연동
+ * ci_reply_send.php — 관리자 답변 발송 (SMS/알림톡) - Solapi + alimtalk_settings 연동
  */
 
-/* ════════════════════════════════════
-   핵심 발송 함수 (반드시 최상단에 위치)
-════════════════════════════════════ */
 if (!function_exists('ciReplySend')) {
     function ciReplySend(PDO $pdo, array $form, int $rowId, string $content, string $method): array
     {
@@ -29,31 +26,21 @@ if (!function_exists('ciReplySend')) {
         }
         if (!$toPhone) return ['ok' => false, 'msg' => '수신자 전화번호를 찾을 수 없습니다.'];
 
-        // 담당자 테이블에서 API Key/Secret/발신번호 조회
-        $mgrStmt = $pdo->prepare(
-            "SELECT alimtalk_key, alimtalk_secret, alimtalk_sender
-               FROM custom_inquiry_managers
-              WHERE form_id=? AND is_active=1
-                AND alimtalk_key IS NOT NULL AND alimtalk_key != ''
-                AND alimtalk_secret IS NOT NULL AND alimtalk_secret != ''
-              LIMIT 1"
-        );
-        $mgrStmt->execute([$form_id]);
-        $mgr = $mgrStmt->fetch(PDO::FETCH_ASSOC);
+        // alimtalk_settings 공통 설정 조회
+        $atSettings = [];
+        try {
+            $atRow = $pdo->query('SELECT * FROM alimtalk_settings WHERE id=1 LIMIT 1')->fetch();
+            if ($atRow) $atSettings = $atRow;
+        } catch (Exception $e) {}
 
-        if (!$mgr) return ['ok' => false, 'msg' => '담당자 API Key/Secret이 등록되지 않았습니다.'];
+        $apiKey    = trim($atSettings['api_key']    ?? '');
+        $apiSecret = trim($atSettings['api_secret'] ?? '');
+        $fromPhone = preg_replace('/[^0-9]/', '', trim($atSettings['sender'] ?? ''));
+        $pfid      = trim($atSettings['pfid']       ?? '');
+        $tplReply  = trim($atSettings['tpl_reply']  ?? '');
 
-        $apiKey    = trim($mgr['alimtalk_key']);
-        $apiSecret = trim($mgr['alimtalk_secret']);
-        $fromPhone = preg_replace('/[^0-9]/', '', trim($mgr['alimtalk_sender'] ?? ''));
-
-        if (!$fromPhone) {
-            try {
-                $sysStmt = $pdo->query("SELECT sms_sender FROM system_settings WHERE id=1 LIMIT 1");
-                $fromPhone = preg_replace('/[^0-9]/', '', (string)($sysStmt->fetchColumn() ?? ''));
-            } catch (Exception $e) {}
-        }
-        if (!$fromPhone) return ['ok' => false, 'msg' => '발신번호가 등록되지 않았습니다.'];
+        if (!$apiKey || !$apiSecret) return ['ok' => false, 'msg' => '알림톡 설정에 API Key/Secret이 등록되지 않았습니다.'];
+        if (!$fromPhone)             return ['ok' => false, 'msg' => '알림톡 설정에 발신번호가 등록되지 않았습니다.'];
 
         $formTitle = $form['title'] ?? '문의';
         $smsText   = "[{$formTitle}] 답변이 등록되었습니다.\n\n" . mb_substr($content, 0, 80);
@@ -64,14 +51,31 @@ if (!function_exists('ciReplySend')) {
         $hmac       = hash_hmac('sha256', $date . $salt, $apiSecret);
         $authHeader = "HMAC-SHA256 apiKey={$apiKey}, date={$date}, salt={$salt}, signature={$hmac}";
 
-        $payload = json_encode([
-            'message' => [
-                'to'   => $toPhone,
-                'from' => $fromPhone,
-                'text' => $smsText,
-                'type' => mb_strlen($smsText) > 90 ? 'LMS' : 'SMS',
-            ],
-        ]);
+        // 알림톡 발송 (템플릿 있으면 알림톡, 없으면 SMS 폴백)
+        if ($method === 'alimtalk' && $pfid && $tplReply) {
+            $payload = json_encode([
+                'message' => [
+                    'to'   => $toPhone,
+                    'from' => $fromPhone,
+                    'text' => $smsText,
+                    'kakaoOptions' => [
+                        'pfId'       => $pfid,
+                        'templateId' => $tplReply,
+                        'variables'  => ['#{폼명}' => $formTitle],
+                    ],
+                ],
+            ]);
+        } else {
+            // SMS 또는 알림톡 템플릿 미등록 시 SMS 폴백
+            $payload = json_encode([
+                'message' => [
+                    'to'   => $toPhone,
+                    'from' => $fromPhone,
+                    'text' => $smsText,
+                    'type' => mb_strlen($smsText) > 90 ? 'LMS' : 'SMS',
+                ],
+            ]);
+        }
 
         try {
             $ch = curl_init('https://api.solapi.com/messages/v4/send');
@@ -96,10 +100,7 @@ if (!function_exists('ciReplySend')) {
     }
 }
 
-/* ════════════════════════════════════
-   require 방식으로 호출된 경우
-   ($pdo, $form, $id, $content 는 호출 측에서 선언)
-════════════════════════════════════ */
+// require 방식으로 호출된 경우
 if (isset($pdo, $form, $id, $content)) {
     $ciRsMethod = $form['reply_method'] ?? '';
     if (in_array($ciRsMethod, ['alimtalk', 'sms'], true)) {
@@ -108,9 +109,7 @@ if (isset($pdo, $form, $id, $content)) {
     unset($ciRsMethod);
 }
 
-/* ════════════════════════════════════
-   독립 엔드포인트로 호출된 경우
-════════════════════════════════════ */
+// 독립 엔드포인트로 호출된 경우
 if (basename(__FILE__) === basename($_SERVER['SCRIPT_FILENAME'] ?? '')) {
     require_once __DIR__ . '/../config/db.php';
     header('Content-Type: application/json; charset=utf-8');

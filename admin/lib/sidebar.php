@@ -60,6 +60,14 @@
       </div>
       <div class="nav-section">
         <div class="nav-item">
+          <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">💬</span>알림톡 관리<span class="nav-arrow">›</span></div>
+          <div class="nav-sub">
+            <div class="nav-sub-link" onclick="showPage('alimtalkMgmt')">알림톡 설정</div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-item">
           <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">📝</span>문의 폼 관리<span class="nav-arrow">›</span></div>
           <div class="nav-sub" id="customInquiryNavSub">
             <div class="nav-sub-link" onclick="showPage('customInquiryCreate')">문의 폼 추가</div>
@@ -94,7 +102,7 @@
           </div>
         </div>
       </div> -->
-      <div class="nav-section">
+      <!--<div class="nav-section">
         <div class="nav-item">
           <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">📅</span>예약(신규)<span class="nav-arrow">›</span></div>
           <div class="nav-sub">
@@ -103,7 +111,7 @@
             <div class="nav-sub-link" onclick="showPage('rvmAdminUi')">예약관리 테이블 UI</div>
           </div>
         </div>
-      </div>
+      </div> -->
       <div class="nav-section">
         <div class="nav-item">
           <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">🤖</span>챗봇 관리<span class="nav-arrow">›</span></div>

@@ -113,6 +113,7 @@ const PAGE_LABELS = {
   customInquiryList:   ['문의 폼','문의 폼 목록'],
   customInquiryDetail: ['문의 폼','폼 설정'],
   customInquiryData:   ['문의 폼','문의 내역'],
+  alimtalkMgmt:        ['알림톡 관리','알림톡 설정'],
 
   customReserModule: ['예약(신규)', '예약 모듈 (customReser)'],
 };
@@ -357,6 +358,7 @@ function showPage(pageId) {
 
   if (pageId === 'customInquiryCreate') { /* 별도 로드 없음 */ }
   if (pageId === 'customInquiryList')   ciLoadFormList();
+  if (pageId === 'alimtalkMgmt')        loadAlimtalkSettings();
 
   if (pageId === 'customReserModule' && typeof window.initCustomReserAdmin === 'function') {
     window.initCustomReserAdmin();

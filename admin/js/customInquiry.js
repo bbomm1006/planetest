@@ -353,7 +353,7 @@ async function ciOpenManagerModal(id = 0) {
   document.getElementById('ciManagerModalTitle').textContent = id ? '담당자 수정' : '담당자 추가';
   document.getElementById('ci_mgr_id').value = id;
   // 초기화
-  ['ci_mgr_name','ci_mgr_dept','ci_mgr_phone','ci_mgr_email','ci_mgr_sheet_id','ci_mgr_sheet_name','ci_mgr_alimtalk_key','ci_mgr_alimtalk_secret','ci_mgr_alimtalk_sender'].forEach(f => {
+  ['ci_mgr_name','ci_mgr_dept','ci_mgr_phone','ci_mgr_email','ci_mgr_sheet_id','ci_mgr_sheet_name'].forEach(f => {
     const el = document.getElementById(f); if (el) el.value = '';
   });
   ['ci_mgr_notify_email','ci_mgr_notify_sheet','ci_mgr_notify_alimtalk','ci_mgr_notify_sms'].forEach(f => {
@@ -374,9 +374,6 @@ async function ciOpenManagerModal(id = 0) {
       document.getElementById('ci_mgr_email').value         = m.email || '';
       document.getElementById('ci_mgr_sheet_id').value      = m.sheet_id || '';
       document.getElementById('ci_mgr_sheet_name').value    = m.sheet_name || '';
-      document.getElementById('ci_mgr_alimtalk_key').value  = m.alimtalk_key || '';
-      document.getElementById('ci_mgr_alimtalk_secret').value = m.alimtalk_secret || '';
-      document.getElementById('ci_mgr_alimtalk_sender').value = m.alimtalk_sender || '';
       document.getElementById('ci_mgr_notify_email').checked    = m.notify_email == 1;
       document.getElementById('ci_mgr_notify_sheet').checked    = m.notify_sheet == 1;
       document.getElementById('ci_mgr_notify_alimtalk').checked = m.notify_alimtalk == 1;
@@ -416,9 +413,6 @@ async function ciSaveManager() {
     notify_sms:       document.getElementById('ci_mgr_notify_sms').checked      ? 1 : 0,
     sheet_id:         document.getElementById('ci_mgr_sheet_id').value.trim(),
     sheet_name:       document.getElementById('ci_mgr_sheet_name').value.trim(),
-    alimtalk_key:     document.getElementById('ci_mgr_alimtalk_key').value.trim(),
-    alimtalk_secret:  document.getElementById('ci_mgr_alimtalk_secret').value.trim(),
-    alimtalk_sender:  document.getElementById('ci_mgr_alimtalk_sender').value.trim(),
     is_active:        isActive,
   };
   const res = await apiPost('api/custom_inquiry.php', data);

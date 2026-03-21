@@ -301,80 +301,59 @@ if ($action === 'create') {
         }
     }
 
-    // ── 담당자 SMS/알림톡 발송
+    // ── 담당자 SMS/알림톡 발송 (alimtalk_settings 공통 설정 사용)
     $msgMgrs = $pdo->prepare('SELECT * FROM custom_inquiry_managers WHERE form_id=? AND is_active=1 AND (notify_sms=1 OR notify_alimtalk=1)');
     $msgMgrs->execute([$form_id]);
     $msgManagers = $msgMgrs->fetchAll();
 
     if (!empty($msgManagers)) {
-        // 문자 내용 구성
-        $formTitle = $form_row['title'] ?? '문의';
-        $firstVal  = '';
-        if (!empty($fMeta3)) {
-            $firstKey = $fMeta3[0]['field_key'] ?? '';
-            $firstVal = $firstKey ? ($fieldValues[$firstKey] ?? '') : '';
-        }
-        $smsText = "[{$formTitle}] 새 문의가 접수되었습니다.\n{$firstVal}";
+        $atSettings = [];
+        try {
+            $atRow = $pdo->query('SELECT * FROM alimtalk_settings WHERE id=1 LIMIT 1')->fetch();
+            if ($atRow) $atSettings = $atRow;
+        } catch (Exception $e) {}
 
-        foreach ($msgManagers as $mmgr) {
-            $apiKey    = trim($mmgr['alimtalk_key']    ?? '');
-            $apiSecret = trim($mmgr['alimtalk_secret'] ?? '');
-            $fromPhone = preg_replace('/[^0-9]/', '', trim($mmgr['alimtalk_sender'] ?? ''));
-            $toPhone   = preg_replace('/[^0-9]/', '', trim($mmgr['phone'] ?? ''));
+        $apiKey    = trim($atSettings['api_key']    ?? '');
+        $apiSecret = trim($atSettings['api_secret'] ?? '');
+        $fromPhone = preg_replace('/[^0-9]/', '', trim($atSettings['sender'] ?? ''));
+        $pfid      = trim($atSettings['pfid']       ?? '');
+        $tplNotify = trim($atSettings['tpl_notify'] ?? '');
 
-            if (!$apiKey || !$apiSecret || !$toPhone || !$fromPhone) continue;
+        if ($apiKey && $apiSecret && $fromPhone) {
+            $formTitle = $form_row['title'] ?? '문의';
+            $firstVal  = '';
+            if (!empty($fMeta3)) {
+                $firstKey = $fMeta3[0]['field_key'] ?? '';
+                $firstVal = $firstKey ? ($fieldValues[$firstKey] ?? '') : '';
+            }
+            $smsText = "[{$formTitle}] 새 문의가 접수되었습니다.\n{$firstVal}";
 
-            try {
-                $date    = gmdate('Y-m-d\TH:i:s\Z');
-                $salt    = bin2hex(random_bytes(16));
-                $hmac    = hash_hmac('sha256', $date . $salt, $apiSecret);
-                $authHeader = "HMAC-SHA256 apiKey={$apiKey}, date={$date}, salt={$salt}, signature={$hmac}";
+            $date       = gmdate('Y-m-d\TH:i:s\Z');
+            $salt       = bin2hex(random_bytes(16));
+            $hmac       = hash_hmac('sha256', $date . $salt, $apiSecret);
+            $authHeader = "HMAC-SHA256 apiKey={$apiKey}, date={$date}, salt={$salt}, signature={$hmac}";
 
-                // SMS 발송
-                if ($mmgr['notify_sms'] == 1) {
-                    $payload = json_encode([
-                        'message' => [
-                            'to'   => $toPhone,
-                            'from' => $fromPhone,
-                            'text' => $smsText,
-                            'type' => mb_strlen($smsText) > 90 ? 'LMS' : 'SMS',
-                        ],
-                    ]);
-                    $ch = curl_init('https://api.solapi.com/messages/v4/send');
-                    curl_setopt_array($ch, [
-                        CURLOPT_RETURNTRANSFER => true,
-                        CURLOPT_POST           => true,
-                        CURLOPT_POSTFIELDS     => $payload,
-                        CURLOPT_HTTPHEADER     => ['Content-Type: application/json', "Authorization: {$authHeader}"],
-                        CURLOPT_TIMEOUT        => 10,
-                    ]);
-                    curl_exec($ch);
-                    curl_close($ch);
-                }
-
-                // 알림톡 발송 (SMS 폴백으로 발송 - 템플릿 없이도 동작)
-                if ($mmgr['notify_alimtalk'] == 1) {
-                    $payload = json_encode([
-                        'message' => [
-                            'to'   => $toPhone,
-                            'from' => $fromPhone,
-                            'text' => $smsText,
-                            'type' => 'SMS',
-                        ],
-                    ]);
-                    $ch = curl_init('https://api.solapi.com/messages/v4/send');
-                    curl_setopt_array($ch, [
-                        CURLOPT_RETURNTRANSFER => true,
-                        CURLOPT_POST           => true,
-                        CURLOPT_POSTFIELDS     => $payload,
-                        CURLOPT_HTTPHEADER     => ['Content-Type: application/json', "Authorization: {$authHeader}"],
-                        CURLOPT_TIMEOUT        => 10,
-                    ]);
-                    curl_exec($ch);
-                    curl_close($ch);
-                }
-            } catch (Exception $e) {
-                // 발송 실패 무시
+            foreach ($msgManagers as $mmgr) {
+                $toPhone = preg_replace('/[^0-9]/', '', trim($mmgr['phone'] ?? ''));
+                if (!$toPhone) continue;
+                try {
+                    if ($mmgr['notify_sms'] == 1) {
+                        $payload = json_encode(['message' => ['to' => $toPhone, 'from' => $fromPhone, 'text' => $smsText, 'type' => mb_strlen($smsText) > 90 ? 'LMS' : 'SMS']]);
+                        $ch = curl_init('https://api.solapi.com/messages/v4/send');
+                        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true, CURLOPT_POST=>true, CURLOPT_POSTFIELDS=>$payload, CURLOPT_HTTPHEADER=>['Content-Type: application/json', "Authorization: {$authHeader}"], CURLOPT_TIMEOUT=>10]);
+                        curl_exec($ch); curl_close($ch);
+                    }
+                    if ($mmgr['notify_alimtalk'] == 1) {
+                        if ($pfid && $tplNotify) {
+                            $payload = json_encode(['message' => ['to' => $toPhone, 'from' => $fromPhone, 'text' => $smsText, 'kakaoOptions' => ['pfId' => $pfid, 'templateId' => $tplNotify, 'variables' => ['#{폼명}' => $formTitle]]]]);
+                        } else {
+                            $payload = json_encode(['message' => ['to' => $toPhone, 'from' => $fromPhone, 'text' => $smsText, 'type' => 'SMS']]);
+                        }
+                        $ch = curl_init('https://api.solapi.com/messages/v4/send');
+                        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true, CURLOPT_POST=>true, CURLOPT_POSTFIELDS=>$payload, CURLOPT_HTTPHEADER=>['Content-Type: application/json', "Authorization: {$authHeader}"], CURLOPT_TIMEOUT=>10]);
+                        curl_exec($ch); curl_close($ch);
+                    }
+                } catch (Exception $e) {}
             }
         }
     }
@@ -590,49 +569,21 @@ if ($action === 'comment_write') {
     if (!$sessionUser) { echo json_encode(['ok'=>false,'msg'=>'로그인 필요']); exit; }
 
     $comTable = 'ci_comments_' . $table_name;
-
-    // 관리자 스키마와 통일된 테이블 생성
+    // 테이블 없으면 생성
     $pdo->exec("CREATE TABLE IF NOT EXISTS `{$comTable}` (
-        `id`          INT(11) NOT NULL AUTO_INCREMENT,
-        `row_id`      INT(11) NOT NULL,
-        `author`      VARCHAR(255) DEFAULT NULL,
+        `id`          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+        `row_id`      INT UNSIGNED NOT NULL,
         `author_id`   VARCHAR(255) DEFAULT NULL,
         `author_name` VARCHAR(100) DEFAULT NULL,
-        `login_type`  VARCHAR(20) DEFAULT NULL,
         `is_admin`    TINYINT(1) NOT NULL DEFAULT 0,
         `content`     TEXT NOT NULL,
-        `visibility`  TINYINT(1) DEFAULT 1,
-        `created_at`  DATETIME DEFAULT CURRENT_TIMESTAMP,
-        `updated_at`  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        PRIMARY KEY (`id`), KEY `idx_row_id` (`row_id`)
+        `created_at`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        `updated_at`  DATETIME DEFAULT NULL,
+        PRIMARY KEY (`id`), KEY `idx_row` (`row_id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
-    // 기존 테이블 컬럼 누락 시 자동 추가
-    $missingCols = [
-        'author'      => 'VARCHAR(255) DEFAULT NULL',
-        'author_id'   => 'VARCHAR(255) DEFAULT NULL',
-        'author_name' => 'VARCHAR(100) DEFAULT NULL',
-        'login_type'  => 'VARCHAR(20) DEFAULT NULL',
-        'is_admin'    => 'TINYINT(1) NOT NULL DEFAULT 0',
-        'visibility'  => 'TINYINT(1) DEFAULT 1',
-    ];
-    foreach ($missingCols as $col => $def) {
-        try {
-            $chk = $pdo->prepare("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=? AND column_name=?");
-            $chk->execute([$comTable, $col]);
-            if (!$chk->fetchColumn()) {
-                $pdo->exec("ALTER TABLE `{$comTable}` ADD COLUMN `{$col}` {$def}");
-            }
-        } catch (Exception $e) {}
-    }
-
-    $authorName = $sessionUser['name'] ?? $sessionUser['id'] ?? '익명';
-    $authorId   = $sessionUser['id'] ?? '';
-    $loginType  = $sessionUser['login_type'] ?? $sessionUser['provider'] ?? '';
-
-    $pdo->prepare("INSERT INTO `{$comTable}` (row_id, author, author_id, author_name, login_type, is_admin, content) VALUES (?,?,?,?,?,0,?)")
-        ->execute([$row_id, $authorName, $authorId, $authorName, $loginType, $content]);
-
+    $pdo->prepare("INSERT INTO `{$comTable}` (row_id, author_id, author_name, content) VALUES (?,?,?,?)")
+        ->execute([$row_id, $sessionUser['id'], $sessionUser['name'], $content]);
     echo json_encode(['ok'=>true, 'id'=>(int)$pdo->lastInsertId()]);
     exit;
 }
