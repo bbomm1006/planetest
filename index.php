@@ -75,6 +75,14 @@ $ci_table = 'test22';
 include __DIR__ . '/lib/custom_inquiry_front.php';
 ?>
 
+<?php
+$ci_table = 'form1';
+include __DIR__ . '/lib/custom_inquiry_front.php';
+?>
+<?php
+$ci_table = 'form2';
+include __DIR__ . '/lib/custom_inquiry_front.php';
+?>
   <!-- BENEFITS -->
   <div data-front-section-key="front_benefits" <?php if (!$frontIsVisible('front_benefits')) echo 'style="display:none;"'; ?>>
     <?php include 'lib/benefits.php'; ?>

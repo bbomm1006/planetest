@@ -97,7 +97,7 @@ async function ciLoadFormList() {
       <td>${escHtml(f.title)}</td>
       <td><code style="font-size:.78rem;">${escHtml(f.table_name)}</code></td>
       <td><span class="badge ${f.is_active == 1 ? 'badge-success' : 'badge-gray'}">${f.is_active == 1 ? '사용' : '미사용'}</span></td>
-      <td style="text-align:center;">${f.inquiry_count ?? 0}건</td>
+      <td style="text-align:center;">${(f.inquiry_count !== undefined ? f.inquiry_count : 0)}건</td>
       <td>${f.created_at ? f.created_at.slice(0,16) : '-'}</td>
       <td>
         <button class="btn btn-sm btn-outline" onclick="ciOpenDetail(${f.id})">설정</button>

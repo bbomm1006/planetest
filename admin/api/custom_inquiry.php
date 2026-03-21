@@ -112,8 +112,7 @@ if ($action === 'create_form') {
    폼 목록
    ================================================================ */
 if ($action === 'list_forms') {
-    $rows = $pdo->query('SELECT id, title, table_name, is_active, created_at FROM custom_inquiry_forms ORDER BY id DESC')->fetchAll();
-    // 각 폼의 문의 건수 조회
+    $rows = $pdo->query('SELECT id, title, table_name, is_active, created_at FROM custom_inquiry_forms ORDER BY id DESC')->fetchAll(PDO::FETCH_ASSOC);
     foreach ($rows as &$row) {
         try {
             $tbl = $row['table_name'];
@@ -123,6 +122,7 @@ if ($action === 'list_forms') {
             $row['inquiry_count'] = 0;
         }
     }
+    unset($row);
     echo json_encode(['ok' => true, 'data' => $rows]);
     exit;
 }
