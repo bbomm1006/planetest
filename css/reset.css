@@ -3,7 +3,7 @@
 ══════════════════════════════════════ */
 :root{
   --ink:#080e1a;--ink2:#1a2540;--ink3:#2d3a52;
-  --blue:#1255a6;--sky:#1e7fe8;--aqua:#00c6ff;--aqua2:#7df9ff;
+  --blue:var(--color-base,#1255a6);--sky:var(--color-point,#1e7fe8);--aqua:var(--color-sub,#00c6ff);--aqua2:#7df9ff;
   --white:#fff;--off:#f7f9fc;--mist:#eef3fb;--pale:#d6eafc;
   --g2:#e2e8f0;--g3:#cbd5e1;--g4:#94a3b8;--g5:#64748b;--g7:#334155;
   --red:#ef4444;--green:#10b981;--amber:#f59e0b;
