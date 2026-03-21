@@ -312,8 +312,10 @@ function showPage(pageId) {
 
   localStorage.setItem('adminPage', pageId);
 
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const t = document.getElementById('page-' + pageId);
+  if (t && t.classList.contains('active')) return; // 이미 활성 페이지는 리트리거 안함
+
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   if (t) t.classList.add('active');
 
   document.querySelectorAll('.nav-sub-link').forEach(l => {
