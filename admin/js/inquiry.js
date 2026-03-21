@@ -270,7 +270,7 @@ function sendFrontEml() {
   if (!addr || addr.indexOf('@') < 0) { alert('이메일 주소를 올바르게 입력하세요.'); return; }
 
   var subj, body;
-  } else if (_frontEmlType === 'inq') {
+  if (_frontEmlType === 'inq') {
     var last = window._lastInqData || {};
     var sn = (window._pbData && window._pbData.siteTitle) ? window._pbData.siteTitle : 'PureBlue';
     subj = '[' + sn + '] ' + (last.name || '') + '님 상담 신청 완료 안내';

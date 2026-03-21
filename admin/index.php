@@ -4,9 +4,9 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>관리자 시스템</title>
+<link rel="icon" href="data:,">
 <link rel="stylesheet" href="css/admin.css"/>
 <link rel="stylesheet" href="css/find_account.css"/>
-
 <link rel="stylesheet" href="css/bkf_admin.css"/>
 
 <!-- 카카오 주소검색 (Daum 우편번호) -->

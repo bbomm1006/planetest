@@ -32,7 +32,6 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('bkf_create_slug_msg').textContent = '';
     });
   }
-  // 목록 로드는 로그인 후 enterAdmin() → bkfLoadFormList() 에서 처리
 });
 
 // =====================================================
