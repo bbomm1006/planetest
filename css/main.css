@@ -2436,6 +2436,7 @@ p.ft-legal span{color:rgba(255,255,255,.2);font-size:.75rem;}
 
 /* 고객센터 */
 .ft-cs{text-align:right;}
+.ft-cs a{color:#fff}
 .ft-cs h4{color:rgba(255,255,255,.45);font-size:.75rem;font-weight:600;letter-spacing:.4px;margin-bottom:6px;}
 .ft-cs-tel{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:#fff;letter-spacing:1px;line-height:1.1;margin-bottom:6px;}
 .ft-cs-time{font-size:.73rem;color:rgba(255,255,255,.32);line-height:1.8;}
