@@ -617,13 +617,39 @@ if ($action === 'lookup') {
     $name  = trim((string)($in['name']  ?? ''));
     $phone = bkf_normalize_phone((string)($in['phone'] ?? ''));
 
+    // 필드 메타 (이름/전화 제외)
+    $fmst = $pdo->prepare(
+        "SELECT id, field_key, label, type, is_required FROM bkf_fields
+         WHERE form_id=? AND is_visible=1
+           AND field_key NOT IN ('name','phone')
+           AND type NOT IN ('store_select','date','time_slot')
+         ORDER BY sort_order ASC"
+    );
+    $fmst->execute([$form_id]);
+    $fieldMeta = $fmst->fetchAll(PDO::FETCH_ASSOC);
+
+    // bkf_field_options 에서 선택지 로드
+    foreach ($fieldMeta as &$fm) {
+        if (in_array($fm['type'], ['dropdown','radio','checkbox','item_select'])) {
+            $optSt = $pdo->prepare(
+                'SELECT label FROM bkf_field_options WHERE field_id=? AND is_visible=1 ORDER BY sort_order ASC'
+            );
+            $optSt->execute([$fm['id']]);
+            $fm['options'] = array_column($optSt->fetchAll(PDO::FETCH_ASSOC), 'label');
+        } else {
+            $fm['options'] = [];
+        }
+        unset($fm['id']); // id 노출 불필요
+    }
+    unset($fm);
+
     if ($no !== '') {
         $st = $pdo->prepare(
             "SELECT * FROM `{$tbl}` WHERE form_id=? AND reservation_no=? LIMIT 1"
         );
         $st->execute([$form_id, $no]);
         $row = $st->fetch(PDO::FETCH_ASSOC);
-        bkf_out(['ok' => true, 'data' => $row ?: null]);
+        bkf_out(['ok' => true, 'data' => $row ?: null, 'fields' => $fieldMeta]);
     }
 
     if ($name !== '' && $phone !== '') {
@@ -632,7 +658,7 @@ if ($action === 'lookup') {
              ORDER BY id DESC LIMIT 10"
         );
         $st->execute([$form_id, $name, $phone]);
-        bkf_out(['ok' => true, 'data' => $st->fetchAll(PDO::FETCH_ASSOC)]);
+        bkf_out(['ok' => true, 'data' => $st->fetchAll(PDO::FETCH_ASSOC), 'fields' => $fieldMeta]);
     }
 
     bkf_out(['ok' => false, 'msg' => '예약번호 또는 이름+전화번호를 입력해 주세요.'], 400);
@@ -1018,6 +1044,30 @@ if ($action === 'update_booking') {
 
         $pdo->prepare("UPDATE `{$tbl}` SET name=?, phone=?, reservation_date=?, reservation_time=?, store_id=?, store_name=? WHERE id=?")
             ->execute([$name, $phone, $new_date, $new_time, $new_store_id, $new_store_nm, $id]);
+
+        // 동적 필드 업데이트 (이름/전화/기본 컬럼 제외)
+        $dynFst = $pdo->prepare(
+            "SELECT field_key FROM bkf_fields WHERE form_id=? AND is_visible=1
+             AND field_key NOT IN ('name','phone')
+             AND type NOT IN ('store_select','date','time_slot')
+             ORDER BY sort_order ASC"
+        );
+        $dynFst->execute([$form_id]);
+        $dynKeys = array_column($dynFst->fetchAll(PDO::FETCH_ASSOC), 'field_key');
+
+        // 실제 존재 컬럼 확인
+        $existColSt = $pdo->prepare(
+            "SELECT column_name FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=?"
+        );
+        $existColSt->execute([$tbl]);
+        $existCols = array_column($existColSt->fetchAll(PDO::FETCH_ASSOC), 'column_name');
+
+        foreach ($dynKeys as $fk) {
+            if (!in_array($fk, $existCols)) continue;
+            if (!isset($in[$fk])) continue;
+            $pdo->prepare("UPDATE `{$tbl}` SET `{$fk}`=? WHERE id=?")
+                ->execute([trim((string)$in[$fk]), $id]);
+        }
 
         $pdo->commit();
         bkf_out(['ok' => true]);

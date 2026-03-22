@@ -1004,10 +1004,20 @@ if ($action === 'get_record') {
     $row = $st->fetch(PDO::FETCH_ASSOC);
     if (!$row) { echo json_encode(['ok' => false, 'msg' => 'Record not found.']); exit; }
 
-    // 필드 메타
+    // 필드 메타 + options
     $fst = $pdo->prepare('SELECT * FROM bkf_fields WHERE form_id=? ORDER BY sort_order ASC');
     $fst->execute([$form_id]);
     $fields = $fst->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($fields as &$fld) {
+        if (in_array($fld['type'], ['dropdown','radio','checkbox','item_select'])) {
+            $optSt = $pdo->prepare('SELECT label FROM bkf_field_options WHERE field_id=? AND is_visible=1 ORDER BY sort_order ASC');
+            $optSt->execute([$fld['id']]);
+            $fld['options'] = array_column($optSt->fetchAll(PDO::FETCH_ASSOC), 'label');
+        } else {
+            $fld['options'] = [];
+        }
+    }
+    unset($fld);
 
     ob_clean();
     echo json_encode(['ok' => true, 'data' => $row, 'fields' => $fields]);
@@ -1074,12 +1084,7 @@ if ($action === 'update_record') {
     $rec = $cur->fetch(PDO::FETCH_ASSOC);
     if (!$rec) { echo json_encode(['ok' => false, 'msg' => 'Record not found.']); exit; }
 
-    // 접수 상태일 때만 수정 허용
-    if ($rec['status'] !== '접수') {
-        ob_clean();
-        echo json_encode(['ok' => false, 'msg' => 'Only records with status "접수" can be modified.']);
-        exit;
-    }
+    // 관리자는 상태 무관하게 수정 가능 (취소 상태만 제외)
 
     $new_date     = trim($_POST['reservation_date'] ?? '') ?: null;
     $new_time     = trim($_POST['reservation_time'] ?? '') ?: null;

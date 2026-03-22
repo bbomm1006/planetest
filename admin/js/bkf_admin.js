@@ -1767,7 +1767,7 @@ async function bkfOpenRecordModal(id) {
 
   const d      = res.data;
   const fields = res.fields || [];
-  const editable = d.status === '접수';
+  const editable = true; // 관리자는 상태 무관하게 항상 수정 가능 (이름/연락처 제외)
 
   document.getElementById('bkf_record_id').value = id;
   document.getElementById('bkfRecordModalTitle').textContent = '예약 상세 — ' + (d.reservation_no || '');
@@ -1813,9 +1813,9 @@ async function bkfSaveMemo(recordId) {
   const statusSel = document.getElementById('bkfRecordStatusSelect');
   if (statusSel) statusSel.value = d.status;
 
-  // 수정 불가 안내
+  // 수정 불가 안내 (관리자는 항상 수정 가능)
   const notice = document.getElementById('bkfRecordEditNotice');
-  notice.style.display = editable ? 'none' : '';
+  notice.style.display = 'none';
 
   // 기본 필드
   document.getElementById('bkf_rec_name').value       = d.name             || '';
@@ -1849,28 +1849,123 @@ async function bkfSaveMemo(recordId) {
     });
   } catch (e) {}
 
-  // 수정 가능 여부
-  const inputs = ['bkf_rec_name','bkf_rec_phone','bkf_rec_date','bkf_rec_time'];
-  inputs.forEach(f => {
+  // 이름/전화는 수정 불가, 나머지는 항상 수정 가능 (관리자)
+  ['bkf_rec_name','bkf_rec_phone'].forEach(f => {
     const el = document.getElementById(f);
-    if (el) el.disabled = !editable;
+    if (el) { el.disabled = true; el.style.background='#f8fafc'; el.style.color='#94a3b8'; }
   });
-  storeSel.disabled = false; // 관리자는 항상 지점 변경 가능
+  ['bkf_rec_date','bkf_rec_time'].forEach(f => {
+    const el = document.getElementById(f);
+    if (el) el.disabled = false;
+  });
+  storeSel.disabled = false;
 
   // 동적 필드
   const dynWrap = document.getElementById('bkfRecordDynFields');
   dynWrap.innerHTML = '';
+
   fields.filter(f => !['name','phone'].includes(f.field_key)).forEach(f => {
-    const val = d[f.field_key] || '';
-    const div = document.createElement('div');
+    const raw  = d[f.field_key] || '';
+    const fkey = f.field_key;
+    const div  = document.createElement('div');
     div.className = 'form-group';
-    div.innerHTML = `
-      <label style="font-size:.83rem;color:#64748b;">${escHtml(f.label)}</label>
-      <input type="text" class="form-control bkf-dyn-field" data-key="${f.field_key}"
-        value="${escHtml(val)}" ${!editable ? 'disabled' : ''}/>`;
+
+    // ── item_select: 서브항목 개별 수정 ──
+    if (f.type === 'item_select' || (typeof raw === 'string' && raw.trim().startsWith('{'))) {
+      let parsed = {};
+      if (typeof raw === 'string' && raw.trim().startsWith('{')) {
+        try { parsed = JSON.parse(raw); } catch(e) {}
+      }
+      const opts = Array.isArray(f.options) ? f.options : [];
+
+      let innerHtml = '';
+      if (opts.length) {
+        // 필드 메타에 options 있을 때 → 타입별 렌더
+        opts.forEach((opt, oi) => {
+          const parts   = opt.split('::');
+          const itype   = (parts[0] || 'text').trim();
+          const ilabel  = (parts[1] || opt).trim();
+          const subopts = parts[2] ? parts[2].split('|').map(x=>x.trim()).filter(Boolean) : [];
+          const curVal  = parsed[ilabel] || '';
+          const subid   = `bkf_adm_dyn_${fkey}_${oi}`;
+
+          innerHtml += `<div class="bkf-adm-item-sub" data-ilabel="${escHtml(ilabel)}" style="margin-bottom:10px;">
+            <div style="font-size:.78rem;color:#64748b;font-weight:600;margin-bottom:4px;">${escHtml(ilabel)}</div>`;
+
+          if (itype === 'radio') {
+            innerHtml += `<div style="display:flex;flex-wrap:wrap;gap:10px;">`;
+            subopts.forEach(so => {
+              innerHtml += `<label style="display:flex;align-items:center;gap:5px;font-weight:400;font-size:.84rem;cursor:pointer;">
+                <input type="radio" name="${subid}" value="${escHtml(so)}" ${curVal===so?'checked':''}/> ${escHtml(so)}
+              </label>`;
+            });
+            innerHtml += `</div>`;
+          } else if (itype === 'checkbox') {
+            const checked = curVal.split(',').map(v=>v.trim()).filter(Boolean);
+            innerHtml += `<div style="display:flex;flex-wrap:wrap;gap:10px;">`;
+            subopts.forEach(so => {
+              innerHtml += `<label style="display:flex;align-items:center;gap:5px;font-weight:400;font-size:.84rem;cursor:pointer;">
+                <input type="checkbox" value="${escHtml(so)}" ${checked.includes(so)?'checked':''}/> ${escHtml(so)}
+              </label>`;
+            });
+            innerHtml += `</div>`;
+          } else if (itype === 'dropdown') {
+            innerHtml += `<select class="form-control" style="max-width:220px;padding:6px 10px;">
+              <option value="">선택</option>
+              ${subopts.map(so=>`<option value="${escHtml(so)}" ${curVal===so?'selected':''}>${escHtml(so)}</option>`).join('')}
+            </select>`;
+          } else {
+            innerHtml += `<input type="text" class="form-control" value="${escHtml(curVal)}" style="max-width:300px;"/>`;
+          }
+          innerHtml += `</div>`;
+        });
+      } else {
+        // opts 없을 때 → 저장된 값 key:value 행으로 표시 (수정 가능)
+        Object.entries(parsed).forEach(([k, v]) => {
+          innerHtml += `<div class="bkf-adm-item-sub" data-ilabel="${escHtml(k)}" style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+            <span style="font-size:.78rem;color:#64748b;min-width:90px;flex-shrink:0;">${escHtml(k)}</span>
+            <input type="text" class="form-control" value="${escHtml(v)}" style="flex:1;"/>
+          </div>`;
+        });
+      }
+
+      div.innerHTML = `
+        <label style="font-size:.83rem;color:#64748b;font-weight:600;margin-bottom:8px;display:block;">${escHtml(f.label)}</label>
+        <div id="bkf_adm_item_${fkey}" data-key="${fkey}" class="bkf-adm-item-select-wrap"
+          style="border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;background:#f8fafc;">${innerHtml}</div>
+        <input type="hidden" class="bkf-dyn-field" data-key="${fkey}" value="${escHtml(raw)}"/>`;
+      dynWrap.appendChild(div);
+      return;
+    }
+
+    // ── 일반 필드 (text/textarea/radio/checkbox/dropdown) ──
+    let inputHtml = '';
+    const opts2 = Array.isArray(f.options) ? f.options : [];
+    if (f.type === 'radio') {
+      inputHtml = `<div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:4px;" data-key="${fkey}" class="bkf-dyn-radio">` +
+        opts2.map(o=>`<label style="display:flex;align-items:center;gap:5px;font-weight:400;font-size:.84rem;cursor:pointer;">
+          <input type="radio" name="bkf_adm_r_${fkey}" value="${escHtml(o)}" ${raw===o?'checked':''}/> ${escHtml(o)}
+        </label>`).join('') + `</div>`;
+    } else if (f.type === 'checkbox') {
+      const chk = (raw||'').split(',').map(v=>v.trim()).filter(Boolean);
+      inputHtml = `<div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:4px;" data-key="${fkey}" class="bkf-dyn-checkbox">` +
+        opts2.map(o=>`<label style="display:flex;align-items:center;gap:5px;font-weight:400;font-size:.84rem;cursor:pointer;">
+          <input type="checkbox" value="${escHtml(o)}" ${chk.includes(o)?'checked':''}/> ${escHtml(o)}
+        </label>`).join('') + `</div>`;
+    } else if (f.type === 'dropdown') {
+      inputHtml = `<select class="form-control bkf-dyn-field" data-key="${fkey}" style="padding:8px 10px;">
+        <option value="">선택</option>
+        ${opts2.map(o=>`<option value="${escHtml(o)}" ${raw===o?'selected':''}>${escHtml(o)}</option>`).join('')}
+      </select>`;
+    } else if (f.type === 'textarea') {
+      inputHtml = `<textarea class="form-control bkf-dyn-field" data-key="${fkey}" rows="3" style="resize:vertical;">${escHtml(raw)}</textarea>`;
+    } else {
+      inputHtml = `<input type="text" class="form-control bkf-dyn-field" data-key="${fkey}" value="${escHtml(raw)}"/>`;
+    }
+
+    div.innerHTML = `<label style="font-size:.83rem;color:#64748b;">${escHtml(f.label)}</label>${inputHtml}`;
     dynWrap.appendChild(div);
   });
-
   // 저장 버튼 표시
   const saveBtn = document.getElementById('bkfRecordSaveBtn');
   if (saveBtn) saveBtn.style.display = editable ? '' : 'none';
@@ -1932,9 +2027,53 @@ async function bkfSaveRecord() {
   };
 
   // 동적 필드값 추가
-  document.querySelectorAll('.bkf-dyn-field').forEach(el => {
-    data[el.dataset.key] = el.value;
-  });
+  const dynWrapEl = document.getElementById('bkfRecordDynFields');
+  if (dynWrapEl) {
+    // 일반 .bkf-dyn-field (text/textarea/select/hidden)
+    dynWrapEl.querySelectorAll('.bkf-dyn-field').forEach(el => {
+      const key = el.dataset.key;
+      if (!key) return;
+      // item_select hidden은 아래 wrap에서 처리하므로 스킵
+      if (el.type === 'hidden' && dynWrapEl.querySelector(`.bkf-adm-item-select-wrap[data-key="${key}"]`)) return;
+      if (el.tagName === 'SELECT') data[key] = el.value;
+      else data[key] = el.value;
+    });
+
+    // radio 그룹
+    dynWrapEl.querySelectorAll('.bkf-dyn-radio').forEach(grp => {
+      const key = grp.dataset.key;
+      if (!key) return;
+      const chk = grp.querySelector('input[type=radio]:checked');
+      data[key] = chk ? chk.value : '';
+    });
+
+    // checkbox 그룹
+    dynWrapEl.querySelectorAll('.bkf-dyn-checkbox').forEach(grp => {
+      const key = grp.dataset.key;
+      if (!key) return;
+      const vals = [...grp.querySelectorAll('input[type=checkbox]:checked')].map(i=>i.value);
+      data[key] = vals.join(', ');
+    });
+
+    // item_select wrap → JSON
+    dynWrapEl.querySelectorAll('.bkf-adm-item-select-wrap').forEach(wrap => {
+      const key = wrap.dataset.key;
+      if (!key) return;
+      const result = {};
+      wrap.querySelectorAll('.bkf-adm-item-sub').forEach(sub => {
+        const ilabel = sub.dataset.ilabel || '';
+        const radio  = sub.querySelector('input[type=radio]:checked');
+        const checks = [...(sub.querySelectorAll('input[type=checkbox]:checked') || [])];
+        const sel    = sub.querySelector('select');
+        const txt    = sub.querySelector('input[type=text]');
+        if (radio)         result[ilabel] = radio.value;
+        else if (checks.length) result[ilabel] = checks.map(i=>i.value).join(', ');
+        else if (sel)      result[ilabel] = sel.value;
+        else if (txt)      result[ilabel] = txt.value.trim();
+      });
+      data[key] = JSON.stringify(result);
+    });
+  }
 
   const res = await bkfApiPost('api/bkf_admin.php', data);
   if (res.ok) {

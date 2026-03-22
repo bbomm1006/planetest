@@ -1053,11 +1053,12 @@ async function bkfDoLookup(s, mode) {
       return;
     }
 
+    const lookupFields = res.fields || [];
     resultEl.innerHTML = list.map(b => bkfRenderLookupCard(s, b)).join('');
 
     // 수정 버튼 이벤트
     resultEl.querySelectorAll('.bkf-edit-btn-trigger').forEach(btn => {
-      btn.onclick = () => bkfShowEditForm(btn.dataset.s, parseInt(btn.dataset.id), list);
+      btn.onclick = () => bkfShowEditForm(btn.dataset.s, parseInt(btn.dataset.id), list, lookupFields);
     });
     // 취소 버튼 이벤트
     resultEl.querySelectorAll('.bkf-cancel-btn-trigger').forEach(btn => {
@@ -1118,17 +1119,17 @@ function bkfRenderLookupCard(s, b) {
 // ─────────────────────────────────────
 // 예약 수정 폼 (프론트)
 // ─────────────────────────────────────
-async function bkfShowEditForm(s, id, list) {
-  const b = list.find(x => x.id === id);
+async function bkfShowEditForm(s, id, list, lookupFields) {
+  const b = list.find(x => x.id == id);
   if (!b) return;
   const resultEl = document.getElementById(`bkf-lookup-result-${s}`);
   if (!resultEl) return;
 
   const st  = bkfGetState(s);
-  const cfg = st.cfg;
-  const hasStoreStep = (cfg?.steps || []).some(step => step.step_key === 'store' && step.is_active == 1);
+  const hasStoreStep = (st.plan || []).includes('store');
+  const fields = lookupFields || [];
 
-  // 지점 목록 조회 (store 스텝 있는 경우)
+  // 지점 목록 조회
   let storeOptions = '';
   if (hasStoreStep) {
     try {
@@ -1143,11 +1144,142 @@ async function bkfShowEditForm(s, id, list) {
     } catch(e) {}
   }
 
+  // 동적 필드 HTML 생성 (타입별 개별 렌더링, 수정 가능)
+  // item_select 서브항목에서 현재 값 추출 헬퍼
+  function getItemVal(parsed, ilabel) {
+    // parsed 키가 라벨과 정확히 일치하거나 유사한 것 찾기
+    if (parsed[ilabel] !== undefined) return parsed[ilabel];
+    // 앞뒤 공백 제거해서 재시도
+    for (const k of Object.keys(parsed)) {
+      if (k.trim() === ilabel.trim()) return parsed[k];
+    }
+    return '';
+  }
+
+  function renderFieldInput(f, val) {
+    const fid  = `bkf-edit-dyn-${s}-${f.field_key}`;
+    const lbl  = `<label class="bkf-label" style="margin-bottom:6px;">${bkfEsc(f.label)}</label>`;
+    const opts = Array.isArray(f.options) ? f.options : [];
+
+    // ── item_select: 서브항목 개별 렌더링 ──
+    if (f.type === 'item_select') {
+      let parsed = {};
+      if (typeof val === 'string' && val.trim().startsWith('{')) {
+        try { parsed = JSON.parse(val); } catch(e) {}
+      }
+
+      let inner = '';
+      opts.forEach((opt, oi) => {
+        const parts   = opt.split('::');
+        const itype   = (parts[0] || 'text').trim();
+        const ilabel  = (parts[1] || opt).trim();
+        const subopts = parts[2] ? parts[2].split('|').map(x=>x.trim()).filter(Boolean) : [];
+        const subid   = `${fid}__${oi}`;
+        const curVal  = getItemVal(parsed, ilabel);
+
+        inner += `<div class="bkf-item-sub" data-ilabel="${bkfEsc(ilabel)}" style="margin-bottom:10px;">
+          <div style="font-size:.8rem;color:#64748b;font-weight:600;margin-bottom:5px;">${bkfEsc(ilabel)}</div>`;
+
+        if (itype === 'radio') {
+          inner += `<div class="bkf-radio-group" data-itype="radio">`;
+          subopts.forEach(so => {
+            inner += `<label class="bkf-radio-opt ${curVal===so?'bkf-selected':''}">
+              <input type="radio" name="${subid}" value="${bkfEsc(so)}" ${curVal===so?'checked':''}/> ${bkfEsc(so)}
+            </label>`;
+          });
+          inner += `</div>`;
+        } else if (itype === 'checkbox') {
+          const checked = curVal.split(',').map(v=>v.trim()).filter(Boolean);
+          inner += `<div class="bkf-check-group" data-itype="checkbox">`;
+          subopts.forEach(so => {
+            inner += `<label class="bkf-check-opt ${checked.includes(so)?'bkf-selected':''}">
+              <input type="checkbox" value="${bkfEsc(so)}" ${checked.includes(so)?'checked':''}/> ${bkfEsc(so)}
+            </label>`;
+          });
+          inner += `</div>`;
+        } else if (itype === 'dropdown') {
+          inner += `<select class="bkf-fi" data-itype="dropdown" style="padding:8px 12px;">
+            <option value="">선택하세요</option>
+            ${subopts.map(so=>`<option value="${bkfEsc(so)}" ${curVal===so?'selected':''}>${bkfEsc(so)}</option>`).join('')}
+          </select>`;
+        } else {
+          // text / textarea
+          inner += `<input type="text" class="bkf-fi" data-itype="text" value="${bkfEsc(curVal)}" style="margin-top:2px;"/>`;
+        }
+        inner += `</div>`;
+      });
+
+      return `<div class="bkf-fg" style="margin-bottom:16px;">${lbl}
+        <div id="${fid}" data-key="${f.field_key}" class="bkf-item-select-wrap"
+          style="border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;background:#f8fafc;">
+          ${inner}
+        </div></div>`;
+
+    // ── radio ──
+    } else if (f.type === 'radio') {
+      let html = `<div class="bkf-fg" style="margin-bottom:12px;">${lbl}
+        <div class="bkf-radio-group bkf-edit-dynfield" id="${fid}" data-key="${f.field_key}">`;
+      opts.forEach(o => {
+        html += `<label class="bkf-radio-opt ${val===o?'bkf-selected':''}">
+          <input type="radio" name="${fid}" value="${bkfEsc(o)}" ${val===o?'checked':''}/> ${bkfEsc(o)}
+        </label>`;
+      });
+      return html + `</div></div>`;
+
+    // ── checkbox ──
+    } else if (f.type === 'checkbox') {
+      const checked = (val||'').split(',').map(v=>v.trim()).filter(Boolean);
+      let html = `<div class="bkf-fg" style="margin-bottom:12px;">${lbl}
+        <div class="bkf-check-group bkf-edit-dynfield" id="${fid}" data-key="${f.field_key}">`;
+      opts.forEach(o => {
+        html += `<label class="bkf-check-opt ${checked.includes(o)?'bkf-selected':''}">
+          <input type="checkbox" value="${bkfEsc(o)}" ${checked.includes(o)?'checked':''}/> ${bkfEsc(o)}
+        </label>`;
+      });
+      return html + `</div></div>`;
+
+    // ── dropdown ──
+    } else if (f.type === 'dropdown') {
+      return `<div class="bkf-fg" style="margin-bottom:12px;">${lbl}
+        <select class="bkf-fi bkf-edit-dynfield" id="${fid}" data-key="${f.field_key}" style="padding:10px 14px;">
+          <option value="">선택하세요</option>
+          ${opts.map(o=>`<option value="${bkfEsc(o)}" ${val===o?'selected':''}>${bkfEsc(o)}</option>`).join('')}
+        </select></div>`;
+
+    // ── textarea ──
+    } else if (f.type === 'textarea') {
+      return `<div class="bkf-fg" style="margin-bottom:12px;">${lbl}
+        <textarea class="bkf-fi bkf-edit-dynfield" id="${fid}" data-key="${f.field_key}"
+          rows="3" style="resize:vertical;">${bkfEsc(val)}</textarea></div>`;
+
+    // ── text (기본) ──
+    } else {
+      return `<div class="bkf-fg" style="margin-bottom:12px;">${lbl}
+        <input type="text" class="bkf-fi bkf-edit-dynfield" id="${fid}" data-key="${f.field_key}"
+          value="${bkfEsc(val)}"/></div>`;
+    }
+  }
+
+  let extraHtml = fields.map(f => renderFieldInput(f, b[f.field_key] || '')).join('');
+
   resultEl.innerHTML = `
     <div class="bkf-lookup-card" id="bkf-edit-card-${s}">
       <p style="font-size:.9rem;font-weight:700;color:#1e293b;margin-bottom:16px;">예약 수정</p>
-      <input type="hidden" id="bkf-edit-id-${s}" value="${id}"/>
-      <input type="hidden" id="bkf-edit-no-${s}" value="${bkfEsc(b.reservation_no)}"/>
+      <input type="hidden" id="bkf-edit-id-${s}"    value="${id}"/>
+      <input type="hidden" id="bkf-edit-no-${s}"    value="${bkfEsc(b.reservation_no)}"/>
+      <input type="hidden" id="bkf-edit-name-${s}"  value="${bkfEsc(b.name  || '')}"/>
+      <input type="hidden" id="bkf-edit-phone-${s}" value="${bkfEsc(b.phone || '')}"/>
+
+      <div class="bkf-fg" style="margin-bottom:12px;">
+        <label class="bkf-label">이름</label>
+        <input type="text" class="bkf-fi" value="${bkfEsc(b.name || '')}" readonly
+          style="background:#f8fafc;color:#64748b;cursor:default;"/>
+      </div>
+      <div class="bkf-fg" style="margin-bottom:12px;">
+        <label class="bkf-label">연락처</label>
+        <input type="tel" class="bkf-fi" value="${bkfEsc(b.phone || '')}" readonly
+          style="background:#f8fafc;color:#64748b;cursor:default;"/>
+      </div>
       <div class="bkf-fg" style="margin-bottom:12px;">
         <label class="bkf-label">예약일</label>
         <input type="date" class="bkf-fi" id="bkf-edit-date-${s}"
@@ -1167,21 +1299,28 @@ async function bkfShowEditForm(s, id, list) {
           ${storeOptions}
         </select>
       </div>` : `<input type="hidden" id="bkf-edit-store-${s}" value="${b.store_id || ''}"/>`}
-      <div class="bkf-fg" style="margin-bottom:12px;">
-        <label class="bkf-label">이름</label>
-        <input type="text" class="bkf-fi" id="bkf-edit-name-${s}" value="${bkfEsc(b.name || '')}"/>
-      </div>
-      <div class="bkf-fg" style="margin-bottom:16px;">
-        <label class="bkf-label">연락처</label>
-        <input type="tel" class="bkf-fi" id="bkf-edit-phone-${s}" value="${bkfEsc(b.phone || '')}" inputmode="numeric"/>
-      </div>
-      <div style="display:flex;gap:8px;">
+
+      ${extraHtml}
+
+      <div style="display:flex;gap:8px;margin-top:8px;">
         <button type="button" class="bkf-btn-outline" style="flex:1;"
           onclick="bkfShowView('${s}','lookup')">← 취소</button>
         <button type="button" class="bkf-btn-primary" style="flex:2;"
           onclick="bkfSubmitEdit('${s}')">수정 저장</button>
       </div>
     </div>`;
+
+  // 라디오/체크박스 bkf-selected 토글
+  resultEl.querySelectorAll('.bkf-radio-opt input[type=radio]').forEach(inp => {
+    inp.onchange = () => {
+      const grp = inp.closest('.bkf-radio-group');
+      grp.querySelectorAll('.bkf-radio-opt').forEach(l => l.classList.remove('bkf-selected'));
+      inp.closest('.bkf-radio-opt').classList.add('bkf-selected');
+    };
+  });
+  resultEl.querySelectorAll('.bkf-check-opt input[type=checkbox]').forEach(inp => {
+    inp.onchange = () => inp.closest('.bkf-check-opt').classList.toggle('bkf-selected', inp.checked);
+  });
 }
 
 async function bkfSubmitEdit(s) {
@@ -1199,17 +1338,74 @@ async function bkfSubmitEdit(s) {
   if (!name || !phone) { alert('이름과 연락처를 입력해 주세요.'); return; }
   if (!date) { alert('예약일을 선택해 주세요.'); return; }
 
-  const res = await bkfPost(s, 'update_booking', { id, name, phone,
-    reservation_date: date, reservation_time: time,
-    store_id: storeId, store_name: storeName });
+  // 동적 필드 수집
+  const payload = { id, name, phone, reservation_date: date, reservation_time: time,
+    store_id: storeId, store_name: storeName };
+
+  const card = document.getElementById(`bkf-edit-card-${s}`);
+  if (card) {
+    // ── 일반 동적 필드 (.bkf-edit-dynfield) ──
+    card.querySelectorAll('.bkf-edit-dynfield').forEach(el => {
+      const key = el.dataset.key;
+      if (!key) return;
+      if (el.classList.contains('bkf-radio-group')) {
+        const chk = el.querySelector('input[type=radio]:checked');
+        payload[key] = chk ? chk.value : '';
+      } else if (el.classList.contains('bkf-check-group')) {
+        const vals = [...el.querySelectorAll('input[type=checkbox]:checked')].map(i=>i.value);
+        payload[key] = vals.join(', ');
+      } else if (el.tagName === 'SELECT') {
+        payload[key] = el.value;
+      } else {
+        payload[key] = el.value.trim();
+      }
+    });
+
+    // ── item_select: .bkf-item-select-wrap 안의 서브항목 → JSON ──
+    card.querySelectorAll('.bkf-item-select-wrap').forEach(wrap => {
+      const key = wrap.dataset.key;
+      if (!key) return;
+      const result = {};
+      wrap.querySelectorAll('.bkf-item-sub').forEach(sub => {
+        const ilabel = sub.dataset.ilabel || '';
+        const radioGrp   = sub.querySelector('[data-itype="radio"]');
+        const checkGrp   = sub.querySelector('[data-itype="checkbox"]');
+        const dropSel    = sub.querySelector('[data-itype="dropdown"]');
+        const textInp    = sub.querySelector('[data-itype="text"]');
+        if (radioGrp) {
+          const chk = radioGrp.querySelector('input[type=radio]:checked');
+          result[ilabel] = chk ? chk.value : '';
+        } else if (checkGrp) {
+          const vals = [...checkGrp.querySelectorAll('input[type=checkbox]:checked')].map(i=>i.value);
+          result[ilabel] = vals.join(', ');
+        } else if (dropSel) {
+          result[ilabel] = dropSel.value;
+        } else if (textInp) {
+          result[ilabel] = textInp.value.trim();
+        }
+      });
+      payload[key] = JSON.stringify(result);
+    });
+  }
+  const res = await bkfPost(s, 'update_booking', payload);
 
   if (res.ok) {
     const resultEl = document.getElementById(`bkf-lookup-result-${s}`);
     if (resultEl) resultEl.innerHTML =
       `<p style="text-align:center;color:#16a34a;padding:20px 0;font-weight:600;">✅ 예약이 수정되었습니다.</p>`;
-    setTimeout(() => bkfShowView(s, 'lookup'), 1500);
+    // 수정 완료 후 재조회해서 최신 정보 반영
+    const noInput = document.getElementById(`bkf-edit-no-${s}`);
+    const resNo   = noInput?.value?.trim() || '';
+    setTimeout(async () => {
+      const noInputEl = document.getElementById(`bkf-lookup-no-input-${s}`);
+      if (noInputEl && resNo) noInputEl.value = resNo;
+      await bkfDoLookup(s, resNo ? 'no' : 'phone');
+    }, 1000);
   } else {
-    alert(res.msg || '수정 실패');
+    const resultEl = document.getElementById(`bkf-lookup-result-${s}`);
+    if (resultEl) resultEl.innerHTML =
+      `<p style="text-align:center;color:#ef4444;padding:20px 0;font-weight:600;">❌ ${bkfEsc(res.msg || '수정 실패')}</p>`;
+    setTimeout(() => alert(res.msg || '수정 실패'), 100);
   }
 }
 
