@@ -44,7 +44,9 @@ $s = $bkf_slug_safe;
 
       <!-- 섹션 헤더 -->
       <div class="bkf-head">
-        <h2 class="bkf-title" id="bkf-title-<?= $s ?>"></h2>
+        <div class="s-tag"><span id="bkf-tag-<?= $s ?>">RESERVATION</span></div>
+        <h2 class="s-h" id="bkf-title-<?= $s ?>"></h2>
+        <p class="s-p" id="bkf-desc-<?= $s ?>" style="display:none;"></p>
       </div>
 
       <!-- 진행 스텝 바 -->
@@ -73,13 +75,14 @@ $s = $bkf_slug_safe;
     ──────────────────────────────── -->
     <div class="bkf-view" id="bkf-view-done-<?= $s ?>">
       <div class="bkf-done-box">
+        <div class="s-tag"><span>RESERVATION</span></div>
         <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"
              style="width:72px;height:72px;margin-bottom:20px;">
           <circle cx="40" cy="40" r="38" fill="#dcfce7" stroke="#86efac" stroke-width="2"/>
           <path d="M24 40l12 12 20-24" stroke="#16a34a" stroke-width="3.5"
                 stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        <h3 class="bkf-done-title">예약이 접수되었습니다!</h3>
+        <h2 class="s-h">예약이 접수되었습니다!</h2>
         <p class="bkf-done-sub" id="bkf-done-sub-<?= $s ?>"></p>
         <div class="bkf-done-no" id="bkf-done-no-<?= $s ?>"></div>
         <div class="bkf-done-btns">
@@ -97,8 +100,9 @@ $s = $bkf_slug_safe;
     <div class="bkf-view" id="bkf-view-lookup-<?= $s ?>">
       <div class="bkf-lookup-box">
         <div class="bkf-head">
-          <h2 class="bkf-title">예약 조회</h2>
-          <p class="bkf-sub">이름 + 전화번호 또는 예약번호로 조회하세요.</p>
+          <div class="s-tag"><span>RESERVATION</span></div>
+          <h2 class="s-h">예약 조회</h2>
+          <p class="s-p">이름 + 전화번호 또는 예약번호로 조회하세요.</p>
         </div>
 
         <!-- 탭 -->
@@ -166,7 +170,7 @@ $s = $bkf_slug_safe;
         <!-- 예약하기로 돌아가기 -->
         <div style="text-align:center;margin-top:16px;">
           <button class="bkf-btn-text"
-                  onclick="bkfShowView('<?= $s ?>','wizard')">← 예약 신청으로</button>
+                  onclick="bkfRestart('<?= $s ?>')">← 새로 예약하기</button>
         </div>
       </div>
     </div><!-- /view-lookup -->
@@ -176,7 +180,7 @@ $s = $bkf_slug_safe;
   <!-- 예약 조회 링크 (위자드 하단 고정) -->
   <div class="bkf-lookup-link" id="bkf-lookup-link-<?= $s ?>">
     <button class="bkf-btn-text"
-            onclick="bkfShowView('<?= $s ?>','lookup')">이미 예약하셨나요? 예약 조회 →</button>
+            onclick="bkfGoToLookup('<?= $s ?>')">이미 예약하셨나요? 예약 조회 →</button>
   </div>
 
 </section>

@@ -1,249 +1,272 @@
-
 <?php include 'lib/__head.php'; ?>
 <body>
 
 <?php
-  // menus 테이블의 is_active 값을 기반으로 프론트 lib 단락 노출/미노출 처리
-  $frontSectionState = [];
-  $frontKeys = [
-    'front_service_switch',
-    'front_user_menu',
-    'front_hero_banner',
-    'front_products',
-    'front_benefits',
-    'front_videos',
-    'front_reviews',
-    'front_event',
-    'front_stores',
-    'front_reservation',
-    'front_reservation_lookup',
-
-    // 'front_customReser_suite',
-    'front_notices',
-    'front_faq',
-    'front_gallery',
-    'front_photo_gallery',
-    'front_slide_gallery',
-
-    'front_footer',
-  ];
-
-  if (!empty($frontKeys)) {
-    $placeholders = implode(',', array_fill(0, count($frontKeys), '?'));
-    $stmt = $pdo->prepare("SELECT `key`, is_active FROM menus WHERE `key` IN ($placeholders)");
-    $stmt->execute($frontKeys);
-    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-      $frontSectionState[$row['key']] = (int)$row['is_active'];
-    }
-  }
-
-  $frontIsVisible = function ($key) use ($frontSectionState) {
-    if (!array_key_exists($key, $frontSectionState)) return true; // 미설정이면 기본 노출
-    return (int)$frontSectionState[$key] !== 0;
-  };
-
   $legalSlug = isset($_GET['legal']) ? preg_replace('/[^a-zA-Z0-9\-_]/', '', (string) $_GET['legal']) : '';
 
-  // front_sections 동적 섹션 로드
-  $dynSections = [];
+  // front_sections 테이블에서 모든 섹션을 순서대로 로드
+  $allSections = [];
   try {
-    $stmt = $pdo->query("SELECT * FROM front_sections WHERE is_active = 1 ORDER BY sort_order, id");
-    $dynSections = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt = $pdo->query("SELECT * FROM front_sections ORDER BY sort_order, id");
+    $allSections = $stmt->fetchAll(PDO::FETCH_ASSOC);
   } catch (Exception $e) {}
+
+  // 코어 파일명 (wrapper div 없이 직접 include)
+  $coreSections = ['_site', '_nav', '_ft'];
+
+  // 활성화된 섹션 파일명 목록 (JS 조건부 로드에 사용)
+  $activeFileNames = [];
+  foreach ($allSections as $sec) {
+    if ((int)$sec['is_active'] === 0) continue;
+    $fn = preg_replace('/[^a-zA-Z0-9_\-]/', '', pathinfo($sec['file_name'], PATHINFO_FILENAME));
+    if ($fn !== '') $activeFileNames[] = $fn;
+  }
+
+  // 섹션 파일명 → 필요한 JS 매핑
+  // 값이 배열인 경우 해당 JS 파일들을 조건부 로드
+  $sectionJsMap = [
+    'top_banner'           => ['hero.js', 'popup.js', 'countdown.js'],
+    '_nav'                 => ['nav-fade.js'],
+    'products'             => ['products.js', 'recommend.js'],
+    'bbs_video'            => ['video-reviews.js'],
+    'bbs_review'           => ['video-reviews.js'],
+    'bbs_notice'           => ['notice-faq-gallery.js'],
+    'bbs_faq'              => ['notice-faq-gallery.js'],
+    'bbs_gallery'          => ['notice-faq-gallery.js'],
+    'bbs_photogallery'     => ['bbs_photogallery.js'],
+    'bbs_slidegallery'     => ['bbs_slidegallery.js'],
+    'bbs_event'            => ['notice-faq-gallery.js'],
+    'stores'               => ['store.js'],
+    'reservation'          => ['reservation.js', 'reservationLookup.js', 'timeslots.js'],
+    'reservationLookup'    => ['reservationLookup.js'],
+    'bkf_front'            => ['timeslots.js'],
+    'custom_inquiry_front' => ['custom_inquiry_front.js'],
+    'consult'              => ['inquiry.js'],
+    'qna'                  => ['inquiry.js'],
+  ];
+
+  // 로드할 JS 파일 목록 수집 (중복 제거)
+  $jsToLoad = [];
+  foreach ($activeFileNames as $fn) {
+    if (isset($sectionJsMap[$fn])) {
+      foreach ($sectionJsMap[$fn] as $js) {
+        $jsToLoad[$js] = true;
+      }
+    }
+  }
 ?>
 
-  <!-- 서비스 전환 바 -->
-  <div data-front-section-key="front_service_switch" <?php if (!$frontIsVisible('front_service_switch')) echo 'style="display:none;"'; ?>>
-    <?php include 'lib/_site.php'; ?>
-  </div>
-
-  <!-- NAV -->
-  <div data-front-section-key="front_user_menu" <?php if (!$frontIsVisible('front_user_menu')) echo 'style="display:none;"'; ?>>
-    <?php include 'lib/_nav.php'; ?>
-  </div>
-
-  <?php if ($legalSlug !== ''): ?>
+<?php if ($legalSlug !== ''): ?>
+  <?php
+    foreach ($allSections as $sec):
+      $fn = pathinfo($sec['file_name'], PATHINFO_FILENAME);
+      if (!in_array($fn, ['_site', '_nav'], true)) continue;
+      if ((int)$sec['is_active'] === 0) continue;
+      $fp = __DIR__ . '/lib/' . $fn . '.php';
+      if (file_exists($fp)) include $fp;
+    endforeach;
+  ?>
   <main class="legal-page">
     <?php include 'lib/legal_terms_view.php'; ?>
   </main>
-  <?php else: ?>
-
-  <!-- HERO -->
-  <div data-front-section-key="front_hero_banner" <?php if (!$frontIsVisible('front_hero_banner')) echo 'style="display:none;"'; ?>>
-    <?php include 'lib/top_banner.php'; ?>
-  </div>
-
-  <!-- PRODUCTS -->
-  <div data-front-section-key="front_products" <?php if (!$frontIsVisible('front_products')) echo 'style="display:none;"'; ?>>
-    <?php include 'lib/products.php'; ?>
-  </div>
-<?php
-$ci_table = 'form1';
-include __DIR__ . '/lib/custom_inquiry_front.php';
-?>
-<?php
-$ci_table = 'form2';
-include __DIR__ . '/lib/custom_inquiry_front.php';
-?>
-  <!-- BENEFITS -->
-  <div data-front-section-key="front_benefits" <?php if (!$frontIsVisible('front_benefits')) echo 'style="display:none;"'; ?>>
-    <?php include 'lib/benefits.php'; ?>
-  </div>
-
-  <!-- 예약 -->
-  <link rel="stylesheet" href="/css/bkf_public.css"/>
-  <?php $bkf_slug = 'booking_00'; include __DIR__ . '/lib/bkf_front.php'; ?>
-  <!-- //예약 -->
-
-  <!-- VIDEOS -->
-  <div data-front-section-key="front_videos" <?php if (!$frontIsVisible('front_videos')) echo 'style="display:none;"'; ?>>
-    <?php include 'lib/bbs_video.php'; ?>
-  </div>
-
-  <!-- REVIEWS -->
-  <div data-front-section-key="front_reviews" <?php if (!$frontIsVisible('front_reviews')) echo 'style="display:none;"'; ?>>
-    <?php include 'lib/bbs_review.php'; ?>
-  </div>
-
-  <!-- EVENT -->
-  <div data-front-section-key="front_event" <?php if (!$frontIsVisible('front_event')) echo 'style="display:none;"'; ?>>
-    <?php include 'lib/bbs_event.php'; ?>
-  </div>
-
-  <!-- STORES -->
-  <div data-front-section-key="front_stores" <?php if (!$frontIsVisible('front_stores')) echo 'style="display:none;"'; ?>>
-    <?php include 'lib/stores.php'; ?>
-  </div>
-
-
-
-  <!-- NOTICES -->
-  <div data-front-section-key="front_notices" <?php if (!$frontIsVisible('front_notices')) echo 'style="display:none;"'; ?>>
-    <?php include 'lib/bbs_notice.php'; ?>
-  </div>
-
-  <!-- FAQ -->
-  <div data-front-section-key="front_faq" <?php if (!$frontIsVisible('front_faq')) echo 'style="display:none;"'; ?>>
-    <?php include 'lib/bbs_faq.php'; ?>
-  </div>
-
-  <!-- GALLERY -->
-  <div data-front-section-key="front_gallery" <?php if (!$frontIsVisible('front_gallery')) echo 'style="display:none;"'; ?>>
-    <?php include 'lib/bbs_gallery.php'; ?>
-  </div>
-
-  <!-- PHOTO GALLERY -->
-  <div data-front-section-key="front_photo_gallery" <?php if (!$frontIsVisible('front_photo_gallery')) echo 'style="display:none;"'; ?>>
-    <?php include 'lib/bbs_photogallery.php'; ?>
-  </div>
-
-  <!-- SLIDE GALLERY -->
-  <div data-front-section-key="front_slide_gallery" <?php if (!$frontIsVisible('front_slide_gallery')) echo 'style="display:none;"'; ?>>
-    <?php include 'lib/bbs_slidegallery.php'; ?>
-  </div>
-
-
-  <!-- 동적 섹션 (front_sections 테이블 기반) -->
-  <?php foreach ($dynSections as $sec):
-    $filePath = __DIR__ . '/lib/' . basename($sec['file_name']);
-    if (!file_exists($filePath)) continue;
-    $anchorId = htmlspecialchars($sec['anchor_id'] ?? '');
+  <?php
+    foreach ($allSections as $sec):
+      $fn = pathinfo($sec['file_name'], PATHINFO_FILENAME);
+      if ($fn !== '_ft') continue;
+      if ((int)$sec['is_active'] === 0) continue;
+      $fp = __DIR__ . '/lib/' . $fn . '.php';
+      if (file_exists($fp)) include $fp;
+    endforeach;
   ?>
-  <div<?= $anchorId ? ' id="' . $anchorId . '"' : '' ?> data-dyn-section-id="<?= (int)$sec['id'] ?>">
+
+<?php else: ?>
+
+  <?php foreach ($allSections as $sec):
+    if ((int)$sec['is_active'] === 0) continue;
+
+    $fn = preg_replace('/[^a-zA-Z0-9_\-]/', '', pathinfo($sec['file_name'], PATHINFO_FILENAME));
+    if ($fn === '') continue;
+
+    $filePath = __DIR__ . '/lib/' . $fn . '.php';
+    if (!file_exists($filePath)) continue;
+
+    $anchorId        = $sec['anchor_id'] ?? '';
+    $secParams       = trim($sec['params'] ?? '');
+    $sectionTitle    = trim($sec['title']    ?? '');
+    $sectionSubtitle = trim($sec['subtitle'] ?? '');
+
+    $ci_table = null;
+    $bkf_slug = null;
+    if ($fn === 'custom_inquiry_front') {
+      if ($secParams === '') continue;
+      $ci_table = $secParams;
+    } elseif ($fn === 'bkf_front') {
+      $bkf_slug = $secParams !== '' ? $secParams : 'booking_00';
+    }
+
+    if (in_array($fn, $coreSections, true)):
+  ?>
     <?php include $filePath; ?>
-  </div>
-  <?php endforeach; ?>
+  <?php else: ?>
+    <div<?= $anchorId !== '' ? ' id="' . htmlspecialchars($anchorId) . '"' : '' ?> data-section-key="<?= htmlspecialchars($sec['key'] ?? '') ?>">
+      <?php if ($fn === 'bkf_front'): ?>
+      <link rel="stylesheet" href="/css/bkf_public.css"/>
+      <?php endif; ?>
+      <?php include $filePath; ?>
+    </div>
+  <?php endif;
 
-  <?php endif; ?>
+    unset($ci_table, $bkf_slug, $sectionTitle, $sectionSubtitle, $secParams, $anchorId, $fn, $filePath);
+  endforeach; ?>
 
-  <!-- 풋터 -->
-  <div data-front-section-key="front_footer" <?php if (!$frontIsVisible('front_footer')) echo 'style="display:none;"'; ?>>
-    <?php include 'lib/_ft.php'; ?>
-  </div>
+<?php endif; ?>
 
-  <!-- PRODUCT DETAIL MODAL -->
+  <!-- MODALS (항상 필요) -->
   <?php include 'lib/modalPm.php'; ?>
-
-  <!-- COMPARE BAR -->
   <?php include 'lib/modalcmpBar.php'; ?>
-  
-
-  <!-- COMPARE MODAL -->
   <?php include 'lib/modalMhd.php'; ?>
-  
-
-  <!-- COMBO CALCULATOR MODAL -->
   <?php include 'lib/modalCombmod.php'; ?>
-  
-
-  <!-- COMBO APPLY FORM MODAL -->
   <?php include 'lib/modalApply.php'; ?>
-  
-
-  <!-- EMAIL MODAL -->
   <?php include 'lib/modalEmail.php'; ?>
 
+  <!-- 소셜 로그인 SDK (항상 필요) -->
   <script async src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"></script>
   <script async src="https://static.nid.naver.com/js/naveridlogin_js_sdk_2.0.2.js" charset="utf-8"></script>
   <script src="https://accounts.google.com/gsi/client" async></script>
   <div id="naver_id_login" style="display:none"></div>
-  <script src="js/board.js"></script>
 
-  <script src="js/countdown.js"></script>
+  <!-- 코어 JS (항상 필요) -->
+  <script src="js/board.js"></script>
+  <script src="js/utils.js"></script>
+
+  <!-- 섹션별 조건부 JS 로드 -->
+  <?php if (isset($jsToLoad['hero.js'])): ?>
   <script src="js/hero.js"></script>
+  <?php endif; ?>
+  <?php if (isset($jsToLoad['countdown.js'])): ?>
+  <script src="js/countdown.js"></script>
+  <?php endif; ?>
+  <?php if (isset($jsToLoad['nav-fade.js'])): ?>
+  <script src="js/nav-fade.js"></script>
+  <?php endif; ?>
+  <?php if (isset($jsToLoad['products.js'])): ?>
+  <script src="js/products.js"></script>
+  <?php endif; ?>
+  <?php if (isset($jsToLoad['recommend.js'])): ?>
+  <script src="js/recommend.js"></script>
+  <?php endif; ?>
+  <?php if (isset($jsToLoad['video-reviews.js'])): ?>
+  <script src="js/video-reviews.js"></script>
+  <?php endif; ?>
+  <?php if (isset($jsToLoad['notice-faq-gallery.js'])): ?>
+  <script src="js/notice-faq-gallery.js"></script>
+  <?php endif; ?>
+  <?php if (isset($jsToLoad['bbs_photogallery.js'])): ?>
+  <script src="js/bbs_photogallery.js"></script>
+  <?php endif; ?>
+  <?php if (isset($jsToLoad['bbs_slidegallery.js'])): ?>
+  <script src="js/bbs_slidegallery.js"></script>
+  <?php endif; ?>
+  <?php if (isset($jsToLoad['store.js'])): ?>
+  <script src="js/store.js"></script>
+  <?php endif; ?>
+  <?php if (isset($jsToLoad['reservation.js'])): ?>
+  <script src="js/reservation.js"></script>
+  <?php endif; ?>
+  <?php if (isset($jsToLoad['reservationLookup.js'])): ?>
+  <script src="js/reservationLookup.js"></script>
+  <?php endif; ?>
+  <?php if (isset($jsToLoad['timeslots.js'])): ?>
+  <script src="js/timeslots.js"></script>
+  <?php endif; ?>
+  <?php if (isset($jsToLoad['custom_inquiry_front.js'])): ?>
+  <script src="js/custom_inquiry_front.js"></script>
+  <?php endif; ?>
+  <?php if (isset($jsToLoad['inquiry.js'])): ?>
+  <script src="js/inquiry.js"></script>
+  <?php endif; ?>
+  <?php if (isset($jsToLoad['popup.js'])): ?>
+  <script src="js/popup.js"></script>
+  <?php endif; ?>
+  <?php if (isset($jsToLoad['bkf_public.js']) || in_array('bkf_front', $activeFileNames)): ?>
+  <link rel="stylesheet" href="/css/bkf_public.css"/>
+  <script src="/js/bkf_public.js" defer></script>
+  <?php endif; ?>
+
+  <!-- 데이터 로드 (활성 섹션 기반) -->
   <script>
-    // 배너/팝업/제품 데이터 병렬 로딩 (성능 개선)
+  (function() {
+    <?php if (isset($jsToLoad['hero.js'])): ?>
     Promise.all([
       fetch('/admin/api_front/banner_public.php').then(r => r.json()),
       fetch('/admin/api_front/popup_public.php').then(r => r.json()),
+      <?php if (isset($jsToLoad['products.js'])): ?>
       fetch('/admin/api_front/product_public.php').then(r => r.json()),
+      <?php else: ?>
+      Promise.resolve(null),
+      <?php endif; ?>
     ]).then(function([bannerData, popupData, productData]) {
       window._pbData = bannerData;
-      renderHero(bannerData);
-      if (popupData.ok) renderPopupBanner(popupData);
-      if (productData.ok) {
+      if (typeof renderHero === 'function') renderHero(bannerData);
+      if (popupData && popupData.ok && typeof renderPopupBanner === 'function') renderPopupBanner(popupData);
+      if (productData && productData.ok) {
         window._pbData = Object.assign(window._pbData || {}, productData);
-        renderProducts(productData);
+        if (typeof renderProducts === 'function') renderProducts(productData);
       }
     }).catch(function() {});
-  </script>
-  <script src="js/inquiry.js"></script>
-  <script src="js/nav-fade.js"></script>
-  <script src="js/notice-faq-gallery.js"></script>
-  <script src="js/bbs_photogallery.js"></script>
-  <script src="js/bbs_slidegallery.js"></script>
-  <script src="js/popup.js"></script><!-- 팝업 -->
+    <?php endif; ?>
 
-  <script src="js/products.js"></script>
-
-  <script src="js/recommend.js"></script>
-  <script src="js/reservation.js"></script>
-  <script src="js/reservationLookup.js"></script>
-
-  <script src="js/store.js"></script>
-  <script src="js/timeslots.js"></script>
-  <script src="js/utils.js"></script>
-  <script src="js/video-reviews.js"></script>
-  <script>
-    // 게시판 데이터 병렬 로딩 (성능 개선)
-    Promise.all([
-      fetch('/admin/api_front/board_public.php?table=notice').then(r => r.json()),
-      fetch('/admin/api_front/board_public.php?table=faq').then(r => r.json()),
-      fetch('/admin/api_front/board_public.php?table=video').then(r => r.json()),
-      fetch('/admin/api_front/board_public.php?table=review').then(r => r.json()),
-    ]).then(function([noticeData, faqData, videoData, reviewData]) {
-      if (noticeData.ok) ntInit(noticeData.posts);
-      if (faqData.ok) faqInit(faqData.posts);
-      if (videoData.ok) renderVideos({ videos: videoData.posts.map(function(p) {
-        return { active: true, order: p.id, title: p.title, youtubeUrl: p.youtubeUrl, desc: '' };
-      })});
-      if (reviewData.ok) renderReviews({ reviews: reviewData.posts.map(function(p) {
-        return { active: true, order: p.id, name: p.author, text: p.title, rating: p.rating, imageUrl: p.imageUrl, date: p.date };
-      })});
+    <?php
+      $boardFetches = [];
+      if (isset($jsToLoad['notice-faq-gallery.js'])) {
+        if (in_array('bbs_notice', $activeFileNames))  $boardFetches[] = ['notice', 'ntInit'];
+        if (in_array('bbs_faq', $activeFileNames))     $boardFetches[] = ['faq',    'faqInit'];
+        if (in_array('bbs_event', $activeFileNames))   $boardFetches[] = ['event',  null];
+        if (in_array('bbs_gallery', $activeFileNames)) $boardFetches[] = ['gallery', null];
+      }
+      $hasVideo  = isset($jsToLoad['video-reviews.js']) && in_array('bbs_video', $activeFileNames);
+      $hasReview = isset($jsToLoad['video-reviews.js']) && in_array('bbs_review', $activeFileNames);
+      if (!empty($boardFetches) || $hasVideo || $hasReview):
+    ?>
+    var _boardPromises = [];
+    <?php foreach ($boardFetches as $bf): ?>
+    _boardPromises.push(fetch('/admin/api_front/board_public.php?table=<?= $bf[0] ?>').then(r => r.json()));
+    <?php endforeach; ?>
+    <?php if ($hasVideo): ?>
+    _boardPromises.push(fetch('/admin/api_front/board_public.php?table=video').then(r => r.json()));
+    <?php endif; ?>
+    <?php if ($hasReview): ?>
+    _boardPromises.push(fetch('/admin/api_front/board_public.php?table=review').then(r => r.json()));
+    <?php endif; ?>
+    Promise.all(_boardPromises).then(function(results) {
+      var i = 0;
+      <?php foreach ($boardFetches as $bf): ?>
+      var d<?= $bf[0] ?> = results[i++];
+      if (d<?= $bf[0] ?> && d<?= $bf[0] ?>.ok) {
+        <?php if ($bf[1]): ?>
+        if (typeof <?= $bf[1] ?> === 'function') <?= $bf[1] ?>(d<?= $bf[0] ?>.posts);
+        <?php endif; ?>
+      }
+      <?php endforeach; ?>
+      <?php if ($hasVideo): ?>
+      var dVideo = results[i++];
+      if (dVideo && dVideo.ok && typeof renderVideos === 'function') {
+        renderVideos({ videos: dVideo.posts.map(function(p) {
+          return { active: true, order: p.id, title: p.title, youtubeUrl: p.youtubeUrl, desc: '' };
+        })});
+      }
+      <?php endif; ?>
+      <?php if ($hasReview): ?>
+      var dReview = results[i++];
+      if (dReview && dReview.ok && typeof renderReviews === 'function') {
+        renderReviews({ reviews: dReview.posts.map(function(p) {
+          return { active: true, order: p.id, name: p.author, text: p.title, rating: p.rating, imageUrl: p.imageUrl, date: p.date };
+        })});
+      }
+      <?php endif; ?>
     }).catch(function() {});
+    <?php endif; ?>
+  })();
   </script>
 
-  <script src="js/custom_inquiry_front.js"></script>
-
-  <script src="/js/bkf_public.js" defer></script><!--예약폼-->
 <?php include 'lib/__tail.php'; ?>

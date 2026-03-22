@@ -163,36 +163,79 @@ function bkfStepStore(s, wrap, summary) {
   wrap.innerHTML = summary + `<p class="bkf-step-title">지점 선택</p>
     <div class="bkf-loading"><div class="bkf-spinner"></div><span>불러오는 중...</span></div>`;
 
-  bkfGet(s, 'get_stores', {}).then(res => {
-    if (!res.ok || !res.data || !res.data.length) {
+  // 날짜+시간이 이미 선택된 경우 → 지점별 가용 여부 포함해서 표시
+  const hasDateAndTime = st.dateYmd && st.timeSlot;
+  const hasDateOnly    = st.dateYmd && !st.timeSlot;
+
+  const fetchPromise = hasDateAndTime
+    ? bkfGet(s, 'get_stores_by_slot', { date: st.dateYmd, slot_time: st.timeSlot })
+    : bkfGet(s, 'get_stores', {});
+
+  fetchPromise.then(res => {
+    if (!res.ok) {
+      wrap.innerHTML = summary + `<p style="color:#6b7280;font-size:.88rem;">지점을 불러올 수 없습니다.</p>`;
+      return;
+    }
+
+    const stores = res.data || [];
+    if (!stores.length) {
       wrap.innerHTML = summary + `<p style="color:#6b7280;font-size:.88rem;">연결된 지점이 없습니다.</p>`;
       return;
     }
-    const stores = res.data;
-    if (!st.storeId) { st.storeId = stores[0].id; st.storeName = stores[0].store_name || stores[0].branch_name || ''; }
 
-    wrap.innerHTML = summary + `<p class="bkf-step-title">지점 선택</p>
+    // 초기 선택: 첫 번째 available 지점
+    if (!st.storeId) {
+      const first = stores.find(s2 => !hasDateAndTime || s2.available !== false);
+      if (first) { st.storeId = first.id; st.storeName = first.branch_name || first.store_name || ''; }
+    }
+
+    const notice = hasDateAndTime
+      ? `<p style="font-size:.78rem;color:#64748b;margin-bottom:12px;">📅 ${bkfEsc(st.dateYmd)} ${bkfEsc(st.timeSlot)} 기준 가용 지점</p>`
+      : hasDateOnly
+      ? `<p style="font-size:.78rem;color:#64748b;margin-bottom:12px;">📅 ${bkfEsc(st.dateYmd)} 기준</p>`
+      : '';
+
+    wrap.innerHTML = summary + `<p class="bkf-step-title">지점 선택</p>${notice}
       <div class="bkf-store-grid">
-        ${stores.map(store => `
-          <div class="bkf-store-card ${st.storeId == store.id ? 'bkf-selected' : ''}"
-               data-id="${store.id}" data-name="${bkfEsc(store.store_name || store.branch_name || '')}">
+        ${stores.map(store => {
+          const unavail  = hasDateAndTime && store.has_slot === false;
+          const full     = hasDateAndTime && store.has_slot && !store.available;
+          const remTxt   = hasDateAndTime && store.has_slot
+            ? (store.remaining === null ? '제한없음' : store.remaining > 0 ? `잔여 ${store.remaining}석` : '마감')
+            : '';
+          const isSelected = st.storeId == store.id;
+          return `
+          <div class="bkf-store-card ${isSelected ? 'bkf-selected' : ''} ${unavail || full ? 'bkf-store-unavail' : ''}"
+               data-id="${store.id}"
+               data-name="${bkfEsc(store.branch_name || store.store_name || '')}"
+               ${unavail || full ? 'data-disabled="1"' : ''}>
             <div class="bkf-store-name">${bkfEsc(store.store_name || store.branch_name || '')}</div>
             ${store.address ? `<div class="bkf-store-addr">${bkfEsc(store.address)}</div>` : ''}
-          </div>`).join('')}
+            ${hasDateAndTime ? `<div class="bkf-store-slot-info" style="margin-top:4px;font-size:.75rem;
+              color:${unavail ? '#94a3b8' : full ? '#ef4444' : '#16a34a'};">
+              ${unavail ? '해당 시간 없음' : full ? '마감' : remTxt}
+            </div>` : ''}
+          </div>`;
+        }).join('')}
       </div>`;
 
-    wrap.querySelectorAll('.bkf-store-card').forEach(card => {
+    wrap.querySelectorAll('.bkf-store-card:not([data-disabled])').forEach(card => {
       card.onclick = () => {
         wrap.querySelectorAll('.bkf-store-card').forEach(c => c.classList.remove('bkf-selected'));
         card.classList.add('bkf-selected');
         st.storeId   = parseInt(card.dataset.id);
         st.storeName = card.dataset.name;
-        // 날짜 캐시 초기화
-        st.dateYmd = ''; st.timeSlot = ''; st.calDays = {};
+        // 지점 바뀌면 날짜/시간 캐시 초기화 (지점 먼저 선택하는 흐름)
+        const storeStepIdx = st.plan.indexOf('store');
+        const dateStepIdx  = st.plan.indexOf('date');
+        if (storeStepIdx < dateStepIdx) {
+          st.dateYmd = ''; st.timeSlot = ''; st.calDays = {};
+        }
       };
     });
   });
 }
+
 
 // ─────────────────────────────────────
 // Step: 날짜 선택 (캘린더)
@@ -295,6 +338,14 @@ function bkfStepDate(s, wrap, summary) {
 // ─────────────────────────────────────
 function bkfStepTimeSlot(s, wrap, summary) {
   const st = bkfGetState(s);
+
+  // 날짜가 아직 선택 안 된 경우
+  if (!st.dateYmd) {
+    wrap.innerHTML = summary + `<p class="bkf-step-title">시간 선택</p>
+      <p style="color:#f59e0b;font-size:.88rem;padding:20px 0;">📅 날짜를 먼저 선택해 주세요.</p>`;
+    return;
+  }
+
   wrap.innerHTML = summary + `<p class="bkf-step-title">시간 선택</p>
     <div class="bkf-loading"><div class="bkf-spinner"></div><span>불러오는 중...</span></div>`;
 
@@ -314,12 +365,12 @@ function bkfStepTimeSlot(s, wrap, summary) {
       <div class="bkf-slot-grid">
         ${slots.map(sl => `
           <button type="button"
-            class="bkf-slot-btn ${st.timeSlot === sl.slot_time ? 'bkf-selected' : ''}"
+            class="bkf-slot-btn ${st.timeSlot === sl.slot_time ? 'bkf-selected' : ''} ${sl.full ? 'bkf-slot-full' : ''}"
             data-time="${bkfEsc(sl.slot_time)}"
             ${sl.available ? '' : 'disabled'}>
             ${bkfEsc(sl.slot_time)}
             <span class="bkf-slot-remaining">
-              ${sl.full ? '마감' : sl.capacity > 0 ? `잔여 ${sl.remaining}석` : ''}
+              ${sl.full ? '마감' : sl.unlimited ? '제한없음' : sl.remaining > 0 ? `잔여 ${sl.remaining}석` : ''}
             </span>
           </button>`).join('')}
       </div>`;
@@ -497,14 +548,33 @@ function bkfNextStep(s) {
   const st  = bkfGetState(s);
   const key = st.plan[st.stepIndex];
 
-  if (key === 'store' && !st.storeId) {
-    bkfShowError(s, '지점을 선택해 주세요.'); return;
+  if (key === 'store') {
+    if (!st.storeId) { bkfShowError(s, '지점을 선택해 주세요.'); return; }
+    // 날짜+시간 선택 후 지점 선택 시 - 해당 지점에서 시간 없으면 경고
+    if (st.dateYmd && st.timeSlot) {
+      const selCard = document.querySelector(`#bkf-step-wrap-${s} .bkf-store-card.bkf-selected`);
+      if (selCard && selCard.dataset.disabled) {
+        bkfShowError(s, '선택하신 지점은 해당 날짜/시간에 예약이 불가합니다. 다른 지점을 선택해 주세요.');
+        return;
+      }
+    }
   }
   if (key === 'date' && !st.dateYmd) {
     bkfShowError(s, '날짜를 선택해 주세요.'); return;
   }
-  if (key === 'time_slot' && !st.timeSlot) {
-    bkfShowError(s, '시간을 선택해 주세요.'); return;
+  if (key === 'time_slot') {
+    // 지점 스텝이 plan에 있는데 아직 storeId 미선택이면 경고
+    const hasStoreStep = st.plan.includes('store');
+    const storeStepIdx = st.plan.indexOf('store');
+    const timeStepIdx  = st.plan.indexOf('time_slot');
+    if (hasStoreStep && storeStepIdx > timeStepIdx && !st.storeId) {
+      // 지점이 시간보다 뒤에 있어서 아직 선택 못함 → 일단 통과
+    } else if (hasStoreStep && !st.storeId) {
+      bkfShowError(s, '지점을 먼저 선택해 주세요.'); return;
+    }
+    if (!st.timeSlot) {
+      bkfShowError(s, '시간을 선택해 주세요.'); return;
+    }
   }
   if (key === 'item' && !st.itemVal) {
     bkfShowError(s, '항목을 선택해 주세요.'); return;
@@ -616,6 +686,17 @@ function bkfRestart(s) {
     otpToken:'', otpVerified:false,
   });
   if (st.otpTimer) { clearInterval(st.otpTimer); st.otpTimer = null; }
+
+  // submit 버튼 초기화 (처리 중 상태 해제)
+  const submitBtn = document.getElementById(`bkf-btn-submit-${s}`);
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.textContent = st.cfg?.form?.btn_name || '예약하기';
+    submitBtn.style.display = 'none';
+  }
+  const nextBtn = document.getElementById(`bkf-btn-next-${s}`);
+  if (nextBtn) { nextBtn.disabled = false; nextBtn.style.display = ''; }
+
   bkfShowView(s, 'wizard');
   bkfRenderStep(s);
 }
@@ -703,6 +784,30 @@ async function bkfVerifyOtp(s, context) {
 // ─────────────────────────────────────
 // 예약 조회
 // ─────────────────────────────────────
+// ─────────────────────────────────────
+// 조회 페이지 이동 (진행 중이면 confirm)
+// ─────────────────────────────────────
+function bkfGoToLookup(s) {
+  const st = bkfGetState(s);
+  const isDirty = st.stepIndex > 0 || st.storeId || st.dateYmd || st.timeSlot || st.itemVal;
+  if (isDirty) {
+    if (!confirm('작성 중이던 정보는 초기화 됩니다.\n조회 페이지로 이동하시겠습니까?')) return;
+    // 입력 상태 초기화
+    Object.assign(st, {
+      stepIndex:0, storeId:null, storeName:'', dateYmd:'',
+      timeSlot:'', itemVal:'', calDays:{}, calSlots:[],
+      otpToken:'', otpVerified:false,
+    });
+    if (st.otpTimer) { clearInterval(st.otpTimer); st.otpTimer = null; }
+    const submitBtn = document.getElementById(`bkf-btn-submit-${s}`);
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = st.cfg?.form?.btn_name || '예약하기';
+    }
+  }
+  bkfShowView(s, 'lookup');
+}
+
 function bkfSwitchLookupTab(s, tab, btn) {
   document.querySelectorAll(`#bkf-view-lookup-${s} .bkf-lookup-tab`).forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
@@ -755,6 +860,10 @@ async function bkfDoLookup(s, mode) {
 
     resultEl.innerHTML = list.map(b => bkfRenderLookupCard(s, b)).join('');
 
+    // 수정 버튼 이벤트
+    resultEl.querySelectorAll('.bkf-edit-btn-trigger').forEach(btn => {
+      btn.onclick = () => bkfShowEditForm(btn.dataset.s, parseInt(btn.dataset.id), list);
+    });
     // 취소 버튼 이벤트
     resultEl.querySelectorAll('.bkf-cancel-btn-trigger').forEach(btn => {
       btn.onclick = () => bkfCancelReservation(s, btn.dataset.no, btn.dataset.phone);
@@ -797,12 +906,116 @@ function bkfRenderLookupCard(s, b) {
       </div>
       ${canCancel ? `
         <div class="bkf-lookup-card-actions">
+          <button type="button" class="bkf-btn-outline bkf-edit-btn-trigger"
+                  data-id="${b.id}" data-s="${s}"
+                  style="flex:1;padding:10px;border:1px solid var(--bkf-primary,#3b82f6);color:var(--bkf-primary,#3b82f6);background:#fff;border-radius:8px;font-size:.88rem;cursor:pointer;">
+            예약 수정
+          </button>
           <button type="button" class="bkf-btn-cancel bkf-cancel-btn-trigger"
-                  data-no="${bkfEsc(b.reservation_no)}" data-phone="${bkfEsc(b.phone || '')}">
+                  data-no="${bkfEsc(b.reservation_no)}" data-phone="${bkfEsc(b.phone || '')}"
+                  style="flex:1;">
             예약 취소
           </button>
         </div>` : ''}
     </div>`;
+}
+
+// ─────────────────────────────────────
+// 예약 수정 폼 (프론트)
+// ─────────────────────────────────────
+async function bkfShowEditForm(s, id, list) {
+  const b = list.find(x => x.id === id);
+  if (!b) return;
+  const resultEl = document.getElementById(`bkf-lookup-result-${s}`);
+  if (!resultEl) return;
+
+  const st  = bkfGetState(s);
+  const cfg = st.cfg;
+  const hasStoreStep = (cfg?.steps || []).some(step => step.step_key === 'store' && step.is_active == 1);
+
+  // 지점 목록 조회 (store 스텝 있는 경우)
+  let storeOptions = '';
+  if (hasStoreStep) {
+    try {
+      const sRes = await bkfGet(s, 'get_stores', {});
+      const stores = sRes.data || [];
+      storeOptions = stores.map(s2 =>
+        `<option value="${s2.id}" data-name="${bkfEsc(s2.branch_name || s2.store_name || '')}"
+          ${b.store_id == s2.id ? 'selected' : ''}>
+          ${bkfEsc(s2.store_name || '')} ${bkfEsc(s2.branch_name || '')}
+        </option>`
+      ).join('');
+    } catch(e) {}
+  }
+
+  resultEl.innerHTML = `
+    <div class="bkf-lookup-card" id="bkf-edit-card-${s}">
+      <p style="font-size:.9rem;font-weight:700;color:#1e293b;margin-bottom:16px;">예약 수정</p>
+      <input type="hidden" id="bkf-edit-id-${s}" value="${id}"/>
+      <input type="hidden" id="bkf-edit-no-${s}" value="${bkfEsc(b.reservation_no)}"/>
+      <div class="bkf-fg" style="margin-bottom:12px;">
+        <label class="bkf-label">예약일</label>
+        <input type="date" class="bkf-fi" id="bkf-edit-date-${s}"
+          value="${bkfEsc(b.reservation_date || '')}" min="${new Date().toISOString().slice(0,10)}"/>
+      </div>
+      ${b.reservation_time !== undefined ? `
+      <div class="bkf-fg" style="margin-bottom:12px;">
+        <label class="bkf-label">예약시간</label>
+        <input type="time" class="bkf-fi" id="bkf-edit-time-${s}"
+          value="${bkfEsc(b.reservation_time ? b.reservation_time.slice(0,5) : '')}"/>
+      </div>` : `<input type="hidden" id="bkf-edit-time-${s}" value=""/>`}
+      ${hasStoreStep ? `
+      <div class="bkf-fg" style="margin-bottom:12px;">
+        <label class="bkf-label">지점</label>
+        <select class="bkf-fi" id="bkf-edit-store-${s}" style="padding:10px 14px;">
+          <option value="">지점 없음</option>
+          ${storeOptions}
+        </select>
+      </div>` : `<input type="hidden" id="bkf-edit-store-${s}" value="${b.store_id || ''}"/>`}
+      <div class="bkf-fg" style="margin-bottom:12px;">
+        <label class="bkf-label">이름</label>
+        <input type="text" class="bkf-fi" id="bkf-edit-name-${s}" value="${bkfEsc(b.name || '')}"/>
+      </div>
+      <div class="bkf-fg" style="margin-bottom:16px;">
+        <label class="bkf-label">연락처</label>
+        <input type="tel" class="bkf-fi" id="bkf-edit-phone-${s}" value="${bkfEsc(b.phone || '')}" inputmode="numeric"/>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button type="button" class="bkf-btn-outline" style="flex:1;"
+          onclick="bkfShowView('${s}','lookup')">← 취소</button>
+        <button type="button" class="bkf-btn-primary" style="flex:2;"
+          onclick="bkfSubmitEdit('${s}')">수정 저장</button>
+      </div>
+    </div>`;
+}
+
+async function bkfSubmitEdit(s) {
+  const id    = parseInt(document.getElementById(`bkf-edit-id-${s}`)?.value) || 0;
+  const name  = document.getElementById(`bkf-edit-name-${s}`)?.value.trim() || '';
+  const phone = document.getElementById(`bkf-edit-phone-${s}`)?.value.trim() || '';
+  const date  = document.getElementById(`bkf-edit-date-${s}`)?.value || '';
+  const time  = document.getElementById(`bkf-edit-time-${s}`)?.value || '';
+  const storeSel  = document.getElementById(`bkf-edit-store-${s}`);
+  const storeId   = storeSel?.value || '';
+  const storeName = storeId && storeSel?.options[storeSel.selectedIndex]
+    ? storeSel.options[storeSel.selectedIndex].dataset.name || storeSel.options[storeSel.selectedIndex].textContent.trim()
+    : '';
+
+  if (!name || !phone) { alert('이름과 연락처를 입력해 주세요.'); return; }
+  if (!date) { alert('예약일을 선택해 주세요.'); return; }
+
+  const res = await bkfPost(s, 'update_booking', { id, name, phone,
+    reservation_date: date, reservation_time: time,
+    store_id: storeId, store_name: storeName });
+
+  if (res.ok) {
+    const resultEl = document.getElementById(`bkf-lookup-result-${s}`);
+    if (resultEl) resultEl.innerHTML =
+      `<p style="text-align:center;color:#16a34a;padding:20px 0;font-weight:600;">✅ 예약이 수정되었습니다.</p>`;
+    setTimeout(() => bkfShowView(s, 'lookup'), 1500);
+  } else {
+    alert(res.msg || '수정 실패');
+  }
 }
 
 async function bkfCancelReservation(s, reservationNo, phone) {
@@ -840,6 +1053,11 @@ async function bkfInit(s) {
     // 제목 표시
     const titleEl = document.getElementById(`bkf-title-${s}`);
     if (titleEl) titleEl.textContent = res.form?.title || '';
+    const descEl = document.getElementById(`bkf-desc-${s}`);
+    if (descEl) {
+      descEl.textContent = res.form?.description || '';
+      descEl.style.display = res.form?.description ? '' : 'none';
+    }
 
     // 활성 스텝 계획 수립
     st.plan = (res.steps || [])

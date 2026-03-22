@@ -113,12 +113,14 @@ function _adminEnsureFrontSections(PDO $pdo): void {
            subtitle   VARCHAR(300) DEFAULT '',
            nav_label  VARCHAR(100) DEFAULT '',
            anchor_id  VARCHAR(100) DEFAULT '',
+           params     VARCHAR(500) DEFAULT '',
            sort_order INT          DEFAULT 0,
            created_at DATETIME     DEFAULT CURRENT_TIMESTAMP
          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
     );
     try { $pdo->exec("ALTER TABLE front_sections ADD COLUMN nav_label VARCHAR(100) DEFAULT '' AFTER subtitle"); } catch (Exception $e) {}
     try { $pdo->exec("ALTER TABLE front_sections ADD COLUMN anchor_id VARCHAR(100) DEFAULT '' AFTER nav_label"); } catch (Exception $e) {}
+    try { $pdo->exec("ALTER TABLE front_sections ADD COLUMN params VARCHAR(500) DEFAULT '' AFTER anchor_id"); } catch (Exception $e) {}
 }
 
 // 동적 섹션 목록 조회
@@ -126,7 +128,7 @@ if ($action === 'dynSectionList') {
     try {
         _adminEnsureFrontSections($pdo);
         $rows = $pdo->query(
-            'SELECT id, `key`, name, file_name, is_active, title, subtitle, nav_label, anchor_id, sort_order
+            'SELECT id, `key`, name, file_name, is_active, title, subtitle, nav_label, anchor_id, params, sort_order
                FROM front_sections ORDER BY sort_order, id'
         )->fetchAll(PDO::FETCH_ASSOC);
 
@@ -160,6 +162,7 @@ if ($action === 'dynSectionSave') {
     $subtitle  = trim($_POST['subtitle']   ?? '');
     $navLabel  = trim($_POST['nav_label']  ?? '');
     $anchorId  = trim($_POST['anchor_id']  ?? '');
+    $params    = trim($_POST['params']     ?? '');
     $isActive  = (int)($_POST['is_active']  ?? 1);
     $sortOrder = (int)($_POST['sort_order'] ?? 0);
 
@@ -179,18 +182,20 @@ if ($action === 'dynSectionSave') {
             $pdo->prepare(
                 'UPDATE front_sections
                     SET name=?, file_name=?, title=?, subtitle=?,
-                        nav_label=?, anchor_id=?, is_active=?, sort_order=?
+                        nav_label=?, anchor_id=?, params=?, is_active=?, sort_order=?
                   WHERE id=?'
             )->execute([$name, $fileName, $title, $subtitle,
-                        $navLabel, $anchorId, $isActive, $sortOrder, $id]);
+                        $navLabel, $anchorId, $params, $isActive, $sortOrder, $id]);
         } else {
-            $key = 'dyn_' . preg_replace('/[^a-zA-Z0-9_\-]/', '_', $fileName);
+            // key 중복 방지: dyn_파일명_타임스탬프 suffix
+            $baseKey = 'dyn_' . preg_replace('/[^a-zA-Z0-9_\-]/', '_', $fileName);
+            $key     = $baseKey . '_' . time();
             $pdo->prepare(
                 'INSERT INTO front_sections
-                   (name, file_name, `key`, title, subtitle, nav_label, anchor_id, is_active, sort_order)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                   (name, file_name, `key`, title, subtitle, nav_label, anchor_id, params, is_active, sort_order)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
             )->execute([$name, $fileName, $key, $title, $subtitle,
-                        $navLabel, $anchorId, $isActive, $sortOrder]);
+                        $navLabel, $anchorId, $params, $isActive, $sortOrder]);
         }
         logAdminAction($pdo, $id > 0 ? 'update' : 'insert', 'front_sections', (string)($id ?: 'new'));
         echo json_encode(['ok' => true]);
@@ -204,30 +209,18 @@ if ($action === 'dynSectionSave') {
 if ($action === 'dynSectionInit') {
     try {
         _adminEnsureFrontSections($pdo);
+        // 기본값: 서비스 전환바 / 상단NAV / 히어로배너 / 풋터 4개만
+        // key, name, file_name, is_active, title, subtitle, nav_label, anchor_id, params, sort_order
         $defaults = [
-            ['front_service_switch',    '서비스 전환 바',             '_site',             1, '', '', '',        '',                 0],
-            ['front_user_menu',         '상단 NAV',                   '_nav',              1, '', '', '',        '',                 1],
-            ['front_hero_banner',       'HERO 배너',                  'top_banner',        1, '', '', '',        '',                 2],
-            ['front_products',          '제품 섹션',                  'products',          1, '', '', '제품',    'products',         3],
-            ['front_benefits',          '혜택 섹션',                  'benefits',          1, '', '', '혜택',    'benefits',         4],
-            ['front_videos',            '영상 섹션',                  'bbs_video',         1, '', '', '영상',    'videos',           5],
-            ['front_reviews',           '후기 섹션',                  'bbs_review',        1, '', '', '후기',    'reviews',          6],
-            ['front_event',             '이벤트 섹션',                'bbs_event',         1, '', '', '이벤트',  'event',            7],
-            ['front_stores',            '매장찾기 섹션',              'stores',            1, '', '', '매장찾기','stores',           8],
-            ['front_reservation',       '예약(System1, 비활성)',      'reservation',       0, '', '', '',        '',                 9],
-            ['front_reservation_lookup','예약조회(System1, 비활성)',  'reservationLookup', 0, '', '', '',        '',                 10],
-
-            ['front_notices',           '공지사항 섹션',              'bbs_notice',        1, '', '', '공지사항','notices',          13],
-            ['front_faq',               'FAQ 섹션',                   'bbs_faq',           1, '', '', 'FAQ',     'faq',              14],
-            ['front_gallery',           '갤러리 섹션',                'bbs_gallery',       1, '', '', '갤러리',  'gallery',          15],
-            ['front_photo_gallery',     '포토 갤러리',                'bbs_photogallery',  0, '', '', '',        '',                 16],
-            ['front_slide_gallery',     '슬라이드 갤러리',            'bbs_slidegallery',  0, '', '', '',        '',                 17],
-            ['front_footer',            '풋터',                       '_ft',               1, '', '', '',        '',                 18],
+            ['front_service_switch', '서비스 전환 바', '_site',      1, '', '', '', '', '', 0],
+            ['front_user_menu',      '상단 NAV',       '_nav',       1, '', '', '', '', '', 1],
+            ['front_hero_banner',    'HERO 배너',      'top_banner', 1, '', '', '', '', '', 2],
+            ['front_footer',         '풋터',           '_ft',        1, '', '', '', '', '', 99],
         ];
         $stmt = $pdo->prepare(
             'INSERT IGNORE INTO front_sections
-               (`key`, name, file_name, is_active, title, subtitle, nav_label, anchor_id, sort_order)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+               (`key`, name, file_name, is_active, title, subtitle, nav_label, anchor_id, params, sort_order)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         );
         foreach ($defaults as $d) { $stmt->execute($d); }
         logAdminAction($pdo, 'init', 'front_sections', 'defaults');
@@ -288,6 +281,47 @@ if ($action === 'dynSectionDelete') {
         $pdo->prepare('DELETE FROM front_sections WHERE id = ?')->execute([$id]);
         logAdminAction($pdo, 'delete', 'front_sections', (string)$id);
         echo json_encode(['ok' => true]);
+    } catch (Exception $e) {
+        echo json_encode(['ok' => false, 'msg' => $e->getMessage()]);
+    }
+    exit;
+}
+
+// DB 마이그레이션: 코어 4개 제외 전부 삭제 + 중복/순서 정리
+if ($action === 'dynSectionMigrate') {
+    try {
+        _adminEnsureFrontSections($pdo);
+
+        // 코어 파일명 4개 (이것만 유지)
+        $coreFiles = ['_site', '_nav', 'top_banner', '_ft'];
+
+        // 1) 코어 아닌 섹션 전부 삭제
+        $ph = implode(',', array_fill(0, count($coreFiles), '?'));
+        $stmt = $pdo->prepare("DELETE FROM front_sections WHERE file_name NOT IN ($ph)");
+        $stmt->execute($coreFiles);
+        $deletedCount = $stmt->rowCount();
+
+        // 2) _ft 중복 제거: id 가장 작은 1개만 유지
+        $ftRows = $pdo->query(
+            "SELECT id FROM front_sections WHERE file_name = '_ft' ORDER BY id ASC"
+        )->fetchAll(PDO::FETCH_COLUMN);
+        if (count($ftRows) > 1) {
+            $delIds = array_slice($ftRows, 1);
+            $ph2    = implode(',', array_fill(0, count($delIds), '?'));
+            $pdo->prepare("DELETE FROM front_sections WHERE id IN ($ph2)")->execute($delIds);
+        }
+
+        // 3) 코어 섹션 sort_order 강제 고정 + 활성화
+        $pdo->exec("UPDATE front_sections SET is_active = 1, sort_order = 0  WHERE file_name = '_site'");
+        $pdo->exec("UPDATE front_sections SET is_active = 1, sort_order = 1  WHERE file_name = '_nav'");
+        $pdo->exec("UPDATE front_sections SET is_active = 1, sort_order = 2  WHERE file_name = 'top_banner'");
+        $pdo->exec("UPDATE front_sections SET is_active = 1, sort_order = 99 WHERE file_name = '_ft'");
+
+        logAdminAction($pdo, 'migrate', 'front_sections', 'cleanup');
+        echo json_encode([
+            'ok'  => true,
+            'msg' => '정리 완료. 코어 4개 외 ' . $deletedCount . '개 삭제, 풋터 중복 ' . max(0, count($ftRows) - 1) . '개 삭제, 순서 고정.',
+        ]);
     } catch (Exception $e) {
         echo json_encode(['ok' => false, 'msg' => $e->getMessage()]);
     }

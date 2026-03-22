@@ -15,6 +15,16 @@ requireLogin();
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
 $pdo    = getDB();
 
+// bkf_quota.capacity NULL 허용 (빈칸=제한없음, 0=마감)
+try {
+    $pdo->exec("ALTER TABLE `bkf_quota` MODIFY COLUMN `capacity` INT DEFAULT NULL");
+} catch (Throwable $e) {}
+
+// bkf_forms.description 컬럼 자동 추가 (없을 경우)
+try {
+    $pdo->exec("ALTER TABLE `bkf_forms` ADD COLUMN `description` TEXT DEFAULT NULL AFTER `btn_name`");
+} catch (Throwable $e) {} // 이미 있으면 무시
+
 // bkf_managers_history 테이블 자동 생성 (없을 경우)
 try {
     $pdo->exec("CREATE TABLE IF NOT EXISTS `bkf_managers_history` (
@@ -71,9 +81,10 @@ if ($action === 'check_slug') {
    폼 생성
    ================================================================ */
 if ($action === 'create_form') {
-    $title      = trim($_POST['title']    ?? '');
-    $slug       = trim($_POST['slug']     ?? '');
-    $btn        = trim($_POST['btn_name'] ?? 'Reserve');
+    $title      = trim($_POST['title']       ?? '');
+    $slug       = trim($_POST['slug']        ?? '');
+    $btn        = trim($_POST['btn_name']    ?? 'Reserve');
+    $description = trim($_POST['description'] ?? '');
 
     if (!$title || !$slug) {
         ob_clean();
@@ -106,8 +117,8 @@ if ($action === 'create_form') {
     $pdo->beginTransaction();
     try {
         // bkf_forms INSERT
-        $pdo->prepare('INSERT INTO bkf_forms (title, slug, btn_name) VALUES (?,?,?)')
-            ->execute([$title, $slug, $btn]);
+        $pdo->prepare('INSERT INTO bkf_forms (title, slug, btn_name, description) VALUES (?,?,?,?)')
+            ->execute([$title, $slug, $btn, $description ?: null]);
         $form_id = (int)$pdo->lastInsertId();
 
         // 고정 필수 필드: name(0), phone(1) — is_deletable=0
@@ -161,6 +172,13 @@ if ($action === 'list_forms') {
     $rows = $pdo->query('SELECT id, title, slug, btn_name, is_active, quota_mode, phone_verify_use, created_at FROM bkf_forms ORDER BY id DESC')
                 ->fetchAll(PDO::FETCH_ASSOC);
 
+    // bkf_records_{slug} 테이블에 admin_memo, memo_updated_at 컬럼 자동 추가
+    foreach ($rows as $r) {
+        $t = 'bkf_records_' . $r['slug'];
+        try { $pdo->exec("ALTER TABLE `{$t}` ADD COLUMN `admin_memo` TEXT DEFAULT NULL"); } catch (Throwable $e) {}
+        try { $pdo->exec("ALTER TABLE `{$t}` ADD COLUMN `memo_updated_at` DATETIME DEFAULT NULL"); } catch (Throwable $e) {}
+    }
+
     // N+1 제거: information_schema에서 bkf_records_* 테이블 행 수를 한 번에 조회
     $countMap = [];
     if (!empty($rows)) {
@@ -210,14 +228,15 @@ if ($action === 'save_basic') {
     $id                = (int)($_POST['id']               ?? 0);
     $title             = trim($_POST['title']             ?? '');
     $btn               = trim($_POST['btn_name']          ?? '');
+    $description       = trim($_POST['description']       ?? '');
     $is_active         = (int)($_POST['is_active']        ?? 1);
     $phone_verify_use  = (int)($_POST['phone_verify_use'] ?? 0);
     $quota_mode        = trim($_POST['quota_mode']        ?? 'date');
 
-    if (!in_array($quota_mode, ['date','slot','both'])) $quota_mode = 'date';
+    if (!in_array($quota_mode, ['date','slot'])) $quota_mode = 'date';
 
-    $pdo->prepare('UPDATE bkf_forms SET title=?, btn_name=?, is_active=?, phone_verify_use=?, quota_mode=? WHERE id=?')
-        ->execute([$title, $btn, $is_active, $phone_verify_use, $quota_mode, $id]);
+    $pdo->prepare('UPDATE bkf_forms SET title=?, btn_name=?, description=?, is_active=?, phone_verify_use=?, quota_mode=? WHERE id=?')
+        ->execute([$title, $btn, $description ?: null, $is_active, $phone_verify_use, $quota_mode, $id]);
 
     logAdminAction($pdo, 'update', 'bkf_forms', (string)$id);
     ob_clean();
@@ -466,11 +485,8 @@ if ($action === 'save_steps') {
 
     $allowed_keys = ['store','date','time_slot','item','info'];
 
-    // info 를 제외한 스텝만 순서 조정, info는 마지막으로 강제
-    $non_info = array_values(array_filter((array)$items, function($i) { return ($i['step_key'] ?? '') !== 'info'; }));
-    $info_row = array_values(array_filter((array)$items, function($i) { return ($i['step_key'] ?? '') === 'info'; }));
-
-    $sorted = array_merge($non_info, $info_row); // info 항상 마지막
+    // 전달된 순서 그대로 저장 (info 포함, 강제 마지막 없음)
+    $sorted = (array)$items;
 
     foreach ($sorted as $idx => $item) {
         $step_key  = trim($item['step_key'] ?? '');
@@ -480,8 +496,7 @@ if ($action === 'save_steps') {
 
         if (!in_array($step_key, $allowed_keys)) continue;
 
-        // info 는 sort_order = 9999 (항상 마지막)
-        $sort = ($step_key === 'info') ? 9999 : $idx;
+        $sort = $idx;
 
         if ($item_id > 0) {
             $pdo->prepare('UPDATE bkf_steps SET label=?, sort_order=?, is_active=? WHERE id=? AND form_id=?')
@@ -509,15 +524,7 @@ if ($action === 'toggle_step') {
     $id        = (int)($_POST['id']        ?? 0);
     $is_active = (int)($_POST['is_active'] ?? 1);
 
-    // info 스텝은 비활성화 불가
-    $chk = $pdo->prepare('SELECT step_key FROM bkf_steps WHERE id=?');
-    $chk->execute([$id]);
-    $row = $chk->fetch(PDO::FETCH_ASSOC);
-    if ($row && $row['step_key'] === 'info') {
-        ob_clean();
-        echo json_encode(['ok' => false, 'msg' => 'The info step cannot be deactivated.']);
-        exit;
-    }
+    // 모든 스텝 활성화/비활성화 가능
 
     $pdo->prepare('UPDATE bkf_steps SET is_active=? WHERE id=?')->execute([$is_active, $id]);
     ob_clean();
@@ -620,8 +627,9 @@ if ($action === 'save_quota') {
    POST: form_id, items = [{store_id, quota_date, slot_time, capacity}, ...]
    ================================================================ */
 if ($action === 'bulk_quota') {
-    $form_id = (int)($_POST['form_id'] ?? 0);
-    $items   = json_decode($_POST['items'] ?? '[]', true);
+    $form_id          = (int)($_POST['form_id'] ?? 0);
+    $items            = json_decode($_POST['items'] ?? '[]', true);
+    $apply_all_stores = (trim($_POST['apply_all_stores'] ?? '0') === '1');
 
     if (!$form_id || !is_array($items)) {
         ob_clean();
@@ -629,48 +637,57 @@ if ($action === 'bulk_quota') {
         exit;
     }
 
-    // 저장 대상 날짜 목록 추출
+    // apply_all_stores=true: 전체 지점 목록 조회
+    $allStoreIds = [null]; // null = 공통
+    if ($apply_all_stores) {
+        try {
+            $storeRows = $pdo->query('SELECT id FROM stores ORDER BY sort_order, id')->fetchAll(PDO::FETCH_COLUMN);
+            foreach ($storeRows as $sid) {
+                $allStoreIds[] = (int)$sid;
+            }
+        } catch (Throwable $e) {}
+    }
+
+    // 저장 대상 날짜 추출
     $targetDates = [];
     foreach ($items as $item) {
         $d = trim($item['quota_date'] ?? '');
-        if ($d) $targetDates[$d] = $item;
+        if ($d) $targetDates[$d] = true;
     }
 
     $pdo->beginTransaction();
     try {
-        // 해당 날짜 기존 데이터 먼저 삭제 (unique key 의존 없이 안전하게)
-        foreach ($targetDates as $quota_date => $sample) {
-            $sid = ($sample['store_id'] !== '' && $sample['store_id'] !== null)
-                    ? (int)$sample['store_id'] : null;
-            if ($sid !== null) {
-                $pdo->prepare('DELETE FROM bkf_quota WHERE form_id=? AND store_id=? AND quota_date=?')
-                    ->execute([$form_id, $sid, $quota_date]);
-            } else {
-                $pdo->prepare('DELETE FROM bkf_quota WHERE form_id=? AND store_id IS NULL AND quota_date=?')
-                    ->execute([$form_id, $quota_date]);
+        foreach ($allStoreIds as $targetStore) {
+            // 해당 날짜 기존 데이터 삭제
+            foreach (array_keys($targetDates) as $quota_date) {
+                if ($targetStore !== null) {
+                    $pdo->prepare('DELETE FROM bkf_quota WHERE form_id=? AND store_id=? AND quota_date=?')
+                        ->execute([$form_id, $targetStore, $quota_date]);
+                } else {
+                    $pdo->prepare('DELETE FROM bkf_quota WHERE form_id=? AND store_id IS NULL AND quota_date=?')
+                        ->execute([$form_id, $quota_date]);
+                }
             }
-        }
 
-        // 새로 삽입
-        foreach ($items as $item) {
-            $store_id   = ($item['store_id'] !== '' && $item['store_id'] !== null)
-                           ? (int)$item['store_id'] : null;
-            $quota_date = trim($item['quota_date'] ?? '');
-            $slot_time  = trim($item['slot_time']  ?? '') ?: null;
-            $capacity   = max(0, (int)($item['capacity'] ?? 0));
+            // 새로 삽입
+            foreach ($items as $item) {
+                $quota_date = trim($item['quota_date'] ?? '');
+                $slot_time  = trim($item['slot_time']  ?? '') ?: null;
+                $rawCap = $item['capacity'];
+                $capacity = ($rawCap === null || $rawCap === '') ? null : max(0, (int)$rawCap);
+                if (!$quota_date) continue;
 
-            if (!$quota_date) continue;
-
-            if ($store_id !== null) {
-                $pdo->prepare(
-                    'INSERT INTO bkf_quota (form_id, store_id, quota_date, slot_time, capacity, booked)
-                     VALUES (?,?,?,?,?,0)'
-                )->execute([$form_id, $store_id, $quota_date, $slot_time, $capacity]);
-            } else {
-                $pdo->prepare(
-                    'INSERT INTO bkf_quota (form_id, store_id, quota_date, slot_time, capacity, booked)
-                     VALUES (?,NULL,?,?,?,0)'
-                )->execute([$form_id, $quota_date, $slot_time, $capacity]);
+                if ($targetStore !== null) {
+                    $pdo->prepare(
+                        'INSERT INTO bkf_quota (form_id, store_id, quota_date, slot_time, capacity, booked)
+                         VALUES (?,?,?,?,?,0)'
+                    )->execute([$form_id, $targetStore, $quota_date, $slot_time, $capacity]);
+                } else {
+                    $pdo->prepare(
+                        'INSERT INTO bkf_quota (form_id, store_id, quota_date, slot_time, capacity, booked)
+                         VALUES (?,NULL,?,?,?,0)'
+                    )->execute([$form_id, $quota_date, $slot_time, $capacity]);
+                }
             }
         }
         $pdo->commit();
@@ -684,9 +701,7 @@ if ($action === 'bulk_quota') {
     exit;
 }
 
-/* ================================================================
-   수량(Quota) 삭제 (단건)
-   ================================================================ */
+
 if ($action === 'delete_quota') {
     $id = (int)($_POST['id'] ?? 0);
     if (!$id) { echo json_encode(['ok' => false, 'msg' => 'Invalid id.']); exit; }
@@ -852,6 +867,31 @@ if ($action === 'list_manager_history') {
 }
 
 /* ================================================================
+   담당자 메모 저장
+   POST: form_id, record_id, admin_memo
+   ================================================================ */
+if ($action === 'save_memo') {
+    $form_id   = (int)($_POST['form_id']   ?? 0);
+    $record_id = (int)($_POST['record_id'] ?? 0);
+    $memo      = trim($_POST['admin_memo'] ?? '');
+
+    $form = bkf_get_form($pdo, $form_id);
+    if (!$form) { ob_clean(); echo json_encode(['ok' => false, 'msg' => 'Form not found.']); exit; }
+    $tbl = bkf_records_tbl($form['slug']);
+
+    try {
+        $pdo->prepare("UPDATE `{$tbl}` SET admin_memo=?, memo_updated_at=NOW() WHERE id=? AND form_id=?")
+            ->execute([$memo ?: null, $record_id, $form_id]);
+        ob_clean();
+        echo json_encode(['ok' => true]);
+    } catch (Throwable $e) {
+        ob_clean();
+        echo json_encode(['ok' => false, 'msg' => $e->getMessage()]);
+    }
+    exit;
+}
+
+/* ================================================================
    예약 내역 목록 (검색 필터 + 페이징)
    GET: form_id, keyword, status, store_id, from, to, page
    ================================================================ */
@@ -923,7 +963,8 @@ if ($action === 'list_records') {
 
     $sql = "SELECT r.id, r.reservation_no, r.name, r.phone, r.status,
                    r.reservation_date, r.reservation_time,
-                   r.store_id, r.store_name, r.created_at, r.updated_at
+                   r.store_id, r.store_name, r.created_at, r.updated_at,
+                   r.admin_memo, r.memo_updated_at
                    {$extraCols}
             FROM `{$tbl}` r
             WHERE {$whereSQL}
@@ -1058,8 +1099,9 @@ if ($action === 'update_record') {
         // 기존 quota 복구
         bkf_quota_restore($pdo, $form_id, $rec);
 
-        // 새 quota 차감 (날짜/시간 바뀐 경우만)
-        $quotaOk = bkf_quota_deduct($pdo, $form_id, $new_store_id, $new_date, $new_time);
+        // 새 quota 차감 (quota_mode=date면 날짜만 차감)
+        $deduct_time = ($form['quota_mode'] === 'slot') ? $new_time : null;
+        $quotaOk = bkf_quota_deduct($pdo, $form_id, $new_store_id, $new_date, $deduct_time);
         if (!$quotaOk) {
             $pdo->rollBack();
             ob_clean();
@@ -1068,8 +1110,14 @@ if ($action === 'update_record') {
         }
 
         // 기본 컬럼 UPDATE
+        $new_memo = isset($_POST['admin_memo']) ? trim($_POST['admin_memo']) : null;
         $sets   = ['name=?','phone=?','reservation_date=?','reservation_time=?','store_id=?','store_name=?'];
         $vals   = [$new_name, $new_phone, $new_date, $new_time, $new_store_id, $new_store_nm];
+        if ($new_memo !== null) {
+            $sets[] = 'admin_memo=?';
+            $sets[] = 'memo_updated_at=NOW()';
+            $vals[] = $new_memo ?: null;
+        }
 
         // 동적 필드 UPDATE
         $existCols = $pdo->prepare(
@@ -1281,12 +1329,11 @@ function bkf_quota_deduct(PDO $pdo, int $form_id, ?int $store_id, ?string $quota
 
     $quota = $st->fetch(PDO::FETCH_ASSOC);
 
-    // quota 행 자체가 없거나 capacity=0이면 제한 없음으로 간주 (설정 안 된 경우)
-    if (!$quota || (int)$quota['capacity'] === 0) return true;
-
-    if ((int)$quota['booked'] >= (int)$quota['capacity']) {
-        return false; // 마감
-    }
+    if (!$quota) return true; // 행 없음 = 제한없음
+    $cap = $quota['capacity'];
+    if ($cap === null || $cap === '') return true; // null = 제한없음
+    if ((int)$cap === 0) return false;             // 0 = 마감
+    if ((int)$quota['booked'] >= (int)$cap) return false; // 수량 초과
 
     $pdo->prepare('UPDATE bkf_quota SET booked = booked + 1 WHERE id=?')
         ->execute([$quota['id']]);

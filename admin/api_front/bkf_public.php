@@ -86,8 +86,11 @@ function bkf_deduct(PDO $pdo, int $form_id, ?int $store_id, ?string $quota_date,
         $st->execute([$form_id, $quota_date, $slot_time, $slot_time]);
     }
     $q = $st->fetch(PDO::FETCH_ASSOC);
-    if (!$q || (int)$q['capacity'] === 0) return true; // quota 미설정 = 제한 없음
-    if ((int)$q['booked'] >= (int)$q['capacity'])      return false; // 마감
+    if (!$q) return true; // quota 행 없음 = 제한없음
+    $cap = $q['capacity'];
+    if ($cap === null || $cap === '') return true; // null = 제한없음
+    if ((int)$cap === 0) return false;             // 0 = 마감
+    if ((int)$q['booked'] >= (int)$cap) return false; // 수량 초과 = 마감
     $pdo->prepare('UPDATE bkf_quota SET booked=booked+1 WHERE id=?')->execute([$q['id']]);
     return true;
 }
@@ -116,13 +119,13 @@ function bkf_restore(PDO $pdo, int $form_id, array $rec): void {
 /* ================================================================
    slug 필수 확인 (get_config 제외 시 아래에서 체크)
    ================================================================ */
-if ($slug === '') bkf_out(['ok' => false, 'msg' => 'slug is required.'], 400);
+if ($slug === '') bkf_out(['ok' => false, 'msg' => '슬러그가 필요합니다.'], 400);
 
 // 폼 조회
 $fst = $pdo->prepare('SELECT * FROM bkf_forms WHERE slug=? AND is_active=1');
 $fst->execute([$slug]);
 $form = $fst->fetch(PDO::FETCH_ASSOC);
-if (!$form) bkf_out(['ok' => false, 'msg' => 'Form not found or inactive.'], 404);
+if (!$form) bkf_out(['ok' => false, 'msg' => '예약 폼을 찾을 수 없거나 비활성 상태입니다.'], 404);
 
 $form_id = (int)$form['id'];
 $tbl     = 'bkf_records_' . $slug;
@@ -166,6 +169,7 @@ if ($action === 'get_config') {
         'form'             => [
             'id'               => $form_id,
             'title'            => $form['title'],
+            'description'      => $form['description'] ?? '',
             'btn_name'         => $form['btn_name'],
             'phone_verify_use' => (int)$form['phone_verify_use'],
             'quota_mode'       => $form['quota_mode'],
@@ -197,6 +201,93 @@ if ($action === 'get_stores') {
     } catch (Throwable $e) {
         bkf_out(['ok' => false, 'msg' => 'stores table error: ' . $e->getMessage()], 500);
     }
+}
+
+/* ================================================================
+   get_stores_by_slot — 날짜+시간 기준 지점별 가용 여부
+   GET: slug, action, date, slot_time
+   ================================================================ */
+if ($action === 'get_stores_by_slot') {
+    $date      = trim((string)($in['date']      ?? ''));
+    $slot_time = trim((string)($in['slot_time'] ?? '')) ?: null;
+
+    if (!$date) bkf_out(['ok' => false, 'msg' => '날짜가 필요합니다.'], 400);
+
+    // 전체 지점 목록
+    try {
+        $storeRows = $pdo->query('SELECT id, store_name, branch_name, address, phone FROM stores ORDER BY sort_order, id')
+            ->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Throwable $e) {
+        bkf_out(['ok' => false, 'msg' => 'stores table error'], 500);
+    }
+
+    $result = [];
+    foreach ($storeRows as $store) {
+        $sid = (int)$store['id'];
+
+        // 해당 지점+날짜+시간 슬롯 조회
+        if ($slot_time) {
+            $sq = $pdo->prepare(
+                'SELECT capacity, booked FROM bkf_quota
+                 WHERE form_id=? AND store_id=? AND quota_date=? AND slot_time=?
+                 LIMIT 1'
+            );
+            $sq->execute([$form_id, $sid, $date, $slot_time]);
+            $row = $sq->fetch(PDO::FETCH_ASSOC);
+
+            // 없으면 공통(NULL) 폴백
+            if (!$row) {
+                $sq2 = $pdo->prepare(
+                    'SELECT capacity, booked FROM bkf_quota
+                     WHERE form_id=? AND store_id IS NULL AND quota_date=? AND slot_time=?
+                     LIMIT 1'
+                );
+                $sq2->execute([$form_id, $date, $slot_time]);
+                $row = $sq2->fetch(PDO::FETCH_ASSOC);
+            }
+        } else {
+            // 시간 없으면 날짜 단위 수량 조회
+            $sq = $pdo->prepare(
+                'SELECT capacity, booked FROM bkf_quota
+                 WHERE form_id=? AND store_id=? AND quota_date=? AND slot_time IS NULL
+                 LIMIT 1'
+            );
+            $sq->execute([$form_id, $sid, $date]);
+            $row = $sq->fetch(PDO::FETCH_ASSOC);
+        }
+
+        // 가용 여부 계산
+        if (!$row) {
+            // 슬롯 자체가 없음 → 해당 지점에서 이 시간 운영 안 함
+            $available = false;
+            $remaining = null;
+            $has_slot  = false;
+        } else {
+            $cap = $row['capacity'];
+            $has_slot = true;
+            if ($cap === null) {
+                $available = true; $remaining = null;
+            } elseif ((int)$cap === 0) {
+                $available = false; $remaining = 0;
+            } else {
+                $remaining = max(0, (int)$cap - (int)$row['booked']);
+                $available = $remaining > 0;
+            }
+        }
+
+        $result[] = [
+            'id'          => $sid,
+            'store_name'  => $store['store_name']  ?? '',
+            'branch_name' => $store['branch_name'] ?? '',
+            'address'     => $store['address']     ?? '',
+            'phone'       => $store['phone']       ?? '',
+            'has_slot'    => $has_slot,
+            'available'   => $available,
+            'remaining'   => $remaining,
+        ];
+    }
+
+    bkf_out(['ok' => true, 'data' => $result]);
 }
 
 /* ================================================================
@@ -233,26 +324,39 @@ if ($action === 'get_calendar') {
                  FROM bkf_quota WHERE form_id=? AND store_id=? AND quota_date=?'
             );
             $st->execute([$form_id, $store_id, $ds]);
+            $row_pre = $st->fetch(PDO::FETCH_ASSOC);
+            // 지점별 설정 없으면 공통(NULL)으로 폴백
+            if ((int)($row_pre['cap'] ?? 0) === 0) {
+                $st2 = $pdo->prepare(
+                    'SELECT COALESCE(SUM(capacity),0) AS cap, COALESCE(SUM(booked),0) AS booked
+                     FROM bkf_quota WHERE form_id=? AND store_id IS NULL AND quota_date=?'
+                );
+                $st2->execute([$form_id, $ds]);
+                $row_pre = $st2->fetch(PDO::FETCH_ASSOC);
+            }
+            $row = $row_pre;
         } else {
             $st = $pdo->prepare(
                 'SELECT COALESCE(SUM(capacity),0) AS cap, COALESCE(SUM(booked),0) AS booked
                  FROM bkf_quota WHERE form_id=? AND store_id IS NULL AND quota_date=?'
             );
             $st->execute([$form_id, $ds]);
+            $row = $st->fetch(PDO::FETCH_ASSOC);
         }
 
-        $row       = $st->fetch(PDO::FETCH_ASSOC);
-        $cap       = (int)($row['cap']    ?? 0);
-        $booked    = (int)($row['booked'] ?? 0);
-        $remaining = max(0, $cap - $booked);
+        if (!isset($row)) $row = $st->fetch(PDO::FETCH_ASSOC);
+        $rawCap = isset($row['cap']) ? $row['cap'] : null;
+        $booked = (int)($row['booked'] ?? 0);
 
-        $days[$ds] = [
-            'open'      => ($cap === 0) ? true : ($remaining > 0), // cap=0은 미설정 → 열림
-            'capacity'  => $cap,
-            'booked'    => $booked,
-            'remaining' => $remaining,
-            'full'      => ($cap > 0 && $remaining === 0),
-        ];
+        if ($rawCap === null) {
+            $days[$ds] = ['open'=>true,'capacity'=>null,'booked'=>$booked,'remaining'=>null,'full'=>false,'unlimited'=>true];
+        } elseif ((int)$rawCap === 0) {
+            $days[$ds] = ['open'=>false,'capacity'=>0,'booked'=>$booked,'remaining'=>0,'full'=>true,'unlimited'=>false];
+        } else {
+            $cap = (int)$rawCap;
+            $remaining = max(0, $cap - $booked);
+            $days[$ds] = ['open'=>$remaining>0,'capacity'=>$cap,'booked'=>$booked,'remaining'=>$remaining,'full'=>$remaining===0,'unlimited'=>false];
+        }
     }
 
     bkf_out(['ok' => true, 'days' => $days, 'quota_mode' => $form['quota_mode']]);
@@ -268,10 +372,10 @@ if ($action === 'get_slots') {
                 ? (int)$in['store_id'] : null;
 
     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-        bkf_out(['ok' => false, 'msg' => 'Invalid date format.'], 400);
+        bkf_out(['ok' => false, 'msg' => '날짜 형식이 올바르지 않습니다.'], 400);
     }
     if ($date < bkf_today()) {
-        bkf_out(['ok' => false, 'msg' => 'Past date is not allowed.'], 400);
+        bkf_out(['ok' => false, 'msg' => '지난 날짜는 선택할 수 없습니다.'], 400);
     }
 
     if ($store_id !== null) {
@@ -281,23 +385,73 @@ if ($action === 'get_slots') {
              ORDER BY slot_time ASC'
         );
         $st->execute([$form_id, $store_id, $date]);
+        $slots_pre = $st->fetchAll(PDO::FETCH_ASSOC);
+
+        // 지점별 슬롯 없으면 공통(NULL)으로 폴백
+        if (empty($slots_pre)) {
+            $st2 = $pdo->prepare(
+                'SELECT id, slot_time, capacity, booked
+                 FROM bkf_quota WHERE form_id=? AND store_id IS NULL AND quota_date=? AND slot_time IS NOT NULL
+                 ORDER BY slot_time ASC'
+            );
+            $st2->execute([$form_id, $date]);
+            $slots_pre = $st2->fetchAll(PDO::FETCH_ASSOC);
+        }
+
     } else {
+        // store_id 없음: 전체 지점 슬롯 시간 합집합 (수량 정보 없이 시간만)
         $st = $pdo->prepare(
-            'SELECT id, slot_time, capacity, booked
-             FROM bkf_quota WHERE form_id=? AND store_id IS NULL AND quota_date=? AND slot_time IS NOT NULL
+            'SELECT DISTINCT slot_time
+             FROM bkf_quota
+             WHERE form_id=? AND quota_date=? AND slot_time IS NOT NULL
              ORDER BY slot_time ASC'
         );
         $st->execute([$form_id, $date]);
+        $times = $st->fetchAll(PDO::FETCH_COLUMN);
+        $slots_pre = array_map(function($t) {
+            return ['id'=>0, 'slot_time'=>$t, 'capacity'=>null, 'booked'=>0];
+        }, $times);
     }
 
-    $slots = $st->fetchAll(PDO::FETCH_ASSOC);
-    foreach ($slots as &$s) {
-        $s['slot_time']  = substr((string)($s['slot_time'] ?? ''), 0, 5); // HH:MM
-        $s['remaining']  = max(0, (int)$s['capacity'] - (int)$s['booked']);
-        $s['available']  = ((int)$s['capacity'] === 0) ? true : ($s['remaining'] > 0);
-        $s['full']       = ((int)$s['capacity'] > 0 && $s['remaining'] === 0);
+    // store_id 있는 경우 $slots_pre에 이미 fetch됨
+    $slots = isset($slots_pre) ? $slots_pre : [];
+    unset($slots_pre);
+    $quotaMode = $form['quota_mode'] ?? 'date';
 
-        // 당일 2시간 이내 슬롯 비활성화
+    foreach ($slots as &$s) {
+        $s['slot_time'] = substr((string)($s['slot_time'] ?? ''), 0, 5); // HH:MM
+
+        if ($quotaMode === 'date') {
+            // 날짜 단위 모드: 슬롯은 선택지만 제공, 수량 제한 없음
+            $s['remaining']  = null;
+            $s['available']  = true;
+            $s['full']       = false;
+            $s['unlimited']  = true;
+        } else {
+            $cap = $s['capacity']; // null이면 제한없음, 0이면 마감, 양수이면 수량제한
+            if ($cap === null || $cap === '') {
+                // 제한없음
+                $s['remaining']  = null;
+                $s['available']  = true;
+                $s['full']       = false;
+                $s['unlimited']  = true;
+            } elseif ((int)$cap === 0) {
+                // 마감
+                $s['remaining']  = 0;
+                $s['available']  = false;
+                $s['full']       = true;
+                $s['unlimited']  = false;
+            } else {
+                // 수량 제한
+                $remaining = max(0, (int)$cap - (int)$s['booked']);
+                $s['remaining']  = $remaining;
+                $s['available']  = $remaining > 0;
+                $s['full']       = $remaining === 0;
+                $s['unlimited']  = false;
+            }
+        }
+
+        // 당일 2시간 이내 슬롯 비활성화 (모드 무관)
         if (bkf_validate_2h($date, $s['slot_time']) !== null) {
             $s['available'] = false;
             $s['disabled']  = true;
@@ -305,7 +459,7 @@ if ($action === 'get_slots') {
     }
     unset($s);
 
-    bkf_out(['ok' => true, 'slots' => $slots]);
+    bkf_out(['ok' => true, 'slots' => $slots, 'quota_mode' => $quotaMode]);
 }
 
 /* ================================================================
@@ -314,7 +468,7 @@ if ($action === 'get_slots') {
          store_id, store_name, otp_token(번호인증 사용 시), + 동적 필드
    ================================================================ */
 if ($action === 'submit') {
-    if ($method !== 'POST') bkf_out(['ok' => false, 'msg' => 'POST only.'], 405);
+    if ($method !== 'POST') bkf_out(['ok' => false, 'msg' => 'POST 방식으로만 요청할 수 있습니다.'], 405);
 
     $name     = trim((string)($in['name']  ?? ''));
     $phone    = bkf_normalize_phone((string)($in['phone'] ?? ''));
@@ -358,13 +512,24 @@ if ($action === 'submit') {
         }
     }
 
-    // ④ 이름 + 전화번호 중복 예약 차단 (접수/확인 상태)
-    $dupChk = $pdo->prepare(
-        "SELECT COUNT(*) FROM `{$tbl}` WHERE form_id=? AND name=? AND phone=? AND status IN ('접수','확인')"
-    );
-    $dupChk->execute([$form_id, $name, $phone]);
-    if ((int)$dupChk->fetchColumn() > 0) {
-        bkf_out(['ok' => false, 'msg' => 'A reservation already exists for this name and phone number.'], 409);
+    // ④ 동일 날짜+이름+전화 중복 예약 차단 (접수/확인 상태)
+    if ($res_date) {
+        $dupChk = $pdo->prepare(
+            "SELECT COUNT(*) FROM `{$tbl}` WHERE form_id=? AND name=? AND phone=? AND reservation_date=? AND status IN ('접수','확인')"
+        );
+        $dupChk->execute([$form_id, $name, $phone, $res_date]);
+        if ((int)$dupChk->fetchColumn() > 0) {
+            bkf_out(['ok' => false, 'msg' => '해당 날짜에 동일한 정보로 이미 예약이 접수되어 있습니다.'], 409);
+        }
+    } else {
+        // 날짜 없는 폼: 이름+전화 동일하면 중복 차단
+        $dupChk = $pdo->prepare(
+            "SELECT COUNT(*) FROM `{$tbl}` WHERE form_id=? AND name=? AND phone=? AND status IN ('접수','확인')"
+        );
+        $dupChk->execute([$form_id, $name, $phone]);
+        if ((int)$dupChk->fetchColumn() > 0) {
+            bkf_out(['ok' => false, 'msg' => '동일한 정보로 이미 예약이 접수되어 있습니다.'], 409);
+        }
     }
 
     // 동적 필드 수집
@@ -392,10 +557,12 @@ if ($action === 'submit') {
     $pdo->beginTransaction();
     try {
         // ⑤ quota 차감 (FOR UPDATE)
-        $quotaOk = bkf_deduct($pdo, $form_id, $store_id, $res_date, $res_time);
+        // quota_mode=date면 시간 무관하게 날짜 수량만 차감
+        $deduct_time = ($form['quota_mode'] === 'slot') ? $res_time : null;
+        $quotaOk = bkf_deduct($pdo, $form_id, $store_id, $res_date, $deduct_time);
         if (!$quotaOk) {
             $pdo->rollBack();
-            bkf_out(['ok' => false, 'msg' => 'No remaining capacity for the selected date/time. Please choose another.'], 409);
+            bkf_out(['ok' => false, 'msg' => '선택한 날짜/시간의 예약 가능 수량이 없습니다. 다른 날짜를 선택해 주세요.'], 409);
         }
 
         $reservation_no = bkf_gen_reservation_no($pdo, $tbl);
@@ -444,7 +611,7 @@ if ($action === 'submit') {
    POST: slug, action, reservation_no | (name + phone)
    ================================================================ */
 if ($action === 'lookup') {
-    if ($method !== 'POST') bkf_out(['ok' => false, 'msg' => 'POST only.'], 405);
+    if ($method !== 'POST') bkf_out(['ok' => false, 'msg' => 'POST 방식으로만 요청할 수 있습니다.'], 405);
 
     $no    = trim((string)($in['reservation_no'] ?? ''));
     $name  = trim((string)($in['name']  ?? ''));
@@ -468,7 +635,7 @@ if ($action === 'lookup') {
         bkf_out(['ok' => true, 'data' => $st->fetchAll(PDO::FETCH_ASSOC)]);
     }
 
-    bkf_out(['ok' => false, 'msg' => 'Please provide reservation_no or name+phone.'], 400);
+    bkf_out(['ok' => false, 'msg' => '예약번호 또는 이름+전화번호를 입력해 주세요.'], 400);
 }
 
 /* ================================================================
@@ -476,13 +643,13 @@ if ($action === 'lookup') {
    POST: slug, action, reservation_no, phone
    ================================================================ */
 if ($action === 'cancel') {
-    if ($method !== 'POST') bkf_out(['ok' => false, 'msg' => 'POST only.'], 405);
+    if ($method !== 'POST') bkf_out(['ok' => false, 'msg' => 'POST 방식으로만 요청할 수 있습니다.'], 405);
 
     $no    = trim((string)($in['reservation_no'] ?? ''));
     $phone = bkf_normalize_phone((string)($in['phone'] ?? ''));
 
     if (!$no || !$phone) {
-        bkf_out(['ok' => false, 'msg' => 'reservation_no and phone are required.'], 400);
+        bkf_out(['ok' => false, 'msg' => '예약번호와 전화번호를 입력해 주세요.'], 400);
     }
 
     $st = $pdo->prepare(
@@ -491,9 +658,9 @@ if ($action === 'cancel') {
     $st->execute([$form_id, $no, $phone]);
     $rec = $st->fetch(PDO::FETCH_ASSOC);
 
-    if (!$rec) bkf_out(['ok' => false, 'msg' => 'Reservation not found.'], 404);
+    if (!$rec) bkf_out(['ok' => false, 'msg' => '예약을 찾을 수 없습니다.'], 404);
     if ($rec['status'] !== '접수') {
-        bkf_out(['ok' => false, 'msg' => 'Only reservations with status "접수" can be cancelled.'], 400);
+        bkf_out(['ok' => false, 'msg' => '접수 상태의 예약만 취소할 수 있습니다.'], 400);
     }
 
     $pdo->beginTransaction();
@@ -524,7 +691,7 @@ if ($action === 'cancel') {
    접수 상태일 때만 가능
    ================================================================ */
 if ($action === 'modify') {
-    if ($method !== 'POST') bkf_out(['ok' => false, 'msg' => 'POST only.'], 405);
+    if ($method !== 'POST') bkf_out(['ok' => false, 'msg' => 'POST 방식으로만 요청할 수 있습니다.'], 405);
 
     $no       = trim((string)($in['reservation_no'] ?? ''));
     $phone    = bkf_normalize_phone((string)($in['phone'] ?? ''));
@@ -535,7 +702,7 @@ if ($action === 'modify') {
     $store_nm = trim((string)($in['store_name'] ?? '')) ?: null;
 
     if (!$no || !$phone) {
-        bkf_out(['ok' => false, 'msg' => 'reservation_no and phone are required.'], 400);
+        bkf_out(['ok' => false, 'msg' => '예약번호와 전화번호를 입력해 주세요.'], 400);
     }
 
     // 과거 날짜 / 2시간 전 차단
@@ -553,7 +720,7 @@ if ($action === 'modify') {
     $st->execute([$form_id, $no, $phone]);
     $rec = $st->fetch(PDO::FETCH_ASSOC);
 
-    if (!$rec) bkf_out(['ok' => false, 'msg' => 'Reservation not found.'], 404);
+    if (!$rec) bkf_out(['ok' => false, 'msg' => '예약을 찾을 수 없습니다.'], 404);
     if ($rec['status'] !== '접수') {
         bkf_out(['ok' => false, 'msg' => 'Only reservations with status "접수" can be modified.'], 400);
     }
@@ -608,14 +775,14 @@ function bkf_send_admin_notify(PDO $pdo, int $form_id, array $form, int $record_
     $booking = $rec->fetch(PDO::FETCH_ASSOC);
     if (!$booking) return;
 
-    $formTitle = $form['title'] ?? 'Booking';
-    $msg = "[{$formTitle}] New reservation received.\n"
-         . "Name: {$booking['name']}\n"
-         . "Phone: {$booking['phone']}\n"
-         . "Date: " . ($booking['reservation_date'] ?? '-') . "\n"
-         . "Time: " . ($booking['reservation_time'] ?? '-') . "\n"
-         . "Store: " . ($booking['store_name'] ?? '-') . "\n"
-         . "No: {$booking['reservation_no']}";
+    $formTitle = $form['title'] ?? '예약';
+    $msg = "[{$formTitle}] 새 예약이 접수되었습니다.\n"
+         . "이름: {$booking['name']}\n"
+         . "연락처: {$booking['phone']}\n"
+         . "예약일: " . ($booking['reservation_date'] ?? '-') . "\n"
+         . "시간: " . ($booking['reservation_time'] ?? '-') . "\n"
+         . "지점: " . ($booking['store_name'] ?? '-') . "\n"
+         . "예약번호: {$booking['reservation_no']}";
 
     // Solapi 공통 설정
     $atRow = null;
@@ -663,6 +830,18 @@ function bkf_send_admin_notify(PDO $pdo, int $form_id, array $form, int $record_
             }
         }
 
+        // 이메일 알림
+        if ((int)$mgr['notify_email'] && !empty($mgr['email'])) {
+            $to      = $mgr['email'];
+            $subject = "[{$formTitle}] 새 예약 접수 알림 - {$booking['name']}";
+            $body    = $msg;
+            $headers = "From: noreply@" . ($_SERVER['HTTP_HOST'] ?? 'localhost') . "\r\n"
+                     . "Content-Type: text/plain; charset=UTF-8\r\n";
+            try {
+                mail($to, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, $headers);
+            } catch (Throwable $e) {}
+        }
+
         // 구글 시트 알림
         if ((int)$mgr['notify_sheet'] && !empty($mgr['sheet_webhook'])) {
             $sheetPayload = json_encode([
@@ -693,6 +872,58 @@ function bkf_send_admin_notify(PDO $pdo, int $form_id, array $form, int $record_
                 curl_close($ch);
             } catch (Throwable $e) {}
         }
+    }
+}
+
+/* ================================================================
+   update_booking — 프론트 예약 수정 (접수 상태만)
+   POST: slug, id, name, phone, reservation_date, reservation_time
+   ================================================================ */
+if ($action === 'update_booking') {
+    if ($method !== 'POST') bkf_out(['ok' => false, 'msg' => 'POST 방식으로만 요청할 수 있습니다.'], 405);
+
+    $id           = (int)($in['id'] ?? 0);
+    $name         = trim((string)($in['name']  ?? ''));
+    $phone        = trim((string)($in['phone'] ?? ''));
+    $new_date     = trim((string)($in['reservation_date'] ?? '')) ?: null;
+    $new_time     = trim((string)($in['reservation_time'] ?? '')) ?: null;
+    $new_store_id = ($in['store_id'] !== '' && isset($in['store_id'])) ? (int)$in['store_id'] : null;
+    $new_store_nm = trim((string)($in['store_name'] ?? '')) ?: null;
+
+    if (!$id || !$name || !$phone) {
+        bkf_out(['ok' => false, 'msg' => '필수 항목을 입력해 주세요.'], 400);
+    }
+
+    $tbl = 'bkf_records_' . $form['slug'];
+
+    // 현재 예약 조회
+    $cur = $pdo->prepare("SELECT * FROM `{$tbl}` WHERE id=? AND form_id=?");
+    $cur->execute([$id, $form_id]);
+    $rec = $cur->fetch(PDO::FETCH_ASSOC);
+    if (!$rec) bkf_out(['ok' => false, 'msg' => '예약을 찾을 수 없습니다.'], 404);
+    if ($rec['status'] !== '접수') bkf_out(['ok' => false, 'msg' => '접수 상태의 예약만 수정할 수 있습니다.'], 400);
+
+    $pdo->beginTransaction();
+    try {
+        // 기존 quota 복구
+        bkf_restore($pdo, $form_id, $rec);
+
+        // 새 quota 차감
+        $deduct_time = ($form['quota_mode'] === 'slot') ? $new_time : null;
+        $ok = bkf_deduct($pdo, $form_id, $new_store_id ?? ($rec['store_id'] ?? null), $new_date, $deduct_time);
+        if (!$ok) {
+            $pdo->rollBack();
+            bkf_out(['ok' => false, 'msg' => '선택한 날짜/시간의 예약 가능 수량이 없습니다.'], 409);
+        }
+
+        $pdo->prepare("UPDATE `{$tbl}` SET name=?, phone=?, reservation_date=?, reservation_time=?, store_id=?, store_name=? WHERE id=?")
+            ->execute([$name, $phone, $new_date, $new_time, $new_store_id, $new_store_nm, $id]);
+
+        $pdo->commit();
+        bkf_out(['ok' => true]);
+    } catch (Throwable $e) {
+        $pdo->rollBack();
+        bkf_out(['ok' => false, 'msg' => '수정 실패: ' . $e->getMessage()], 500);
     }
 }
 

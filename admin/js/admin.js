@@ -614,15 +614,26 @@ function openDynSectionModal(id) {
   document.getElementById('dynSecModalTitle').textContent = sec ? '섹션 수정' : '섹션 추가';
   document.getElementById('dynSecId').value         = sec ? sec.id : '';
   document.getElementById('dynSecName').value       = sec ? sec.name : '';
-  document.getElementById('dynSecFile').value       = (sec ? (sec.file_name || '') : '').replace(/\.php$/i, '');
+  const fileVal = (sec ? (sec.file_name || '') : '').replace(/\.php$/i, '');
+  document.getElementById('dynSecFile').value       = fileVal;
   document.getElementById('dynSecTitle').value      = sec ? (sec.title || '') : '';
   document.getElementById('dynSecSubtitle').value   = sec ? (sec.subtitle || '') : '';
   document.getElementById('dynSecNavLabel').value   = sec ? (sec.nav_label || '') : '';
   document.getElementById('dynSecAnchorId').value   = sec ? (sec.anchor_id || '') : '';
+  document.getElementById('dynSecParams').value     = sec ? (sec.params || '') : '';
   document.getElementById('dynSecOrder').value      = sec ? (sec.sort_order ?? 0) : 0;
   const isActive = sec ? +sec.is_active !== 0 : true;
   document.getElementById('dynSecActive').checked   = isActive;
   document.getElementById('dynSecActiveLabel').textContent = isActive ? '노출' : '미노출';
+
+  // 드롭다운 동기화
+  const sel = document.getElementById('dynSecFileSelect');
+  if (sel) {
+    const opt = Array.from(sel.options).find(o => o.value === fileVal);
+    sel.value = opt ? fileVal : (fileVal ? '__custom__' : '');
+    _showDynSecFileGuide(fileVal);
+  }
+
   document.getElementById('dynSectionModal').style.display = 'flex';
   document.getElementById('dynSecActive').onchange = function() {
     document.getElementById('dynSecActiveLabel').textContent = this.checked ? '노출' : '미노출';
@@ -631,6 +642,44 @@ function openDynSectionModal(id) {
 
 function closeDynSectionModal() {
   document.getElementById('dynSectionModal').style.display = 'none';
+}
+
+// 파일 드롭다운 선택 시 파일명 입력란 자동 채우기 + 가이드 표시
+function onDynSecFileSelect(val) {
+  if (!val || val === '__custom__') {
+    if (val === '__custom__') document.getElementById('dynSecFile').value = '';
+    _showDynSecFileGuide('');
+    return;
+  }
+  document.getElementById('dynSecFile').value = val;
+  _showDynSecFileGuide(val);
+}
+
+function _showDynSecFileGuide(fn) {
+  const box = document.getElementById('dynSecFileGuide');
+  if (!box) return;
+  const guides = {
+    'custom_inquiry_front': '⚠️ <strong>문의폼</strong>: 아래 <b>폼 파라미터</b>에 문의폼 테이블명을 반드시 입력하세요. (예: <code>form1</code>)<br>테이블명은 관리자 → 문의폼 관리에서 확인할 수 있습니다.<br>같은 파일을 여러 번 추가해 문의폼을 여러 개 표시할 수 있습니다.',
+    'bkf_front':            '⚠️ <strong>예약폼</strong>: 아래 <b>폼 파라미터</b>에 예약폼 슬러그를 반드시 입력하세요. (예: <code>booking_00</code>)<br>슬러그는 관리자 → 예약 설정에서 확인할 수 있습니다.',
+    'products':      '💡 제품 목록 섹션. 제품 데이터는 관리자 → 제품 관리에서 등록합니다.',
+    'benefits':      '💡 혜택/특징 섹션.',
+    'bbs_video':     '💡 유튜브 영상 섹션. 관리자 → 게시판(영상)에서 등록합니다.',
+    'bbs_review':    '💡 후기 섹션. 관리자 → 게시판(후기)에서 등록합니다.',
+    'bbs_event':     '💡 이벤트 섹션. 관리자 → 게시판(이벤트)에서 등록합니다.',
+    'stores':        '💡 매장찾기 섹션. 관리자 → 매장 관리에서 등록합니다.',
+    'bbs_notice':    '💡 공지사항 섹션.',
+    'bbs_faq':       '💡 FAQ 섹션.',
+    'bbs_gallery':   '💡 갤러리 섹션.',
+    'bbs_photogallery':  '💡 포토갤러리 섹션.',
+    'bbs_slidegallery':  '💡 슬라이드갤러리 섹션.',
+  };
+  const msg = guides[fn] || '';
+  if (msg) {
+    box.innerHTML = msg;
+    box.style.display = 'block';
+  } else {
+    box.style.display = 'none';
+  }
 }
 
 async function saveDynSection() {
@@ -653,11 +702,12 @@ async function saveDynSection() {
 
   const navLabel  = document.getElementById('dynSecNavLabel').value.trim();
   const anchorId  = document.getElementById('dynSecAnchorId').value.trim();
+  const params    = document.getElementById('dynSecParams').value.trim();
 
   const res = await apiPost('api/system.php', {
     action: 'dynSectionSave',
     id, name, file_name: fileBase, title, subtitle,
-    nav_label: navLabel, anchor_id: anchorId,
+    nav_label: navLabel, anchor_id: anchorId, params,
     is_active: isActive, sort_order: sortOrder
   });
   if (res.ok) {
@@ -670,13 +720,24 @@ async function saveDynSection() {
 }
 
 async function initDynSections() {
-  if (!confirm('기존 섹션 기본값을 삽입합니다.\n이미 등록된 섹션(key 동일)은 변경되지 않습니다.\n계속하시겠습니까?')) return;
+  if (!confirm('기본 섹션(서비스 전환바·NAV·히어로배너·풋터)을 삽입합니다.\n이미 등록된 섹션(key 동일)은 변경되지 않습니다.\n계속하시겠습니까?')) return;
   const res = await apiPost('api/system.php', { action: 'dynSectionInit' });
   if (res.ok) {
     showToast('기본 섹션이 초기화되었습니다.', 'success');
     loadDynSectionList();
   } else {
     showToast(res.msg || '초기화 실패', 'error');
+  }
+}
+
+async function migrateDynSections() {
+  if (!confirm('DB 정리를 실행합니다.\n\n· 서비스 전환바·NAV·히어로배너·풋터 외 모든 섹션 비활성화\n· 풋터 중복 행 제거\n· 코어 섹션 순서 고정\n\n기존에 추가한 섹션이 비활성화됩니다.\n계속하시겠습니까?')) return;
+  const res = await apiPost('api/system.php', { action: 'dynSectionMigrate' });
+  if (res.ok) {
+    showToast(res.msg || 'DB 정리 완료', 'success');
+    loadDynSectionList();
+  } else {
+    showToast(res.msg || 'DB 정리 실패', 'error');
   }
 }
 

@@ -131,7 +131,7 @@ async function bkfLoadFormList() {
     return;
   }
 
-  const quotaModeLabel = { date: '날짜', slot: '시간슬롯', both: '둘다' };
+  const quotaModeLabel = { date: '날짜', slot: '시간 슬롯' };
 
   tbody.innerHTML = res.data.map((f, i) => `
     <tr>
@@ -265,11 +265,19 @@ async function bkfDeleteForm(formId, title, slug) {
 }
 
 // 예약내역 탭으로 바로 이동
-function bkfGoRecords(formId, title) {
+async function bkfGoRecords(formId, title) {
   bkfCurrentFormId = formId;
+
+  // bkfCurrentFormData가 없거나 다른 폼이면 API로 채우기
+  if (!bkfCurrentFormData.id || bkfCurrentFormData.id !== formId) {
+    const res = await bkfApiGet('api/bkf_admin.php', { action: 'get_form', id: formId });
+    if (res.ok) bkfCurrentFormData = res.data;
+  }
+
   showPage('bkfDetail');
-  // 탭 전환 후 내역 로드
-  const tab = document.querySelector('.ci-tab:nth-child(6)');
+  // 예약내역 탭으로 이동
+  const tabs = document.querySelectorAll('#page-bkfDetail .ci-tab');
+  const tab  = tabs[tabs.length - 1]; // 마지막 탭 = 예약내역
   bkfSwitchTab('records', tab);
   bkfLoadRecords(1);
 }
@@ -277,21 +285,18 @@ function bkfGoRecords(formId, title) {
 // =====================================================
 // 폼 상세 진입
 // =====================================================
-async function bkfOpenDetail(formId) {
-  bkfCurrentFormId = formId;
-  const res = await bkfApiGet('api/bkf_admin.php', { action: 'get_form', id: formId });
-  if (!res.ok) { showToast(res.msg || '오류', 'error'); return; }
-
-  bkfCurrentFormData = res.data;
-  const d = res.data;
-
+// =====================================================
+// 기본정보 UI 채우기 (bkfOpenDetail, bkfGoRecords 공용)
+// =====================================================
+function bkfFillBasicUI(d) {
+  if (!d) return;
   document.getElementById('bkfDetailTitle').textContent = escHtml(d.title) + ' 설정';
   document.getElementById('bkfDetailSlug').textContent  = 'slug: ' + d.slug;
 
-  // 기본정보 채우기
-  document.getElementById('bkf_title').value        = d.title    || '';
-  document.getElementById('bkf_btn').value          = d.btn_name || '';
-  document.getElementById('bkf_slug_display').value = d.slug     || '';
+  document.getElementById('bkf_title').value        = d.title       || '';
+  document.getElementById('bkf_description').value  = d.description || '';
+  document.getElementById('bkf_btn').value          = d.btn_name    || '';
+  document.getElementById('bkf_slug_display').value = d.slug        || '';
 
   const activeR = document.querySelector(`input[name="bkf_is_active"][value="${d.is_active}"]`);
   if (activeR) activeR.checked = true;
@@ -300,6 +305,17 @@ async function bkfOpenDetail(formId) {
 
   const qmR = document.querySelector(`input[name="bkf_quota_mode"][value="${d.quota_mode || 'date'}"]`);
   if (qmR) qmR.checked = true;
+}
+
+async function bkfOpenDetail(formId) {
+  bkfCurrentFormId = formId;
+  const res = await bkfApiGet('api/bkf_admin.php', { action: 'get_form', id: formId });
+  if (!res.ok) { showToast(res.msg || '오류', 'error'); return; }
+
+  bkfCurrentFormData = res.data;
+  const d = res.data;
+
+  bkfFillBasicUI(d);
 
   showPage('bkfDetail');
   // 기본정보 탭 활성화
@@ -322,6 +338,11 @@ function bkfSwitchTab(tab, el) {
   if (el) el.classList.add('active');
   const panel = document.getElementById('bkf-panel-' + tab);
   if (panel) panel.classList.add('active');
+
+  // basic 탭 진입 시 항상 UI 최신 데이터로 채우기
+  if (tab === 'basic' && bkfCurrentFormData && bkfCurrentFormData.id) {
+    bkfFillBasicUI(bkfCurrentFormData);
+  }
 }
 
 // =====================================================
@@ -336,6 +357,7 @@ async function bkfSaveBasic() {
     action:            'save_basic',
     id:                bkfCurrentFormId,
     title:             document.getElementById('bkf_title').value.trim(),
+    description:       document.getElementById('bkf_description')?.value.trim() || '',
     btn_name:          document.getElementById('bkf_btn').value.trim(),
     is_active:         (document.querySelector('input[name="bkf_is_active"]:checked') || {}).value || 1,
     phone_verify_use:  document.getElementById('bkf_phone_verify_use').checked ? 1 : 0,
@@ -626,10 +648,18 @@ function bkfRenderStepList(steps) {
   const el = document.getElementById('bkfStepList');
   if (!el) return;
 
-  // info 제외하고 sort_order 순으로 정렬
-  const active = steps
-    .filter(s => s.step_key !== 'info' && s.is_active == 1)
+  // sort_order 순으로 정렬 (info 포함 전체)
+  const allSteps = steps
+    .filter(s => s.is_active == 1)
     .sort((a, b) => a.sort_order - b.sort_order);
+
+  // info가 없으면 기본 추가 (DB에 없는 경우 대비)
+  const hasInfo = allSteps.some(s => s.step_key === 'info');
+  if (!hasInfo) {
+    allSteps.push({ id: 0, step_key: 'info', label: '정보입력', sort_order: allSteps.length, is_active: 1 });
+  }
+
+  const active = allSteps;
 
   if (!active.length) {
     el.innerHTML = '<p style="color:#94a3b8;font-size:.85rem;padding:12px 0;">추가된 스텝이 없습니다. 위 팔레트에서 추가하세요.</p>';
@@ -648,7 +678,9 @@ function bkfRenderStepList(steps) {
         <span style="font-weight:600;">${BKF_STEP_LABELS[s.step_key] || s.step_key}</span>
         <code style="margin-left:8px;font-size:.72rem;color:#94a3b8;">${s.step_key}</code>
       </div>
-      <button class="btn btn-sm btn-danger" onclick="bkfRemoveStep(${s.id}, this)">제거</button>
+      ${s.step_key !== 'info'
+        ? `<button class="btn btn-sm btn-danger" onclick="bkfRemoveStep(${s.id}, this)">제거</button>`
+        : `<span style="font-size:.72rem;color:#3b82f6;padding:4px 8px;">필수</span>`}
     </div>`).join('');
 
   // 드래그 & 드롭
@@ -761,9 +793,19 @@ async function bkfSaveSteps() {
     is_active: 1,
   }));
 
-  // info 스텝도 포함 (항상 마지막, 서버에서 강제)
-  items.push({ id: 0, step_key: 'info', label: '정보입력', sort_order: 9999, is_active: 1 });
+  // time_slot은 반드시 date 바로 다음에 위치해야 함
+  const keys = items.map(i => i.step_key);
+  const timeIdx = keys.indexOf('time_slot');
+  if (timeIdx !== -1) {
+    const prevKey = timeIdx > 0 ? keys[timeIdx - 1] : null;
+    if (prevKey !== 'date') {
+      showToast('⚠️ 시간 선택 스텝은 날짜 선택 스텝 바로 다음에 위치해야 합니다.', 'error');
+      bkfUnlock(btn);
+      return;
+    }
+  }
 
+  // info 스텝은 목록에 이미 포함됨 (강제 마지막 없음)
   const res = await bkfApiPost('api/bkf_admin.php', {
     action:  'save_steps',
     form_id: bkfCurrentFormId,
@@ -862,8 +904,8 @@ function bkfRenderQuotaCalendar(year, month, quotaRows, store_id, quotaMode) {
     const d = q.quota_date;
     if (!qMap[d]) qMap[d] = { date_cap: 0, date_booked: 0, slots: [] };
     if (!q.slot_time) {
-      qMap[d].date_cap    = parseInt(q.capacity) || 0;
-      qMap[d].date_booked = parseInt(q.booked)   || 0;
+      qMap[d].date_cap    = (q.capacity === null || q.capacity === '') ? null : parseInt(q.capacity);
+      qMap[d].date_booked = parseInt(q.booked) || 0;
     } else {
       qMap[d].slots.push(q);
     }
@@ -894,7 +936,7 @@ function bkfRenderQuotaCalendar(year, month, quotaRows, store_id, quotaMode) {
     const dateBook = qd ? qd.date_booked : 0;
     const slotCnt  = qd ? qd.slots.length : 0;
     const remaining = Math.max(0, dateCap - dateBook);
-    const isFull    = dateCap > 0 && remaining === 0;
+    const isFull    = dateCap !== null && dateCap === 0 || (dateCap > 0 && remaining === 0);
 
     const bg    = isPast ? '#f8fafc' : isFull ? '#fef2f2' : '#ffffff';
     const color = isPast ? '#cbd5e1' : isFull ? '#ef4444' : '#1e293b';
@@ -902,12 +944,15 @@ function bkfRenderQuotaCalendar(year, month, quotaRows, store_id, quotaMode) {
     let inner = `<div style="font-size:.82rem;font-weight:600;margin-bottom:4px;">${day}</div>`;
 
     if (!isPast) {
-      if (quotaMode === 'date' || quotaMode === 'both') {
-        const capTxt = dateCap === 0 ? '<span style="color:#94a3b8;font-size:.7rem;">미설정</span>'
+      if (quotaMode === 'date') {
+        const capTxt = dateCap === null
+          ? '<span style="color:#94a3b8;font-size:.7rem;">미설정</span>'
+          : dateCap === 0
+          ? '<span style="color:#ef4444;font-size:.7rem;font-weight:600;">마감</span>'
           : `<span style="font-size:.72rem;color:${isFull ? '#ef4444' : '#16a34a'};">${dateBook}/${dateCap}</span>`;
         inner += `<div style="margin-bottom:2px;">${capTxt}</div>`;
       }
-      if ((quotaMode === 'slot' || quotaMode === 'both') && slotCnt > 0) {
+      if (quotaMode === 'slot' && slotCnt > 0) {
         inner += `<div style="font-size:.68rem;color:#64748b;">${slotCnt}개 슬롯</div>`;
       }
     }
@@ -949,8 +994,16 @@ async function bkfOpenQuotaModal(date, storeId, quotaMode) {
   // quota_mode 에 따라 UI 표시
   const dateWrap = document.getElementById('bkf-quota-date-wrap');
   const slotWrap = document.getElementById('bkf-quota-slot-wrap');
-  dateWrap.style.display = (quotaMode === 'date' || quotaMode === 'both') ? '' : 'none';
-  slotWrap.style.display = (quotaMode === 'slot' || quotaMode === 'both') ? '' : 'none';
+  dateWrap.style.display = quotaMode === 'date' ? '' : 'none';
+  slotWrap.style.display = ''; // date/slot 모두 슬롯 추가 가능
+
+  // quota_mode=date면 슬롯 헤더 안내 변경
+  const slotHeader = slotWrap.querySelector('p');
+  if (slotHeader) {
+    slotHeader.textContent = quotaMode === 'date'
+      ? '시간 슬롯 (수량 제한 없음)'
+      : '시간 슬롯별 수량';
+  }
 
   // 기존 수량 로드
   const params = { action: 'get_quota', form_id: bkfCurrentFormId, year: date.slice(0,4), month: parseInt(date.slice(5,7)) };
@@ -960,28 +1013,38 @@ async function bkfOpenQuotaModal(date, storeId, quotaMode) {
 
   // 날짜 단위 수량
   const dateRow = rows.find(q => !q.slot_time);
-  document.getElementById('bkf_quota_date_capacity').value = dateRow ? dateRow.capacity : 0;
+  document.getElementById('bkf_quota_date_capacity').value = dateRow ? (dateRow.capacity === null || dateRow.capacity === undefined ? '' : dateRow.capacity) : '';
 
   // 슬롯 목록
   const slotList = document.getElementById('bkf-quota-slot-list');
   slotList.innerHTML = '';
   const slotRows = rows.filter(q => q.slot_time);
-  slotRows.forEach(q => bkfAddSlotRow(q.slot_time ? q.slot_time.slice(0,5) : '', q.capacity, q.booked, q.id));
+  // 시간순 정렬 후 슬롯 표시
+  slotRows.sort((a,b) => (a.slot_time||'').localeCompare(b.slot_time||''));
+  slotRows.forEach(q => bkfAddSlotRow(q.slot_time ? q.slot_time.slice(0,5) : '', q.capacity === null ? '' : q.capacity, q.booked, q.id));
 
   openModal('bkfQuotaModal');
 }
 
 // 슬롯 행 추가
 function bkfAddSlotRow(time = '', capacity = 0, booked = 0, quotaId = 0) {
-  const list = document.getElementById('bkf-quota-slot-list');
+  const list      = document.getElementById('bkf-quota-slot-list');
+  const quotaMode = bkfCurrentFormData.quota_mode || 'date';
   const div  = document.createElement('div');
   div.dataset.quotaId = quotaId;
   div.style.cssText = 'display:flex;gap:8px;align-items:center;background:#f8fafc;padding:6px 10px;border-radius:6px;border:1px solid var(--border);';
+
+  // quota_mode=date: 시간만 입력, 수량 입력 숨김
+  const capVal = (capacity === null || capacity === '' || capacity === undefined) ? '' : capacity;
+  const capInput = quotaMode === 'date'
+    ? `<input type="number" class="form-control" value="" min="0" style="display:none;"/>`
+    : `<label style="font-size:.8rem;color:#64748b;white-space:nowrap;">수량</label>
+       <input type="number" class="form-control" value="${capVal}" min="0" placeholder="제한없음" style="width:90px;"/>
+       ${booked > 0 ? `<span style="font-size:.75rem;color:#94a3b8;">예약${booked}건</span>` : ''}`;
+
   div.innerHTML = `
     <input type="time" class="form-control" value="${time}" style="width:110px;" placeholder="HH:MM"/>
-    <label style="font-size:.8rem;color:#64748b;white-space:nowrap;">수량</label>
-    <input type="number" class="form-control" value="${capacity}" min="0" style="width:80px;"/>
-    ${booked > 0 ? `<span style="font-size:.75rem;color:#94a3b8;">예약${booked}건</span>` : ''}
+    ${capInput}
     <button type="button" class="btn btn-sm btn-danger" onclick="bkfRemoveSlotRow(this, ${quotaId})">✕</button>`;
   list.appendChild(div);
 }
@@ -1006,12 +1069,14 @@ async function bkfSaveQuota() {
   const items    = [];
 
   // 날짜 단위
-  if (quotaMode === 'date' || quotaMode === 'both') {
+  if (quotaMode === 'date') {
     items.push({
       store_id:   storeId || null,
       quota_date: date,
       slot_time:  null,
-      capacity:   parseInt(document.getElementById('bkf_quota_date_capacity').value) || 0,
+      capacity:   document.getElementById('bkf_quota_date_capacity').value === ''
+                   ? null
+                   : parseInt(document.getElementById('bkf_quota_date_capacity').value),
     });
   }
 
@@ -1019,13 +1084,27 @@ async function bkfSaveQuota() {
   document.querySelectorAll('#bkf-quota-slot-list > div').forEach(div => {
     const t = div.querySelector('input[type="time"]').value;
     const c = parseInt(div.querySelector('input[type="number"]').value) || 0;
-    if (t) items.push({ store_id: storeId || null, quota_date: date, slot_time: t, capacity: c });
+    const c_null = (c === '' || isNaN(c) || div.querySelector('input[type="number"]').value === '') ? null : c;
+    if (t) items.push({ store_id: storeId || null, quota_date: date, slot_time: t, capacity: c_null });
   });
 
+  // 공통 저장 시 경고
+  const applyAll = !storeId;
+  if (applyAll) {
+    const hasStores = document.querySelectorAll('#bkfQuotaStoreFilter option').length > 1;
+    if (hasStores) {
+      if (!confirm('⚠️ 지점 없음(공통)으로 저장하면\n모든 지점에 동일하게 적용됩니다.\n기존 지점별 설정도 덮어씌워집니다.\n\n계속 진행하시겠습니까?')) {
+        bkfUnlock(btn);
+        return;
+      }
+    }
+  }
+
   const res = await bkfApiPost('api/bkf_admin.php', {
-    action:  'bulk_quota',
-    form_id: bkfCurrentFormId,
-    items:   JSON.stringify(items),
+    action:          'bulk_quota',
+    form_id:         bkfCurrentFormId,
+    items:           JSON.stringify(items),
+    apply_all_stores: applyAll ? '1' : '0',
   });
 
   if (res.ok) {
@@ -1054,19 +1133,23 @@ function bkfOpenBulkQuota() {
   // quota_mode = date  → 날짜수량만, 슬롯체크박스 숨김
   // quota_mode = slot  → 날짜수량 숨김, 슬롯체크박스 자동 체크+표시
   // quota_mode = both  → 둘 다 표시
+  const dateWrap = document.querySelector('#bkfBulkQuotaModal .form-group');
   if (quotaMode === 'date') {
-    if (slotWrap) slotWrap.style.display = 'none';
-  } else if (quotaMode === 'slot') {
+    // 날짜 수량 표시, 슬롯 섹션도 표시 (수량 없이 시간만 추가)
+    if (dateWrap) dateWrap.style.display = '';
+    if (slotWrap) {
+      slotWrap.style.display = '';
+      // 체크박스 라벨 변경
+      const slotLabel = slotWrap.querySelector('label');
+      if (slotLabel) slotLabel.lastChild.textContent = ' 시간 슬롯 추가 (수량 제한 없음)';
+    }
+  } else { // slot
+    if (dateWrap) dateWrap.style.display = 'none';
     if (slotWrap) slotWrap.style.display = '';
     document.getElementById('bkf_bulk_use_slot').checked        = true;
     document.getElementById('bkf-bulk-slot-area').style.display = '';
-    // 날짜단위 수량 영역 숨기기
-    const dateWrap = document.querySelector('#bkfBulkQuotaModal .form-group');
-    if (dateWrap) dateWrap.style.display = 'none';
-  } else { // both
-    if (slotWrap) slotWrap.style.display = '';
-    const dateWrap = document.querySelector('#bkfBulkQuotaModal .form-group');
-    if (dateWrap) dateWrap.style.display = '';
+    const slotLabel = slotWrap?.querySelector('label');
+    if (slotLabel) slotLabel.lastChild.textContent = ' 시간 슬롯도 함께 설정';
   }
 
   openModal('bkfBulkQuotaModal');
@@ -1078,13 +1161,19 @@ function bkfToggleBulkSlot() {
 }
 
 function bkfAddBulkSlotRow() {
-  const list = document.getElementById('bkf-bulk-slot-list');
+  const list      = document.getElementById('bkf-bulk-slot-list');
+  const quotaMode = bkfCurrentFormData.quota_mode || 'date';
   const div  = document.createElement('div');
   div.style.cssText = 'display:flex;gap:8px;align-items:center;background:#fff;padding:6px 8px;border-radius:6px;border:1px solid var(--border);';
+
+  const capInput = quotaMode === 'date'
+    ? `<input type="number" class="form-control" value="" min="0" style="display:none;"/>`
+    : `<label style="font-size:.8rem;color:#64748b;white-space:nowrap;">수량</label>
+       <input type="number" class="form-control" value="" min="0" placeholder="제한없음" style="width:90px;"/>`;
+
   div.innerHTML = `
     <input type="time" class="form-control" style="width:110px;"/>
-    <label style="font-size:.8rem;color:#64748b;white-space:nowrap;">수량</label>
-    <input type="number" class="form-control" value="0" min="0" style="width:80px;"/>
+    ${capInput}
     <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('div').remove()">✕</button>`;
   list.appendChild(div);
 }
@@ -1097,7 +1186,8 @@ async function bkfSaveBulkQuota() {
   const year    = parseInt(document.getElementById('bkfQuotaYear').value);
   const month   = parseInt(document.getElementById('bkfQuotaMonth').value);
   const storeId = document.getElementById('bkfQuotaStoreFilter').value;
-  const dateCap = parseInt(document.getElementById('bkf_bulk_capacity').value) || 0;
+  const _bulkRaw = document.getElementById('bkf_bulk_capacity').value;
+  const dateCap = _bulkRaw === '' ? null : parseInt(_bulkRaw);
   const useSlot = document.getElementById('bkf_bulk_use_slot').checked;
   const quotaMode = bkfCurrentFormData.quota_mode || 'date';
 
@@ -1106,7 +1196,8 @@ async function bkfSaveBulkQuota() {
   if (useSlot) {
     document.querySelectorAll('#bkf-bulk-slot-list > div').forEach(div => {
       const t = div.querySelector('input[type="time"]').value;
-      const c = parseInt(div.querySelector('input[type="number"]').value) || 0;
+      const _rv = div.querySelector('input[type="number"]').value;
+      const c = _rv === '' ? null : parseInt(_rv);
       if (t) slots.push({ time: t, capacity: c });
     });
   }
@@ -1118,10 +1209,10 @@ async function bkfSaveBulkQuota() {
   for (let day = 1; day <= daysInMonth; day++) {
     const ds = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
 
-    if (quotaMode === 'date' || quotaMode === 'both') {
+    if (quotaMode === 'date') {
       items.push({ store_id: storeId || null, quota_date: ds, slot_time: null, capacity: dateCap });
     }
-    if ((quotaMode === 'slot' || quotaMode === 'both') && useSlot) {
+    if (quotaMode === 'slot' && useSlot) {
       slots.forEach(s => {
         items.push({ store_id: storeId || null, quota_date: ds, slot_time: s.time, capacity: s.capacity });
       });
@@ -1134,10 +1225,23 @@ async function bkfSaveBulkQuota() {
     return;
   }
 
+  // 공통 저장 시 경고
+  const applyAll = !storeId;
+  if (applyAll) {
+    const hasStores = document.querySelectorAll('#bkfQuotaStoreFilter option').length > 1;
+    if (hasStores) {
+      if (!confirm(`⚠️ 지점 없음(공통)으로 일괄 설정하면\n${month}월 전체 날짜가 모든 지점에 동일하게 적용됩니다.\n기존 지점별 설정도 덮어씌워집니다.\n\n계속 진행하시겠습니까?`)) {
+        bkfUnlock(btn);
+        return;
+      }
+    }
+  }
+
   const res = await bkfApiPost('api/bkf_admin.php', {
-    action:  'bulk_quota',
-    form_id: bkfCurrentFormId,
-    items:   JSON.stringify(items),
+    action:           'bulk_quota',
+    form_id:          bkfCurrentFormId,
+    items:            JSON.stringify(items),
+    apply_all_stores: applyAll ? '1' : '0',
   });
 
   if (res.ok) {
@@ -1464,7 +1568,34 @@ async function bkfOpenRecordModal(id) {
 
   document.getElementById('bkfRecordNo').textContent = d.reservation_no || '';
 
-  // 상태 변경 셀렉트
+  
+// =====================================================
+// 담당자 메모 저장 (단독)
+// =====================================================
+async function bkfSaveMemo(recordId) {
+  const memo = document.getElementById('bkfRecordMemo')?.value || '';
+  const res = await bkfApiPost('api/bkf_admin.php', {
+    action:    'save_memo',
+    form_id:   bkfCurrentFormId,
+    record_id: recordId,
+    admin_memo: memo,
+  });
+  if (res.ok) {
+    showToast('메모가 저장되었습니다.', 'success');
+    const memoDateEl = document.getElementById('bkfRecordMemoDate');
+    const now = new Date();
+    const fmt = now.getFullYear() + '-'
+      + String(now.getMonth()+1).padStart(2,'0') + '-'
+      + String(now.getDate()).padStart(2,'0') + ' '
+      + String(now.getHours()).padStart(2,'0') + ':'
+      + String(now.getMinutes()).padStart(2,'0');
+    if (memoDateEl) memoDateEl.textContent = '최종 수정: ' + fmt;
+  } else {
+    showToast(res.msg || '저장 실패', 'error');
+  }
+}
+
+// 상태 변경 셀렉트
   const statusSel = document.getElementById('bkfRecordStatusSelect');
   if (statusSel) statusSel.value = d.status;
 
@@ -1484,12 +1615,23 @@ async function bkfOpenRecordModal(id) {
   storeSel.innerHTML = '<option value="">지점 없음</option>';
   try {
     const sRes = await bkfApiGet('api_front/bkf_public.php', { action: 'get_stores', slug: bkfCurrentFormData.slug || '' });
+    const storeGroups = {};
     (sRes.data || []).forEach(s => {
-      const opt = document.createElement('option');
-      opt.value = s.id;
-      opt.textContent = s.store_name || s.branch_name || '';
-      if (d.store_id == s.id) opt.selected = true;
-      storeSel.appendChild(opt);
+      const region = s.store_name || '기타';
+      if (!storeGroups[region]) storeGroups[region] = [];
+      storeGroups[region].push(s);
+    });
+    Object.keys(storeGroups).forEach(region => {
+      const og = document.createElement('optgroup');
+      og.label = region;
+      storeGroups[region].forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = s.branch_name || s.store_name || '';
+        if (d.store_id == s.id) opt.selected = true;
+        og.appendChild(opt);
+      });
+      storeSel.appendChild(og);
     });
   } catch (e) {}
 
@@ -1499,7 +1641,7 @@ async function bkfOpenRecordModal(id) {
     const el = document.getElementById(f);
     if (el) el.disabled = !editable;
   });
-  storeSel.disabled = !editable;
+  storeSel.disabled = false; // 관리자는 항상 지점 변경 가능
 
   // 동적 필드
   const dynWrap = document.getElementById('bkfRecordDynFields');
@@ -1518,6 +1660,16 @@ async function bkfOpenRecordModal(id) {
   // 저장 버튼 표시
   const saveBtn = document.getElementById('bkfRecordSaveBtn');
   if (saveBtn) saveBtn.style.display = editable ? '' : 'none';
+
+  // 수정일시 표시
+  const updatedEl = document.getElementById('bkfRecordUpdatedAt');
+  if (updatedEl) updatedEl.textContent = d.updated_at ? d.updated_at.slice(0,16) : '-';
+
+  // 담당자 메모
+  const memoEl = document.getElementById('bkfRecordMemo');
+  if (memoEl) memoEl.value = d.admin_memo || '';
+  const memoDateEl = document.getElementById('bkfRecordMemoDate');
+  if (memoDateEl) memoDateEl.textContent = d.memo_updated_at ? '최종 수정: ' + d.memo_updated_at.slice(0,16) : '';
 
   openModal('bkfRecordModal');
 }
@@ -1562,6 +1714,7 @@ async function bkfSaveRecord() {
     reservation_time: document.getElementById('bkf_rec_time').value || '',
     store_id:         storeId,
     store_name:       storeName,
+    admin_memo:       document.getElementById('bkfRecordMemo')?.value || '',
   };
 
   // 동적 필드값 추가

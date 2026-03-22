@@ -220,8 +220,8 @@
       <!-- 날짜 단위 수량 (quota_mode = date | both) -->
       <div id="bkf-quota-date-wrap">
         <div class="form-group" style="margin-bottom:14px;">
-          <label style="font-size:.85rem;">날짜 전체 수량 <small style="font-weight:400;color:#94a3b8;">(0 = 제한없음)</small></label>
-          <input type="number" class="form-control" id="bkf_quota_date_capacity" min="0" value="0" style="width:120px;"/>
+          <label style="font-size:.85rem;">날짜 전체 수량</label>
+          <input type="number" class="form-control" id="bkf_quota_date_capacity" min="0" placeholder="제한없음" style="width:120px;"/>
         </div>
       </div>
 
@@ -235,9 +235,11 @@
         <div id="bkf-quota-slot-list" style="display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;"></div>
       </div>
 
-      <div style="background:#f8fafc;border-radius:6px;padding:10px 12px;margin-top:14px;font-size:.78rem;color:#64748b;line-height:1.7;">
-        · 수량 0 = 제한 없음 (미설정 상태)<br>
-        · 이미 예약된 건수보다 적게 설정할 수 없습니다
+      <div style="background:#f8fafc;border-radius:6px;padding:10px 12px;margin-top:14px;font-size:.78rem;color:#64748b;line-height:1.8;">
+        · <strong>빈칸</strong> = 제한 없음 (얼마든지 예약 가능)<br>
+        · <strong>0</strong> = 마감 (예약 불가, 프론트에서 비활성화)<br>
+        · <strong>1 이상</strong> = 해당 수량만큼 예약 가능, 초과 시 마감<br>
+        · 시간 슬롯: 시간을 입력하고 수량을 설정 (빈칸이면 해당 시간 제한없음)
       </div>
     </div>
     <div class="modal-footer">
@@ -261,8 +263,8 @@
         현재 조회 중인 월의 날짜 전체에 동일한 수량을 적용합니다.
       </p>
       <div class="form-group" style="margin-bottom:14px;">
-        <label>날짜 단위 수량 <small style="font-weight:400;color:#94a3b8;">(0 = 제한없음)</small></label>
-        <input type="number" class="form-control" id="bkf_bulk_capacity" min="0" value="0" style="width:120px;"/>
+        <label>날짜 단위 수량 <small style="font-weight:400;color:#94a3b8;">(빈칸 = 제한없음, 0 = 마감)</small></label>
+        <input type="number" class="form-control" id="bkf_bulk_capacity" min="0" placeholder="제한없음" style="width:120px;"/>
       </div>
       <div id="bkf-bulk-slot-wrap">
         <div class="form-group" style="margin-bottom:10px;">
@@ -356,6 +358,25 @@
 
       <!-- 동적 필드 영역 -->
       <div id="bkfRecordDynFields" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;"></div>
+
+      <!-- 수정일시 -->
+      <div style="font-size:.78rem;color:#94a3b8;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+        최종 수정: <span id="bkfRecordUpdatedAt">-</span>
+      </div>
+
+      <!-- 담당자 메모 -->
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <label style="font-size:.85rem;font-weight:600;color:#475569;">담당자 메모</label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span id="bkfRecordMemoDate" style="font-size:.75rem;color:#94a3b8;"></span>
+            <button class="btn btn-sm btn-outline" onclick="bkfSaveMemo(parseInt(document.getElementById('bkf_record_id').value))">메모 저장</button>
+          </div>
+        </div>
+        <textarea id="bkfRecordMemo" class="form-control" rows="3"
+          placeholder="내부 메모 (고객에게 노출되지 않음)"
+          style="resize:vertical;font-size:.85rem;"></textarea>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('bkfRecordModal')">닫기</button>

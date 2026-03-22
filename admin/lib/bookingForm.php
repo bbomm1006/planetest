@@ -138,6 +138,13 @@
         <input type="text" class="form-control" id="bkf_title"/>
       </div>
       <div class="form-group" style="margin-bottom:16px;">
+        <label>폼 설명</label>
+        <textarea class="form-control" id="bkf_description" rows="3"
+          placeholder="예: 상담 예약을 신청해주시면 담당자가 확인 후 연락드립니다."
+          style="resize:vertical;"></textarea>
+        <p style="font-size:.75rem;color:#94a3b8;margin-top:4px;">프론트 예약 폼 상단에 표시됩니다.</p>
+      </div>
+      <div class="form-group" style="margin-bottom:16px;">
         <label>버튼명</label>
         <input type="text" class="form-control" id="bkf_btn"/>
       </div>
@@ -176,9 +183,6 @@
           </label>
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:400;">
             <input type="radio" name="bkf_quota_mode" value="slot"/> 시간 슬롯 단위
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:400;">
-            <input type="radio" name="bkf_quota_mode" value="both"/> 둘 다 지원
           </label>
         </div>
       </div>
@@ -230,7 +234,7 @@
         <button class="btn btn-primary" onclick="bkfSaveSteps()">저장</button>
       </div>
       <p style="font-size:.82rem;color:#94a3b8;margin-bottom:16px;">
-        드래그로 순서 변경 · 정보입력(info) 스텝은 항상 마지막 고정
+        드래그로 순서 변경 (정보입력 스텝도 순서 변경 가능)
       </p>
       <!-- 사용 가능한 스텝 팔레트 -->
       <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:20px;">
@@ -241,17 +245,17 @@
           <button class="btn btn-sm btn-outline" onclick="bkfAddStep('time_slot','시간 선택')">+ 시간 선택</button>
           <button class="btn btn-sm btn-outline" onclick="bkfAddStep('item',     '항목 선택')">+ 항목 선택</button>
         </div>
+        <div style="margin-top:10px;background:#fefce8;border:1px solid #fde047;border-radius:6px;padding:10px 14px;font-size:.78rem;color:#713f12;line-height:1.7;">
+          💡 <strong>항목 선택 스텝 사용 방법</strong><br>
+          <strong>필드설정</strong> 탭에서 <strong>"항목 선택(item_select)"</strong> 타입의 필드를 먼저 추가하고 옵션을 입력하세요.<br>
+          그 후 여기서 <strong>"+ 항목 선택"</strong> 버튼을 눌러 스텝에 추가하면 프론트에 항목 선택 단계가 나타납니다.
+        </div>
+        
+        </div>
       </div>
       <!-- 현재 스텝 목록 (드래그 가능) -->
       <div id="bkfStepList" style="min-height:80px;display:flex;flex-direction:column;gap:8px;"></div>
-      <!-- 정보입력 스텝 (항상 마지막 고정) -->
-      <div style="margin-top:12px;padding:12px 16px;background:#eff6ff;border:1px dashed #93c5fd;border-radius:8px;display:flex;align-items:center;gap:10px;">
-        <span style="font-size:1rem;">🔒</span>
-        <div>
-          <p style="font-size:.85rem;font-weight:600;color:#1e40af;margin:0;">정보입력 (고정 마지막 스텝)</p>
-          <p style="font-size:.78rem;color:#3b82f6;margin:0;">이름, 전화번호 및 추가 필드 입력 단계</p>
-        </div>
-      </div>
+
     </div></div>
   </div>
 
@@ -284,9 +288,12 @@
       <!-- 안내 -->
       <div style="margin-top:16px;background:#f8fafc;border-radius:8px;padding:12px 16px;font-size:.8rem;color:#64748b;line-height:1.8;">
         <strong>수량 설정 안내</strong><br>
-        · 날짜 셀 클릭 → 해당 날짜 수량 설정 팝업<br>
-        · 시간 슬롯 단위 사용 시 날짜 셀 내 슬롯별 개별 설정 가능<br>
-        · capacity = 0 이면 수량 제한 없음 (미설정 상태)
+        · 날짜 셀 클릭 → 해당 날짜/슬롯 수량 설정 팝업<br>
+        · <strong>수량 빈칸</strong> = 제한 없음 (얼마든지 예약 가능)<br>
+        · <strong>수량 0</strong> = 마감 (예약 불가, 비활성화 표시)<br>
+        · <strong>수량 1 이상</strong> = 해당 수량만큼 예약 가능, 초과 시 마감<br>
+        · 지점 없음(공통)으로 저장하면 모든 지점에 동일하게 적용됨<br>
+        · 일괄 설정 → 해당 월 전체 날짜에 동일한 수량/슬롯 일괄 적용
       </div>
     </div></div>
   </div>
