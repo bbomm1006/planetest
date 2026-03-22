@@ -357,4 +357,14 @@ if ($action === 'commentDelete') {
     exit;
 }
 
+if ($action === 'toggleBoardActive') {
+    $table_name = trim($_POST['table_name'] ?? '');
+    if (!$table_name) { echo json_encode(['ok' => false, 'msg' => '테이블명이 없습니다.']); exit; }
+    $pdo->prepare('UPDATE boards SET is_active = 1-is_active WHERE table_name=?')->execute([$table_name]);
+    $st = $pdo->prepare('SELECT is_active FROM boards WHERE table_name=?');
+    $st->execute([$table_name]);
+    echo json_encode(['ok' => true, 'is_active' => (int)$st->fetchColumn()]);
+    exit;
+}
+
 echo json_encode(['ok' => false, 'msg' => 'Unknown action']);

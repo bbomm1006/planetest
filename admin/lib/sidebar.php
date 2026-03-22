@@ -60,6 +60,7 @@
           <div class="nav-sub" id="boardNavSub">
             <div class="nav-sub-link" data-menu-key="boardCreate" onclick="showPage('boardCreate')">게시판 추가</div>
             <div class="nav-sub-link" data-menu-key="boardList" onclick="showPage('boardList')" id="dynamicBoardNav">게시판 목록</div>
+            <div id="boardNavDynamic"></div>
           </div>
         </div>
       </div>

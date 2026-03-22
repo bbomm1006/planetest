@@ -97,12 +97,13 @@ async function loadBoardList() {
     if (!existing) {
       createdBoards.push({
         id: row.id, name: row.name, table: row.table_name,
-        fields, categories: [], posts: [], createdAt: row.created_at
+        is_active: row.is_active, sort_order: row.sort_order, fields, categories: [], posts: [], createdAt: row.created_at
       });
     } else {
-      existing.id     = row.id;
-      existing.name   = row.name;
-      existing.fields = fields;
+      existing.id        = row.id;
+      existing.name      = row.name;
+      existing.is_active = row.is_active;
+      existing.fields    = fields;
     }
   });
   const dbTables = res.data.map(r => r.table_name);
@@ -121,13 +122,16 @@ function renderBoardList() {
   }
   area.innerHTML = `
     <div class="table-wrap"><table class="admin-table">
-      <thead><tr><th>#</th><th>게시판 이름</th><th>테이블명</th><th>생성일</th><th>관리</th></tr></thead>
+      <thead><tr><th>#</th><th>게시판 이름</th><th>테이블명</th><th>생성일</th><th>사용여부</th><th>관리</th></tr></thead>
       <tbody>${createdBoards.map((b, i) => `
         <tr>
           <td class="row-num">${i + 1}</td>
           <td><strong>${b.name}</strong></td>
           <td><code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:.78rem;">${b.table}</code></td>
           <td>${b.createdAt || ''}</td>
+          <td><span class="badge ${b.is_active == 1 ? 'badge-success' : 'badge-gray'}"
+                style="cursor:pointer;"
+                onclick="toggleBoardActive('${b.table}', this)">${b.is_active == 1 ? '사용' : '미사용'}</span></td>
           <td><div class="table-actions">
             <button class="btn btn-sm btn-outline" onclick="showBoardPage(getBoardByTable('${b.table}'))">게시물 관리</button>
             <button class="btn btn-sm btn-danger"  onclick="deleteBoard('${b.table}')">삭제</button>
@@ -137,16 +141,44 @@ function renderBoardList() {
     </table></div>`;
 }
 
+async function toggleBoardActive(tableKey, el) {
+  const res = await apiPost('api/board.php', { action: 'toggleBoardActive', table_name: tableKey });
+  if (!res.ok) { showToast(res.msg || '변경 실패', 'error'); return; }
+  const board = createdBoards.find(b => b.table === tableKey);
+  if (board) board.is_active = res.is_active;
+  if (res.is_active == 1) {
+    el.textContent = '사용';
+    el.className = 'badge badge-success';
+  } else {
+    el.textContent = '미사용';
+    el.className = 'badge badge-gray';
+  }
+  el.style.cursor = 'pointer';
+  if (board) addBoardToNav(board);
+  showToast(`'${board ? board.name : tableKey}' 사용여부가 ${res.is_active == 1 ? '사용' : '미사용'}으로 변경되었습니다.`);
+}
+
 function addBoardToNav(board) {
-  const sub = document.getElementById('boardNavSub');
-  if (!sub || sub.querySelector(`[data-board="${board.table}"]`)) return;
+  const sub = document.getElementById('boardNavDynamic');
+  if (!sub) return;
+  const existing = sub.querySelector(`[data-board="${board.table}"]`);
+  if (board.is_active == 0) {
+    if (existing) existing.remove();
+    return;
+  }
+  if (existing) return;
   const link = document.createElement('div');
   link.className = 'nav-sub-link';
   link.dataset.board = board.table;
+  link.dataset.sortOrder = board.sort_order ?? 9999;
   link._pageId = 'board_' + board.table;
   link.textContent = board.name;
   link.onclick = () => showBoardPage(board);
-  sub.appendChild(link);
+  // sort_order 기준으로 올바른 위치에 삽입
+  const siblings = [...sub.querySelectorAll('.nav-sub-link')];
+  const after = siblings.find(s => (parseInt(s.dataset.sortOrder) || 9999) > (board.sort_order ?? 9999));
+  if (after) sub.insertBefore(link, after);
+  else sub.appendChild(link);
 }
 
 function addBoardToMenuMgmt(board) {
