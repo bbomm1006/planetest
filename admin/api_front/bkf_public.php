@@ -154,7 +154,7 @@ if ($action === 'get_config') {
 
     // 옵션 포함
     foreach ($fieldList as &$f) {
-        if (in_array($f['type'], ['dropdown','radio','checkbox'])) {
+        if (in_array($f['type'], ['dropdown','radio','checkbox','item_select'])) {
             $opts = $pdo->prepare(
                 'SELECT label FROM bkf_field_options WHERE field_id=? AND is_visible=1 ORDER BY sort_order ASC'
             );

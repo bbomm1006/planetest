@@ -31,15 +31,24 @@ if (!function_exists('bkf_notify_managers')) {
         // Load Solapi settings once (shared across managers)
         $solapi = bkf_notify_solapi_settings($pdo);
 
-        $formTitle = $form['title'] ?? 'Booking';
+        $formTitle = $form['title'] ?? '예약';
 
-        // Build text body (SMS / email plain-text)
-        $body = bkf_notify_build_body($formTitle, $booking);
+        // 사이트 정보
+        try {
+            $siteRow = $pdo->query("SELECT title, copyright FROM homepage_info WHERE id=1 LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) { $siteRow = null; }
+        $siteName = $siteRow['title']     ?? $formTitle;
+        $siteCopy = $siteRow['copyright'] ?? ('© ' . date('Y') . ' ' . $siteName);
+
+        // Build text body (SMS용)
+        $body     = bkf_notify_build_body($formTitle, $booking);
+        // Build HTML body (이메일용)
+        $htmlBody = bkf_notify_build_html($formTitle, $booking, $siteName, $siteCopy);
 
         foreach ($managers as $mgr) {
-            // ── Email (PHP mail)
+            // ── Email (PHPMailer HTML)
             if ((int)$mgr['notify_email'] && !empty($mgr['email'])) {
-                bkf_notify_send_email($mgr['email'], $formTitle, $body);
+                bkf_notify_send_email($mgr['email'], $formTitle, $body, $htmlBody, $siteName, $siteCopy, $pdo);
             }
 
             // ── SMS / Alimtalk (Solapi)
@@ -64,34 +73,154 @@ if (!function_exists('bkf_notify_managers')) {
 }
 
 /* ----------------------------------------------------------------
-   Build plain-text notification body
+   Build plain-text notification body (SMS용)
    ---------------------------------------------------------------- */
 if (!function_exists('bkf_notify_build_body')) {
     function bkf_notify_build_body(string $formTitle, array $booking): string {
         $lines = [
-            "[{$formTitle}] New reservation received.",
-            "Reservation No : " . ($booking['reservation_no'] ?? '-'),
-            "Name           : " . ($booking['name']           ?? '-'),
-            "Phone          : " . ($booking['phone']          ?? '-'),
-            "Date           : " . ($booking['reservation_date'] ?? '-'),
-            "Time           : " . ($booking['reservation_time'] ?? '-'),
-            "Store          : " . ($booking['store_name']      ?? '-'),
-            "Status         : " . ($booking['status']          ?? '-'),
-            "Submitted at   : " . ($booking['created_at']      ?? '-'),
+            "[{$formTitle}] 새 예약이 접수되었습니다.",
+            "예약번호 : " . ($booking['reservation_no']   ?? '-'),
+            "이  름   : " . ($booking['name']             ?? '-'),
+            "연락처   : " . ($booking['phone']            ?? '-'),
+            "예약일   : " . ($booking['reservation_date'] ?? '-'),
+            "시  간   : " . ($booking['reservation_time'] ?? '-'),
+            "지  점   : " . ($booking['store_name']       ?? '-'),
+            "접수일시 : " . ($booking['created_at']       ?? '-'),
         ];
         return implode("\n", $lines);
     }
 }
 
 /* ----------------------------------------------------------------
-   Email via PHP mail()
+   Build HTML email body — ci_confirm_mail 동일 디자인
+   ---------------------------------------------------------------- */
+if (!function_exists('bkf_notify_build_html')) {
+    function bkf_notify_build_html(string $formTitle, array $booking, string $siteName, string $siteCopy): string {
+        $esc = function($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); };
+
+        $rows = [
+            ['예약번호', $booking['reservation_no']    ?? '-'],
+            ['이  름',   $booking['name']              ?? '-'],
+            ['연락처',   $booking['phone']             ?? '-'],
+            ['예약일',   $booking['reservation_date']  ?? '-'],
+            ['시  간',   $booking['reservation_time']  ?? '-'],
+            ['지  점',   $booking['store_name']        ?? '-'],
+            ['상  태',   $booking['status']            ?? '-'],
+            ['접수일시', $booking['created_at']        ?? '-'],
+        ];
+
+        $tableRows = '';
+        foreach ($rows as [$label, $value]) {
+            if ((string)$value === '' || (string)$value === '-') continue;
+            $tableRows .= '
+      <tr style="border-bottom:1px solid #f1f5f9;">
+        <td style="padding:10px 12px 10px 0;width:34%;font-size:.8rem;font-weight:700;color:#64748b;vertical-align:top;">'
+                . $esc($label) . '</td>
+        <td style="padding:10px 0;font-size:.86rem;color:#1e293b;line-height:1.6;">'
+                . nl2br($esc($value)) . '</td>
+      </tr>';
+        }
+
+        $no      = $esc($booking['reservation_no'] ?? '-');
+        $created = $esc($booking['created_at']     ?? date('Y-m-d H:i'));
+
+        return '<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f8fafc;font-family:\'Apple SD Gothic Neo\',\'Malgun Gothic\',sans-serif;">
+<div style="max-width:580px;margin:32px auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.09);">
+
+  <!-- 헤더 -->
+  <div style="background:linear-gradient(90deg,#1255a6,#1e7fe8);padding:26px 30px;">
+    <div style="color:rgba(255,255,255,.75);font-size:.75rem;font-weight:600;letter-spacing:1px;margin-bottom:6px;">예약 알림</div>
+    <div style="color:#fff;font-size:1.1rem;font-weight:700;">' . $esc($formTitle) . '</div>
+  </div>
+
+  <!-- 인사 -->
+  <div style="padding:26px 30px 0;">
+    <p style="margin:0 0 6px;font-size:.92rem;color:#334155;line-height:1.7;">
+      📋 새로운 예약이 접수되었습니다.<br>
+      아래 예약 내용을 확인하고 빠르게 응대해 주세요.
+    </p>
+  </div>
+
+  <!-- 예약번호 / 접수일시 -->
+  <div style="margin:20px 30px 0;padding:14px 18px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;display:flex;gap:24px;flex-wrap:wrap;">
+    <div>
+      <div style="font-size:.72rem;color:#0369a1;font-weight:700;margin-bottom:3px;">예약번호</div>
+      <div style="font-size:.92rem;font-weight:800;color:#0c4a6e;">' . $no . '</div>
+    </div>
+    <div>
+      <div style="font-size:.72rem;color:#0369a1;font-weight:700;margin-bottom:3px;">접수일시</div>
+      <div style="font-size:.92rem;font-weight:800;color:#0c4a6e;">' . $created . '</div>
+    </div>
+  </div>
+
+  <!-- 예약 내용 -->
+  <div style="padding:20px 30px;">
+    <div style="font-size:.78rem;font-weight:700;color:#64748b;letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px;">예약 내용</div>
+    <table style="width:100%;border-collapse:collapse;">' . $tableRows . '
+    </table>
+  </div>
+
+  <!-- 안내 문구 -->
+  <div style="margin:0 30px 24px;padding:14px 18px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;">
+    <p style="margin:0;font-size:.82rem;color:#64748b;line-height:1.72;">
+      예약 내용을 확인 후 고객에게 빠르게 안내해 주세요. 관리자 페이지에서 예약 상태를 변경하실 수 있습니다.
+    </p>
+  </div>
+
+  <!-- 푸터 -->
+  <div style="background:#f1f5f9;padding:14px 30px;text-align:center;">
+    <p style="margin:0;font-size:.72rem;color:#94a3b8;">' . $esc($siteCopy) . ' · 본 메일은 자동 발송되었습니다.</p>
+  </div>
+
+</div>
+</body>
+</html>';
+    }
+}
+
+/* ----------------------------------------------------------------
+   Email via PHPMailer — custom_inquiry_public.php 동일 방식
    ---------------------------------------------------------------- */
 if (!function_exists('bkf_notify_send_email')) {
-    function bkf_notify_send_email(string $to, string $formTitle, string $body): void {
+    function bkf_notify_send_email(string $to, string $formTitle, string $body, string $htmlBody = '', string $siteName = '', string $siteCopy = '', PDO $pdo = null): void {
         if (!$to || strpos($to, '@') === false) return;
-        $subject = '=?UTF-8?B?' . base64_encode("[Booking] {$formTitle} - New Reservation") . '?=';
-        $headers = "MIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8\r\n";
-        @mail($to, $subject, $body, $headers);
+
+        /* PHPMailer 직접 로드 — 루트/phpmailer/ */
+        $pmBase = dirname(__DIR__, 2) . '/phpmailer';
+        if (!class_exists('PHPMailer\\PHPMailer\\PHPMailer')) {
+            if (!file_exists($pmBase . '/PHPMailer.php')) return;
+            require_once $pmBase . '/Exception.php';
+            require_once $pmBase . '/PHPMailer.php';
+            require_once $pmBase . '/SMTP.php';
+        }
+
+        $gmailEmail = 'solha.jin90@gmail.com';
+        $gmailPw    = 'otud ocoq cmsv hvde';
+        $subject    = "[예약알림] {$formTitle} 새 예약 접수";
+
+        try {
+            $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+            $mail->isSMTP();
+            $mail->Host       = 'smtp.gmail.com';
+            $mail->SMTPAuth   = true;
+            $mail->Username   = $gmailEmail;
+            $mail->Password   = $gmailPw;
+            $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = 587;
+            $mail->CharSet    = 'UTF-8';
+            $mail->setFrom($gmailEmail, $siteName ?: '예약 알림');
+            $mail->addAddress($to);
+            $mail->Subject = $subject;
+            $mail->isHTML(true);
+            $mail->Body    = $htmlBody ?: nl2br(htmlspecialchars($body));
+            $mail->AltBody = $body;
+            $mail->send();
+        } catch (Throwable $e) {
+            // 메일 발송 실패는 예약 처리에 영향 없음
+        }
     }
 }
 

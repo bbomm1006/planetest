@@ -131,21 +131,11 @@
         <label>필드 타입 <span class="req">*</span></label>
         <select class="form-control" id="bkf_field_type" onchange="bkfOnFieldTypeChange()">
           <option value="">선택하세요</option>
-          <optgroup label="텍스트">
-            <option value="text">텍스트 입력</option>
-          </optgroup>
-          <optgroup label="선택">
-            <option value="radio">라디오 버튼 (단일선택)</option>
-            <option value="checkbox">체크박스 (다중선택)</option>
-            <option value="dropdown">드롭다운</option>
-            <option value="item_select">항목 선택</option>
-            <option value="store_select">지점 선택 (stores 연동)</option>
-          </optgroup>
-          <optgroup label="날짜/시간">
-            <option value="date">날짜 선택</option>
-            <option value="time_slot">시간 슬롯 선택</option>
-            <option value="date_range">기간 선택 (시작일~종료일)</option>
-          </optgroup>
+          <option value="text">INPUT (텍스트 한 줄)</option>
+          <option value="textarea">TEXTAREA (텍스트 여러 줄)</option>
+          <option value="radio">RADIO (단일 선택)</option>
+          <option value="checkbox">CHECKBOX (다중 선택)</option>
+          <option value="dropdown">SELECT (드롭다운)</option>
         </select>
       </div>
 
@@ -198,6 +188,67 @@
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('bkfFieldModal')">취소</button>
       <button class="btn btn-primary" onclick="bkfSaveField()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     항목 추가/수정 모달
+     ============================================================ -->
+<div class="modal-overlay" id="bkfItemModal">
+  <div class="modal modal-md" style="max-width:580px;">
+    <div class="modal-header">
+      <h3 id="bkfItemModalTitle">항목 추가</h3>
+      <button class="modal-close" onclick="closeModal('bkfItemModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="bkf_item_idx"/>
+      <div class="form-group" style="margin-bottom:14px;">
+        <label>항목명 <span class="req">*</span></label>
+        <input type="text" class="form-control" id="bkf_item_label" placeholder="예: 희망 날짜"/>
+      </div>
+      <div class="form-group" style="margin-bottom:14px;">
+        <label>타입 <span class="req">*</span></label>
+        <select class="form-control" id="bkf_item_type" onchange="bkfOnItemTypeChange()">
+          <option value="text">INPUT (텍스트 한 줄)</option>
+          <option value="textarea">TEXTAREA (텍스트 여러 줄)</option>
+          <option value="radio">RADIO (단일 선택)</option>
+          <option value="checkbox">CHECKBOX (다중 선택)</option>
+          <option value="dropdown">SELECT (드롭다운)</option>
+        </select>
+      </div>
+
+      <!-- 선택지 (radio / checkbox / dropdown) -->
+      <div id="bkf-item-subopts-wrap" style="display:none;margin-bottom:14px;">
+        <label style="font-size:.85rem;font-weight:600;display:block;margin-bottom:8px;">
+          선택지 <small style="font-weight:400;color:#94a3b8;">(드래그로 순서 변경)</small>
+        </label>
+        <div id="bkf-item-subopts-list" style="display:flex;flex-direction:column;gap:6px;min-height:32px;"></div>
+        <button type="button" class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="bkfAddItemSubOpt()">
+          + 선택지 추가
+        </button>
+      </div>
+
+      <div style="display:flex;gap:30px;margin-top:4px;">
+        <div class="form-group">
+          <label>필수여부</label>
+          <div style="display:flex;gap:14px;margin-top:6px;">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:400;"><input type="radio" name="bkf_item_required" value="1"/> 필수</label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:400;"><input type="radio" name="bkf_item_required" value="0" checked/> 선택</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>노출여부</label>
+          <div style="display:flex;gap:14px;margin-top:6px;">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:400;"><input type="radio" name="bkf_item_visible" value="1" checked/> 노출</label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:400;"><input type="radio" name="bkf_item_visible" value="0"/> 미노출</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('bkfItemModal')">취소</button>
+      <button class="btn btn-primary" onclick="bkfSaveItemModal()">저장</button>
     </div>
   </div>
 </div>

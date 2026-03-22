@@ -128,7 +128,6 @@ function bkfBuildSummary(s) {
   if (st.storeName)  chips.push(`📍 ${bkfEsc(st.storeName)}`);
   if (st.dateYmd)    chips.push(`📅 ${bkfEsc(st.dateYmd)}`);
   if (st.timeSlot)   chips.push(`🕐 ${bkfEsc(st.timeSlot)}`);
-  if (st.itemVal)    chips.push(`📌 ${bkfEsc(st.itemVal)}`);
   if (!chips.length) return '';
   return `<div class="bkf-summary-chips">${chips.map(c => `<span class="bkf-chip">${c}</span>`).join('')}</div>`;
 }
@@ -391,30 +390,150 @@ function bkfStepTimeSlot(s, wrap, summary) {
 function bkfStepItem(s, wrap, summary) {
   const st  = bkfGetState(s);
   const cfg = st.cfg;
-  // 항목 옵션은 get_config 에서 item_select 타입 필드 options 사용
   const itemField = (cfg.fields || []).find(f => f.type === 'item_select');
-  const options   = itemField ? (itemField.options || []) : [];
+  const rawOpts   = itemField ? (itemField.options || []) : [];
 
-  if (!options.length) {
+  if (!rawOpts.length) {
     wrap.innerHTML = summary + `<p class="bkf-step-title">항목 선택</p>
       <p style="color:#6b7280;font-size:.88rem;padding:20px 0;">등록된 항목이 없습니다.</p>`;
     return;
   }
 
-  wrap.innerHTML = summary + `<p class="bkf-step-title">항목 선택</p>
-    <div class="bkf-item-grid">
-      ${options.map(opt => `
-        <div class="bkf-item-card ${st.itemVal === opt ? 'bkf-selected' : ''}" data-val="${bkfEsc(opt)}">
-          ${bkfEsc(opt)}
-        </div>`).join('')}
-    </div>`;
+  // "type::항목명::옵션1|옵션2::required" 파싱
+  const items = rawOpts.map(raw => {
+    const parts     = raw.split('::');
+    const type      = parts[0] || 'text';
+    const label     = parts[1] || raw;
+    const subOpts   = parts[2] ? parts[2].split('|').filter(Boolean) : [];
+    const required  = parts[3] === '1';
+    return { type, label, subOpts, required };
+  });
 
-  wrap.querySelectorAll('.bkf-item-card').forEach(card => {
-    card.onclick = () => {
-      wrap.querySelectorAll('.bkf-item-card').forEach(c => c.classList.remove('bkf-selected'));
-      card.classList.add('bkf-selected');
-      st.itemVal = card.dataset.val;
-    };
+  let html = summary + `<p class="bkf-step-title">항목 선택</p>`;
+
+  items.forEach((item, idx) => {
+    const fid = `bkf-item-${s}-${idx}`;
+    if (item.type === 'text') {
+      html += `<div class="bkf-fg">
+        <label class="bkf-label">${bkfEsc(item.label)}${item.required ? ' <em>*</em>' : ''}</label>
+        <input type="text" class="bkf-fi bkf-item-input" id="${fid}" data-idx="${idx}" data-label="${bkfEsc(item.label)}" placeholder="${bkfEsc(item.label)} 입력"/>
+      </div>`;
+    } else if (item.type === 'textarea') {
+      html += `<div class="bkf-fg">
+        <label class="bkf-label">${bkfEsc(item.label)}${item.required ? ' <em>*</em>' : ''}</label>
+        <textarea class="bkf-fi bkf-item-input" id="${fid}" data-idx="${idx}" data-label="${bkfEsc(item.label)}" rows="3" placeholder="${bkfEsc(item.label)} 입력" style="resize:vertical;"></textarea>
+      </div>`;
+    } else if (item.type === 'radio') {
+      html += `<div class="bkf-fg">
+        <label class="bkf-label">${bkfEsc(item.label)}${item.required ? ' <em>*</em>' : ''}</label>
+        <div class="bkf-radio-group bkf-item-input" id="${fid}" data-idx="${idx}" data-label="${bkfEsc(item.label)}">
+          ${item.subOpts.map(o => `
+            <label class="bkf-radio-opt">
+              <input type="radio" name="${fid}-r" value="${bkfEsc(o)}"/> ${bkfEsc(o)}
+            </label>`).join('')}
+        </div>
+      </div>`;
+    } else if (item.type === 'checkbox') {
+      html += `<div class="bkf-fg">
+        <label class="bkf-label">${bkfEsc(item.label)}${item.required ? ' <em>*</em>' : ''}</label>
+        <div class="bkf-check-group bkf-item-input" id="${fid}" data-idx="${idx}" data-label="${bkfEsc(item.label)}">
+          ${item.subOpts.map(o => `
+            <label class="bkf-check-opt">
+              <input type="checkbox" value="${bkfEsc(o)}"/> ${bkfEsc(o)}
+            </label>`).join('')}
+        </div>
+      </div>`;
+    } else if (item.type === 'dropdown') {
+      html += `<div class="bkf-fg">
+        <label class="bkf-label">${bkfEsc(item.label)}${item.required ? ' <em>*</em>' : ''}</label>
+        <select class="bkf-fi bkf-item-input" id="${fid}" data-idx="${idx}" data-label="${bkfEsc(item.label)}">
+          <option value="">선택하세요</option>
+          ${item.subOpts.map(o => `<option value="${bkfEsc(o)}">${bkfEsc(o)}</option>`).join('')}
+        </select>
+      </div>`;
+    }
+  });
+
+  wrap.innerHTML = html;
+
+  // 저장된 항목 값 복원
+  if (st.itemVal) {
+    try {
+      const saved = JSON.parse(st.itemVal);
+      items.forEach((item, idx) => {
+        const fid2 = `bkf-item-${s}-${idx}`;
+        const val  = saved[item.label];
+        if (val === undefined || val === '') return;
+        if (item.type === 'radio') {
+          const group = document.getElementById(fid2);
+          group?.querySelectorAll('.bkf-radio-opt').forEach(opt => {
+            const inp = opt.querySelector('input');
+            if (inp && inp.value === val) {
+              inp.checked = true;
+              opt.classList.add('bkf-selected');
+            }
+          });
+        } else if (item.type === 'checkbox') {
+          const group = document.getElementById(fid2);
+          String(val).split(', ').forEach(v => {
+            group?.querySelectorAll('.bkf-check-opt').forEach(opt => {
+              const inp = opt.querySelector('input');
+              if (inp && inp.value === v.trim()) {
+                inp.checked = true;
+                opt.classList.add('bkf-selected');
+              }
+            });
+          });
+        } else {
+          const el = document.getElementById(fid2);
+          if (el) el.value = val;
+        }
+      });
+    } catch(e) {}
+  }
+
+  // 입력값 변경 시 st.itemVal에 JSON으로 저장
+  function collectItemVals() {
+    const result = {};
+    wrap.querySelectorAll('.bkf-item-input').forEach(el => {
+      const label = el.dataset.label;
+      if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') {
+        result[label] = el.value;
+      } else {
+        const checked = [...el.querySelectorAll('input:checked')].map(i => i.value);
+        result[label] = checked.join(', ');
+      }
+    });
+    st.itemVal = JSON.stringify(result);
+  }
+
+  // 라디오 — bkf-selected 토글 + 값 수집
+  wrap.querySelectorAll('.bkf-radio-group').forEach(group => {
+    group.querySelectorAll('.bkf-radio-opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        group.querySelectorAll('.bkf-radio-opt').forEach(o => o.classList.remove('bkf-selected'));
+        opt.classList.add('bkf-selected');
+        collectItemVals();
+      });
+    });
+  });
+
+  // 체크박스 — bkf-selected 토글 + 값 수집
+  wrap.querySelectorAll('.bkf-check-group').forEach(group => {
+    group.querySelectorAll('.bkf-check-opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        opt.classList.toggle('bkf-selected', opt.querySelector('input').checked);
+        collectItemVals();
+      });
+    });
+  });
+
+  // 텍스트/셀렉트 값 수집
+  wrap.querySelectorAll('.bkf-item-input').forEach(el => {
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') {
+      el.addEventListener('change', collectItemVals);
+      el.addEventListener('input',  collectItemVals);
+    }
   });
 }
 
@@ -518,7 +637,72 @@ function bkfStepInfo(s, wrap, summary) {
 
   wrap.innerHTML = html;
 
-  // 라디오/체크박스 시각 선택 토글
+  // 저장된 값 복원
+  const saved = st.savedFields || {};
+  fields.forEach(f => {
+    const fid = `bkf-fi-${s}-${f.field_key}`;
+    if (f.field_key === 'name' || f.field_key === 'phone') {
+      const el = document.getElementById(fid);
+      const val = f.field_key === 'name' ? (st.savedName || '') : (st.savedPhone || '');
+      if (el && val) el.value = val;
+      return;
+    }
+    const val = saved[f.field_key];
+    if (val === undefined) return;
+    if (f.type === 'radio') {
+      const inp = wrap.querySelector(`input[name="bkf-r-${s}-${f.field_key}"][value="${val}"]`);
+      if (inp) {
+        inp.checked = true;
+        inp.closest('.bkf-radio-opt')?.classList.add('bkf-selected');
+      }
+    } else if (f.type === 'checkbox') {
+      String(val).split(',').map(v => v.trim()).forEach(v => {
+        const inp = wrap.querySelector(`#${fid} input[type=checkbox][value="${v}"]`);
+        if (inp) { inp.checked = true; inp.closest('.bkf-check-opt')?.classList.add('bkf-selected'); }
+      });
+    } else if (f.type === 'date_range') {
+      const [vs, ve] = String(val).split('~');
+      const s1 = document.getElementById(`${fid}-start`);
+      const e1 = document.getElementById(`${fid}-end`);
+      if (s1 && vs) s1.value = vs.trim();
+      if (e1 && ve) e1.value = ve.trim();
+    } else {
+      const el = document.getElementById(fid);
+      if (el) el.value = val;
+    }
+  });
+
+  // 입력값 변경 시 state에 저장
+  function saveInfoFields() {
+    const result = {};
+    fields.forEach(f => {
+      if (f.field_key === 'name' || f.field_key === 'phone') return;
+      const fid2 = `bkf-fi-${s}-${f.field_key}`;
+      if (f.type === 'radio') {
+        const chk = wrap.querySelector(`input[name="bkf-r-${s}-${f.field_key}"]:checked`);
+        result[f.field_key] = chk ? chk.value : '';
+      } else if (f.type === 'checkbox') {
+        const vals = [...wrap.querySelectorAll(`#${fid2} input:checked`)].map(i => i.value);
+        result[f.field_key] = vals.join(',');
+      } else if (f.type === 'date_range') {
+        const vs2 = document.getElementById(`${fid2}-start`)?.value || '';
+        const ve2 = document.getElementById(`${fid2}-end`)?.value   || '';
+        result[f.field_key] = `${vs2}~${ve2}`;
+      } else {
+        result[f.field_key] = document.getElementById(fid2)?.value || '';
+      }
+    });
+    st.savedFields = result;
+    // name/phone도 즉시 저장
+    const ne2 = document.getElementById(`bkf-fi-${s}-name`);
+    const pe2 = document.getElementById(`bkf-fi-${s}-phone`);
+    if (ne2) st.savedName  = ne2.value.trim();
+    if (pe2) st.savedPhone = pe2.value.trim();
+  }
+  wrap.querySelectorAll('input, textarea, select').forEach(el => {
+    el.addEventListener('input',  saveInfoFields);
+    el.addEventListener('change', saveInfoFields);
+  });
   wrap.querySelectorAll('.bkf-radio-opt input[type=radio]').forEach(inp => {
     inp.onchange = () => {
       const grp = inp.closest('.bkf-radio-group');
@@ -577,7 +761,18 @@ function bkfNextStep(s) {
     }
   }
   if (key === 'item' && !st.itemVal) {
-    bkfShowError(s, '항목을 선택해 주세요.'); return;
+    // 항목이 전부 선택/입력형이라 강제 안 함 — 통과
+  }
+
+  // 정보입력 스텝에서 다음으로 넘어갈 때 name/phone을 state에 저장
+  if (key === 'info') {
+    const wrap2 = document.getElementById(`bkf-step-wrap-${s}`);
+    const ne = wrap2?.querySelector(`#bkf-fi-${s}-name`);
+    const pe = wrap2?.querySelector(`#bkf-fi-${s}-phone`);
+    if (ne) st.savedName  = ne.value.trim();
+    if (pe) st.savedPhone = pe.value.trim();
+    if (!st.savedName)  { bkfShowError(s, '이름을 입력해 주세요.'); return; }
+    if (!st.savedPhone) { bkfShowError(s, '전화번호를 입력해 주세요.'); return; }
   }
 
   st.stepIndex++;
@@ -593,11 +788,11 @@ async function bkfSubmit(s) {
   const phoneVerify = cfg.form && parseInt(cfg.form.phone_verify_use) === 1;
   const wrap = document.getElementById(`bkf-step-wrap-${s}`);
 
-  // 이름/전화번호 수집
-  const nameEl  = wrap.querySelector(`[id="bkf-fi-${s}-name"]`);
-  const phoneEl = wrap.querySelector(`[id="bkf-fi-${s}-phone"]`);
-  const name    = nameEl  ? nameEl.value.trim()  : '';
-  const phone   = phoneEl ? phoneEl.value.trim() : '';
+  // 이름/전화번호 수집 — 페이지 전체에서 찾기 (현재 스텝이 info가 아닐 수 있음)
+  const nameEl  = document.getElementById(`bkf-fi-${s}-name`)  || wrap.querySelector(`[id="bkf-fi-${s}-name"]`);
+  const phoneEl = document.getElementById(`bkf-fi-${s}-phone`) || wrap.querySelector(`[id="bkf-fi-${s}-phone"]`);
+  const name    = nameEl  ? nameEl.value.trim()  : (st.savedName  || '');
+  const phone   = phoneEl ? phoneEl.value.trim() : (st.savedPhone || '');
 
   if (!name)  { bkfShowError(s, '이름을 입력해 주세요.'); return; }
   if (!phone) { bkfShowError(s, '전화번호를 입력해 주세요.'); return; }

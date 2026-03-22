@@ -123,9 +123,10 @@
 
   <div class="ci-tabs">
     <button class="ci-tab active" onclick="bkfSwitchTab('basic',    this)">기본정보</button>
-    <button class="ci-tab"        onclick="bkfSwitchTab('fields',   this)">필드설정</button>
     <button class="ci-tab"        onclick="bkfSwitchTab('steps',    this)">스텝설정</button>
-    <button class="ci-tab"        onclick="bkfSwitchTab('quota',    this)">수량설정</button>
+    <button class="ci-tab"        onclick="bkfSwitchTab('fields',   this)">정보입력 설정</button>
+    <button class="ci-tab"        onclick="bkfSwitchTab('items',    this)">항목설정</button>
+    <button class="ci-tab"        onclick="bkfSwitchTab('quota',    this)">날짜(시간) 수량설정</button>
     <button class="ci-tab"        onclick="bkfSwitchTab('managers', this)">담당자설정</button>
     <button class="ci-tab"        onclick="bkfSwitchTab('records',  this)">예약내역</button>
   </div>
@@ -226,6 +227,20 @@
     </div></div>
   </div>
 
+  <!-- ── 항목설정 탭 ── -->
+  <div class="ci-tab-panel" id="bkf-panel-items">
+    <div class="card"><div class="card-body">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div>
+          <strong>항목 설정</strong>
+          <p style="font-size:.82rem;color:#94a3b8;margin-top:4px;">예약 시 고객이 입력할 항목을 관리합니다.</p>
+        </div>
+        <button class="btn btn-primary" onclick="bkfOpenItemModal(-1)">+ 항목 추가</button>
+      </div>
+      <div id="bkfItemOptionList" style="min-height:60px;"></div>
+    </div></div>
+  </div>
+
   <!-- ── 스텝설정 탭 ── -->
   <div class="ci-tab-panel" id="bkf-panel-steps">
     <div class="card"><div class="card-body">
@@ -249,8 +264,6 @@
           💡 <strong>항목 선택 스텝 사용 방법</strong><br>
           <strong>필드설정</strong> 탭에서 <strong>"항목 선택(item_select)"</strong> 타입의 필드를 먼저 추가하고 옵션을 입력하세요.<br>
           그 후 여기서 <strong>"+ 항목 선택"</strong> 버튼을 눌러 스텝에 추가하면 프론트에 항목 선택 단계가 나타납니다.
-        </div>
-        
         </div>
       </div>
       <!-- 현재 스텝 목록 (드래그 가능) -->

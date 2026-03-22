@@ -279,7 +279,6 @@ async function bkfGoRecords(formId, title) {
   const tabs = document.querySelectorAll('#page-bkfDetail .ci-tab');
   const tab  = tabs[tabs.length - 1]; // 마지막 탭 = 예약내역
   bkfSwitchTab('records', tab);
-  bkfLoadRecords(1);
 }
 
 // =====================================================
@@ -321,12 +320,9 @@ async function bkfOpenDetail(formId) {
   // 기본정보 탭 활성화
   bkfSwitchTab('basic', document.querySelector('#page-bkfDetail .ci-tab'));
 
-  // 각 탭 데이터 로드
+  // 진입 시 fields/steps만 미리 로드 (나머지는 탭 전환 시 lazy load)
   bkfLoadFields();
   bkfLoadSteps();
-  bkfLoadManagers();
-  bkfInitQuotaTab();
-  bkfLoadRecords(1);
 }
 
 // =====================================================
@@ -339,9 +335,27 @@ function bkfSwitchTab(tab, el) {
   const panel = document.getElementById('bkf-panel-' + tab);
   if (panel) panel.classList.add('active');
 
-  // basic 탭 진입 시 항상 UI 최신 데이터로 채우기
+  // 탭 진입 시 해당 데이터만 로드
   if (tab === 'basic' && bkfCurrentFormData && bkfCurrentFormData.id) {
     bkfFillBasicUI(bkfCurrentFormData);
+  }
+  if (tab === 'fields') {
+    bkfLoadFields();
+  }
+  if (tab === 'items') {
+    bkfLoadItemOptions();
+  }
+  if (tab === 'steps') {
+    bkfLoadSteps();
+  }
+  if (tab === 'quota') {
+    bkfInitQuotaTab();
+  }
+  if (tab === 'managers') {
+    bkfLoadManagers();
+  }
+  if (tab === 'records') {
+    bkfLoadRecords(1);
   }
 }
 
@@ -383,9 +397,14 @@ async function bkfLoadFields() {
   }
 
   const typeLabel = {
-    text: '텍스트', date: '날짜', time_slot: '시간슬롯',
-    item_select: '항목선택', store_select: '지점선택',
-    radio: '라디오', checkbox: '체크박스', dropdown: '드롭다운', date_range: '기간선택',
+    text:        'INPUT',
+    textarea:    'TEXTAREA',
+    radio:       'RADIO',
+    checkbox:    'CHECKBOX',
+    dropdown:    'SELECT',
+    item_select: '항목선택',
+    store_select:'지점선택',
+    date:        '날짜', time_slot: '시간슬롯', date_range: '기간선택',
   };
 
   el.innerHTML = res.data.map(f => `
@@ -551,7 +570,7 @@ function bkfOnFieldTypeChange() {
   hide('bkf-field-store-info');
   hide('bkf-field-daterange-info');
 
-  if (type === 'text')                                    show('bkf-field-placeholder-wrap');
+  if (['text','textarea'].includes(type))                 show('bkf-field-placeholder-wrap');
   if (['radio','checkbox','dropdown','item_select'].includes(type)) show('bkf-field-options-wrap');
   if (type === 'store_select')                            show('bkf-field-store-info');
   if (type === 'date_range')                              show('bkf-field-daterange-info');
@@ -635,6 +654,201 @@ const BKF_STEP_LABELS = {
   item:      '항목 선택',
   info:      '정보입력',
 };
+
+
+// =====================================================
+// 항목설정 탭 — 정보입력 설정과 동일한 UI
+// =====================================================
+
+let bkfItemList    = [];
+let bkfItemFieldId = '';
+
+async function bkfLoadItemOptions() {
+  const res  = await bkfApiGet('api/bkf_admin.php', { action: 'list_fields', form_id: bkfCurrentFormId });
+  const list = document.getElementById('bkfItemOptionList');
+  if (!list) return;
+
+  const itemField = (res.data || []).find(f => f.type === 'item_select');
+  bkfItemFieldId  = itemField ? itemField.id : '';
+
+  bkfItemList = (itemField?.options || []).map(o => {
+    const parts = o.label.split('::');
+    return {
+      type:     parts[0] || 'text',
+      label:    parts[1] || o.label,
+      subOpts:  parts[2] ? parts[2].split('|').filter(Boolean) : [],
+      required: parts[3] === '1',
+      visible:  o.is_visible == 1,
+    };
+  });
+
+  bkfRenderItemList();
+}
+
+const bkfItemTypeLabel = { text:'INPUT', textarea:'TEXTAREA', radio:'RADIO', checkbox:'CHECKBOX', dropdown:'SELECT' };
+
+function bkfRenderItemList() {
+  const list = document.getElementById('bkfItemOptionList');
+  if (!list) return;
+
+  if (!bkfItemList.length) {
+    list.innerHTML = '<p style="color:#94a3b8;font-size:.85rem;padding:12px 0;">등록된 항목이 없습니다. 위의 "+ 항목 추가" 버튼으로 추가하세요.</p>';
+    return;
+  }
+
+  list.innerHTML = bkfItemList.map((item, idx) => `
+    <div class="ci-field-row" data-idx="${idx}" draggable="true"
+      style="display:flex;gap:10px;align-items:center;padding:10px 14px;margin-bottom:6px;
+             background:#f8fafc;border-radius:8px;border:1px solid var(--border);cursor:default;">
+      <span style="cursor:grab;color:#94a3b8;" class="bkf-item-drag-handle">⠿</span>
+      <div style="flex:1;min-width:0;">
+        <span style="font-weight:600;">${escHtml(item.label)}</span>
+        <span style="margin-left:8px;font-size:.75rem;color:#475569;background:#e2e8f0;padding:2px 7px;border-radius:4px;">
+          ${bkfItemTypeLabel[item.type] || item.type}
+        </span>
+        ${item.required ? '<span style="margin-left:4px;font-size:.72rem;color:#e53e3e;">필수</span>' : ''}
+        ${item.subOpts?.length ? `<span style="margin-left:6px;font-size:.75rem;color:#64748b;">(${item.subOpts.join(', ')})</span>` : ''}
+      </div>
+      <label style="display:flex;align-items:center;gap:4px;font-size:.8rem;font-weight:400;cursor:pointer;">
+        <input type="checkbox" ${item.visible ? 'checked' : ''}
+          onchange="bkfItemList[${idx}].visible = this.checked"/> 노출
+      </label>
+      <button class="btn btn-sm btn-outline" onclick="bkfOpenItemModal(${idx})">수정</button>
+      <button class="btn btn-sm btn-danger" onclick="bkfDeleteItem(${idx})">삭제</button>
+    </div>`).join('');
+
+  list.querySelectorAll('.ci-field-row').forEach(row => {
+    let dragSrcIdx = null;
+    row.addEventListener('dragstart', e => { dragSrcIdx = parseInt(row.dataset.idx); row.style.opacity = '.4'; e.dataTransfer.effectAllowed = 'move'; });
+    row.addEventListener('dragend',   e => { row.style.opacity = ''; });
+    row.addEventListener('dragover',  e => e.preventDefault());
+    row.addEventListener('drop', e => {
+      e.preventDefault();
+      const toIdx = parseInt(row.dataset.idx);
+      if (dragSrcIdx !== null && dragSrcIdx !== toIdx) {
+        const moved = bkfItemList.splice(dragSrcIdx, 1)[0];
+        bkfItemList.splice(toIdx, 0, moved);
+        bkfRenderItemList();
+      }
+    });
+  });
+}
+
+function bkfOpenItemModal(idx = -1) {
+  const isNew = idx < 0;
+  document.getElementById('bkfItemModalTitle').textContent = isNew ? '항목 추가' : '항목 수정';
+  document.getElementById('bkf_item_idx').value = idx;
+
+  const item = isNew ? { label:'', type:'text', subOpts:[], required:false, visible:true } : bkfItemList[idx];
+  document.getElementById('bkf_item_label').value = item.label;
+  document.getElementById('bkf_item_type').value  = item.type;
+
+  document.getElementById('bkf-item-subopts-list').innerHTML = '';
+  (item.subOpts || []).forEach(o => bkfAddItemSubOpt(o));
+  bkfOnItemTypeChange();
+
+  const reqEl = document.querySelector(`input[name="bkf_item_required"][value="${item.required ? '1' : '0'}"]`);
+  if (reqEl) reqEl.checked = true;
+  const visEl = document.querySelector(`input[name="bkf_item_visible"][value="${item.visible ? '1' : '0'}"]`);
+  if (visEl) visEl.checked = true;
+
+  openModal('bkfItemModal');
+}
+
+function bkfOnItemTypeChange() {
+  const type = document.getElementById('bkf_item_type').value;
+  const wrap = document.getElementById('bkf-item-subopts-wrap');
+  if (wrap) wrap.style.display = ['radio','checkbox','dropdown'].includes(type) ? '' : 'none';
+}
+
+function bkfAddItemSubOpt(label = '') {
+  const list = document.getElementById('bkf-item-subopts-list');
+  const div  = document.createElement('div');
+  div.draggable = true;
+  div.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:6px;background:#f8fafc;padding:6px 8px;border-radius:6px;border:1px solid var(--border);';
+  div.innerHTML = `
+    <span style="cursor:grab;color:#94a3b8;font-size:1rem;padding:0 2px;">⠿</span>
+    <input type="text" class="form-control" value="${escHtml(label)}" placeholder="선택지명" style="flex:1;"/>
+    <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('div').remove()">✕</button>`;
+  let dragSrc = null;
+  div.addEventListener('dragstart', e => { dragSrc = div; div.style.opacity = '.4'; });
+  div.addEventListener('dragend',   e => { div.style.opacity = ''; });
+  div.addEventListener('dragover',  e => e.preventDefault());
+  div.addEventListener('drop', e => {
+    e.preventDefault();
+    if (dragSrc && dragSrc !== div) {
+      const all = [...list.querySelectorAll(':scope > div')];
+      if (all.indexOf(dragSrc) < all.indexOf(div)) div.after(dragSrc);
+      else div.before(dragSrc);
+    }
+  });
+  list.appendChild(div);
+}
+
+function bkfDeleteItem(idx) {
+  if (!confirm('이 항목을 삭제하시겠습니까?')) return;
+  bkfItemList.splice(idx, 1);
+  bkfRenderItemList();
+  bkfPersistItemOptions();
+}
+
+async function bkfSaveItemModal() {
+  const label    = document.getElementById('bkf_item_label').value.trim();
+  const type     = document.getElementById('bkf_item_type').value;
+  const required = document.querySelector('input[name="bkf_item_required"]:checked')?.value === '1';
+  const visible  = document.querySelector('input[name="bkf_item_visible"]:checked')?.value !== '0';
+  const subOpts  = [...document.querySelectorAll('#bkf-item-subopts-list input[type="text"]')]
+                    .map(i => i.value.trim()).filter(Boolean);
+
+  if (!label) { showToast('항목명을 입력해주세요.', 'error'); return; }
+  if (['radio','checkbox','dropdown'].includes(type) && !subOpts.length) {
+    showToast('선택지를 1개 이상 추가해주세요.', 'error'); return;
+  }
+
+  const idx  = parseInt(document.getElementById('bkf_item_idx').value);
+  const item = { label, type, subOpts, required, visible };
+
+  if (idx < 0) bkfItemList.push(item);
+  else bkfItemList[idx] = item;
+
+  closeModal('bkfItemModal');
+  bkfRenderItemList();
+  await bkfPersistItemOptions();
+}
+
+async function bkfPersistItemOptions() {
+  const options = bkfItemList.map(item => {
+    const subStr  = item.subOpts?.length ? item.subOpts.join('|') : '';
+    const reqStr  = item.required ? '1' : '0';
+    const encoded = subStr
+      ? `${item.type}::${item.label}::${subStr}::${reqStr}`
+      : `${item.type}::${item.label}::::${reqStr}`;
+    return { label: encoded, is_visible: item.visible ? 1 : 0 };
+  });
+
+  const payload = {
+    form_id:     bkfCurrentFormId,
+    label:       '항목 선택',
+    type:        'item_select',
+    is_required: 0,
+    is_visible:  1,
+    options:     JSON.stringify(options),
+  };
+
+  let res;
+  if (bkfItemFieldId) {
+    res = await bkfApiPost('api/bkf_admin.php', { action: 'save_field', id: bkfItemFieldId, field_key: 'item_select', ...payload });
+  } else {
+    res = await bkfApiPost('api/bkf_admin.php', { action: 'save_field', id: 0, field_key: 'item_' + Date.now().toString().slice(-6), ...payload });
+  }
+
+  if (res.ok) {
+    showToast('저장되었습니다.');
+    if (!bkfItemFieldId && res.field_id) bkfItemFieldId = String(res.field_id);
+  } else {
+    showToast(res.msg || '오류가 발생했습니다.', 'error');
+  }
+}
 
 // 스텝 목록 로드
 async function bkfLoadSteps() {

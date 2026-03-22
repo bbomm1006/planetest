@@ -305,7 +305,7 @@ if ($action === 'list_fields') {
     $fields = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($fields as &$field) {
-        if (in_array($field['type'], ['dropdown','radio','checkbox'])) {
+        if (in_array($field['type'], ['dropdown','radio','checkbox','item_select'])) {
             $opts = $pdo->prepare('SELECT * FROM bkf_field_options WHERE field_id=? ORDER BY sort_order ASC');
             $opts->execute([$field['id']]);
             $field['options'] = $opts->fetchAll(PDO::FETCH_ASSOC);
@@ -332,7 +332,7 @@ if ($action === 'save_field') {
     $sort_order  = (int)($_POST['sort_order']  ?? 99);
     $options     = json_decode($_POST['options'] ?? '[]', true);
 
-    $allowed_types = ['text','date','time_slot','item_select','store_select','radio','checkbox','dropdown','date_range'];
+    $allowed_types = ['text','textarea','date','time_slot','item_select','store_select','radio','checkbox','dropdown','date_range'];
     if (!$label || !$type || !in_array($type, $allowed_types)) {
         ob_clean();
         echo json_encode(['ok' => false, 'msg' => 'Label and valid type are required.']);
@@ -382,8 +382,8 @@ if ($action === 'save_field') {
         }
     }
 
-    // 옵션 저장 (dropdown / radio / checkbox)
-    if (in_array($type, ['dropdown','radio','checkbox'])) {
+    // 옵션 저장 (dropdown / radio / checkbox / item_select)
+    if (in_array($type, ['dropdown','radio','checkbox','item_select'])) {
         $pdo->prepare('DELETE FROM bkf_field_options WHERE field_id=?')->execute([$field_id]);
         foreach ((array)$options as $i => $opt) {
             $ol = trim($opt['label'] ?? '');
