@@ -195,6 +195,8 @@
     _filtered = _allPosts.filter(function (p) {
       return !_cat || (p.extra && p.extra['분류']) === _cat;
     });
+    var totalEl = document.getElementById('sgTotalInfo');
+    if (totalEl) totalEl.innerHTML = _cat ? '검색 결과 <strong>' + _filtered.length + '</strong>건' : '전체 <strong>' + _allPosts.length + '</strong>건';
     _current = 0;
     _sgVisual = null;
     rebuildFlat();

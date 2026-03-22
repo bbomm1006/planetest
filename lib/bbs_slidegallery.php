@@ -7,6 +7,9 @@
     <div class="sg-cat-tabs" id="sgCatTabs"></div>
     <select class="sg-cat-sel" id="sgCatDropdown"></select>
 
+    <!-- 총건수 -->
+    <div class="bbs-total-info" id="sgTotalInfo"></div>
+
     <div class="sg-block">
       <div class="sg-slide-stack">
         <div class="sg-slide-meta" id="sgSlideMeta" hidden>

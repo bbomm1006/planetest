@@ -129,6 +129,8 @@
     var total = _filtered.length;
 
     /* 결과 정보 */
+    var totalEl = document.getElementById('pgTotalInfo');
+    if (totalEl) totalEl.innerHTML = (_kw || _cat) ? '검색 결과 <strong>' + total + '</strong>건' : '전체 <strong>' + _allPosts.length + '</strong>건';
     var info = document.getElementById('pgResultInfo');
     if (info) {
       info.innerHTML = (_kw || _cat)

@@ -6,26 +6,23 @@
 
     <div class="faq-wrap">
       <!-- 검색 -->
-      <div class="faq-search">
-        <select class="faq-search-sel" id="faqFieldSel">
+      <div class="nt-search">
+        <select class="nt-search-sel" id="faqCatSel">
+          <option value="">전체 분류</option>
+        </select>
+        <select class="nt-search-sel" id="faqFieldSel">
           <option value="all">전체(제목+내용)</option>
           <option value="title">제목</option>
           <option value="content">내용</option>
-          <option value="category">분류</option>
         </select>
-        <input class="faq-search-inp" id="faqSearchInp" type="text" placeholder="궁금한 점을 검색하세요" onkeydown="if(event.key==='Enter')faqSearch()">
-        <button class="faq-search-btn" onclick="faqSearch()">검색</button>
-        <button class="faq-reset-btn" onclick="faqReset()">초기화</button>
+        <input class="nt-search-inp" id="faqSearchInp" type="text" placeholder="검색어를 입력하세요" onkeydown="if(event.key==='Enter')faqSearch()">
+        <button class="nt-search-btn" onclick="faqSearch()">검색</button>
       </div>
 
-      <!-- 분류 탭 (PC) / 드롭다운 (모바일) -->
-      <div class="faq-cats" id="faqCatTabs"></div>
-      <select class="faq-cat-sel" id="faqCatDropdown" onchange="faqSetCat(this.value)"></select>
-
-      <!-- 결과 정보 -->
-      <div class="faq-result-info" id="faqResultInfo"></div>
-
       <!-- 리스트 -->
+      <!-- 총건수 -->
+      <div class="bbs-total-info" id="faqTotalInfo"></div>
+
       <div class="faq-list" id="faqList">
         <div class="faq-empty">불러오는 중...</div>
       </div>

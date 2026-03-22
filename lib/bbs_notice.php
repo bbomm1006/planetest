@@ -19,6 +19,9 @@
         <button class="nt-search-btn" onclick="ntSearch()">검색</button>
       </div>
 
+      <!-- 총건수 -->
+      <div class="bbs-total-info" id="ntTotalInfo"></div>
+
       <!-- 리스트 -->
       <table class="nt-table">
         <thead>

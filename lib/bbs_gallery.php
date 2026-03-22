@@ -4,8 +4,11 @@
     <h2 class="s-h">갤러리</h2>
     <p class="s-p">다양한 이미지와 콘텐츠를 확인해보세요.</p>
 
-    <div class="gl-cat-tabs" id="glCatTabs"></div>
+    <div class="pg-cat-tabs" id="glCatTabs"></div>
     <select class="gl-cat-sel" id="glCatDropdown"></select>
+
+    <!-- 총건수 -->
+    <div class="bbs-total-info" id="glTotalInfo"></div>
 
     <div class="gl-grid" id="glGrid">
       <div class="gl-empty">불러오는 중...</div>

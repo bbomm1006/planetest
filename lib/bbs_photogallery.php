@@ -8,16 +8,9 @@
     <div class="pg-cat-tabs" id="pgCatTabs"></div>
     <select class="pg-cat-sel" id="pgCatDropdown"></select>
 
-    <!-- 검색 -->
-    <div class="pg-search-bar">
-      <input class="pg-search-inp" id="pgSearchInp" type="text" placeholder="검색어를 입력하세요" onkeydown="if(event.key==='Enter')pgSearch()">
-      <button class="pg-search-btn" onclick="pgSearch()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="17" height="17"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      </button>
-    </div>
-
     <!-- 결과 정보 -->
-    <div class="pg-result-info" id="pgResultInfo"></div>
+    <!-- 총건수 -->
+    <div class="bbs-total-info" id="pgTotalInfo"></div>
 
     <!-- 그리드 -->
     <div class="pg-grid" id="pgGrid">

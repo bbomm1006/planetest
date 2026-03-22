@@ -203,13 +203,93 @@ function vidNav(dir) {
 }
 
 /* ─── 리뷰 ─── */
-var rvCur = 0, rvItems = [];
+var rvCur = 0, rvItems = [], _rvAllItems = [];
+var _rvKw = '', _rvCat = '', _rvField = 'all';
+
+function rvFilteredItems() {
+  return _rvAllItems.filter(function(r) {
+    var catOk = !_rvCat || (r.category || '') === _rvCat;
+    var kwOk  = !_rvKw;
+    if (_rvKw) {
+      var kl = _rvKw.toLowerCase();
+      if (_rvField === 'title')   kwOk = (r.title||r.name||'').toLowerCase().includes(kl);
+      else if (_rvField === 'content') kwOk = (r.text||'').toLowerCase().includes(kl);
+      else kwOk = (r.title||r.name||'').toLowerCase().includes(kl) || (r.text||'').toLowerCase().includes(kl);
+    }
+    return catOk && kwOk;
+  });
+}
+
+function rvSearch() {
+  _rvKw    = (document.getElementById('rvKwInp')||{value:''}).value.trim();
+  _rvCat   = (document.getElementById('rvCatSel')||{value:''}).value;
+  _rvField = (document.getElementById('rvFieldSel')||{value:'all'}).value;
+  rvItems  = rvFilteredItems();
+  rvCur    = 0;
+  _rebuildRvSlider();
+}
+
+function _rebuildRvSlider() {
+  var totalEl = document.getElementById('rvTotalInfo');
+  if (totalEl) totalEl.innerHTML = (_rvKw || _rvCat) ? '검색 결과 <strong>' + rvItems.length + '</strong>건' : '전체 <strong>' + _rvAllItems.length + '</strong>건';
+  var wrap = document.getElementById('rvwrap');
+  if (!wrap) return;
+  if (!rvItems.length) {
+    wrap.innerHTML = '<p style="text-align:center;color:var(--g4);padding:40px">검색 결과가 없습니다.</p>';
+    document.getElementById('rvdots').innerHTML = '';
+    var rvnav = wrap.parentElement && wrap.parentElement.querySelector('.rvnav');
+    if (rvnav) { rvnav.style.display = 'none'; rvnav.setAttribute('aria-hidden','true'); }
+    return;
+  }
+  wrap.innerHTML = '<div class="rvtrack" id="rvtrack">'
+    + rvItems.map(function(r) {
+      var stars = '★'.repeat(r.rating || 5) + '☆'.repeat(Math.max(0, 5 - (r.rating || 5)));
+      var thumbHtml = r.imageUrl ? '<div class="rv-thumb"><img src="' + esc(r.imageUrl) + '" alt=""></div>' : '';
+      return '<div class="rvc">' + thumbHtml
+        + '<div class="rv-body">'
+        + '<div class="rv-top"><div class="rv-mt">'
+        + '<div class="rv-nm">' + esc(maskName(r.name || '')) + '</div>'
+        + '<div class="rv-stars">' + stars + '</div>'
+        + '<div class="rv-dt">' + esc(r.date || '') + '</div>'
+        + '</div></div>'
+        + '<div class="rv-txt">' + esc(r.text || '') + '</div>'
+        + '<div class="rv-ok"><svg viewBox="0 0 16 16" fill="#10b981"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm3.5 6L7 10.5 4.5 8l1-1L7 8.5l4-4 1 1.5z"/></svg>실제 구매 고객</div>'
+        + '</div></div>';
+    }).join('')
+    + '</div>';
+  document.getElementById('rvdots').innerHTML = rvItems.map(function(_, i) {
+    return '<div class="rvdot' + (i === 0 ? ' on' : '') + '" onclick="rvGoTo(' + i + ')"></div>';
+  }).join('');
+  rvCur = 0;
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      rvGoTo(0, true);
+      setTimeout(function() { rvGoTo(rvCur, true); }, 0);
+      var tr = document.getElementById('rvtrack');
+      if (tr) {
+        tr.querySelectorAll('img').forEach(function(img) {
+          img.addEventListener('load', function() { rvGoTo(rvCur, true); }, { once: true });
+        });
+      }
+      vrBindSwipe(document.getElementById('rvwrap'), false);
+    });
+  });
+}
 
 function renderReviews(data) {
-  rvItems = (data.reviews || [])
+  _rvAllItems = (data.reviews || [])
     .filter(function (r) { return r.active; })
     .sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
 
+  // 분류 셀렉트 채우기
+  var catSel = document.getElementById('rvCatSel');
+  if (catSel) {
+    var cats = {}, catArr = [];
+    _rvAllItems.forEach(function(r) { var c = r.category || ''; if (c && !cats[c]) { cats[c] = true; catArr.push(c); } });
+    catArr.forEach(function(c) { var o = document.createElement('option'); o.value = c; o.textContent = c; catSel.appendChild(o); });
+  }
+
+  rvItems = _rvAllItems.slice();
   var wrap = document.getElementById('rvwrap');
   if (!rvItems.length) {
     wrap.innerHTML = '<p style="text-align:center;color:var(--g4);padding:40px">등록된 후기가 없습니다.</p>';

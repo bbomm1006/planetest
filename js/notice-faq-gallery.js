@@ -48,6 +48,8 @@ function ntFiltered() {
 function ntRender(reset) {
   if (reset) _ntPage = 1;
   var filtered = ntFiltered();
+  var totalEl = document.getElementById('ntTotalInfo');
+  if (totalEl) totalEl.innerHTML = (_ntKw || _ntCat) ? '검색 결과 <strong>' + filtered.length + '</strong>건' : '전체 <strong>' + _ntAllPosts.length + '</strong>건';
   var tbody = document.getElementById('ntTbody');
   var page = filtered.slice(0, _ntPage * _ntLimit);
   if (!page.length) {
@@ -126,24 +128,17 @@ var _faqKw = '', _faqCatId = '', _faqField = 'all';
 
 function faqInit(posts) {
   _faqAllPosts = posts;
-  // 분류 탭 채우기
-  var cats = [], seen = {};
+  // 분류 셀렉트 채우기
+  var cats = [], seen = {}, sel = document.getElementById('faqCatSel');
   posts.forEach(function(p) {
     var c = p.extra && p.extra['분류'] ? p.extra['분류'] : '';
     if (c && !seen[c]) { seen[c] = true; cats.push(c); }
   });
-  var tabs = document.getElementById('faqCatTabs');
-  if (tabs) {
-    tabs.innerHTML = '<button class="faq-cat-btn on" data-cat="" onclick="faqSetCat(\'\',this)">전체</button>'
-      + cats.map(function(c) { return '<button class="faq-cat-btn" data-cat="' + faqEsc(c) + '" onclick="faqSetCat(\'' + faqEsc(c) + '\',this)">' + faqEsc(c) + '</button>'; }).join('');
+  if (sel) {
+    cats.forEach(function(c) {
+      var o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o);
+    });
   }
-  var faqDrop = document.getElementById('faqCatDropdown');
-  if (faqDrop) {
-    faqDrop.innerHTML = '<option value="">전체</option>'
-      + cats.map(function(c) { return '<option value="' + faqEsc(c) + '">' + faqEsc(c) + '</option>'; }).join('');
-  }
-  var info = document.getElementById('faqResultInfo');
-  if (info) info.innerHTML = '전체 <strong>' + posts.length + '</strong>건';
   faqRender(true);
 }
 
@@ -164,8 +159,8 @@ function faqFiltered() {
 function faqRender(reset) {
   if (reset) _faqPage = 1;
   var filtered = faqFiltered();
-  var info = document.getElementById('faqResultInfo');
-  if (info) info.innerHTML = (_faqKw || _faqCatId) ? '검색 결과: <strong>' + filtered.length + '</strong>건' : '전체 <strong>' + filtered.length + '</strong>건';
+  var totalEl = document.getElementById('faqTotalInfo');
+  if (totalEl) totalEl.innerHTML = (_faqKw || _faqCatId) ? '검색 결과 <strong>' + filtered.length + '</strong>건' : '전체 <strong>' + _faqAllPosts.length + '</strong>건';
   var el = document.getElementById('faqList');
   var page = filtered.slice(0, _faqPage * _faqLimit);
   if (!page.length) {
@@ -194,23 +189,17 @@ function faqRender(reset) {
   }
 }
 
-function faqSetCat(catId, btn) {
+function faqSetCat(catId) {
   _faqCatId = catId;
-  document.querySelectorAll('.faq-cat-btn').forEach(function(b) {
-    b.classList.toggle('on', b.dataset.cat === catId);
-  });
-  var drop = document.getElementById('faqCatDropdown');
-  if (drop) drop.value = catId;
+  var sel = document.getElementById('faqCatSel');
+  if (sel) sel.value = catId;
   faqRender(true);
 }
-function faqSearch()  { _faqKw = document.getElementById('faqSearchInp').value.trim(); _faqField = (document.getElementById('faqFieldSel')||{value:'all'}).value; faqRender(true); }
+function faqSearch()  { _faqKw = document.getElementById('faqSearchInp').value.trim(); _faqField = (document.getElementById('faqFieldSel')||{value:'all'}).value; _faqCatId = (document.getElementById('faqCatSel')||{value:''}).value; faqRender(true); }
 function faqReset()   {
   _faqKw = ''; _faqField = 'all'; _faqCatId = '';
-  var inp = document.getElementById('faqSearchInp'), sel = document.getElementById('faqFieldSel');
-  if (inp) inp.value = ''; if (sel) sel.value = 'all';
-  document.querySelectorAll('.faq-cat-btn').forEach(function(b) { b.classList.remove('on'); });
-  var first = document.querySelector('.faq-cat-btn'); if (first) first.classList.add('on');
-  var drop = document.getElementById('faqCatDropdown'); if (drop) drop.value = '';
+  var inp = document.getElementById('faqSearchInp'), fld = document.getElementById('faqFieldSel'), cat = document.getElementById('faqCatSel');
+  if (inp) inp.value = ''; if (fld) fld.value = 'all'; if (cat) cat.value = '';
   faqRender(true);
 }
 function faqLoadMore() { _faqPage++; faqRender(false); }
@@ -281,6 +270,8 @@ function faqEsc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').r
   function glRender() {
     var filtered = glFiltered();
     var total    = filtered.length;
+    var totalEl  = document.getElementById('glTotalInfo');
+    if (totalEl) totalEl.innerHTML = _glCat ? '검색 결과 <strong>' + total + '</strong>건' : '전체 <strong>' + _glAllPosts.length + '</strong>건';
     var pages    = Math.ceil(total / GL_LIMIT);
     var items    = filtered.slice((_glPage-1)*GL_LIMIT, _glPage*GL_LIMIT);
     var grid     = document.getElementById('glGrid');
