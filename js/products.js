@@ -375,7 +375,12 @@ function openComboApply() {
     prods.map(function (p) { return '<div class="cap-prod-pill"><div class="cap-prod-dot"></div><div class="cap-prod-nm">' + esc(p.name) + '</div></div>'; }).join('<div class="cap-plus">+</div>')
     + '<div class="cap-disc-badge">월 ' + saveStr + '원 절약!</div>';
 
-  buildCapTimeSlots();
+  var slotsEl = document.getElementById('capTimeSlots');
+  if (slotsEl) slotsEl.innerHTML = '<p style="color:var(--text-muted);font-size:.85rem;padding:8px 0;">시간 정보를 불러오는 중...</p>';
+  fetch('/admin/api_front/combo_public.php')
+    .then(function(r) { return r.json(); })
+    .then(function(data) { buildCapTimeSlots(data.ok ? data.slots : []); })
+    .catch(function() { buildCapTimeSlots([]); });
   document.getElementById('capContent').style.display = 'block';
   document.getElementById('capOk').style.display = 'none';
   document.getElementById('cap-name').value = '';
@@ -422,7 +427,7 @@ function submitComboApply() {
     status: '접수', type: 'combo'
   };
 
-  fetch('/api/combo_inquiries.php', {
+  fetch('/admin/api_front/combo_inquiries.php', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(_comboPayload)
   }).then(function (r) { return r.json(); }).then(function (res) {
