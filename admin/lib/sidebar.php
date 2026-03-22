@@ -6,19 +6,19 @@
       </div>
     </div>
     <nav class="sidebar-nav">
-      <div class="nav-section">
+      <div class="nav-section" data-menu-keys="adminMgmt menuMgmt sectionMgmt scriptMgmt socialMgmt homepageInfo colorMgmt legalTermsMgmt">
         <div class="nav-item">
           <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">🔧</span>시스템 관리<span class="nav-arrow">›</span></div>
           <div class="nav-sub">
-            <div class="nav-sub-link" onclick="showPage('adminMgmt')">관리자 관리</div>
-            <div class="nav-sub-link" onclick="showPage('menuMgmt')">메뉴 관리</div>
-            <div class="nav-sub-link" onclick="showPage('sectionMgmt')">섹션 관리</div>
-            <div class="nav-sub-link" onclick="showPage('scriptMgmt')">스크립트 관리</div>
-            <div class="nav-sub-link" onclick="showPage('socialMgmt')">소셜 관리</div>
+            <div class="nav-sub-link" data-menu-key="adminMgmt" onclick="showPage('adminMgmt')">관리자 관리</div>
+            <div class="nav-sub-link" data-menu-key="menuMgmt" onclick="showPage('menuMgmt')">관리자 기능 관리</div>
+            <div class="nav-sub-link" data-menu-key="sectionMgmt" onclick="showPage('sectionMgmt')">섹션 관리</div>
+            <div class="nav-sub-link" data-menu-key="scriptMgmt" onclick="showPage('scriptMgmt')">스크립트 관리</div>
+            <div class="nav-sub-link" data-menu-key="socialMgmt" onclick="showPage('socialMgmt')">소셜 관리</div>
             <!-- <div class="nav-sub-link" onclick="showPage('siteMgmt')">사이트 정보 관리</div> -->
-            <div class="nav-sub-link" onclick="showPage('homepageInfo')">홈페이지 정보 관리</div>
-            <div class="nav-sub-link" onclick="showPage('colorMgmt')">컬러 설정</div>
-            <div class="nav-sub-link" onclick="showPage('legalTermsMgmt')">법적 약관 관리</div>
+            <div class="nav-sub-link" data-menu-key="homepageInfo" onclick="showPage('homepageInfo')">홈페이지 정보 관리</div>
+            <div class="nav-sub-link" data-menu-key="colorMgmt" onclick="showPage('colorMgmt')">컬러 설정</div>
+            <div class="nav-sub-link" data-menu-key="legalTermsMgmt" onclick="showPage('legalTermsMgmt')">법적 약관 관리</div>
           </div>
         </div>
       </div>
@@ -31,17 +31,17 @@
           </div>
         </div>
       </div>
-      <div class="nav-section" data-menu-keys="catMgmt product card">
+      <div class="nav-section" data-menu-keys="catMgmt product card comboInquiry comboManager comboTimeslot comboTerms">
         <div class="nav-item">
           <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">🛍️</span>상품 관리<span class="nav-arrow">›</span></div>
           <div class="nav-sub">
             <div class="nav-sub-link" data-menu-key="catMgmt" onclick="showPage('catMgmt')">분류 관리</div>
             <div class="nav-sub-link" data-menu-key="product" onclick="showPage('productMgmt')">제품 관리</div>
             <div class="nav-sub-link" data-menu-key="card" onclick="showPage('cardDiscMgmt')">카드사 할인율 관리</div>
-            <div class="nav-sub-link" onclick="showPage('comboInquiryMgmt')">결합 상담 신청 내역</div>
-            <div class="nav-sub-link" onclick="showPage('comboManagerMgmt')">결합 상담 담당관리자</div>
-            <div class="nav-sub-link" onclick="showPage('comboTimeslotMgmt')">결합 상담 가능 시간</div>
-            <div class="nav-sub-link" onclick="showPage('comboTermsMgmt')">결합 상담 약관</div>
+            <div class="nav-sub-link" data-menu-key="comboInquiry" onclick="showPage('comboInquiryMgmt')">결합 상담 신청 내역</div>
+            <div class="nav-sub-link" data-menu-key="comboManager" onclick="showPage('comboManagerMgmt')">결합 상담 담당관리자</div>
+            <div class="nav-sub-link" data-menu-key="comboTimeslot" onclick="showPage('comboTimeslotMgmt')">결합 상담 가능 시간</div>
+            <div class="nav-sub-link" data-menu-key="comboTerms" onclick="showPage('comboTermsMgmt')">결합 상담 약관</div>
           </div>
         </div>
       </div>
@@ -54,38 +54,38 @@
           </div>
         </div>
       </div>
-      <div class="nav-section">
+      <div class="nav-section" data-menu-keys="boardCreate boardList">
         <div class="nav-item">
           <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">📋</span>게시판 관리<span class="nav-arrow">›</span></div>
           <div class="nav-sub" id="boardNavSub">
-            <div class="nav-sub-link" onclick="showPage('boardCreate')">게시판 추가</div>
-            <div class="nav-sub-link" onclick="showPage('boardList')" id="dynamicBoardNav">게시판 목록</div>
+            <div class="nav-sub-link" data-menu-key="boardCreate" onclick="showPage('boardCreate')">게시판 추가</div>
+            <div class="nav-sub-link" data-menu-key="boardList" onclick="showPage('boardList')" id="dynamicBoardNav">게시판 목록</div>
           </div>
         </div>
       </div>
-      <div class="nav-section">
+      <div class="nav-section" data-menu-keys="alimtalk">
         <div class="nav-item">
           <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">💬</span>알림톡 관리<span class="nav-arrow">›</span></div>
           <div class="nav-sub">
-            <div class="nav-sub-link" onclick="showPage('alimtalkMgmt')">알림톡 설정</div>
+            <div class="nav-sub-link" data-menu-key="alimtalk" onclick="showPage('alimtalkMgmt')">알림톡 설정</div>
           </div>
         </div>
       </div>
-      <div class="nav-section">
+      <div class="nav-section" data-menu-keys="customInquiryCreate customInquiry">
         <div class="nav-item">
           <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">📝</span>문의 폼 관리<span class="nav-arrow">›</span></div>
           <div class="nav-sub" id="customInquiryNavSub">
-            <div class="nav-sub-link" onclick="showPage('customInquiryCreate')">문의 폼 추가</div>
-            <div class="nav-sub-link" onclick="showPage('customInquiryList')">문의 폼 목록</div>
+            <div class="nav-sub-link" data-menu-key="customInquiryCreate" onclick="showPage('customInquiryCreate')">문의 폼 추가</div>
+            <div class="nav-sub-link" data-menu-key="customInquiry" onclick="showPage('customInquiryList')">문의 폼 목록</div>
           </div>
         </div>
       </div>
-      <div class="nav-section">
+      <div class="nav-section" data-menu-keys="bkfCreate bkfList">
         <div class="nav-item">
           <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">📅</span>예약 폼 관리<span class="nav-arrow">›</span></div>
           <div class="nav-sub" id="bkfNavSub">
-            <div class="nav-sub-link" onclick="showPage('bkfCreate')">예약 폼 추가</div>
-            <div class="nav-sub-link" onclick="showPage('bkfList')">예약 폼 목록</div>
+            <div class="nav-sub-link" data-menu-key="bkfCreate" onclick="showPage('bkfCreate')">예약 폼 추가</div>
+            <div class="nav-sub-link" data-menu-key="bkfList" onclick="showPage('bkfList')">예약 폼 목록</div>
           </div>
         </div>
       </div>
@@ -108,16 +108,6 @@
         </div>
       </div>
        -->
-      <!--<div class="nav-section">
-        <div class="nav-item">
-          <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">📅</span>예약(신규)<span class="nav-arrow">›</span></div>
-          <div class="nav-sub">
-            <div class="nav-sub-link" onclick="showPage('rv2Reserve')">rv2 예약 관리</div>
-            <div class="nav-sub-link" onclick="showPage('customReserModule')">예약 모듈 (customReser)</div>
-            <div class="nav-sub-link" onclick="showPage('rvmAdminUi')">예약관리 테이블 UI</div>
-          </div>
-        </div>
-      </div> -->
       <div class="nav-section" data-menu-keys="rsvTime rsvList">
         <div class="nav-item">
           <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">📅</span>예약 관리<span class="nav-arrow">›</span></div>
@@ -127,7 +117,7 @@
           </div>
         </div>
       </div>
-      <div class="nav-section">
+      <div class="nav-section" data-menu-keys="chatbot">
         <div class="nav-item">
           <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">🤖</span>챗봇 관리<span class="nav-arrow">›</span></div>
           <div class="nav-sub">
@@ -138,11 +128,11 @@
           </div>
         </div>
       </div>
-      <div class="nav-section">
+      <div class="nav-section" data-menu-keys="logMgmt">
         <div class="nav-item">
           <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">📋</span>로그 관리<span class="nav-arrow">›</span></div>
           <div class="nav-sub">
-            <div class="nav-sub-link" onclick="showPage('logMgmt')">로그 조회</div>
+            <div class="nav-sub-link" data-menu-key="logMgmt" onclick="showPage('logMgmt')">로그 조회</div>
           </div>
         </div>
       </div>

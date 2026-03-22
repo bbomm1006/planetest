@@ -2,20 +2,47 @@
 // DATA
 // ===========================
 const MENU_LIST_BASE = [
-  { key:'banner',    label:'상단 메인 배너' },
-  { key:'popup',     label:'팝업 관리' },
-  { key:'catMgmt',   label:'상품 분류 관리' },
-  { key:'product',   label:'제품 관리' },
-  { key:'card',      label:'카드사 할인율 관리' },
-  { key:'kakaoApi',  label:'카카오 API 관리' },
-  { key:'store',     label:'매장(지점) 관리' },
-  
-  { key:'consult',   label:'상담 내역' },
-  { key:'inquiryCat',label:'문의 분류 관리' },
-  { key:'inquiry',   label:'일대일 문의 내역' },
-  { key:'rsvTime',   label:'예약 시간 관리' },
-  { key:'rsvList',   label:'예약 내역' },
-  { key:'customInquiry', label:'문의 폼 관리' },
+  // 시스템 관리
+  { key:'adminMgmt',     label:'관리자 관리',           group:'시스템 관리' },
+  { key:'menuMgmt',      label:'관리자 기능 관리',       group:'시스템 관리' },
+  { key:'sectionMgmt',   label:'섹션 관리',             group:'시스템 관리' },
+  { key:'scriptMgmt',    label:'스크립트 관리',          group:'시스템 관리' },
+  { key:'socialMgmt',    label:'소셜 관리',             group:'시스템 관리' },
+  { key:'homepageInfo',  label:'홈페이지 정보 관리',     group:'시스템 관리' },
+  { key:'colorMgmt',     label:'컬러 설정',             group:'시스템 관리' },
+  { key:'legalTermsMgmt',label:'법적 약관 관리',         group:'시스템 관리' },
+  // 콘텐츠 관리
+  { key:'banner',        label:'상단 메인 배너',         group:'콘텐츠 관리' },
+  { key:'popup',         label:'팝업 관리',             group:'콘텐츠 관리' },
+  // 상품 관리
+  { key:'catMgmt',       label:'분류 관리',             group:'상품 관리' },
+  { key:'product',       label:'제품 관리',             group:'상품 관리' },
+  { key:'card',          label:'카드사 할인율 관리',      group:'상품 관리' },
+  { key:'comboInquiry',  label:'결합 상담 신청 내역',    group:'상품 관리' },
+  { key:'comboManager',  label:'결합 상담 담당관리자',   group:'상품 관리' },
+  { key:'comboTimeslot', label:'결합 상담 가능 시간',    group:'상품 관리' },
+  { key:'comboTerms',    label:'결합 상담 약관',         group:'상품 관리' },
+  // 매장 관리
+  { key:'kakaoApi',      label:'카카오 API 관리',        group:'매장 관리' },
+  { key:'store',         label:'매장(지점) 관리',        group:'매장 관리' },
+  // 게시판 관리
+  { key:'boardCreate',   label:'게시판 추가',           group:'게시판 관리' },
+  { key:'boardList',     label:'게시판 목록',           group:'게시판 관리' },
+  // 알림톡 관리
+  { key:'alimtalk',      label:'알림톡 설정',           group:'알림톡 관리' },
+  // 문의 폼 관리
+  { key:'customInquiryCreate', label:'문의 폼 추가',    group:'문의 폼 관리' },
+  { key:'customInquiry', label:'문의 폼 목록',          group:'문의 폼 관리' },
+  // 예약 폼 관리
+  { key:'bkfCreate',     label:'예약 폼 추가',          group:'예약 폼 관리' },
+  { key:'bkfList',       label:'예약 폼 목록',          group:'예약 폼 관리' },
+  // 예약 관리
+  { key:'rsvTime',       label:'예약 시간 관리',         group:'예약 관리' },
+  { key:'rsvList',       label:'예약 내역',             group:'예약 관리' },
+  // 챗봇 관리 (섹션 통째로 하나의 토글)
+  { key:'chatbot',       label:'챗봇 관리',             group:'챗봇 관리' },
+  // 로그 관리
+  { key:'logMgmt',       label:'로그 조회',             group:'로그 관리' },
 ];
 
 // 프론트(홈) 섹션 노출 설정
@@ -82,7 +109,7 @@ const COMMENT_FIELDS = ['댓글'];
 
 const PAGE_LABELS = {
   adminMgmt:   ['시스템','관리자 관리'],
-  menuMgmt:    ['시스템','메뉴 관리'],
+  menuMgmt:    ['시스템','관리자 기능 관리'],
   sectionMgmt: ['시스템','섹션 관리'],
   scriptMgmt:  ['시스템','스크립트 관리'],
   socialMgmt:  ['시스템','소셜 관리'],
@@ -854,40 +881,36 @@ function renderMenuChecks() {
   const container = document.getElementById('menuCheckList');
   if (!container) return;
 
-  const adminRows = MENU_LIST_BASE.map(m =>
-    renderMgmtToggleRow(`menu_${m.key}`, m.key, m.label, null)
-  ).join('');
+  // 그룹별 안내 문구
+  const GROUP_DESC = {
+    '시스템 관리':  '핵심 관리 기능입니다. 필요한 항목만 노출하세요.',
+    '콘텐츠 관리':  '배너·팝업 등 콘텐츠 관련 메뉴입니다.',
+    '상품 관리':    '제품·카테고리·결합상담 관련 메뉴입니다.',
+    '매장 관리':    '매장 지점 및 카카오 API 관련 메뉴입니다.',
+    '게시판 관리':  '게시판 추가·목록 메뉴입니다. 게시판별 사용 여부는 각 게시판 설정 페이지에서 별도로 관리합니다.',
+    '알림톡 관리':  '알림톡 발송 설정 메뉴입니다.',
+    '문의 폼 관리': '문의 폼 메뉴입니다. 개별 폼의 사용 여부는 문의 폼 목록의 각 폼 설정에서 별도로 관리합니다.',
+    '예약 폼 관리': '예약 폼 메뉴입니다. 개별 폼의 사용 여부는 예약 폼 목록의 각 폼 설정에서 별도로 관리합니다.',
+    '예약 관리':    '예약 시간 및 예약 내역 관리 메뉴입니다.',
+    '챗봇 관리':    '챗봇 전체 기능(지식베이스·컨텍스트·빠른질문·봇 설정)을 한번에 노출하거나 숨깁니다.',
+    '로그 관리':    '관리자 활동 로그 조회 메뉴입니다.',
+  };
 
-  const frontRows = FRONT_SECTION_LIST.map(m =>
-    renderMgmtToggleRow(`menu_${m.key}`, m.key, m.label, m.key)
-  ).join('');
+  // 그룹별로 묶기
+  const groups = {};
+  MENU_LIST_BASE.forEach(m => {
+    const g = m.group || '기타';
+    if (!groups[g]) groups[g] = [];
+    groups[g].push(m);
+  });
 
   let html = '<div class="mgmt-stack">';
-  html += renderMgmtPanel(
-    '관리자 사이드바 메뉴',
-    '로그인 후 왼쪽 내비게이션에 보일 항목입니다. 끄면 해당 메뉴가 숨겨집니다.',
-    adminRows
-  );
-  html += renderMgmtPanel(
-    '프론트(홈) 섹션 노출',
-    '방문자 메인 페이지의 각 블록 표시 여부입니다. 끄면 해당 영역이 보이지 않습니다.',
-    frontRows
-  );
-  if (createdBoards.length > 0) {
-    const boardRows = createdBoards.map(b =>
-      renderMgmtToggleRow(
-        `menu_board_${b.table}`,
-        `board_${b.table}`,
-        b.name,
-        b.table
-      )
+  Object.entries(groups).forEach(([groupName, items]) => {
+    const rows = items.map(m =>
+      renderMgmtToggleRow(`menu_${m.key}`, m.key, m.label, null)
     ).join('');
-    html += renderMgmtPanel(
-      '게시판 메뉴',
-      '생성된 게시판별로 관리자 메뉴에 표시할지 설정합니다.',
-      boardRows
-    );
-  }
+    html += renderMgmtPanel(groupName, GROUP_DESC[groupName] || null, rows);
+  });
   html += '</div>';
   container.innerHTML = html;
   wireMgmtToggleInputs(container);
@@ -898,12 +921,7 @@ async function saveMenuMgmt() {
     const key = cb.id.replace('menu_','');
     menuState[key] = cb.checked;
   });
-  const boardItems = createdBoards.map(b => ({ key: 'board_'+b.table, label: b.name, is_active: menuState['board_'+b.table] ? 1 : 0 }));
-  const items = [
-    ...MENU_LIST_BASE.map(m => ({ key: m.key, label: m.label, is_active: menuState[m.key] ? 1 : 0 })),
-    ...FRONT_SECTION_LIST.map(m => ({ key: m.key, label: m.label, is_active: menuState[m.key] ? 1 : 0 })),
-    ...boardItems,
-  ];
+  const items = MENU_LIST_BASE.map(m => ({ key: m.key, label: m.label, is_active: menuState[m.key] ? 1 : 0 }));
   const res = await apiPost('api/system.php', { action: 'menuSave', items: JSON.stringify(items) });
   if (res.ok) {
     showToast('메뉴 설정이 저장되었습니다.', 'success');
