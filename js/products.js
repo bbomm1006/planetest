@@ -221,7 +221,8 @@ function updateCmpBar() {
 
   var sel = cmpIds.map(function (id) { return allProds.find(function (p) { return p.id === id; }); }).filter(Boolean);
   var slots = '';
-  for (var i = 0; i < 3; i++) {
+  var maxSlots = window.innerWidth <= 640 ? 2 : 3;
+  for (var i = 0; i < maxSlots; i++) {
     var p = sel[i];
     slots += p
       ? '<div class="cslot filled">' + (p.imageUrl ? '<img src="' + esc(p.imageUrl) + '" alt="">' : '') + '<div class="cslot-n">' + esc(p.name) + '</div><button class="cslot-x" onclick="toggleCmp(\'' + p.id + '\')"><svg viewBox="0 0 24 24" fill="none"><line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2.5"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2.5"/></svg></button></div>'
@@ -253,13 +254,10 @@ function openCmpModal() {
   if (dEl) dEl.checked = false;
   renderCmpTable();
 
-  var ctaButtons = window._cmpProds.map(function (p) {
-    return '<button onclick="closeCMP();applyProdToForm(\'' + p.id + '\')" style="padding:10px 22px;border-radius:9px;border:none;cursor:pointer;background:linear-gradient(90deg,var(--blue),var(--sky));color:#fff;font-family:inherit;font-weight:700;font-size:.81rem">' + esc(p.name) + ' 신청</button>';
-  }).join('')
-    + '<button onclick="openFrontEml(\'cmp\')" style="padding:10px 18px;border-radius:9px;border:1.5px solid var(--g2);background:#fff;color:var(--ink2);font-family:inherit;font-weight:700;font-size:.81rem;cursor:pointer">📧 비교 내역 이메일</button>';
-  document.getElementById('cmpCta').innerHTML = ctaButtons;
+  var emailBtn = '<button onclick="openFrontEml(\'cmp\')" style="padding:10px 18px;border-radius:9px;border:1.5px solid var(--g2);background:#fff;color:var(--ink2);font-family:inherit;font-weight:700;font-size:.81rem;cursor:pointer">📧 비교 내역 이메일</button>';
+  document.getElementById('cmpCta').innerHTML = emailBtn;
   var mCta = document.getElementById('cmpCtaMobile');
-  if (mCta) mCta.innerHTML = ctaButtons;
+  if (mCta) mCta.innerHTML = emailBtn;
 
   document.getElementById('cmpBg').classList.add('open');
   _lockScroll();
@@ -324,6 +322,7 @@ function renderCmpCards() {
         + '<div class="cmc-name">' + esc(p.name) + '</div>'
         + '<div class="cmc-brand">' + esc(p.brand || '') + '</div>'
         + '<button class="cmc-detail-btn" onclick="closeCMP();openPM(\'' + p.id + '\')">자세히 보기</button>'
+        + '<button class="cmc-apply-btn" onclick="closeCMP();applyProdToForm(\'' + p.id + '\')">신청하기</button>'
         + '</div>';
     }).join('')
     + '</div>';

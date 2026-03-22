@@ -349,7 +349,7 @@ function bkfSwitchTab(tab, el) {
     bkfLoadSteps();
   }
   if (tab === 'quota') {
-    bkfInitQuotaTab();
+    bkfCheckQuotaTabAccess(el);
   }
   if (tab === 'managers') {
     bkfLoadManagers();
@@ -1039,6 +1039,42 @@ async function bkfSaveSteps() {
 // =====================================================
 
 // =====================================================
+// 수량(Quota) — 탭 접근 가능 여부 체크 후 초기화
+// =====================================================
+async function bkfCheckQuotaTabAccess(tabEl) {
+  const res = await bkfApiGet('api/bkf_admin.php', { action: 'list_steps', form_id: bkfCurrentFormId });
+  // is_active: DB에서 "1" 문자열 또는 1 숫자 모두 처리, 비활성(0/"0") 제외
+  const steps = (res.data || []).filter(s => parseInt(s.is_active) === 1);
+  const allKeys     = steps.map(s => s.step_key);
+  const hasDate     = allKeys.includes('date');
+  const hasTimeSlot = allKeys.includes('time_slot');
+
+  // DOM에 이미 추가된 스텝도 함께 체크 (저장 전 상태 포함)
+  const domKeys = [...document.querySelectorAll('#bkfStepList .bkf-step-row')].map(r => r.dataset.key);
+  const finalHasDate     = hasDate     || domKeys.includes('date');
+  const finalHasTimeSlot = hasTimeSlot || domKeys.includes('time_slot');
+
+  console.log('[Quota] DB steps:', allKeys, '+ DOM steps:', domKeys, '→ hasDate:', finalHasDate);
+
+  const panel = document.getElementById('bkf-panel-quota');
+  if (!finalHasDate) {
+    // date 스텝 없으면 탭 접근 불가
+    if (panel) panel.innerHTML = `
+      <div style="padding:40px 0;text-align:center;color:#94a3b8;">
+        <div style="font-size:2rem;margin-bottom:12px;">📅</div>
+        <p style="font-weight:600;color:#475569;margin-bottom:6px;">날짜 스텝이 없습니다</p>
+        <p style="font-size:.85rem;">스텝설정 탭에서 <strong>날짜 선택</strong> 스텝을 추가한 후 이용해 주세요.</p>
+      </div>`;
+    return;
+  }
+
+  // time_slot 스텝 존재 여부를 전역에 저장해서 quota UI에서 참조
+  bkfCurrentFormData._hasTimeSlot = finalHasTimeSlot;
+
+  bkfInitQuotaTab();
+}
+
+// =====================================================
 // 수량(Quota) — 탭 초기화
 // =====================================================
 async function bkfInitQuotaTab() {
@@ -1173,10 +1209,7 @@ function bkfRenderQuotaCalendar(year, month, quotaRows, store_id, quotaMode) {
 
     const clickable = !isPast ? `onclick="bkfOpenQuotaModal('${ds}', '${store_id}', '${quotaMode}')" style="cursor:pointer;"` : '';
 
-    html += `<td ${clickable} style="height:80px;vertical-align:top;padding:6px 8px;background:${bg};color:${color};border:1px solid var(--border);transition:background .15s;"
-      onmouseover="${!isPast ? `this.style.background='#eff6ff'` : ''}"
-      onmouseout="${!isPast ? `this.style.background='${bg}'` : ''}"
-    >${inner}</td>`;
+    html += `<td ${clickable} style="height:80px;vertical-align:top;padding:6px 8px;background:${bg};color:${color};border:1px solid var(--border);">${inner}</td>`;
 
     // 주 마무리
     if ((firstDay + day) % 7 === 0 && day !== daysInMonth) {
@@ -1206,18 +1239,13 @@ async function bkfOpenQuotaModal(date, storeId, quotaMode) {
   document.getElementById('bkfQuotaDateLabel').textContent  = date;
 
   // quota_mode 에 따라 UI 표시
-  const dateWrap = document.getElementById('bkf-quota-date-wrap');
-  const slotWrap = document.getElementById('bkf-quota-slot-wrap');
-  dateWrap.style.display = quotaMode === 'date' ? '' : 'none';
-  slotWrap.style.display = ''; // date/slot 모두 슬롯 추가 가능
+  const dateWrap    = document.getElementById('bkf-quota-date-wrap');
+  const slotWrap    = document.getElementById('bkf-quota-slot-wrap');
+  const hasTimeSlot = !!bkfCurrentFormData._hasTimeSlot;
 
-  // quota_mode=date면 슬롯 헤더 안내 변경
-  const slotHeader = slotWrap.querySelector('p');
-  if (slotHeader) {
-    slotHeader.textContent = quotaMode === 'date'
-      ? '시간 슬롯 (수량 제한 없음)'
-      : '시간 슬롯별 수량';
-  }
+  dateWrap.style.display = quotaMode === 'date' ? '' : 'none';
+  // 슬롯 영역: slot 모드이거나, date 모드라도 time_slot 스텝이 있으면 표시
+  slotWrap.style.display = (quotaMode === 'slot' || (quotaMode === 'date' && hasTimeSlot)) ? '' : 'none';
 
   // 기존 수량 로드
   const params = { action: 'get_quota', form_id: bkfCurrentFormId, year: date.slice(0,4), month: parseInt(date.slice(5,7)) };
@@ -1294,13 +1322,15 @@ async function bkfSaveQuota() {
     });
   }
 
-  // 슬롯 단위
-  document.querySelectorAll('#bkf-quota-slot-list > div').forEach(div => {
-    const t = div.querySelector('input[type="time"]').value;
-    const c = parseInt(div.querySelector('input[type="number"]').value) || 0;
-    const c_null = (c === '' || isNaN(c) || div.querySelector('input[type="number"]').value === '') ? null : c;
-    if (t) items.push({ store_id: storeId || null, quota_date: date, slot_time: t, capacity: c_null });
-  });
+  // 슬롯 단위 (slot 모드일 때만)
+  if (quotaMode === 'slot') {
+    document.querySelectorAll('#bkf-quota-slot-list > div').forEach(div => {
+      const t = div.querySelector('input[type="time"]').value;
+      const c = parseInt(div.querySelector('input[type="number"]').value) || 0;
+      const c_null = (c === '' || isNaN(c) || div.querySelector('input[type="number"]').value === '') ? null : c;
+      if (t) items.push({ store_id: storeId || null, quota_date: date, slot_time: t, capacity: c_null });
+    });
+  }
 
   // 공통 저장 시 경고
   const applyAll = !storeId;
@@ -1348,14 +1378,18 @@ function bkfOpenBulkQuota() {
   // quota_mode = slot  → 날짜수량 숨김, 슬롯체크박스 자동 체크+표시
   // quota_mode = both  → 둘 다 표시
   const dateWrap = document.querySelector('#bkfBulkQuotaModal .form-group');
+  const hasTimeSlot = !!bkfCurrentFormData._hasTimeSlot;
+
   if (quotaMode === 'date') {
-    // 날짜 수량 표시, 슬롯 섹션도 표시 (수량 없이 시간만 추가)
+    // 날짜 수량 표시
     if (dateWrap) dateWrap.style.display = '';
     if (slotWrap) {
-      slotWrap.style.display = '';
-      // 체크박스 라벨 변경
-      const slotLabel = slotWrap.querySelector('label');
-      if (slotLabel) slotLabel.lastChild.textContent = ' 시간 슬롯 추가 (수량 제한 없음)';
+      // time_slot 스텝이 있을 때만 슬롯 섹션 표시
+      slotWrap.style.display = hasTimeSlot ? '' : 'none';
+      if (hasTimeSlot) {
+        const slotLabel = slotWrap.querySelector('label');
+        if (slotLabel) slotLabel.lastChild.textContent = ' 시간 슬롯 추가 (수량 제한 없음)';
+      }
     }
   } else { // slot
     if (dateWrap) dateWrap.style.display = 'none';
