@@ -146,11 +146,13 @@ function closePM() {
 /* ─── 비교 ─── */
 function toggleCmp(id) {
   var idx = cmpIds.indexOf(id);
+  var isMobile = window.innerWidth <= 640;
+  var maxCmp = isMobile ? 2 : 3;
   if (idx > -1) {
     cmpIds.splice(idx, 1);
   } else {
-    if (cmpIds.length >= 3) {
-      alert('최대 3개까지 선택 가능합니다.');
+    if (cmpIds.length >= maxCmp) {
+      alert(isMobile ? '모바일에서는 최대 2개까지 선택 가능합니다.' : '최대 3개까지 선택 가능합니다.');
       var cb = document.getElementById('chk-' + id);
       if (cb) cb.checked = false;
       return;
@@ -251,10 +253,13 @@ function openCmpModal() {
   if (dEl) dEl.checked = false;
   renderCmpTable();
 
-  document.getElementById('cmpCta').innerHTML = window._cmpProds.map(function (p) {
+  var ctaButtons = window._cmpProds.map(function (p) {
     return '<button onclick="closeCMP();applyProdToForm(\'' + p.id + '\')" style="padding:10px 22px;border-radius:9px;border:none;cursor:pointer;background:linear-gradient(90deg,var(--blue),var(--sky));color:#fff;font-family:inherit;font-weight:700;font-size:.81rem">' + esc(p.name) + ' 신청</button>';
   }).join('')
     + '<button onclick="openFrontEml(\'cmp\')" style="padding:10px 18px;border-radius:9px;border:1.5px solid var(--g2);background:#fff;color:var(--ink2);font-family:inherit;font-weight:700;font-size:.81rem;cursor:pointer">📧 비교 내역 이메일</button>';
+  document.getElementById('cmpCta').innerHTML = ctaButtons;
+  var mCta = document.getElementById('cmpCtaMobile');
+  if (mCta) mCta.innerHTML = ctaButtons;
 
   document.getElementById('cmpBg').classList.add('open');
   _lockScroll();
@@ -289,6 +294,62 @@ function renderCmpTable() {
     : '<tr><td colspan="' + (prods.length + 1) + '" style="text-align:center;padding:20px;color:var(--g4)">모든 스펙이 동일합니다.</td></tr>';
 
   document.getElementById('cmpt').innerHTML = th + '<tbody>' + featRow + specRows + '</tbody>';
+  renderCmpCards();
+}
+
+function renderCmpCards() {
+  var el = document.getElementById('cmpCards');
+  if (!el) return;
+  var prods = window._cmpProds;
+  if (!prods || !prods.length) return;
+
+  var diffOnly = !!(document.getElementById('diffOnly') || { checked: false }).checked;
+
+  var keys = [];
+  prods.forEach(function (p) {
+    (p.specs || []).forEach(function (s) { if (keys.indexOf(s[0]) < 0) keys.push(s[0]); });
+  });
+  if (diffOnly) {
+    keys = keys.filter(function (k) {
+      var vals = prods.map(function (p) { var s = (p.specs || []).find(function (x) { return x[0] === k; }); return s ? s[1] : '-'; });
+      return vals.some(function (v) { return v !== vals[0]; });
+    });
+  }
+
+  var headerRow = '<div class="cmc-header-row">'
+    + prods.map(function (p) {
+      return '<div class="cmc-header">'
+        + '<button class="cmc-x" onclick="toggleCmp(\'' + p.id + '\');closeCMP()"><svg viewBox="0 0 24 24" fill="none" width="12" height="12"><line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2.5"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2.5"/></svg></button>'
+        + '<div class="cmc-img" style="background:' + esc(p.bgColor || '#dbeeff') + '">' + (p.imageUrl ? '<img src="' + esc(p.imageUrl) + '" alt="">' : '\uD83D\uDCA7') + '</div>'
+        + '<div class="cmc-name">' + esc(p.name) + '</div>'
+        + '<div class="cmc-brand">' + esc(p.brand || '') + '</div>'
+        + '<button class="cmc-detail-btn" onclick="closeCMP();openPM(\'' + p.id + '\')">자세히 보기</button>'
+        + '</div>';
+    }).join('')
+    + '</div>';
+
+  var featSection = (!diffOnly)
+    ? '<div class="cmc-section-label">\ud2b9\uc9d5</div>'
+      + '<div class="cmc-row">'
+      + prods.map(function (p) {
+        return '<div class="cmc-cell"><div class="cf-row">' + ((p.features || []).map(function (f) { return '<span class="cf">' + esc(f) + '</span>'; }).join('') || '-') + '</div></div>';
+      }).join('')
+      + '</div>'
+    : '';
+
+  var specSections = keys.length
+    ? keys.map(function (k) {
+        return '<div class="cmc-section-label">' + esc(k) + '</div>'
+          + '<div class="cmc-row">'
+          + prods.map(function (p) {
+            var s = (p.specs || []).find(function (x) { return x[0] === k; });
+            return '<div class="cmc-cell">' + (s ? esc(s[1]) : '-') + '</div>';
+          }).join('')
+          + '</div>';
+      }).join('')
+    : '<div class="cmc-section-label" style="text-align:center;color:var(--g4)">\ubaa8\ub4e0 \uc2a4\ud399\uc774 \ub3d9\uc77c\ud569\ub2c8\ub2e4.</div>';
+
+  el.innerHTML = headerRow + featSection + specSections;
 }
 
 function closeCMP() {
