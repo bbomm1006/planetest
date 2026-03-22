@@ -212,6 +212,7 @@ async function showBoardPage(board) {
 
   // showPage 직접 처리 (active 클래스 + 브레드크럼)
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  if (typeof _adminHashSet === 'function') _adminHashSet({ page: pid });
   const target = document.getElementById('page-' + pid);
   if (target) target.classList.add('active');
 

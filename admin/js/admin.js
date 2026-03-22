@@ -320,13 +320,25 @@ function enterAdmin(name, username, email = '') {
     renderSidebar();
   });
 
-  const _saved = localStorage.getItem('adminPage') || 'adminMgmt';
-  const _savedEl = document.getElementById('page-' + _saved);
-  showPage(_savedEl ? _saved : 'adminMgmt');
   loadAdminList();
-  if (typeof loadBoardList === 'function') loadBoardList();
-  if (typeof bkfLoadFormList === 'function') bkfLoadFormList();
-  if (typeof ciLoadCustomInquirySidebar === 'function') ciLoadCustomInquirySidebar();
+
+  // 사이드바 데이터 로드 후 초기 페이지 표시
+  Promise.all([
+    typeof loadBoardList === 'function' ? loadBoardList() : Promise.resolve(),
+    typeof bkfLoadFormList === 'function' ? bkfLoadFormList() : Promise.resolve(),
+    typeof ciLoadCustomInquirySidebar === 'function' ? ciLoadCustomInquirySidebar() : Promise.resolve(),
+  ]).then(() => {
+    const h = _adminHashGet();
+    if (h && h.page) {
+      // hash 있으면 해당 화면으로 복원
+      _adminHashRestore();
+    } else {
+      // hash 없으면 localStorage 기반으로 표시
+      const saved = localStorage.getItem('adminPage') || 'adminMgmt';
+      const savedEl = document.getElementById('page-' + saved);
+      showPage(savedEl ? saved : 'adminMgmt', true);
+    }
+  });
 }
 
 async function doLogout() {
@@ -342,12 +354,15 @@ async function doLogout() {
 // ===========================
 // NAVIGATION
 // ===========================
-function showPage(pageId) {
+function showPage(pageId, _skipHash) {
 
   if (!pageId.startsWith('board_')) localStorage.setItem('adminPage', pageId);
+  // hash 업데이트 (복원 중엔 스킵)
+  if (!_skipHash) _adminHashSet({ page: pageId });
 
   const t = document.getElementById('page-' + pageId);
-  if (t && t.classList.contains('active')) return; // 이미 활성 페이지는 리트리거 안함
+  // _skipHash(복원) 시에는 early return 안 함 — 데이터 재로드 필요
+  if (!_skipHash && t && t.classList.contains('active')) return;
 
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   if (t) t.classList.add('active');
@@ -987,3 +1002,96 @@ async function saveScript() {
   if (res.ok) showToast('저장되었습니다.', 'success');
   else        showToast('저장 실패', 'error');
 }
+
+// ===========================
+// HASH-BASED STATE (새로고침 복원)
+// ===========================
+function _adminHashSet(params) {
+  const h = new URLSearchParams(params).toString();
+  if (location.hash.slice(1) !== h) {
+    history.replaceState(null, '', '#' + h);
+  }
+}
+
+function _adminHashGet() {
+  const h = location.hash.slice(1);
+  return h ? Object.fromEntries(new URLSearchParams(h)) : null;
+}
+
+async function _adminHashRestore() {
+  const h = _adminHashGet();
+  if (!h || !h.page) return;
+
+  const page = h.page;
+
+  // 게시판 - Promise.all 완료 후 호출되므로 바로 실행
+  if (page.startsWith('board_')) {
+    const tableKey = page.replace('board_', '');
+    if (typeof getBoardByTable === 'function' && typeof showBoardPage === 'function') {
+      const board = getBoardByTable(tableKey);
+      if (board) showBoardPage(board);
+    }
+    return;
+  }
+
+  // bkf 상세
+  if (page === 'bkfDetail' && h.id) {
+    if (typeof bkfOpenDetail === 'function') {
+      bkfOpenDetail(parseInt(h.id)).then(() => {
+        if (h.tab && h.tab !== 'basic' && typeof bkfSwitchTab === 'function') {
+          const tabEl = document.querySelector(`#page-bkfDetail .ci-tab[onclick*="'${h.tab}'"]`);
+          bkfSwitchTab(h.tab, tabEl, true);
+        }
+        // 사이드바 활성화
+        document.querySelectorAll('.nav-sub-link').forEach(l => {
+          l.classList.remove('active');
+          if (l._pageId === 'bkfDetail_' + h.id) {
+            l.classList.add('active');
+            const sub = l.closest('.nav-sub');
+            if (sub) { sub.classList.add('open'); sub.previousElementSibling?.classList.add('open'); }
+          }
+        });
+      });
+    }
+    return;
+  }
+
+  // 문의폼 상세
+  if (page === 'customInquiryDetail' && h.id) {
+    if (typeof ciOpenDetail === 'function') {
+      ciOpenDetail(parseInt(h.id)).then(() => {
+        if (h.tab && h.tab !== 'basic' && typeof ciSwitchTab === 'function') {
+          const tabEl = document.querySelector(`#page-customInquiryDetail .ci-tab[onclick*="'${h.tab}'"]`);
+          ciSwitchTab(h.tab, tabEl, true);
+        }
+      });
+    }
+    return;
+  }
+
+  // 문의폼 문의내역
+  if (page === 'customInquiryData' && h.id) {
+    if (typeof ciLoadData === 'function') {
+      window.ciCurrentFormId = parseInt(h.id);
+      showPage('customInquiryData', true);
+      ciLoadData(parseInt(h.id));
+      // 사이드바 활성화
+      document.querySelectorAll('.nav-sub-link').forEach(l => {
+        l.classList.remove('active');
+        if (l._pageId === 'customInquiryData_' + h.id) {
+          l.classList.add('active');
+          const sub = l.closest('.nav-sub');
+          if (sub) { sub.classList.add('open'); sub.previousElementSibling?.classList.add('open'); }
+        }
+      });
+    }
+    return;
+  }
+
+  // 일반 페이지 (이미 showPage로 기본 표시됐으므로 hash 페이지가 다를 때만 전환)
+  const el = document.getElementById('page-' + page);
+  if (el) showPage(page, true);
+}
+
+// hash 변경 감지 (뒤로가기/앞으로가기)
+window.addEventListener('hashchange', () => _adminHashRestore());

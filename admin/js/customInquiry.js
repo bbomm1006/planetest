@@ -101,7 +101,7 @@ async function ciLoadFormList() {
       <td>${f.created_at ? f.created_at.slice(0,16) : '-'}</td>
       <td>
         <button class="btn btn-sm btn-outline" onclick="ciOpenDetail(${f.id})">설정</button>
-        <button class="btn btn-sm btn-outline" onclick="ciCurrentFormId=${f.id};document.getElementById('ciDataTitle').textContent=escHtml('${f.title.replace(/'/g,"\\'")}') + ' 문의내역';showPage('customInquiryData');ciLoadData(${f.id})">내역</button>
+        <button class="btn btn-sm btn-outline" onclick="ciCurrentFormId=${f.id};document.getElementById('ciDataTitle').textContent=escHtml('${f.title.replace(/'/g,"\\'")}') + ' 문의내역';showPage('customInquiryData');if(typeof _adminHashSet==='function')_adminHashSet({page:'customInquiryData',id:${f.id}});ciLoadData(${f.id})">내역</button>
         <button class="btn btn-sm" style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;" onclick="ciShowPlacementCode('${escHtml(f.table_name)}', '${escHtml(f.title)}')">📋 적용코드</button>
         <button class="btn btn-sm btn-danger" onclick="ciDeleteForm(${f.id}, '${escHtml(f.title)}', '${escHtml(f.table_name)}')">삭제</button>
       </td>
@@ -201,7 +201,8 @@ async function ciOpenDetail(formId) {
   }
 
   showPage('customInquiryDetail');
-  ciSwitchTab('basic', document.querySelector('.ci-tab'));
+  if (typeof _adminHashSet === 'function') _adminHashSet({ page: 'customInquiryDetail', id: ciCurrentFormId });
+  ciSwitchTab('basic', document.querySelector('#page-customInquiryDetail .ci-tab'), true);
   ciLoadManagers();
   ciLoadStatuses();
   ciLoadFields();
@@ -235,12 +236,15 @@ async function ciOpenDetail(formId) {
 // =====================================================
 // 탭 전환
 // =====================================================
-function ciSwitchTab(tab, el) {
+function ciSwitchTab(tab, el, _skipHash) {
   document.querySelectorAll('.ci-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.ci-tab-panel').forEach(p => p.classList.remove('active'));
   if (el) el.classList.add('active');
   const panel = document.getElementById('ci-panel-' + tab);
   if (panel) panel.classList.add('active');
+  if (!_skipHash && typeof _adminHashSet === 'function' && ciCurrentFormId) {
+    _adminHashSet({ page: 'customInquiryDetail', id: ciCurrentFormId, tab });
+  }
 }
 
 // =====================================================
@@ -1193,6 +1197,7 @@ async function ciLoadCustomInquirySidebar() {
       ciCurrentFormId = f.id;
       document.getElementById('ciDataTitle').textContent = f.title + ' 문의내역';
       showPage('customInquiryData');
+      if (typeof _adminHashSet === 'function') _adminHashSet({ page: 'customInquiryData', id: f.id });
       ciLoadData(f.id);
     };
     div._pageId = pageId;

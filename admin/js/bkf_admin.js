@@ -235,6 +235,7 @@ function bkfUpdateSidebar(forms) {
     const div = document.createElement('div');
     div.className = 'nav-sub-link bkf-dynamic-nav';
     div.textContent = f.title + ' 내역';
+    div._pageId = 'bkfDetail_' + f.id;
     div.onclick = function() {
       bkfGoRecords(f.id, f.title);
     };
@@ -279,6 +280,7 @@ async function bkfGoRecords(formId, title) {
   const tabs = document.querySelectorAll('#page-bkfDetail .ci-tab');
   const tab  = tabs[tabs.length - 1]; // 마지막 탭 = 예약내역
   bkfSwitchTab('records', tab);
+  if (typeof _adminHashSet === 'function') _adminHashSet({ page: 'bkfDetail', id: formId, tab: 'records' });
 }
 
 // =====================================================
@@ -317,8 +319,9 @@ async function bkfOpenDetail(formId) {
   bkfFillBasicUI(d);
 
   showPage('bkfDetail');
+  if (typeof _adminHashSet === 'function') _adminHashSet({ page: 'bkfDetail', id: formId, tab: 'basic' });
   // 기본정보 탭 활성화
-  bkfSwitchTab('basic', document.querySelector('#page-bkfDetail .ci-tab'));
+  bkfSwitchTab('basic', document.querySelector('#page-bkfDetail .ci-tab'), true);
 
   // 진입 시 fields/steps만 미리 로드 (나머지는 탭 전환 시 lazy load)
   bkfLoadFields();
@@ -328,10 +331,14 @@ async function bkfOpenDetail(formId) {
 // =====================================================
 // 탭 전환
 // =====================================================
-function bkfSwitchTab(tab, el) {
+function bkfSwitchTab(tab, el, _skipHash) {
   document.querySelectorAll('#page-bkfDetail .ci-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('#page-bkfDetail .ci-tab-panel').forEach(p => p.classList.remove('active'));
   if (el) el.classList.add('active');
+  // hash에 현재 탭 저장
+  if (!_skipHash && typeof _adminHashSet === 'function' && bkfCurrentFormId) {
+    _adminHashSet({ page: 'bkfDetail', id: bkfCurrentFormId, tab });
+  }
   const panel = document.getElementById('bkf-panel-' + tab);
   if (panel) panel.classList.add('active');
 
