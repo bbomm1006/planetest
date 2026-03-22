@@ -6,9 +6,9 @@
 .cb-fab {
   position: fixed;
   bottom: 88px;            /* backToTop(bottom:24 + h:52) + 12px 간격 */
-  right: 32px;
-  width: 52px;
-  height: 52px;
+  right: 28px;
+  width: 48px;
+  height: 48px;
   background: linear-gradient(135deg, #1a3a8f, #2563eb);
   border: none;
   border-radius: 50%;
@@ -409,10 +409,10 @@
     max-height: 82vh;
   }
   .cb-fab {
-    bottom: 80px;          /* 모바일 backToTop(bottom:16 + h:48) + 16px */
-    right: 20px;
-    width: 48px;
-    height: 48px;
+    bottom: 70px;          /* 모바일 backToTop(bottom:16 + h:48) */
+    right: 16px;
+    width: 44px;
+    height: 44px;
   }
   .cb-fab-icon svg {
     width: 22px;

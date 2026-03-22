@@ -44,7 +44,7 @@ html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;}
 body{font-family:'DM Sans','Noto Sans KR',sans-serif;background:var(--white);color:var(--ink);overflow-x:hidden;}
 
 #backToTop{
-  position:fixed;bottom:24px;right:28px;z-index:811;
+  position:fixed;bottom:24px;right:28px;z-index:81;
   width:48px;height:48px;border-radius:50%;
   background:var(--white);color:var(--ink2);
   border:1px solid var(--g2);cursor:pointer;
