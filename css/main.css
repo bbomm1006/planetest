@@ -597,7 +597,7 @@
 .rvwrap{overflow:hidden;position:relative;}
 .rvtrack{display:flex;gap:22px;transition:transform .5s cubic-bezier(.4,0,.2,1);}
 .rvc{flex-shrink:0;width:calc(50% - 11px);background:#fff;border-radius:var(--card-r);overflow:hidden;
-  box-shadow:var(--sh-card);border:1px solid var(--g2);}
+ /* box-shadow:var(--sh-card);*/border:1px solid var(--g2);}
 .rvtrack > .rvc:only-child{width:100%;flex:0 0 100%;max-width:100%;}
 /* 16:9 썸네일 */
 .rv-thumb{width:100%;padding-bottom:56.25%;position:relative;overflow:hidden;background:var(--mist);}
@@ -716,6 +716,8 @@
 /* 총건수 — 전 게시판 공통 */
 .bbs-total-info{font-size:.78rem;color:var(--g5);margin-bottom:14px;text-align:left;}
 .bbs-total-info strong{color:var(--blue);font-weight:700;}
+.dark .bbs-total-info{color:rgba(255,255,255,.45);}
+.dark .bbs-total-info strong{color:var(--aqua);}
 
 /* 검색바 */
 .nt-search{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:32px;
@@ -737,7 +739,7 @@
 
 /* 리스트 테이블 */
 .nt-table{width:100%;border-collapse:collapse;}
-.nt-table thead tr{border-bottom:2px solid var(--ink2);}
+.nt-table thead tr{border-bottom:1px solid var(--ink2);border-top:2px solid var(--ink2);}
 .nt-table th{padding:11px 14px;font-size:.75rem;font-weight:800;color:var(--ink2);
   letter-spacing:.3px;text-align:left;}
 .nt-table th.tc{text-align:center;}
@@ -1187,6 +1189,7 @@ footer{background:var(--ink);padding:72px var(--section-pad-h) 36px;}
   height:580px;
   min-height:580px;
   transition:grid-template-columns .3s var(--ease-out);
+  box-shadow:var(--sh-card);border:1px solid var(--g2);
 }
 /* 상세패널 열림 상태: 3컬럼 */
 .sl-body.detail-open{grid-template-columns:300px 320px 1fr;}

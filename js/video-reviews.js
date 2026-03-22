@@ -1,5 +1,8 @@
 /* ═══════════════════════════════════════
    video-reviews.js — 영상 & 리뷰 슬라이더
+   · 무한 루프 (양방향)
+   · PC: 카드 2개씩 → dots = ceil(n/2)
+   · 모바일(≤768px): 카드 1개씩 → dots = n개
 ═══════════════════════════════════════ */
 
 /* ─── 유튜브 헬퍼 ─── */
@@ -45,7 +48,23 @@ function vrTotalContentWidth(track) {
   return sum;
 }
 function vrIsMobileLayout() {
-  return typeof window.matchMedia === 'function' && window.matchMedia('(max-width:960px)').matches;
+  return typeof window.matchMedia === 'function' && window.matchMedia('(max-width:768px)').matches;
+}
+/** PC: 2개씩 / 모바일: 1개씩 — 한 페이지에 표시되는 카드 수 */
+function vrCardsPerPage() {
+  return vrIsMobileLayout() ? 1 : 2;
+}
+/** 총 페이지 수 */
+function vrPageCount(n) {
+  return Math.max(1, Math.ceil(n / vrCardsPerPage()));
+}
+/** 카드 인덱스 → 페이지 인덱스 */
+function vrCardToPage(cardIdx) {
+  return Math.floor(cardIdx / vrCardsPerPage());
+}
+/** 페이지 인덱스 → 카드 인덱스(첫 번째 카드) */
+function vrPageToCard(pageIdx) {
+  return pageIdx * vrCardsPerPage();
 }
 /** 모바일에서 트랙에 명시 px 너비(또는 해제) — PC는 % 카드 레이아웃 유지 */
 function vrEnsureTrackInlineWidth(track, wrap) {
@@ -123,6 +142,8 @@ function renderVideos(data) {
     .filter(function (v) { return v.active && v.youtubeUrl; })
     .sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
   var wrap = document.getElementById('vwrap');
+  var vidTotalEl = document.getElementById('vidTotalInfo');
+  if (vidTotalEl) vidTotalEl.innerHTML = '전체 <strong>' + vidItems.length + '</strong>건';
   if (!vidItems.length) {
     wrap.innerHTML = '<p style="text-align:center;color:rgba(255,255,255,.3);padding:50px 0">등록된 영상이 없습니다.</p>';
     document.getElementById('vdots').innerHTML = '';
@@ -144,9 +165,14 @@ function renderVideos(data) {
         + '</div></div>';
     }).join('')
     + '</div>';
-  document.getElementById('vdots').innerHTML = vidItems.map(function (_, i) {
-    return '<div class="vdot' + (i === 0 ? ' on' : '') + '" onclick="vidGoTo(' + i + ')"></div>';
-  }).join('');
+  document.getElementById('vdots').innerHTML = (function() {
+    var pages = vrPageCount(vidItems.length);
+    var html = '';
+    for (var p = 0; p < pages; p++) {
+      html += '<div class="vdot' + (p === 0 ? ' on' : '') + '" onclick="vidGoToPage(' + p + ')"></div>';
+    }
+    return html;
+  })();
   vidCur = 0;
   requestAnimationFrame(function () {
     requestAnimationFrame(function () {
@@ -176,6 +202,9 @@ function closeVidModal() {
   document.getElementById('vmodIframe').src = '';
   document.body.style.overflow = '';
 }
+function vidGoToPage(pageIdx) {
+  vidGoTo(vrPageToCard(pageIdx), false);
+}
 function vidGoTo(idx, instant) {
   var track = document.getElementById('vtrack');
   var wrap = document.getElementById('vwrap');
@@ -187,7 +216,9 @@ function vidGoTo(idx, instant) {
   var tx = Math.min(vrOffsetToIndex(track, vidCur), maxTx);
   track.style.transition = instant ? 'none' : '';
   track.style.transform = 'translateX(' + (-tx) + 'px)';
-  document.querySelectorAll('.vdot').forEach(function (d, i) { d.classList.toggle('on', i === vidCur); });
+  /* dots: 현재 카드가 속한 페이지 기준 */
+  var curPage = vrCardToPage(vidCur);
+  document.querySelectorAll('.vdot').forEach(function (d, i) { d.classList.toggle('on', i === curPage); });
   vrUpdateRollingNav(wrap, track, vidCur, n - 1);
 }
 function vidNav(dir) {
@@ -195,11 +226,13 @@ function vidNav(dir) {
   var wrap = document.getElementById('vwrap');
   if (!vrCanRoll(track, wrap)) return;
   var n = vidItems.length;
-  if (n > 1) {
-    if (dir > 0 && vidCur >= n - 1) { vidGoTo(0, false); return; }
-    if (dir < 0 && vidCur <= 0)     { vidGoTo(n - 1, false); return; }
-  }
-  vidGoTo(vidCur + dir, false);
+  var pages = vrPageCount(n);
+  var curPage = vrCardToPage(vidCur);
+  var nextPage = curPage + dir;
+  /* 무한 루프 */
+  if (nextPage >= pages) nextPage = 0;
+  if (nextPage < 0) nextPage = pages - 1;
+  vidGoTo(vrPageToCard(nextPage), false);
 }
 
 /* ─── 리뷰 ─── */
@@ -257,9 +290,14 @@ function _rebuildRvSlider() {
         + '</div></div>';
     }).join('')
     + '</div>';
-  document.getElementById('rvdots').innerHTML = rvItems.map(function(_, i) {
-    return '<div class="rvdot' + (i === 0 ? ' on' : '') + '" onclick="rvGoTo(' + i + ')"></div>';
-  }).join('');
+  document.getElementById('rvdots').innerHTML = (function() {
+    var pages = vrPageCount(rvItems.length);
+    var html = '';
+    for (var p = 0; p < pages; p++) {
+      html += '<div class="rvdot' + (p === 0 ? ' on' : '') + '" onclick="rvGoToPage(' + p + ')"></div>';
+    }
+    return html;
+  })();
   rvCur = 0;
   requestAnimationFrame(function() {
     requestAnimationFrame(function() {
@@ -290,6 +328,8 @@ function renderReviews(data) {
   }
 
   rvItems = _rvAllItems.slice();
+  var totalEl = document.getElementById('rvTotalInfo');
+  if (totalEl) totalEl.innerHTML = '전체 <strong>' + _rvAllItems.length + '</strong>건';
   var wrap = document.getElementById('rvwrap');
   if (!rvItems.length) {
     wrap.innerHTML = '<p style="text-align:center;color:var(--g4);padding:40px">등록된 후기가 없습니다.</p>';
@@ -316,9 +356,14 @@ function renderReviews(data) {
     }).join('')
     + '</div>';
 
-  document.getElementById('rvdots').innerHTML = rvItems.map(function (_, i) {
-    return '<div class="rvdot' + (i === 0 ? ' on' : '') + '" onclick="rvGoTo(' + i + ')"></div>';
-  }).join('');
+  document.getElementById('rvdots').innerHTML = (function() {
+    var pages = vrPageCount(rvItems.length);
+    var html = '';
+    for (var p = 0; p < pages; p++) {
+      html += '<div class="rvdot' + (p === 0 ? ' on' : '') + '" onclick="rvGoToPage(' + p + ')"></div>';
+    }
+    return html;
+  })();
 
   rvCur = 0;
   requestAnimationFrame(function () {
@@ -336,6 +381,9 @@ function renderReviews(data) {
   });
 }
 
+function rvGoToPage(pageIdx) {
+  rvGoTo(vrPageToCard(pageIdx), false);
+}
 function rvGoTo(idx, instant) {
   var track = document.getElementById('rvtrack');
   var wrap = document.getElementById('rvwrap');
@@ -347,7 +395,9 @@ function rvGoTo(idx, instant) {
   var tx = Math.min(vrOffsetToIndex(track, rvCur), maxTx);
   track.style.transition = instant ? 'none' : '';
   track.style.transform = 'translateX(' + (-tx) + 'px)';
-  document.querySelectorAll('.rvdot').forEach(function (d, i) { d.classList.toggle('on', i === rvCur); });
+  /* dots: 현재 카드가 속한 페이지 기준 */
+  var curPage = vrCardToPage(rvCur);
+  document.querySelectorAll('.rvdot').forEach(function (d, i) { d.classList.toggle('on', i === curPage); });
   vrUpdateRollingNav(wrap, track, rvCur, n - 1);
 }
 
@@ -356,11 +406,13 @@ function rvNav(dir) {
   var wrap = document.getElementById('rvwrap');
   if (!vrCanRoll(track, wrap)) return;
   var n = rvItems.length;
-  if (n > 1) {
-    if (dir > 0 && rvCur >= n - 1) { rvGoTo(0, false); return; }
-    if (dir < 0 && rvCur <= 0)     { rvGoTo(n - 1, false); return; }
-  }
-  rvGoTo(rvCur + dir, false);
+  var pages = vrPageCount(n);
+  var curPage = vrCardToPage(rvCur);
+  var nextPage = curPage + dir;
+  /* 무한 루프 */
+  if (nextPage >= pages) nextPage = 0;
+  if (nextPage < 0) nextPage = pages - 1;
+  rvGoTo(vrPageToCard(nextPage), false);
 }
 
 /** 모바일 스와이프(영상/후기 공통) — vwrap·rvwrap에 1회만 바인딩 */
@@ -384,16 +436,26 @@ function vrBindSwipe(wrap, isVideo) {
       var vtr = document.getElementById('vtrack');
       var vwp = document.getElementById('vwrap');
       if (vidItems.length > 1 && vrCanRoll(vtr, vwp)) {
-        if (delta > 0 && vidCur >= vidItems.length - 1) { vidGoTo(0, false); return; }
-        if (delta < 0 && vidCur <= 0) { vidGoTo(vidItems.length - 1, false); return; }
+        var vpages = vrPageCount(vidItems.length);
+        var vcurPage = vrCardToPage(vidCur);
+        var vnextPage = vcurPage + delta;
+        if (vnextPage >= vpages) vnextPage = 0;
+        if (vnextPage < 0) vnextPage = vpages - 1;
+        vidGoTo(vrPageToCard(vnextPage), false);
+        return;
       }
       vidGoTo(vidCur + delta, false);
     } else {
       var rtr = document.getElementById('rvtrack');
       var rwp = document.getElementById('rvwrap');
       if (rvItems.length > 1 && vrCanRoll(rtr, rwp)) {
-        if (delta > 0 && rvCur >= rvItems.length - 1) { rvGoTo(0, false); return; }
-        if (delta < 0 && rvCur <= 0) { rvGoTo(rvItems.length - 1, false); return; }
+        var rpages = vrPageCount(rvItems.length);
+        var rcurPage = vrCardToPage(rvCur);
+        var rnextPage = rcurPage + delta;
+        if (rnextPage >= rpages) rnextPage = 0;
+        if (rnextPage < 0) rnextPage = rpages - 1;
+        rvGoTo(vrPageToCard(rnextPage), false);
+        return;
       }
       rvGoTo(rvCur + delta, false);
     }
@@ -464,13 +526,40 @@ function vrBindSwipe(wrap, isVideo) {
 
 (function () {
   var t = null;
+  var _lastMobile = null;
+
+  function vrRebuildDots(items, dotSel, goToPageFn) {
+    var pages = vrPageCount(items.length);
+    var container = document.getElementById(dotSel);
+    if (!container) return;
+    /* 현재 on 인덱스 보존 */
+    var curOnIdx = 0;
+    container.querySelectorAll('.' + dotSel.replace('s','') ).forEach(function(d, i) {
+      if (d.classList.contains('on')) curOnIdx = i;
+    });
+    var isRv = dotSel === 'rvdots';
+    var dotClass = isRv ? 'rvdot' : 'vdot';
+    var fnName = isRv ? 'rvGoToPage' : 'vidGoToPage';
+    var html = '';
+    for (var p = 0; p < pages; p++) {
+      html += '<div class="' + dotClass + (p === curOnIdx ? ' on' : '') + '" onclick="' + fnName + '(' + p + ')"></div>';
+    }
+    container.innerHTML = html;
+  }
+
   function vrRelayout() {
+    var isMobile = vrIsMobileLayout();
+    var layoutChanged = (_lastMobile !== null && _lastMobile !== isMobile);
+    _lastMobile = isMobile;
+
     if (document.getElementById('vtrack') && vidItems.length) {
       vrBindSwipe(document.getElementById('vwrap'), true);
+      if (layoutChanged) vrRebuildDots(vidItems, 'vdots', vidGoToPage);
       vidGoTo(vidCur, true);
     }
     if (document.getElementById('rvtrack') && rvItems.length) {
       vrBindSwipe(document.getElementById('rvwrap'), false);
+      if (layoutChanged) vrRebuildDots(rvItems, 'rvdots', rvGoToPage);
       rvGoTo(rvCur, true);
     }
   }

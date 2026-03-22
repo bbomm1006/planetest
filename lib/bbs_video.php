@@ -3,6 +3,8 @@
     <div class="s-tag"><span>VIDEOS</span></div>
     <h2 class="s-h">퓨어블루 영상</h2>
     <p class="s-p">제품과 서비스를 영상으로 만나보세요.</p>
+    <!-- 총건수 -->
+    <div class="bbs-total-info" id="vidTotalInfo"></div>
     <div class="vwrap" id="vwrap"></div>
     <div class="vnav">
       <button type="button" class="vnarr" onclick="vidNav(-1)" aria-label="이전 영상"><svg viewBox="0 0 24 24" fill="none"><polyline points="15 18 9 12 15 6"/></svg></button>

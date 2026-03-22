@@ -8,7 +8,7 @@
     <select class="sg-cat-sel" id="sgCatDropdown"></select>
 
     <!-- 총건수 -->
-    <div class="bbs-total-info" id="sgTotalInfo"></div>
+    <!-- <div class="bbs-total-info" id="sgTotalInfo"></div> -->
 
     <div class="sg-block">
       <div class="sg-slide-stack">

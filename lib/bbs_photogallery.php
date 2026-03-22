@@ -10,7 +10,7 @@
 
     <!-- 결과 정보 -->
     <!-- 총건수 -->
-    <div class="bbs-total-info" id="pgTotalInfo"></div>
+    <!-- <div class="bbs-total-info" id="pgTotalInfo"></div> -->
 
     <!-- 그리드 -->
     <div class="pg-grid" id="pgGrid">
