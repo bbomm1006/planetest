@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>관리자 시스템</title>
 <link rel="stylesheet" href="css/admin.css"/>
+<link rel="stylesheet" href="css/bkf_admin.css"/>
 <link rel="stylesheet" href="css/find_account.css"/>
 <!-- 카카오 주소검색 (Daum 우편번호) -->
 <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js" defer></script>
@@ -79,6 +80,8 @@
 
       <?php include 'lib/legalTermsMgmt.php'; ?>
 
+      <!-- 예약 폼 관리 -->
+      <?php include 'lib/bookingForm.php'; ?>
 
       <!-- 7-1. 예약 시간 관리 -->
       <!-- 7-2. 예약 내역 -->
@@ -158,6 +161,9 @@
   <!-- 문의 폼 Modal -->
   <?php include 'modals/customInquiryModal.php'; ?>
 
+  <!-- 예약 폼 Modal -->
+  <?php include 'modals/bookingFormModal.php'; ?>
+
 
 <div class="toast-container" id="toastContainer"></div>
 
@@ -207,6 +213,8 @@
 
 <script src="js/customInquiry.js" defer></script>
 <script src="js/alimtalk.js" defer></script>
+
+<script src="js/bkf_admin.js" defer></script>
 
 </body>
 </html>

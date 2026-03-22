@@ -119,6 +119,11 @@ const PAGE_LABELS = {
   customInquiryDetail: ['문의 폼','폼 설정'],
   customInquiryData:   ['문의 폼','문의 내역'],
 
+  bkfCreate: ['예약 폼','예약 폼 추가'],
+  bkfList:   ['예약 폼','예약 폼 목록'],
+  bkfDetail: ['예약 폼','폼 설정'],
+  bkfRecords:['예약 폼','예약 내역'],
+
   alimtalkMgmt:        ['알림톡 관리','알림톡 설정'],
 };
 
@@ -293,6 +298,7 @@ function enterAdmin(name, username, email = '') {
   showPage(_savedEl ? _saved : 'adminMgmt');
   loadAdminList();
   if (typeof loadBoardList === 'function') loadBoardList();
+  if (typeof bkfLoadFormList === 'function') bkfLoadFormList();
   if (typeof ciLoadCustomInquirySidebar === 'function') ciLoadCustomInquirySidebar();
 }
 
@@ -371,6 +377,10 @@ function showPage(pageId) {
   if (pageId === 'customInquiryCreate') { /* 별도 로드 없음 */ }
   if (pageId === 'customInquiryList')   ciLoadFormList();
   if (pageId === 'alimtalkMgmt')        loadAlimtalkSettings();
+
+  if (pageId === 'bkfCreate') { /* 별도 로드 없음 */ }
+  if (pageId === 'bkfList' && typeof bkfLoadFormList === 'function') bkfLoadFormList();
+  if (pageId === 'bkfDetail') { /* bkfOpenDetail()에서 직접 진입 — 여기선 skip */ }
 
 }
 

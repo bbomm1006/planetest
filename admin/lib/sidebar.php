@@ -80,6 +80,15 @@
           </div>
         </div>
       </div>
+      <div class="nav-section">
+        <div class="nav-item">
+          <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">📅</span>예약 폼 관리<span class="nav-arrow">›</span></div>
+          <div class="nav-sub" id="bkfNavSub">
+            <div class="nav-sub-link" onclick="showPage('bkfCreate')">예약 폼 추가</div>
+            <div class="nav-sub-link" onclick="showPage('bkfList')">예약 폼 목록</div>
+          </div>
+        </div>
+      </div>
       <!-- <div class="nav-section" data-menu-keys="consultCat consult">
         <div class="nav-item">
           <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">💬</span>상담 관리<span class="nav-arrow">›</span></div>

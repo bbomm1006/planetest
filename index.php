@@ -90,6 +90,11 @@ include __DIR__ . '/lib/custom_inquiry_front.php';
     <?php include 'lib/benefits.php'; ?>
   </div>
 
+  <!-- 예약 -->
+  <link rel="stylesheet" href="/css/bkf_public.css"/>
+  <?php $bkf_slug = 'booking_00'; include __DIR__ . '/lib/bkf_front.php'; ?>
+  <!-- //예약 -->
+
   <!-- VIDEOS -->
   <div data-front-section-key="front_videos" <?php if (!$frontIsVisible('front_videos')) echo 'style="display:none;"'; ?>>
     <?php include 'lib/bbs_video.php'; ?>
@@ -240,4 +245,5 @@ include __DIR__ . '/lib/custom_inquiry_front.php';
 
   <script src="js/custom_inquiry_front.js"></script>
 
+  <script src="/js/bkf_public.js" defer></script><!--예약폼-->
 <?php include 'lib/__tail.php'; ?>
