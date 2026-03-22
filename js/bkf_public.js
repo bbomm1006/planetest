@@ -1390,17 +1390,15 @@ async function bkfSubmitEdit(s) {
   const res = await bkfPost(s, 'update_booking', payload);
 
   if (res.ok) {
-    const resultEl = document.getElementById(`bkf-lookup-result-${s}`);
-    if (resultEl) resultEl.innerHTML =
-      `<p style="text-align:center;color:#16a34a;padding:20px 0;font-weight:600;">✅ 예약이 수정되었습니다.</p>`;
-    // 수정 완료 후 재조회해서 최신 정보 반영
     const noInput = document.getElementById(`bkf-edit-no-${s}`);
     const resNo   = noInput?.value?.trim() || '';
-    setTimeout(async () => {
-      const noInputEl = document.getElementById(`bkf-lookup-no-input-${s}`);
-      if (noInputEl && resNo) noInputEl.value = resNo;
-      await bkfDoLookup(s, resNo ? 'no' : 'phone');
-    }, 1000);
+
+    // 수정 완료 화면 표시
+    const doneNo  = document.getElementById(`bkf-done-no-${s}`);
+    const doneSub = document.getElementById(`bkf-done-sub-${s}`);
+    if (doneNo)  doneNo.textContent  = `예약번호: ${resNo}`;
+    if (doneSub) doneSub.textContent = '예약이 수정되었습니다. 아래에서 다시 조회하실 수 있습니다.';
+    bkfShowView(s, 'done');
   } else {
     const resultEl = document.getElementById(`bkf-lookup-result-${s}`);
     if (resultEl) resultEl.innerHTML =

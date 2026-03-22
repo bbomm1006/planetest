@@ -234,9 +234,15 @@ if ($action === 'save_basic') {
     $quota_mode        = trim($_POST['quota_mode']        ?? 'date');
 
     if (!in_array($quota_mode, ['date','slot'])) $quota_mode = 'date';
+    $clear_quota = (trim($_POST['clear_quota'] ?? '0') === '1');
 
     $pdo->prepare('UPDATE bkf_forms SET title=?, btn_name=?, description=?, is_active=?, phone_verify_use=?, quota_mode=? WHERE id=?')
         ->execute([$title, $btn, $description ?: null, $is_active, $phone_verify_use, $quota_mode, $id]);
+
+    // 수량방식 변경 시 기존 수량 데이터 전체 초기화
+    if ($clear_quota) {
+        $pdo->prepare('DELETE FROM bkf_quota WHERE form_id=?')->execute([$id]);
+    }
 
     logAdminAction($pdo, 'update', 'bkf_forms', (string)$id);
     ob_clean();
@@ -658,13 +664,14 @@ if ($action === 'bulk_quota') {
     $pdo->beginTransaction();
     try {
         foreach ($allStoreIds as $targetStore) {
-            // 해당 날짜 기존 데이터 삭제
+            // 해당 날짜 기존 데이터 완전 삭제 (slot_time 포함 전체)
             foreach (array_keys($targetDates) as $quota_date) {
                 if ($targetStore !== null) {
                     $pdo->prepare('DELETE FROM bkf_quota WHERE form_id=? AND store_id=? AND quota_date=?')
                         ->execute([$form_id, $targetStore, $quota_date]);
                 } else {
-                    $pdo->prepare('DELETE FROM bkf_quota WHERE form_id=? AND store_id IS NULL AND quota_date=?')
+                    // 공통(NULL) 삭제 + 지점별 설정도 해당 날짜 전체 삭제
+                    $pdo->prepare('DELETE FROM bkf_quota WHERE form_id=? AND quota_date=?')
                         ->execute([$form_id, $quota_date]);
                 }
             }
@@ -673,8 +680,8 @@ if ($action === 'bulk_quota') {
             foreach ($items as $item) {
                 $quota_date = trim($item['quota_date'] ?? '');
                 $slot_time  = trim($item['slot_time']  ?? '') ?: null;
-                $rawCap = $item['capacity'];
-                $capacity = ($rawCap === null || $rawCap === '') ? null : max(0, (int)$rawCap);
+                $rawCap     = $item['capacity'];
+                $capacity   = ($rawCap === null || $rawCap === '') ? null : max(0, (int)$rawCap);
                 if (!$quota_date) continue;
 
                 if ($targetStore !== null) {

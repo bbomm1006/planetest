@@ -365,6 +365,19 @@ function bkfSwitchTab(tab, el) {
 async function bkfSaveBasic() {
   if (bkfSaving) return;
   const btn = event?.target;
+
+  const newMode = (document.querySelector('input[name="bkf_quota_mode"]:checked') || {}).value || 'date';
+  const oldMode = bkfCurrentFormData.quota_mode || 'date';
+  const modeLabel = { date: '날짜 단위', slot: '시간 슬롯 단위' };
+
+  // 수량방식이 바뀌면 confirm 후 기존 수량 데이터 초기화
+  if (newMode !== oldMode) {
+    if (!confirm(
+      `수량 방식을 [${modeLabel[oldMode]}] → [${modeLabel[newMode]}]으로 변경하면\n` +
+      `기존에 설정된 수량 데이터가 모두 초기화됩니다.\n\n계속하시겠습니까?`
+    )) return;
+  }
+
   bkfLock(btn);
 
   const res = await bkfApiPost('api/bkf_admin.php', {
@@ -375,11 +388,16 @@ async function bkfSaveBasic() {
     btn_name:          document.getElementById('bkf_btn').value.trim(),
     is_active:         (document.querySelector('input[name="bkf_is_active"]:checked') || {}).value || 1,
     phone_verify_use:  document.getElementById('bkf_phone_verify_use').checked ? 1 : 0,
-    quota_mode:        (document.querySelector('input[name="bkf_quota_mode"]:checked') || {}).value || 'date',
+    quota_mode:        newMode,
+    clear_quota:       newMode !== oldMode ? '1' : '0',
   });
 
-  if (res.ok) showToast('저장되었습니다.');
-  else showToast(res.msg || '오류', 'error');
+  if (res.ok) {
+    bkfCurrentFormData.quota_mode = newMode;
+    showToast(newMode !== oldMode ? '수량 방식이 변경되고 기존 수량이 초기화되었습니다.' : '저장되었습니다.');
+  } else {
+    showToast(res.msg || '오류', 'error');
+  }
   bkfUnlock(btn);
 }
 
@@ -1285,7 +1303,7 @@ function bkfAddSlotRow(time = '', capacity = 0, booked = 0, quotaId = 0) {
        ${booked > 0 ? `<span style="font-size:.75rem;color:#94a3b8;">예약${booked}건</span>` : ''}`;
 
   div.innerHTML = `
-    <input type="time" class="form-control" value="${time}" style="width:110px;" placeholder="HH:MM"/>
+    <input type="time" class="form-control" value="${time}" style="width:140px;" placeholder="HH:MM"/>
     ${capInput}
     <button type="button" class="btn btn-sm btn-danger" onclick="bkfRemoveSlotRow(this, ${quotaId})">✕</button>`;
   list.appendChild(div);
@@ -1322,12 +1340,12 @@ async function bkfSaveQuota() {
     });
   }
 
-  // 슬롯 단위 (slot 모드일 때만)
-  if (quotaMode === 'slot') {
+  // 슬롯 단위 (date 모드 + time_slot 스텝 있을 때도 포함)
+  if (quotaMode === 'slot' || (quotaMode === 'date' && !!bkfCurrentFormData._hasTimeSlot)) {
     document.querySelectorAll('#bkf-quota-slot-list > div').forEach(div => {
       const t = div.querySelector('input[type="time"]').value;
-      const c = parseInt(div.querySelector('input[type="number"]').value) || 0;
-      const c_null = (c === '' || isNaN(c) || div.querySelector('input[type="number"]').value === '') ? null : c;
+      const numEl = div.querySelector('input[type="number"]');
+      const c_null = (!numEl || numEl.style.display === 'none' || numEl.value === '') ? null : parseInt(numEl.value);
       if (t) items.push({ store_id: storeId || null, quota_date: date, slot_time: t, capacity: c_null });
     });
   }
@@ -1420,7 +1438,7 @@ function bkfAddBulkSlotRow() {
        <input type="number" class="form-control" value="" min="0" placeholder="제한없음" style="width:90px;"/>`;
 
   div.innerHTML = `
-    <input type="time" class="form-control" style="width:110px;"/>
+    <input type="time" class="form-control" style="width:140px;"/>
     ${capInput}
     <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('div').remove()">✕</button>`;
   list.appendChild(div);
@@ -1431,36 +1449,47 @@ async function bkfSaveBulkQuota() {
   const btn   = document.querySelector('#bkfBulkQuotaModal .btn-primary');
   bkfLock(btn);
 
-  const year    = parseInt(document.getElementById('bkfQuotaYear').value);
-  const month   = parseInt(document.getElementById('bkfQuotaMonth').value);
-  const storeId = document.getElementById('bkfQuotaStoreFilter').value;
-  const _bulkRaw = document.getElementById('bkf_bulk_capacity').value;
-  const dateCap = _bulkRaw === '' ? null : parseInt(_bulkRaw);
-  const useSlot = document.getElementById('bkf_bulk_use_slot').checked;
+  const year      = parseInt(document.getElementById('bkfQuotaYear').value);
+  const month     = parseInt(document.getElementById('bkfQuotaMonth').value);
+  const storeId   = document.getElementById('bkfQuotaStoreFilter').value;
+  const _bulkRaw  = document.getElementById('bkf_bulk_capacity').value;
+  const dateCap   = _bulkRaw === '' ? null : parseInt(_bulkRaw);
   const quotaMode = bkfCurrentFormData.quota_mode || 'date';
+  const hasTimeSlot = !!bkfCurrentFormData._hasTimeSlot;
 
-  // 슬롯 목록 수집
+  // 슬롯 목록 수집 (slot 모드 또는 date+time_slot 스텝)
   const slots = [];
-  if (useSlot) {
+  const useSlot = document.getElementById('bkf_bulk_use_slot').checked;
+  if (useSlot || quotaMode === 'slot') {
     document.querySelectorAll('#bkf-bulk-slot-list > div').forEach(div => {
-      const t = div.querySelector('input[type="time"]').value;
-      const _rv = div.querySelector('input[type="number"]').value;
-      const c = _rv === '' ? null : parseInt(_rv);
+      const t   = div.querySelector('input[type="time"]').value;
+      const numEl = div.querySelector('input[type="number"]');
+      const c   = (!numEl || numEl.style.display === 'none' || numEl.value === '') ? null : parseInt(numEl.value);
       if (t) slots.push({ time: t, capacity: c });
     });
   }
 
-  // 해당 월의 모든 날짜에 적용
+  // slot 모드인데 슬롯이 없으면 경고
+  if (quotaMode === 'slot' && slots.length === 0) {
+    showToast('시간 슬롯을 1개 이상 추가해 주세요.', 'error');
+    bkfUnlock(btn);
+    return;
+  }
+
+  // 해당 월의 모든 날짜에 items 생성
   const daysInMonth = new Date(year, month, 0).getDate();
   const items = [];
 
   for (let day = 1; day <= daysInMonth; day++) {
     const ds = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
 
+    // date 모드: 날짜 단위 수량 추가
     if (quotaMode === 'date') {
       items.push({ store_id: storeId || null, quota_date: ds, slot_time: null, capacity: dateCap });
     }
-    if (quotaMode === 'slot' && useSlot) {
+
+    // 슬롯 추가: slot 모드이거나 date+time_slot 스텝 있을 때
+    if (slots.length > 0 && (quotaMode === 'slot' || (quotaMode === 'date' && hasTimeSlot))) {
       slots.forEach(s => {
         items.push({ store_id: storeId || null, quota_date: ds, slot_time: s.time, capacity: s.capacity });
       });
