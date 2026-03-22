@@ -114,7 +114,7 @@ try {
           </div>
         </div>
 
-        <div class="fc">
+        <div class="">
 
           <!-- 제품 선택 -->
           <div class="ci-product-wrap" id="ci-product-wrap-<?= $ci_table_safe ?>" style="display:none;">

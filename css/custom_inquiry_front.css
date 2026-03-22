@@ -158,7 +158,7 @@
    폼 컨테이너
 ══════════════════════════════════════ */
 .ci-form-wrap {
-  max-width: var(--content-max);
+  max-width: var(--content-form);
   margin: 0 auto;
 }
 
