@@ -280,11 +280,11 @@
 .pm-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;}
 .pm-tag{background:var(--mist);color:var(--blue);font-size:.7rem;font-weight:700;padding:4px 12px;border-radius:100px;}
 .pm-desc{font-size:.86rem;line-height:1.82;color:var(--g7);margin-bottom:20px;white-space:pre-line;word-break:keep-all;}
-.pm-specs{width:100%;border-collapse:collapse;font-size:.8rem;}
+.pm-specs{width:100%;border-collapse:collapse;font-size:.8rem;border-top:2px solid var(--g2);border-bottom:2px solid var(--g2)}
 .pm-specs tr{border-bottom:1px solid var(--g2);}
 .pm-specs tr:last-child{border:none;}
-.pm-specs td{padding:9px 0;}
-.pm-specs td:first-child{font-weight:700;color:var(--g5);width:36%;padding-right:10px;}
+.pm-specs td{padding:10px}
+.pm-specs td:first-child{font-weight:700;color:var(--g5);width:36%;padding-right:10px;    background: #f8f8f8;    padding-left: 10px;}
 .pmft{
   padding:14px 24px;
   border-top:1px solid var(--g2);
@@ -357,7 +357,7 @@
   flex:1;
   min-height:0;
 }
-.cmpt{width:100%;border-collapse:collapse;min-width:500px;}
+.cmpt{width:100%;border-collapse:collapse;min-width:500px;border-top: 2px solid var(--g2);border-bottom: 1px solid var(--g2);}
 .cmpt th{text-align:center;padding:0 16px 20px;vertical-align:top;}
 .cth-img{width:100px;height:110px;border-radius:12px;overflow:hidden;margin:0 auto 10px;
   display:flex;align-items:center;justify-content:center;font-size:2.4rem;}

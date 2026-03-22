@@ -275,7 +275,7 @@ function renderCmpTable() {
     });
   }
 
-  var th = '<thead><tr><th style="text-align:left;width:100px;font-size:.73rem;color:var(--g4);padding-bottom:18px">항목</th>'
+  var th = '<thead><tr><th style="font-weight: 700;    font-size: .76rem;    color: var(--g7);    background: var(--off);    width: 100px;    white-space: nowrap;    text-align: left;    padding: 10px;">항목</th>'
     + prods.map(function (p) {
       return '<th><div class="cth-img" style="background:' + esc(p.bgColor || '#dbeeff') + '">' + (p.imageUrl ? '<img src="' + esc(p.imageUrl) + '" alt="">' : '💧') + '</div><div class="cth-name">' + esc(p.name) + '</div><div class="cth-price">' + comma(p.priceMonthly || 0) + '<span>원/월</span></div></th>';
     }).join('') + '</tr></thead>';
