@@ -1006,7 +1006,7 @@ function bkfGoToLookup(s) {
 function bkfSwitchLookupTab(s, tab, btn) {
   document.querySelectorAll(`#bkf-view-lookup-${s} .bkf-lookup-tab`).forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById(`bkf-lookup-phone-${s}`).style.display = tab === 'phone' ? '' : 'none';
+  document.getElementById(`bkf-lookup-panel-phone-${s}`).style.display = tab === 'phone' ? '' : 'none';
   document.getElementById(`bkf-lookup-no-${s}`).style.display    = tab === 'no'    ? '' : 'none';
   document.getElementById(`bkf-lookup-result-${s}`).innerHTML    = '';
   const errEl = document.getElementById(`bkf-lookup-err-${s}`);

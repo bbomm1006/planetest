@@ -830,16 +830,112 @@ function bkf_send_admin_notify(PDO $pdo, int $form_id, array $form, int $record_
             }
         }
 
-        // 이메일 알림
+        // 이메일 알림 (PHPMailer SMTP)
         if ((int)$mgr['notify_email'] && !empty($mgr['email'])) {
             $to      = $mgr['email'];
             $subject = "[{$formTitle}] 새 예약 접수 알림 - {$booking['name']}";
-            $body    = $msg;
-            $headers = "From: noreply@" . ($_SERVER['HTTP_HOST'] ?? 'localhost') . "\r\n"
-                     . "Content-Type: text/plain; charset=UTF-8\r\n";
-            try {
-                mail($to, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, $headers);
-            } catch (Throwable $e) {}
+
+            /* PHPMailer 로드 */
+            $pmBase = dirname(__DIR__, 2) . '/phpmailer';
+            if (!class_exists('PHPMailer\\PHPMailer\\PHPMailer') && file_exists($pmBase . '/PHPMailer.php')) {
+                require_once $pmBase . '/Exception.php';
+                require_once $pmBase . '/PHPMailer.php';
+                require_once $pmBase . '/SMTP.php';
+            }
+
+            if (class_exists('PHPMailer\\PHPMailer\\PHPMailer')) {
+                /* HTML 본문 생성 */
+                $esc = function($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); };
+                try {
+                    $siteRow = $pdo->query("SELECT title, copyright FROM homepage_info WHERE id=1 LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+                } catch (Throwable $e) { $siteRow = null; }
+                $siteName = $siteRow['title']     ?? $formTitle;
+                $siteCopy = $siteRow['copyright'] ?? ('© ' . date('Y') . ' ' . $siteName);
+
+                $rows = [
+                    ['예약번호', $booking['reservation_no']    ?? '-'],
+                    ['이  름',   $booking['name']              ?? '-'],
+                    ['연락처',   $booking['phone']             ?? '-'],
+                    ['예약일',   $booking['reservation_date']  ?? '-'],
+                    ['시  간',   $booking['reservation_time']  ?? '-'],
+                    ['지  점',   $booking['store_name']        ?? '-'],
+                    ['상  태',   $booking['status']            ?? '-'],
+                    ['접수일시', $booking['created_at']        ?? '-'],
+                ];
+                $tableRows = '';
+                foreach ($rows as [$label, $value]) {
+                    if ((string)$value === '' || (string)$value === '-') continue;
+                    $tableRows .= '<tr style="border-bottom:1px solid #f1f5f9;">
+                      <td style="padding:10px 12px 10px 0;width:34%;font-size:.8rem;font-weight:700;color:#64748b;vertical-align:top;">' . $esc($label) . '</td>
+                      <td style="padding:10px 0;font-size:.86rem;color:#1e293b;line-height:1.6;">' . nl2br($esc($value)) . '</td>
+                    </tr>';
+                }
+                $no      = $esc($booking['reservation_no'] ?? '-');
+                $created = $esc($booking['created_at']     ?? date('Y-m-d H:i'));
+
+                $htmlBody = '<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f8fafc;font-family:\'Apple SD Gothic Neo\',\'Malgun Gothic\',sans-serif;">
+<div style="max-width:580px;margin:32px auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.09);">
+  <div style="background:linear-gradient(90deg,#1255a6,#1e7fe8);padding:26px 30px;">
+    <div style="color:rgba(255,255,255,.75);font-size:.75rem;font-weight:600;letter-spacing:1px;margin-bottom:6px;">예약 알림</div>
+    <div style="color:#fff;font-size:1.1rem;font-weight:700;">' . $esc($formTitle) . '</div>
+  </div>
+  <div style="padding:26px 30px 0;">
+    <p style="margin:0 0 6px;font-size:.92rem;color:#334155;line-height:1.7;">
+      📋 새로운 예약이 접수되었습니다.<br>
+      아래 예약 내용을 확인하고 빠르게 응대해 주세요.
+    </p>
+  </div>
+  <div style="margin:20px 30px 0;padding:14px 18px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;">
+    <div style="display:inline-block;margin-right:24px;">
+      <div style="font-size:.72rem;color:#0369a1;font-weight:700;margin-bottom:3px;">예약번호</div>
+      <div style="font-size:.92rem;font-weight:800;color:#0c4a6e;">' . $no . '</div>
+    </div>
+    <div style="display:inline-block;">
+      <div style="font-size:.72rem;color:#0369a1;font-weight:700;margin-bottom:3px;">접수일시</div>
+      <div style="font-size:.92rem;font-weight:800;color:#0c4a6e;">' . $created . '</div>
+    </div>
+  </div>
+  <div style="padding:20px 30px;">
+    <div style="font-size:.78rem;font-weight:700;color:#64748b;letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px;">예약 내용</div>
+    <table style="width:100%;border-collapse:collapse;">' . $tableRows . '
+    </table>
+  </div>
+  <div style="margin:0 30px 24px;padding:14px 18px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;">
+    <p style="margin:0;font-size:.82rem;color:#64748b;line-height:1.72;">
+      예약 내용을 확인 후 고객에게 빠르게 안내해 주세요. 관리자 페이지에서 예약 상태를 변경하실 수 있습니다.
+    </p>
+  </div>
+  <div style="background:#f1f5f9;padding:14px 30px;text-align:center;">
+    <p style="margin:0;font-size:.72rem;color:#94a3b8;">' . $esc($siteCopy) . ' · 본 메일은 자동 발송되었습니다.</p>
+  </div>
+</div>
+</body>
+</html>';
+
+                $gmailEmail = 'solha.jin90@gmail.com';
+                $gmailPw    = 'otud ocoq cmsv hvde';
+                try {
+                    $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+                    $mail->isSMTP();
+                    $mail->Host       = 'smtp.gmail.com';
+                    $mail->SMTPAuth   = true;
+                    $mail->Username   = $gmailEmail;
+                    $mail->Password   = $gmailPw;
+                    $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+                    $mail->Port       = 587;
+                    $mail->CharSet    = 'UTF-8';
+                    $mail->setFrom($gmailEmail, $siteName ?: '예약 알림');
+                    $mail->addAddress($to);
+                    $mail->Subject = $subject;
+                    $mail->isHTML(true);
+                    $mail->Body    = $htmlBody;
+                    $mail->AltBody = $msg;
+                    $mail->send();
+                } catch (Throwable $e) {}
+            }
         }
 
         // 구글 시트 알림
@@ -887,8 +983,8 @@ if ($action === 'update_booking') {
     $phone        = trim((string)($in['phone'] ?? ''));
     $new_date     = trim((string)($in['reservation_date'] ?? '')) ?: null;
     $new_time     = trim((string)($in['reservation_time'] ?? '')) ?: null;
-    $new_store_id = ($in['store_id'] !== '' && isset($in['store_id'])) ? (int)$in['store_id'] : null;
-    $new_store_nm = trim((string)($in['store_name'] ?? '')) ?: null;
+    $in_store_id  = (isset($in['store_id']) && $in['store_id'] !== '') ? (int)$in['store_id'] : null;
+    $in_store_nm  = trim((string)($in['store_name'] ?? '')) ?: null;
 
     if (!$id || !$name || !$phone) {
         bkf_out(['ok' => false, 'msg' => '필수 항목을 입력해 주세요.'], 400);
@@ -902,6 +998,10 @@ if ($action === 'update_booking') {
     $rec = $cur->fetch(PDO::FETCH_ASSOC);
     if (!$rec) bkf_out(['ok' => false, 'msg' => '예약을 찾을 수 없습니다.'], 404);
     if ($rec['status'] !== '접수') bkf_out(['ok' => false, 'msg' => '접수 상태의 예약만 수정할 수 있습니다.'], 400);
+
+    // store_id: 전달된 값 우선, 없으면 기존 예약값 유지
+    $new_store_id = $in_store_id ?? ($rec['store_id'] ?? null);
+    $new_store_nm = $in_store_nm ?? ($rec['store_name'] ?? null);
 
     $pdo->beginTransaction();
     try {

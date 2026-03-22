@@ -114,7 +114,7 @@ $s = $bkf_slug_safe;
         </div>
 
         <!-- 이름 + 전화번호 조회 -->
-        <div class="bkf-lookup-panel" id="bkf-lookup-phone-<?= $s ?>">
+        <div class="bkf-lookup-panel" id="bkf-lookup-panel-phone-<?= $s ?>"><?php // 패널 div ID 수정 ?>
           <div class="bkf-fg">
             <label class="bkf-label">이름</label>
             <input type="text" class="bkf-fi" id="bkf-lookup-name-<?= $s ?>" placeholder="예약 시 입력한 이름"/>
