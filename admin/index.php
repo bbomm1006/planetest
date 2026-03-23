@@ -39,6 +39,7 @@
       <?php include 'lib/siteMgmt.php'; ?>
       <?php include 'lib/homepageInfo.php'; ?>
       <?php include 'lib/colorMgmt.php'; ?>
+      <?php include 'lib/designMgmt.php'; ?>
 
       <!-- ========================
             1-1. 상단 메인 배너

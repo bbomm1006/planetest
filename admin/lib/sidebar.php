@@ -20,12 +20,13 @@
           </div>
         </div>
       </div>
-      <div class="nav-section" data-menu-keys="sectionMgmt colorMgmt">
+      <div class="nav-section" data-menu-keys="sectionMgmt colorMgmt designMgmt">
         <div class="nav-item">
           <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">🎨</span>디자인 관리<span class="nav-arrow">›</span></div>
           <div class="nav-sub">
             <div class="nav-sub-link" data-menu-key="sectionMgmt" onclick="showPage('sectionMgmt')">섹션 관리</div>
             <div class="nav-sub-link" data-menu-key="colorMgmt" onclick="showPage('colorMgmt')">컬러 설정</div>
+            <div class="nav-sub-link" data-menu-key="designMgmt" onclick="showPage('designMgmt')">🆕 디자인 만들기</div>
           </div>
         </div>
       </div>

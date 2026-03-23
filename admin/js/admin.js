@@ -10,6 +10,7 @@ const MENU_LIST_BASE = [
   { key:'socialMgmt',    label:'소셜 관리',             group:'시스템 관리' },
   { key:'homepageInfo',  label:'홈페이지 정보 관리',     group:'시스템 관리' },
   { key:'colorMgmt',     label:'컬러 설정',             group:'디자인 관리' },
+  { key:'designMgmt',    label:'디자인 만들기',           group:'디자인 관리' },
   { key:'legalTermsMgmt',label:'법적 약관 관리',         group:'시스템 관리' },
   // 콘텐츠 관리
   { key:'banner',        label:'상단 메인 배너',         group:'콘텐츠 관리' },
@@ -138,7 +139,8 @@ const PAGE_LABELS = {
   legalTermsMgmt: ['시스템','법적 약관 관리'],
 
   homepageInfo: ['시스템','홈페이지 정보 관리'],
-  colorMgmt:    ['시스템','컬러 설정'],
+  colorMgmt:    ['디자인 관리','컬러 설정'],
+  designMgmt:   ['디자인 관리','디자인 만들기'],
   logMgmt:      ['로그 관리','로그 관리'],
 
   customInquiryCreate: ['문의 폼','문의 폼 추가'],
@@ -384,7 +386,7 @@ function showPage(pageId, _skipHash) {
   // 페이지 진입 시 데이터 로드
   if (pageId === 'adminMgmt')    loadAdminList();
   if (pageId === 'menuMgmt')     loadMenuList();
-  if (pageId === 'sectionMgmt')  loadSectionMgmt();
+  if (pageId === 'sectionMgmt')  loadSectionGroups();
   if (pageId === 'scriptMgmt')   loadScript();
   if (pageId === 'socialMgmt')   loadSocial();
   if (pageId === 'bannerMgmt')   loadBannerList();
@@ -413,7 +415,8 @@ function showPage(pageId, _skipHash) {
   if (pageId === 'legalTermsMgmt') loadLegalTermsAdmin();
 
   if (pageId === 'homepageInfo') hiLoad();
-  if (pageId === 'colorMgmt')   colorLoad();
+  if (pageId === 'colorMgmt')   loadColorGroups();
+  if (pageId === 'designMgmt')  loadDesignPages();
   if (pageId === 'logMgmt')     initLogMgmt();
 
   if (pageId === 'customInquiryCreate') { /* 별도 로드 없음 */ }
@@ -762,7 +765,7 @@ async function initDynSections() {
   const res = await apiPost('api/system.php', { action: 'dynSectionInit' });
   if (res.ok) {
     showToast('기본 섹션이 초기화되었습니다.', 'success');
-    loadDynSectionList();
+    loadDynSectionListByGroup(currentSectionGroupId);
   } else {
     showToast(res.msg || '초기화 실패', 'error');
   }
@@ -773,7 +776,7 @@ async function migrateDynSections() {
   const res = await apiPost('api/system.php', { action: 'dynSectionMigrate' });
   if (res.ok) {
     showToast(res.msg || 'DB 정리 완료', 'success');
-    loadDynSectionList();
+    loadDynSectionListByGroup(currentSectionGroupId);
   } else {
     showToast(res.msg || 'DB 정리 실패', 'error');
   }
@@ -782,7 +785,7 @@ async function migrateDynSections() {
 async function reorderDynSection(id, direction) {
   const res = await apiPost('api/system.php', { action: 'dynSectionReorder', id, direction });
   if (res.ok) {
-    loadDynSectionList();
+    loadDynSectionListByGroup(currentSectionGroupId);
   } else {
     showToast(res.msg || '순서 변경 실패', 'error');
   }
@@ -793,7 +796,7 @@ async function deleteDynSection(id, name) {
   const res = await apiPost('api/system.php', { action: 'dynSectionDelete', id });
   if (res.ok) {
     showToast('삭제되었습니다.', 'success');
-    loadDynSectionList();
+    loadDynSectionListByGroup(currentSectionGroupId);
   } else {
     showToast(res.msg || '삭제 실패', 'error');
   }
@@ -1091,3 +1094,299 @@ async function _adminHashRestore() {
 
 // hash 변경 감지 (뒤로가기/앞으로가기)
 window.addEventListener('hashchange', () => _adminHashRestore());
+
+// ===========================
+// SECTION GROUPS
+// ===========================
+let sectionGroupList   = [];
+let currentSectionGroupId = 1;
+
+async function loadSectionGroups() {
+  const res = await apiGet('api/design.php', { action: 'sectionGroupList' });
+  sectionGroupList = res.ok ? (res.data || []) : [];
+  renderSectionGroupTabs();
+  // 탭 렌더 후 현재 그룹 섹션 로드
+  loadDynSectionListByGroup(currentSectionGroupId);
+}
+
+function renderSectionGroupTabs() {
+  const wrap = document.getElementById('sectionGroupTabs');
+  if (!wrap) return;
+  wrap.innerHTML = sectionGroupList.map(g => {
+    const active = g.id == currentSectionGroupId ? 'background:var(--primary);color:#fff;' : 'background:var(--bg2);color:var(--text);';
+    return `<button class="btn btn-sm" style="${active}border:1px solid var(--border);border-radius:20px;padding:4px 14px;font-size:.8rem;"
+      onclick="switchSectionGroup(${g.id})">${escapeHtmlMgmt(g.name)}${g.is_default ? ' <span style="font-size:.65rem;opacity:.7;">(기본)</span>' : ''}</button>`;
+  }).join('');
+}
+
+function switchSectionGroup(id) {
+  currentSectionGroupId = id;
+  const grp = sectionGroupList.find(g => g.id == id);
+  const nameEl = document.getElementById('sectionGroupCurrentName');
+  if (nameEl && grp) nameEl.textContent = grp.name + (grp.is_default ? ' (기본)' : '');
+  const delBtn = document.getElementById('sectionGroupDeleteBtn');
+  if (delBtn) delBtn.style.display = grp && !grp.is_default ? '' : 'none';
+  renderSectionGroupTabs();
+  loadDynSectionListByGroup(id);
+}
+
+async function loadDynSectionListByGroup(groupId) {
+  const res = await apiGet('api/design.php', { action: 'dynSectionListByGroup', group_id: groupId });
+  dynSectionList = res.ok ? (res.data || []) : [];
+  renderDynSectionList();
+}
+
+function openSectionGroupModal(id) {
+  const grp = id ? sectionGroupList.find(g => g.id == id) : null;
+  document.getElementById('sectionGroupModalTitle').textContent = grp ? '그룹 수정' : '섹션 그룹 추가';
+  document.getElementById('sgEditId').value   = grp ? grp.id : '';
+  document.getElementById('sgEditName').value = grp ? grp.name : '';
+  openModal('sectionGroupModal');
+}
+
+async function saveSectionGroup() {
+  const id   = document.getElementById('sgEditId').value;
+  const name = document.getElementById('sgEditName').value.trim();
+  if (!name) { showToast('그룹명을 입력하세요.', 'error'); return; }
+  const res = await apiPost('api/design.php', { action: 'sectionGroupSave', id, name });
+  if (res.ok) {
+    showToast('저장되었습니다.', 'success');
+    closeModal('sectionGroupModal');
+    await loadSectionGroups();
+    if (res.id) switchSectionGroup(res.id);
+  } else {
+    showToast(res.msg || '저장 실패', 'error');
+  }
+}
+
+async function deleteSectionGroup() {
+  const grp = sectionGroupList.find(g => g.id == currentSectionGroupId);
+  if (!grp || grp.is_default) return;
+  if (!confirm(`"${grp.name}" 그룹을 삭제합니다.\n이 그룹에 속한 섹션도 모두 삭제됩니다.\n계속하시겠습니까?`)) return;
+  const res = await apiPost('api/design.php', { action: 'sectionGroupDelete', id: currentSectionGroupId });
+  if (res.ok) {
+    showToast('삭제되었습니다.', 'success');
+    currentSectionGroupId = 1;
+    await loadSectionGroups();
+  } else {
+    showToast(res.msg || '삭제 실패', 'error');
+  }
+}
+
+// saveDynSection 에 group_id 추가 (기존 함수 override)
+const _origSaveDynSection = typeof saveDynSection === 'function' ? saveDynSection : null;
+async function saveDynSection() {
+  const id       = document.getElementById('dynSecId').value;
+  const name     = document.getElementById('dynSecName').value.trim();
+  const fileName = document.getElementById('dynSecFile').value.trim();
+  const isActive = document.getElementById('dynSecActive').checked ? 1 : 0;
+  const sortOrder= parseInt(document.getElementById('dynSecOrder').value) || 0;
+  if (!name)     { showToast('섹션명을 입력하세요.', 'error'); return; }
+  if (!fileName) { showToast('파일명을 입력하세요.', 'error'); return; }
+  const fileBase = fileName.replace(/\.php$/i, '');
+  if (!/^[a-zA-Z0-9_\-]+$/.test(fileBase)) { showToast('파일명은 영문, 숫자, _, - 만 사용 가능합니다.', 'error'); return; }
+  const navLabel = document.getElementById('dynSecNavLabel').value.trim();
+  const anchorId = document.getElementById('dynSecAnchorId').value.trim();
+  const params   = document.getElementById('dynSecParams').value.trim();
+  const res = await apiPost('api/system.php', {
+    action: 'dynSectionSave',
+    id, name, file_name: fileBase,
+    nav_label: navLabel, anchor_id: anchorId, params,
+    is_active: isActive, sort_order: sortOrder,
+    group_id: currentSectionGroupId
+  });
+  if (res.ok) {
+    showToast(id ? '수정되었습니다.' : '추가되었습니다.', 'success');
+    closeDynSectionModal();
+    loadDynSectionListByGroup(currentSectionGroupId);
+  } else {
+    showToast(res.msg || '저장 실패', 'error');
+  }
+}
+
+// ===========================
+// COLOR GROUPS
+// ===========================
+let colorGroupList   = [];
+let currentColorGroupId = 1;
+
+async function loadColorGroups() {
+  const res = await apiGet('api/design.php', { action: 'colorGroupList' });
+  colorGroupList = res.ok ? (res.data || []) : [];
+  renderColorGroupTabs();
+  const defaultGrp = colorGroupList.find(g => g.is_default == 1) || colorGroupList[0];
+  if (defaultGrp) switchColorGroup(defaultGrp.id, false);
+}
+
+function renderColorGroupTabs() {
+  const wrap = document.getElementById('colorGroupTabs');
+  if (!wrap) return;
+  wrap.innerHTML = colorGroupList.map(g => {
+    const active = g.id == currentColorGroupId ? 'background:var(--primary);color:#fff;' : 'background:var(--bg2);color:var(--text);';
+    return `<button class="btn btn-sm" style="${active}border:1px solid var(--border);border-radius:20px;padding:4px 14px;font-size:.8rem;"
+      onclick="switchColorGroup(${g.id}, true)">${escapeHtmlMgmt(g.name)}${g.is_default ? ' <span style="font-size:.65rem;opacity:.7;">(기본)</span>' : ''}</button>`;
+  }).join('');
+}
+
+function switchColorGroup(id, load = true) {
+  currentColorGroupId = id;
+  const grp = colorGroupList.find(g => g.id == id);
+  const nameEl = document.getElementById('colorGroupCurrentName');
+  if (nameEl && grp) nameEl.textContent = grp.name + (grp.is_default ? ' (기본)' : '');
+  const delBtn = document.getElementById('colorGroupDeleteBtn');
+  if (delBtn) delBtn.style.display = grp && !grp.is_default ? '' : 'none';
+  renderColorGroupTabs();
+  if (load && grp) {
+    colorSetAll('color_base',  grp.color_base  || '#1255a6');
+    colorSetAll('color_point', grp.color_point || '#1e7fe8');
+    colorSetAll('color_sub',   grp.color_sub   || '#00c6ff');
+    colorSetAll('color_sub2',  grp.color_sub2  || '#ff6b35');
+    colorRefreshPreview();
+  }
+}
+
+function openColorGroupModal(id) {
+  const grp = id ? colorGroupList.find(g => g.id == id) : null;
+  document.getElementById('colorGroupModalTitle').textContent = grp ? '그룹 수정' : '컬러 그룹 추가';
+  document.getElementById('cgEditId').value   = grp ? grp.id : '';
+  document.getElementById('cgEditName').value = grp ? grp.name : '';
+  openModal('colorGroupModal');
+}
+
+async function saveColorGroup() {
+  const id   = document.getElementById('cgEditId').value;
+  const name = document.getElementById('cgEditName').value.trim();
+  if (!name) { showToast('그룹명을 입력하세요.', 'error'); return; }
+  // 새 그룹이면 현재 입력값으로 초기화
+  const base  = document.getElementById('color_base_text')?.value  || '#1255a6';
+  const point = document.getElementById('color_point_text')?.value || '#1e7fe8';
+  const sub   = document.getElementById('color_sub_text')?.value   || '#00c6ff';
+  const sub2  = document.getElementById('color_sub2_text')?.value  || '#ff6b35';
+  const res = await apiPost('api/design.php', { action: 'colorGroupSave', id, name, color_base: base, color_point: point, color_sub: sub, color_sub2: sub2 });
+  if (res.ok) {
+    showToast('저장되었습니다.', 'success');
+    closeModal('colorGroupModal');
+    await loadColorGroups();
+    if (res.id) switchColorGroup(res.id, true);
+  } else {
+    showToast(res.msg || '저장 실패', 'error');
+  }
+}
+
+async function deleteColorGroup() {
+  const grp = colorGroupList.find(g => g.id == currentColorGroupId);
+  if (!grp || grp.is_default) return;
+  if (!confirm(`"${grp.name}" 컬러 그룹을 삭제하시겠습니까?`)) return;
+  const res = await apiPost('api/design.php', { action: 'colorGroupDelete', id: currentColorGroupId });
+  if (res.ok) {
+    showToast('삭제되었습니다.', 'success');
+    currentColorGroupId = 1;
+    await loadColorGroups();
+  } else {
+    showToast(res.msg || '삭제 실패', 'error');
+  }
+}
+
+// colorSave override — 현재 선택된 컬러 그룹에 저장
+async function colorSave() {
+  const base  = (document.getElementById('color_base_text')?.value  || '').trim();
+  const point = (document.getElementById('color_point_text')?.value || '').trim();
+  const sub   = (document.getElementById('color_sub_text')?.value   || '').trim();
+  const sub2  = (document.getElementById('color_sub2_text')?.value  || '').trim();
+  const hexOk = v => /^#[0-9a-fA-F]{3,8}$/.test(v);
+  if (!hexOk(base)||!hexOk(point)||!hexOk(sub)||!hexOk(sub2)) {
+    showToast('올바른 HEX 색상 코드를 입력해주세요.', 'error'); return;
+  }
+  const grp = colorGroupList.find(g => g.id == currentColorGroupId);
+  const name = grp ? grp.name : '기본 컬러';
+  const res = await apiPost('api/design.php', { action: 'colorGroupSave', id: currentColorGroupId, name, color_base: base, color_point: point, color_sub: sub, color_sub2: sub2 });
+  if (res.ok) {
+    showToast('저장되었습니다.', 'success');
+    await loadColorGroups();
+  } else {
+    showToast(res.msg || '저장 실패', 'error');
+  }
+}
+
+// ===========================
+// DESIGN PAGES
+// ===========================
+let designPageList = [];
+
+async function loadDesignPages() {
+  const res = await apiGet('api/design.php', { action: 'designPageList' });
+  designPageList = res.ok ? (res.data || []) : [];
+  renderDesignPageList();
+}
+
+function renderDesignPageList() {
+  const tbody = document.getElementById('designPageTbody');
+  if (!tbody) return;
+  if (!designPageList.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#aaa;padding:24px;">생성된 페이지가 없습니다.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = designPageList.map((p, i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td>${escapeHtmlMgmt(p.label || '—')}</td>
+      <td><code>${escapeHtmlMgmt(p.slug)}.php</code></td>
+      <td>${escapeHtmlMgmt(p.section_group_name || '—')}</td>
+      <td>${escapeHtmlMgmt(p.color_group_name || '—')}</td>
+      <td><a href="/${escapeHtmlMgmt(p.slug)}.php" target="_blank" style="font-size:.8rem;color:var(--primary);">/${escapeHtmlMgmt(p.slug)}.php ↗</a></td>
+      <td><div class="table-actions">
+        <button class="btn btn-sm btn-outline" onclick="openDesignPageModal('${p.id}')">수정</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteDesignPage('${p.id}','${escapeAttrMgmt(p.slug)}')">삭제</button>
+      </div></td>
+    </tr>
+  `).join('');
+}
+
+async function openDesignPageModal(id) {
+  // 섹션/컬러 그룹 최신화
+  const [sgRes, cgRes] = await Promise.all([
+    apiGet('api/design.php', { action: 'sectionGroupList' }),
+    apiGet('api/design.php', { action: 'colorGroupList' }),
+  ]);
+  const sgs = sgRes.ok ? sgRes.data : [];
+  const cgs = cgRes.ok ? cgRes.data : [];
+
+  document.getElementById('dpSectionGroupId').innerHTML = sgs.map(g => `<option value="${g.id}">${escapeHtmlMgmt(g.name)}${g.is_default?' (기본)':''}</option>`).join('');
+  document.getElementById('dpColorGroupId').innerHTML   = cgs.map(g => `<option value="${g.id}">${escapeHtmlMgmt(g.name)}${g.is_default?' (기본)':''}</option>`).join('');
+
+  const page = id ? designPageList.find(p => p.id == id) : null;
+  document.getElementById('designPageModalTitle').textContent = page ? '페이지 수정' : '페이지 만들기';
+  document.getElementById('dpId').value                = page ? page.id       : '';
+  document.getElementById('dpLabel').value             = page ? (page.label || '') : '';
+  document.getElementById('dpSlug').value              = page ? page.slug      : '';
+  document.getElementById('dpSectionGroupId').value    = page ? page.section_group_id : (sgs[0]?.id || 1);
+  document.getElementById('dpColorGroupId').value      = page ? page.color_group_id   : (cgs[0]?.id || 1);
+  document.getElementById('dpExtraCss').value          = page ? (page.extra_css || '') : '';
+
+  openModal('designPageModal');
+}
+
+async function saveDesignPage() {
+  const id    = document.getElementById('dpId').value;
+  const slug  = document.getElementById('dpSlug').value.trim();
+  const label = document.getElementById('dpLabel').value.trim();
+  const sgId  = document.getElementById('dpSectionGroupId').value;
+  const cgId  = document.getElementById('dpColorGroupId').value;
+  const css   = document.getElementById('dpExtraCss').value;
+  if (!slug) { showToast('파일명을 입력하세요.', 'error'); return; }
+  const res = await apiPost('api/design.php', { action: 'designPageSave', id, slug, label, section_group_id: sgId, color_group_id: cgId, extra_css: css });
+  if (res.ok) {
+    showToast(`페이지가 생성되었습니다. → ${res.file}`, 'success');
+    closeModal('designPageModal');
+    loadDesignPages();
+  } else {
+    showToast(res.msg || '저장 실패', 'error');
+  }
+}
+
+async function deleteDesignPage(id, slug) {
+  if (!confirm(`"/${slug}.php" 페이지를 삭제하시겠습니까?\n(서버에서 파일도 함께 삭제됩니다)`)) return;
+  const res = await apiPost('api/design.php', { action: 'designPageDelete', id });
+  if (res.ok) { showToast('삭제되었습니다.', 'success'); loadDesignPages(); }
+  else showToast(res.msg || '삭제 실패', 'error');
+}

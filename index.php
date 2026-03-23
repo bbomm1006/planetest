@@ -4,12 +4,50 @@
 <?php
   $legalSlug = isset($_GET['legal']) ? preg_replace('/[^a-zA-Z0-9\-_]/', '', (string) $_GET['legal']) : '';
 
+  // ── 디자인 만들기 분기: PAGE_SECTION_GROUP / PAGE_COLOR_GROUP 상수 ──
+  $pageSectionGroupId = defined('PAGE_SECTION_GROUP') ? (int)PAGE_SECTION_GROUP : 0;
+  $pageColorGroupId   = defined('PAGE_COLOR_GROUP')   ? (int)PAGE_COLOR_GROUP   : 0;
+  $pageExtraCss       = defined('PAGE_EXTRA_CSS')     ? PAGE_EXTRA_CSS          : '';
+
+  // 페이지 전용 컬러 그룹 주입 (기본 그룹이 아닐 때만)
+  if ($pageColorGroupId > 0) {
+    try {
+      $cgRow = $pdo->query("SELECT color_base,color_point,color_sub,color_sub2 FROM color_groups WHERE id={$pageColorGroupId}")->fetch(PDO::FETCH_ASSOC);
+      if ($cgRow) {
+        $cvars = [];
+        foreach (['color_base'=>'--color-base','color_point'=>'--color-point','color_sub'=>'--color-sub','color_sub2'=>'--color-sub2'] as $col => $var) {
+          $v = trim($cgRow[$col] ?? '');
+          if (preg_match('/^#[0-9a-fA-F]{3,8}$/', $v)) $cvars[] = $var.':'.$v;
+        }
+        if ($cvars) echo '<style>:root{'.implode(';',$cvars).'}</style>'."\n";
+      }
+    } catch (Exception $e) {}
+  }
+
+  // 추가 CSS 주입
+  if (trim($pageExtraCss) !== '') {
+    echo '<style>'."\n".htmlspecialchars_decode($pageExtraCss)."\n".'</style>'."\n";
+  }
+
   // front_sections 테이블에서 모든 섹션을 순서대로 로드
   $allSections = [];
   try {
-    $stmt = $pdo->query("SELECT * FROM front_sections ORDER BY sort_order, id");
+    if ($pageSectionGroupId > 0) {
+      // 특정 그룹 섹션만 로드
+      $stmt = $pdo->prepare("SELECT * FROM front_sections WHERE group_id=? ORDER BY sort_order, id");
+      $stmt->execute([$pageSectionGroupId]);
+    } else {
+      // 기본: group_id=1 또는 group_id IS NULL (하위호환)
+      $stmt = $pdo->query("SELECT * FROM front_sections WHERE group_id=1 OR group_id IS NULL OR group_id=0 ORDER BY sort_order, id");
+    }
     $allSections = $stmt->fetchAll(PDO::FETCH_ASSOC);
-  } catch (Exception $e) {}
+  } catch (Exception $e) {
+    // group_id 컬럼 없는 구버전 호환
+    try {
+      $stmt = $pdo->query("SELECT * FROM front_sections ORDER BY sort_order, id");
+      $allSections = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e2) {}
+  }
 
   // 코어 파일명 (wrapper div 없이 직접 include)
   $coreSections = ['_site', '_nav', '_ft'];
@@ -23,7 +61,6 @@
   }
 
   // 섹션 파일명 → 필요한 JS 매핑
-  // 값이 배열인 경우 해당 JS 파일들을 조건부 로드
   $sectionJsMap = [
     'top_banner'           => ['hero.js', 'popup.js', 'countdown.js'],
     '_nav'                 => ['nav-fade.js'],
@@ -45,13 +82,10 @@
     'qna'                  => ['inquiry.js'],
   ];
 
-  // 로드할 JS 파일 목록 수집 (중복 제거)
   $jsToLoad = [];
   foreach ($activeFileNames as $fn) {
     if (isset($sectionJsMap[$fn])) {
-      foreach ($sectionJsMap[$fn] as $js) {
-        $jsToLoad[$js] = true;
-      }
+      foreach ($sectionJsMap[$fn] as $js) { $jsToLoad[$js] = true; }
     }
   }
 ?>
@@ -109,8 +143,6 @@
     <?php include $filePath; ?>
   <?php else: ?>
     <div<?= $anchorId !== '' ? ' id="' . htmlspecialchars($anchorId) . '"' : '' ?> data-section-key="<?= htmlspecialchars($sec['key'] ?? '') ?>">
-      <?php if ($fn === 'bkf_front'): ?>
-      <?php endif; ?>
       <?php include $filePath; ?>
     </div>
   <?php endif;
@@ -139,54 +171,22 @@
   <script src="js/utils.js"></script>
 
   <!-- 섹션별 조건부 JS 로드 -->
-  <?php if (isset($jsToLoad['hero.js'])): ?>
-  <script src="js/hero.js"></script>
-  <?php endif; ?>
-  <?php if (isset($jsToLoad['countdown.js'])): ?>
-  <script src="js/countdown.js"></script>
-  <?php endif; ?>
-  <?php if (isset($jsToLoad['nav-fade.js'])): ?>
-  <script src="js/nav-fade.js"></script>
-  <?php endif; ?>
-  <?php if (isset($jsToLoad['products.js'])): ?>
-  <script src="js/products.js"></script>
-  <?php endif; ?>
-  <?php if (isset($jsToLoad['recommend.js'])): ?>
-  <script src="js/recommend.js"></script>
-  <?php endif; ?>
-  <?php if (isset($jsToLoad['video-reviews.js'])): ?>
-  <script src="js/video-reviews.js"></script>
-  <?php endif; ?>
-  <?php if (isset($jsToLoad['notice-faq-gallery.js'])): ?>
-  <script src="js/notice-faq-gallery.js"></script>
-  <?php endif; ?>
-  <?php if (isset($jsToLoad['bbs_photogallery.js'])): ?>
-  <script src="js/bbs_photogallery.js"></script>
-  <?php endif; ?>
-  <?php if (isset($jsToLoad['bbs_slidegallery.js'])): ?>
-  <script src="js/bbs_slidegallery.js"></script>
-  <?php endif; ?>
-  <?php if (isset($jsToLoad['store.js'])): ?>
-  <script src="js/store.js"></script>
-  <?php endif; ?>
-  <?php if (isset($jsToLoad['reservation.js'])): ?>
-  <script src="js/reservation.js"></script>
-  <?php endif; ?>
-  <?php if (isset($jsToLoad['reservationLookup.js'])): ?>
-  <script src="js/reservationLookup.js"></script>
-  <?php endif; ?>
-  <?php if (isset($jsToLoad['timeslots.js'])): ?>
-  <script src="js/timeslots.js"></script>
-  <?php endif; ?>
-  <?php if (isset($jsToLoad['custom_inquiry_front.js'])): ?>
-  <script src="js/custom_inquiry_front.js"></script>
-  <?php endif; ?>
-  <?php if (isset($jsToLoad['inquiry.js'])): ?>
-  <script src="js/inquiry.js"></script>
-  <?php endif; ?>
-  <?php if (isset($jsToLoad['popup.js'])): ?>
-  <script src="js/popup.js"></script>
-  <?php endif; ?>
+  <?php if (isset($jsToLoad['hero.js'])): ?><script src="js/hero.js"></script><?php endif; ?>
+  <?php if (isset($jsToLoad['countdown.js'])): ?><script src="js/countdown.js"></script><?php endif; ?>
+  <?php if (isset($jsToLoad['nav-fade.js'])): ?><script src="js/nav-fade.js"></script><?php endif; ?>
+  <?php if (isset($jsToLoad['products.js'])): ?><script src="js/products.js"></script><?php endif; ?>
+  <?php if (isset($jsToLoad['recommend.js'])): ?><script src="js/recommend.js"></script><?php endif; ?>
+  <?php if (isset($jsToLoad['video-reviews.js'])): ?><script src="js/video-reviews.js"></script><?php endif; ?>
+  <?php if (isset($jsToLoad['notice-faq-gallery.js'])): ?><script src="js/notice-faq-gallery.js"></script><?php endif; ?>
+  <?php if (isset($jsToLoad['bbs_photogallery.js'])): ?><script src="js/bbs_photogallery.js"></script><?php endif; ?>
+  <?php if (isset($jsToLoad['bbs_slidegallery.js'])): ?><script src="js/bbs_slidegallery.js"></script><?php endif; ?>
+  <?php if (isset($jsToLoad['store.js'])): ?><script src="js/store.js"></script><?php endif; ?>
+  <?php if (isset($jsToLoad['reservation.js'])): ?><script src="js/reservation.js"></script><?php endif; ?>
+  <?php if (isset($jsToLoad['reservationLookup.js'])): ?><script src="js/reservationLookup.js"></script><?php endif; ?>
+  <?php if (isset($jsToLoad['timeslots.js'])): ?><script src="js/timeslots.js"></script><?php endif; ?>
+  <?php if (isset($jsToLoad['custom_inquiry_front.js'])): ?><script src="js/custom_inquiry_front.js"></script><?php endif; ?>
+  <?php if (isset($jsToLoad['inquiry.js'])): ?><script src="js/inquiry.js"></script><?php endif; ?>
+  <?php if (isset($jsToLoad['popup.js'])): ?><script src="js/popup.js"></script><?php endif; ?>
   <?php if (isset($jsToLoad['bkf_public.js']) || in_array('bkf_front', $activeFileNames)): ?>
   <script src="/js/bkf_public.js" defer></script>
   <?php endif; ?>

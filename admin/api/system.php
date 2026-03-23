@@ -165,6 +165,7 @@ if ($action === 'dynSectionSave') {
     $params    = trim($_POST['params']     ?? '');
     $isActive  = (int)($_POST['is_active']  ?? 1);
     $sortOrder = (int)($_POST['sort_order'] ?? 0);
+    $groupId   = (int)($_POST['group_id']   ?? 1);
 
     if ($name === '' || $fileName === '') {
         echo json_encode(['ok' => false, 'msg' => '섹션명과 파일명은 필수입니다.']);
@@ -182,20 +183,20 @@ if ($action === 'dynSectionSave') {
             $pdo->prepare(
                 'UPDATE front_sections
                     SET name=?, file_name=?, title=?, subtitle=?,
-                        nav_label=?, anchor_id=?, params=?, is_active=?, sort_order=?
+                        nav_label=?, anchor_id=?, params=?, is_active=?, sort_order=?, group_id=?
                   WHERE id=?'
             )->execute([$name, $fileName, $title, $subtitle,
-                        $navLabel, $anchorId, $params, $isActive, $sortOrder, $id]);
+                        $navLabel, $anchorId, $params, $isActive, $sortOrder, $groupId, $id]);
         } else {
             // key 중복 방지: dyn_파일명_타임스탬프 suffix
             $baseKey = 'dyn_' . preg_replace('/[^a-zA-Z0-9_\-]/', '_', $fileName);
             $key     = $baseKey . '_' . time();
             $pdo->prepare(
                 'INSERT INTO front_sections
-                   (name, file_name, `key`, title, subtitle, nav_label, anchor_id, params, is_active, sort_order)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                   (name, file_name, `key`, title, subtitle, nav_label, anchor_id, params, is_active, sort_order, group_id)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
             )->execute([$name, $fileName, $key, $title, $subtitle,
-                        $navLabel, $anchorId, $params, $isActive, $sortOrder]);
+                        $navLabel, $anchorId, $params, $isActive, $sortOrder, $groupId]);
         }
         logAdminAction($pdo, $id > 0 ? 'update' : 'insert', 'front_sections', (string)($id ?: 'new'));
         echo json_encode(['ok' => true]);
