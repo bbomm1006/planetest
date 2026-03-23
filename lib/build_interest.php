@@ -19,12 +19,9 @@
       </div>
       <div>
         <form id="intForm" onsubmit="submitInterest(event)">
-          <div class="form-row"><label class="form-lbl" style="color:var(--g3);">이름 <span class="req">*</span></label><input class="form-inp dark" type="text" name="name" placeholder="이름" required></div>
-          <div class="form-row"><label class="form-lbl" style="color:var(--g3);">이메일</label><input class="form-inp dark" type="email" name="email" placeholder="이메일"></div>
-          <div class="form-row"><label class="form-lbl" style="color:var(--g3);">연락처 <span class="req">*</span></label><input class="form-inp dark" type="tel" name="phone" placeholder="010-0000-0000" required></div>
-          <div class="form-row"><label class="form-lbl" style="color:var(--g3);">문의 내용</label><textarea class="form-ta dark" name="message" placeholder="문의하실 내용을 입력해주세요." rows="4"></textarea></div>
-          <div class="form-chk"><input type="checkbox" id="intPriv" required><label class="form-chk-lbl light" for="intPriv">개인정보처리방침 및 수집·이용에 동의합니다.</label><button type="button" class="terms-view-btn terms-view-btn-light" onclick="intTermsOpen()">보기</button></div>
-          <button type="submit" class="form-sub gold-btn">관심고객 등록</button>
+          <div id="intFieldsWrap"><!-- 필드: JS에서 동적 렌더링 --></div>
+          <div id="intTermsWrap"><!-- 약관 체크박스: JS에서 동적 렌더링 --></div>
+          <button type="submit" class="form-sub gold-btn" id="intSubmitBtn">관심고객 등록</button>
         </form>
         <div id="intRes" class="form-res"></div>
       </div>
@@ -63,8 +60,77 @@
   </div>
 </div>
 
+
+
 <script>
-function intTermsOpen() {
+/* ── 관심고객 폼 (form3) – config API 완전 연동 버전 ── */
+var _intFormConfig = null;
+
+/* ── 필드 타입 → input HTML 생성 ── */
+function _intBuildField(fd) {
+  var key  = fd.field_key || '';
+  var lbl  = fd.label || '';
+  var type = fd.type  || 'text';
+  var ph   = fd.placeholder || '';
+  var req  = fd.is_required == 1;
+  var reqMark = req ? ' <span class="req">*</span>' : '';
+  var reqAttr = req ? ' required' : '';
+
+  var inputHtml = '';
+  if (type === 'textarea') {
+    inputHtml = '<textarea class="form-ta dark" name="' + key + '" placeholder="' + ph + '" rows="4"' + reqAttr + '></textarea>';
+  } else if (type === 'select') {
+    var opts = '<option value="">선택해주세요</option>';
+    (fd.options || []).forEach(function(o) { opts += '<option value="' + o + '">' + o + '</option>'; });
+    inputHtml = '<select class="form-inp dark" name="' + key + '"' + reqAttr + '>' + opts + '</select>';
+  } else if (type === 'radio' || type === 'checkbox') {
+    var items = '';
+    (fd.options || []).forEach(function(o, i) {
+      items += '<label style="display:inline-flex;align-items:center;gap:6px;margin-right:14px;">'
+             + '<input type="' + type + '" name="' + key + '" value="' + o + '"' + (i===0 && req ? ' required' : '') + '> ' + o + '</label>';
+    });
+    inputHtml = '<div class="form-check-group">' + items + '</div>';
+  } else {
+    /* text / email / tel / number / date 등 */
+    var inputType = (['email','tel','number','date','password'].indexOf(type) >= 0) ? type : 'text';
+    inputHtml = '<input class="form-inp dark" type="' + inputType + '" name="' + key + '" placeholder="' + ph + '"' + reqAttr + '>';
+  }
+
+  return '<div class="form-row"><label class="form-lbl" style="color:var(--g3);">' + lbl + reqMark + '</label>' + inputHtml + '</div>';
+}
+
+/* ── 약관 체크박스 렌더링 ── */
+function _intRenderTerms(terms) {
+  var wrap = document.getElementById('intTermsWrap');
+  if (!wrap) return;
+  if (!terms || terms.length === 0) {
+    wrap.innerHTML = '';
+    return;
+  }
+  var html = '';
+  terms.forEach(function(t, i) {
+    var tid  = 'intTerm_' + i;
+    var name = t.title || t.name || '약관';
+    html += '<div class="form-chk">'
+          + '<input type="checkbox" id="' + tid + '" data-term-id="' + (t.id || i) + '" required>'
+          + '<label class="form-chk-lbl light" for="' + tid + '">' + name + '</label>'
+          + '<button type="button" class="terms-view-btn terms-view-btn-light" onclick="intTermsOpen(' + i + ')">보기</button>'
+          + '</div>';
+  });
+  wrap.innerHTML = html;
+}
+
+/* ── 약관 모달 열기 (인덱스 기반) ── */
+function intTermsOpen(idx) {
+  idx = idx || 0;
+  var terms = _intFormConfig && _intFormConfig.terms ? _intFormConfig.terms : [];
+  var t = terms[idx] || terms[0];
+  if (t) {
+    var ttlEl  = document.getElementById('intTermsModalTitle');
+    var bodyEl = document.getElementById('intTermsBody');
+    if (ttlEl)  ttlEl.textContent  = t.title || t.name || '약관';
+    if (bodyEl) bodyEl.innerHTML   = '<div style="white-space:pre-wrap;font-size:.85rem;line-height:1.75;color:#444;">' + (t.content || '') + '</div>';
+  }
   document.getElementById('intTermsModal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -80,70 +146,59 @@ function intSuccessClose() {
   document.getElementById('intSuccessModal').classList.remove('open');
   document.body.style.overflow = '';
 }
-</script>
 
-<script>
-/* ── 관심고객 폼 제출 → custom_inquiry_public.php (table: form3) ── */
-var _intFormConfig = null;
-
-/* 페이지 로드 시 form3 필드 config 미리 조회 */
+/* ── config 로드 → 필드·약관·버튼 렌더링 ── */
 (function() {
   fetch('/admin/api_front/custom_inquiry_public.php?action=config&table_name=form3')
     .then(function(r) { return r.json(); })
     .then(function(data) {
-      if (data.ok) {
-        _intFormConfig = data;
-        /* 약관 모달 내용 동적 주입 */
-        var bodyEl = document.getElementById('intTermsBody');
-        if (bodyEl && data.terms && data.terms.length > 0) {
-          var html = '';
-          data.terms.forEach(function(t) {
-            html += '<h4>' + (t.title || t.name || '약관') + '</h4>';
-            html += '<div style="white-space:pre-wrap;font-size:.85rem;line-height:1.75;color:#444;">' + (t.content || '') + '</div>';
-          });
-          bodyEl.innerHTML = html;
-          /* 모달 타이틀도 첫 약관명으로 교체 */
-          var ttlEl = document.getElementById('intTermsModalTitle');
-          if (ttlEl && data.terms[0]) ttlEl.textContent = data.terms[0].title || data.terms[0].name || '개인정보 수집·이용 동의';
-        } else if (bodyEl) {
-          bodyEl.innerHTML = '<p style="color:#999;font-size:.85rem;">등록된 약관이 없습니다.</p>';
-        }
+      if (!data.ok) return;
+      _intFormConfig = data;
+
+      /* 필드 렌더링 */
+      var fieldsWrap = document.getElementById('intFieldsWrap');
+      if (fieldsWrap && data.fields && data.fields.length) {
+        fieldsWrap.innerHTML = data.fields.map(_intBuildField).join('');
+      }
+
+      /* 약관 체크박스 렌더링 */
+      _intRenderTerms(data.terms);
+
+      /* 버튼명 반영 */
+      var btn = document.getElementById('intSubmitBtn');
+      if (btn && data.form && data.form.btn_name) {
+        btn.textContent = data.form.btn_name;
       }
     })
     .catch(function() {});
 })();
 
+/* ── 폼 제출 ── */
 function submitInterest(e) {
   e.preventDefault();
-  var f      = e.target;
-  var resEl  = document.getElementById('intRes');
-  var btn    = f.querySelector('[type=submit]');
+  var f     = e.target;
+  var resEl = document.getElementById('intRes');
+  var btn   = document.getElementById('intSubmitBtn');
 
-  var name    = f.querySelector('[name=name]')    ? f.querySelector('[name=name]').value.trim()    : '';
-  var phone   = f.querySelector('[name=phone]')   ? f.querySelector('[name=phone]').value.trim()   : '';
-  var email   = f.querySelector('[name=email]')   ? f.querySelector('[name=email]').value.trim()   : '';
-  var message = f.querySelector('[name=message]') ? f.querySelector('[name=message]').value.trim() : '';
-
-  if (!name || !phone) {
-    showRes(resEl, '이름과 연락처를 입력해주세요.', true);
-    return;
-  }
-
-  /* config에서 field_key 매핑, 없으면 기본 키로 fallback */
+  /* 필드값 수집 */
   var fields = {};
   if (_intFormConfig && _intFormConfig.fields) {
     _intFormConfig.fields.forEach(function(fd) {
-      var lbl = fd.label || '';
-      var key = fd.field_key || '';
-      /* 라벨 또는 키로 매핑 */
-      if (/이름|이름|name/i.test(lbl) || /name/i.test(key))    fields[key] = name;
-      else if (/연락처|전화|phone|tel/i.test(lbl) || /phone|tel/i.test(key)) fields[key] = phone;
-      else if (/이메일|email/i.test(lbl) || /email/i.test(key)) fields[key] = email;
-      else if (/내용|문의|message|content/i.test(lbl) || /message|content/i.test(key)) fields[key] = message;
+      var key  = fd.field_key;
+      var type = fd.type || 'text';
+      if (type === 'checkbox') {
+        var checked = Array.from(f.querySelectorAll('[name="' + key + '"]:checked')).map(function(el){ return el.value; });
+        fields[key] = checked.join(',');
+      } else {
+        var el = f.querySelector('[name="' + key + '"]');
+        fields[key] = el ? el.value.trim() : '';
+      }
     });
   } else {
-    /* config 미로드 시 기본값으로 전송 */
-    fields = { name: name, phone: phone, email: email, message: message };
+    /* config 미로드 시 fallback */
+    f.querySelectorAll('[name]').forEach(function(el) {
+      if (el.name) fields[el.name] = el.value.trim();
+    });
   }
 
   if (btn) { btn.disabled = true; btn.textContent = '등록 중...'; }
@@ -151,10 +206,7 @@ function submitInterest(e) {
   fetch('/admin/api_front/custom_inquiry_public.php?action=create', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      table_name: 'form3',
-      fields: fields
-    })
+    body: JSON.stringify({ table_name: 'form3', fields: fields })
   })
   .then(function(r) { return r.json(); })
   .then(function(data) {
@@ -169,15 +221,20 @@ function submitInterest(e) {
     showRes(resEl, '네트워크 오류가 발생했습니다. 다시 시도해주세요.', true);
   })
   .finally(function() {
-    if (btn) { btn.disabled = false; btn.textContent = '관심고객 등록'; }
+    var btnFinal = document.getElementById('intSubmitBtn');
+    if (btnFinal) {
+      btnFinal.disabled = false;
+      btnFinal.textContent = (_intFormConfig && _intFormConfig.form && _intFormConfig.form.btn_name)
+        ? _intFormConfig.form.btn_name : '관심고객 등록';
+    }
   });
 }
 
 function showRes(el, msg, isErr) {
   if (!el) return;
-  el.textContent = msg;
-  el.style.color = isErr ? '#e53e3e' : '#22863a';
+  el.textContent    = msg;
+  el.style.color    = isErr ? '#e53e3e' : '#22863a';
   el.style.marginTop = '12px';
-  el.style.fontSize = '.88rem';
+  el.style.fontSize  = '.88rem';
 }
 </script>
