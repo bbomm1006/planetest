@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>분양 사이트</title>
+<meta name="description" content="분양 사이트 — 분양 안내, 매물 정보, 상담 및 예약">
+
+  <!-- 외부 폰트 -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- 아이콘 라이브러리 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <!-- 공통 스타일시트 -->
+  <link rel="stylesheet" href="https://plane01.gabia.io/style/main.min.css">
+
+  <style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "DM Sans", "Noto Sans KR", sans-serif; background: #fff; }
+  </style>
+
+  <link rel="stylesheet" href="token.css">
+
+</head>
+<body>
+
+  <style>
+    #sec-build { position: relative; width: 100%; height: calc(100vh - var(--hh) - var(--sw)); min-height: 560px; max-height: 900px; overflow: hidden; }
+    .build-slides { position: relative; width: 100%; height: 100%; }
+    .build-sl { position: absolute; inset: 0; opacity: 0; transition: opacity 1.2s ease; z-index: 0; }
+    .build-sl.on { opacity: 1; z-index: 1; }
+    .build-bg { position: absolute; inset: 0; background-size: cover; background-position: center; transition: transform 9s ease; }
+    .build-sl.on .build-bg { transform: scale(1.07); }
+    .build-bg-def { background: linear-gradient(150deg, #0d0804 0%, #2a1a0e 45%, #3d2214 100%); }
+    .build-ov { position: absolute; inset: 0; }
+
+    .build-cnt { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; justify-content: center; padding: 0 8vw 80px; }
+    .build-badge { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 28px; opacity: 0; animation: buildFadeUp .9s .2s forwards; }
+    .build-badge-bar { width: 36px; height: 1px; background: var(--gold); }
+    .build-badge-txt { font-size: .7rem; font-weight: 700; letter-spacing: .28em; text-transform: uppercase; color: var(--gold); }
+    .build-sub { font-size: clamp(1rem,2.2vw,1.4rem); font-weight: 300; color: rgba(255,255,255,.55); letter-spacing: .14em; text-transform: uppercase; margin-bottom: 16px; opacity: 0; animation: buildFadeUp .9s .35s forwards; }
+    .build-ttl { font-size: clamp(2.8rem,6.5vw,5.2rem); font-weight: 900; color: var(--w); line-height: 1.08; letter-spacing: -.04em; margin-bottom: 24px; opacity: 0; animation: buildFadeUp .9s .5s forwards; }
+    .build-ttl strong { display: block; color: var(--gold); }
+    .build-desc { font-size: clamp(.88rem,1.4vw,1rem); color: rgba(255,255,255,.55); line-height: 1.85; margin-bottom: 44px; max-width: 480px; font-weight: 300; opacity: 0; animation: buildFadeUp .9s .65s forwards; }
+    .build-acts { display: flex; gap: 14px; flex-wrap: wrap; opacity: 0; animation: buildFadeUp .9s .8s forwards; }
+
+    .build-btn { display: inline-flex; align-items: center; gap: 10px; padding: 15px 36px; font-size: .84rem; font-weight: 700; letter-spacing: .08em; transition: all .25s; white-space: nowrap; font-family: var(--ff); border: none; cursor: pointer; }
+    .build-btn-fill { background: var(--br); color: var(--w); }
+    .build-btn-fill:hover { background: var(--bk2); transform: translateY(-2px); }
+    .build-btn-out { color: var(--w); border: 1px solid rgba(255,255,255,.4); background: transparent; }
+    .build-btn-out:hover { border-color: var(--gold); color: var(--gold); transform: translateY(-2px); }
+
+    /* 슬라이더 컨트롤 */
+    .build-ctrl { position: absolute; bottom: 36px; left: 8vw; z-index: 10; display: flex; align-items: center; gap: 16px; }
+    .build-dots { display: flex; gap: 7px; }
+    .build-dot { width: 5px; height: 5px; background: rgba(255,255,255,.25); border: none; cursor: pointer; transition: all .3s var(--ease); padding: 0; }
+    .build-dot.on { background: var(--gold); width: 28px; }
+
+    /* 우측 인포 패널 */
+    .build-info-panel {
+      position: absolute; right: 0; bottom: 0; z-index: 3;
+      width: clamp(200px, 20vw, 280px);
+      background: rgba(63,42,21,.75); backdrop-filter: blur(8px);
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 40px 28px; border-left: 1px solid rgba(255,255,255,.07);
+    }
+    .build-info-item { margin-bottom: 28px; }
+    .build-info-item:last-child { margin-bottom: 0; }
+    .build-info-lbl { font-size: .62rem; font-weight: 700; letter-spacing: .2em; color: var(--gold); text-transform: uppercase; margin-bottom: 6px; }
+    .build-info-val { font-size: .9rem; font-weight: 600; color: var(--w); line-height: 1.5; }
+
+    /* 스크롤 힌트 */
+    .build-scroll-hint { position: absolute; right: clamp(220px,21vw,290px); bottom: 36px; z-index: 3; display: flex; align-items: center; gap: 10px; opacity: .4; }
+    .build-scroll-hint span { font-size: .62rem; font-weight: 700; letter-spacing: .2em; color: var(--w); text-transform: uppercase; }
+    .build-scroll-line { width: 44px; height: 1px; background: var(--w); position: relative; overflow: hidden; }
+    .build-scroll-line::after { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: var(--gold); animation: scrollMove 1.8s ease-in-out infinite; }
+
+    .build-arrow { position:absolute; top:50%; transform:translateY(-50%); z-index:10; background:rgba(0,0,0,.3); color:#fff; border:none; font-size:2.4rem; line-height:1; padding:12px 18px; cursor:pointer; transition:background .2s; }
+    .build-arrow:hover { background:rgba(0,0,0,.6); }
+    .build-arrow-prev { left:0; }
+    .build-arrow-next { right:0; }
+    @media(max-width:680px) {
+      .build-arrow { font-size:1.8rem; padding:8px 12px; }
+      #sec-build     { max-height: 640px; min-height: 460px; }
+    }
+  </style>
+
+
+  <section id="sec-build">
+    <div class="build-slides" id="buildSlides">
+
+      <!-- 슬라이드 1 -->
+      <div class="build-sl on">
+        <div class="build-bg" style="background-image:url('https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg')"></div>
+        <div class="build-ov" style="background:rgba(20,11,4,.52)"></div>
+        <div class="build-cnt">
+          <div class="build-badge">
+            <span class="build-badge-bar"></span>
+            <span class="build-badge-txt">Premium Living</span>
+          </div>
+          <h1 class="build-ttl">건설을 넘어<strong>더 나은 문화 공간을</strong></h1>
+          <p class="build-desc">
+            단순한 주거공간을 넘어 새로운 라이프스타일을 창조하는<br>
+            라이프스타일 리더로 거듭나고자 합니다.
+          </p>
+          <div class="build-acts">
+            <button class="build-btn build-btn-fill" onclick="navTo('sec-interest')">관심고객 등록</button>
+            <button class="build-btn build-btn-out"  onclick="navTo('sec-inquiry')">문의하기</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 슬라이드 2 -->
+      <div class="build-sl">
+        <div class="build-bg" style="background-image:url('https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg')"></div>
+        <div class="build-ov" style="background:rgba(20,11,4,.48)"></div>
+        <div class="build-cnt">
+          <div class="build-badge">
+            <span class="build-badge-bar"></span>
+            <span class="build-badge-txt">Premium Living</span>
+          </div>
+          <h1 class="build-ttl">새로운 시작<strong>프리미엄 라이프스타일</strong></h1>
+          <p class="build-desc">
+            탁월한 입지와 풍부한 인프라로<br>
+            내일의 가치를 오늘 만나보세요.
+          </p>
+          <div class="build-acts">
+            <button class="build-btn build-btn-fill" onclick="navTo('sec-property')">매물정보 보기</button>
+            <button class="build-btn build-btn-out"  onclick="navTo('sec-interest')">관심고객 등록</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 슬라이드 3 -->
+      <div class="build-sl">
+        <div class="build-bg" style="background-image:url('https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg')"></div>
+        <div class="build-ov" style="background:rgba(20,11,4,.5)"></div>
+        <div class="build-cnt">
+          <div class="build-badge">
+            <span class="build-badge-bar"></span>
+            <span class="build-badge-txt">Premium Living</span>
+          </div>
+          <h1 class="build-ttl">품격 있는 공간<strong>차별화된 커뮤니티</strong></h1>
+          <p class="build-desc">
+            피트니스, 독서실, 게스트룸 등<br>
+            일상의 질을 높이는 커뮤니티 시설.
+          </p>
+          <div class="build-acts">
+            <button class="build-btn build-btn-fill" onclick="navTo('sec-complex')">단지안내 보기</button>
+            <button class="build-btn build-btn-out"  onclick="navTo('sec-inquiry')">문의하기</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <button class="build-arrow build-arrow-prev" onclick="buildNav(-1)">&#8249;</button>
+    <button class="build-arrow build-arrow-next" onclick="buildNav(1)">&#8250;</button>
+
+    <div class="build-ctrl">
+      <div class="build-dots" id="buildDots">
+        <button class="build-dot on"  onclick="buildGo(0)"></button>
+        <button class="build-dot"     onclick="buildGo(1)"></button>
+        <button class="build-dot"     onclick="buildGo(2)"></button>
+      </div>
+    </div>
+
+    <div class="build-info-panel">
+      <div class="build-info-item">
+        <div class="build-info-lbl">분양 문의</div>
+        <div class="build-info-val">0000-0000</div>
+      </div>
+      <div class="build-info-item">
+        <div class="build-info-lbl">홍보관</div>
+        <div class="build-info-val"></div>
+      </div>
+      <div class="build-info-item">
+        <div class="build-info-lbl">상담 시간</div>
+        <div class="build-info-val">평일 09:00 — 18:00</div>
+      </div>
+    </div>
+
+    <div class="build-scroll-hint">
+      <span>Scroll</span>
+      <div class="build-scroll-line"></div>
+    </div>
+  </section>
+
+  <script>
+  (function() {
+    var sl  = document.querySelectorAll('.build-sl');
+    var dt  = document.querySelectorAll('.build-dot');
+    var cur = 0, timer = null;
+    function go(n) {
+      sl[cur].classList.remove('on'); if(dt[cur]) dt[cur].classList.remove('on');
+      cur = (n + sl.length) % sl.length;
+      sl[cur].classList.add('on'); if(dt[cur]) dt[cur].classList.add('on');
+    }
+    function startTimer() {
+      if(timer) clearInterval(timer);
+      timer = setInterval(function(){ go(cur+1); }, 5000);
+    }
+    window.buildGo  = function(n) { go(n); startTimer(); };
+    window.buildNav = function(d) { go(cur+d); startTimer(); };
+    var sx = 0, slides = document.getElementById('buildSlides');
+    slides.addEventListener('touchstart', function(e){ sx = e.touches[0].clientX; }, {passive:true});
+    slides.addEventListener('touchend',   function(e){ var dx = sx - e.changedTouches[0].clientX; if(Math.abs(dx)>50) { go(cur+(dx>0?1:-1)); startTimer(); } });
+    startTimer();
+  })();
+  </script>
+
+  <!-- YouTube IFrame API -->
+  <script src="https://www.youtube.com/iframe_api"></script>
+
+</body>
+</html>

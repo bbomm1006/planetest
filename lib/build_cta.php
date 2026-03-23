@@ -9,7 +9,6 @@
       <div class="cta-acts">
         <button class="btn-cta btn-cta-dark" onclick="navTo('sec-inquiry')">문의하기</button>
         <button class="btn-cta btn-cta-out"  onclick="navTo('sec-interest')">관심고객 등록</button>
-        <a href="tel:0000-0000" class="cta-ph">0000-0000</a>
       </div>
     </div>
   </div>

@@ -4,67 +4,12 @@
       <div class="sec-eyebrow"><span class="sec-eyebrow-line"></span><span class="sec-eyebrow-txt">Unit Plan</span></div>
       <div class="sec-head-row">
         <h2 class="sec-ttl sec-ttl-dark">매물정보</h2>
-        <span class="btn-more" id="propMoreBtn" onclick="propMore()">
-          더보기 <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </span>
+        <div class="cx-cats" id="propCats"></div>
       </div>
       <p class="sec-sub" style="margin-top:12px;">단순한 주거공간을 넘어 새로운 라이프스타일을 창조합니다.</p>
     </div>
 
-    <div class="unit-grid" id="propGrid">
-      <div class="unit-card" onclick="glOpen('1','84A 타입',['https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg'],'전용 84㎡ / 계약 112㎡ / 150세대',true,'84.00','28.00','112.00','150')">
-        <div class="unit-img">
-          <img src="https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg" alt="84A 타입" loading="lazy">
-        </div>
-        <div class="unit-card-body">
-          <div class="unit-card-ttl">84A 타입</div>
-          <div class="unit-specs">
-            <div class="unit-spec-row"><span class="unit-spec-lbl">전용면적</span><span class="unit-spec-val">84.00 ㎡</span></div>
-            <div class="unit-spec-row"><span class="unit-spec-lbl">계약면적</span><span class="unit-spec-val">112.00 ㎡</span></div>
-            <div class="unit-spec-row"><span class="unit-spec-lbl">세대수</span><span class="unit-spec-val">150 세대</span></div>
-          </div>
-        </div>
-      </div>
-      <div class="unit-card" onclick="glOpen('2','84B 타입',['https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg'],'전용 84㎡ / 계약 110㎡ / 120세대',true,'84.00','26.00','110.00','120')">
-        <div class="unit-img">
-          <img src="https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg" alt="84B 타입" loading="lazy">
-        </div>
-        <div class="unit-card-body">
-          <div class="unit-card-ttl">84B 타입</div>
-          <div class="unit-specs">
-            <div class="unit-spec-row"><span class="unit-spec-lbl">전용면적</span><span class="unit-spec-val">84.00 ㎡</span></div>
-            <div class="unit-spec-row"><span class="unit-spec-lbl">계약면적</span><span class="unit-spec-val">110.00 ㎡</span></div>
-            <div class="unit-spec-row"><span class="unit-spec-lbl">세대수</span><span class="unit-spec-val">120 세대</span></div>
-          </div>
-        </div>
-      </div>
-      <div class="unit-card" onclick="glOpen('3','101A 타입',['https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg'],'전용 101㎡ / 계약 136㎡ / 80세대',true,'101.00','35.00','136.00','80')">
-        <div class="unit-img">
-          <img src="https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg" alt="101A 타입" loading="lazy">
-        </div>
-        <div class="unit-card-body">
-          <div class="unit-card-ttl">101A 타입</div>
-          <div class="unit-specs">
-            <div class="unit-spec-row"><span class="unit-spec-lbl">전용면적</span><span class="unit-spec-val">101.00 ㎡</span></div>
-            <div class="unit-spec-row"><span class="unit-spec-lbl">계약면적</span><span class="unit-spec-val">136.00 ㎡</span></div>
-            <div class="unit-spec-row"><span class="unit-spec-lbl">세대수</span><span class="unit-spec-val">80 세대</span></div>
-          </div>
-        </div>
-      </div>
-      <div class="unit-card" onclick="glOpen('4','120 타입',['https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg'],'전용 120㎡ / 계약 158㎡ / 50세대',true,'120.00','38.00','158.00','50')">
-        <div class="unit-img">
-          <img src="https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg" alt="120 타입" loading="lazy">
-        </div>
-        <div class="unit-card-body">
-          <div class="unit-card-ttl">120 타입</div>
-          <div class="unit-specs">
-            <div class="unit-spec-row"><span class="unit-spec-lbl">전용면적</span><span class="unit-spec-val">120.00 ㎡</span></div>
-            <div class="unit-spec-row"><span class="unit-spec-lbl">계약면적</span><span class="unit-spec-val">158.00 ㎡</span></div>
-            <div class="unit-spec-row"><span class="unit-spec-lbl">세대수</span><span class="unit-spec-val">50 세대</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <div class="unit-grid" id="propGrid"></div>
   </div>
 </section>
 
@@ -108,33 +53,106 @@ var _glImgs = [], _glIdx = 0;
 
 function esc(s) { if(s==null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
-function glOpen(id, title, imgs, content, hasSpecs, ae, ac, actr, hh) {
-  document.getElementById('glModalTtl').textContent = title || '';
+/* ── 제품 데이터 저장소 ── */
+var _propData = [];
 
-  var specs = document.getElementById('glModalSpecs');
-  if (hasSpecs && (ae || ac || actr || hh)) {
-    specs.style.display = 'grid';
-    specs.innerHTML =
-      (ae   ? '<div class="gl-modal-spec"><div class="gl-modal-spec-lbl">전용면적</div><div class="gl-modal-spec-val">'+esc(ae)+' ㎡</div></div>' : '') +
-      (ac   ? '<div class="gl-modal-spec"><div class="gl-modal-spec-lbl">공용면적</div><div class="gl-modal-spec-val">'+esc(ac)+' ㎡</div></div>' : '') +
-      (actr ? '<div class="gl-modal-spec"><div class="gl-modal-spec-lbl">계약면적</div><div class="gl-modal-spec-val">'+esc(actr)+' ㎡</div></div>' : '') +
-      (hh   ? '<div class="gl-modal-spec"><div class="gl-modal-spec-lbl">세대수</div><div class="gl-modal-spec-val">'+esc(hh)+' 세대</div></div>' : '');
-  } else { specs.style.display = 'none'; }
+/* ── fetch ── */
+(function() {
+  fetch('/admin/api_front/product_public.php')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data.ok || !data.products || !data.products.length) return;
+      _propData = data.products;
 
-  _glImgs = Array.isArray(imgs) ? imgs : (imgs ? String(imgs).split(/[\n,]+/).map(function(s){return s.trim();}).filter(Boolean) : []);
+      /* 분류 버튼 생성 */
+      var catsEl = document.getElementById('propCats');
+      var catsHtml = '<button class="cx-cat-btn on" onclick="propFilter(this,\'\')">전체</button>';
+      (data.categories || []).forEach(function(c) {
+        catsHtml += '<button class="cx-cat-btn" onclick="propFilter(this,\'' + esc(c.id) + '\')">' + esc(c.name) + '</button>';
+      });
+      catsEl.innerHTML = catsHtml;
+
+      /* 카드 렌더링 */
+      var grid = document.getElementById('propGrid');
+      var html = '';
+      data.products.forEach(function(p, idx) {
+        var imgUrl = p.imageUrl || '';
+        var name   = p.name || '';
+        var specs  = Array.isArray(p.specs) ? p.specs : [];
+
+        var specRowsHtml = '';
+        specs.slice(0, 3).forEach(function(s) {
+          specRowsHtml +=
+            '<div class="unit-spec-row">' +
+              '<span class="unit-spec-lbl">' + esc(s[0]) + '</span>' +
+              '<span class="unit-spec-val">' + esc(s[1]) + '</span>' +
+            '</div>';
+        });
+
+        html +=
+          '<div class="unit-card" data-cat="' + esc(p.categoryId) + '" onclick="propGlOpen(' + idx + ')">' +
+            '<div class="unit-img">' +
+              (imgUrl ? '<img src="' + esc(imgUrl) + '" alt="' + esc(name) + '" loading="lazy">' : '') +
+            '</div>' +
+            '<div class="unit-card-body">' +
+              '<div class="unit-card-ttl">' + esc(name) + '</div>' +
+              '<div class="unit-specs">' + specRowsHtml + '</div>' +
+            '</div>' +
+          '</div>';
+      });
+      grid.innerHTML = html;
+    })
+    .catch(function() {});
+})();
+
+/* ── 분류 필터 ── */
+function propFilter(btn, catId) {
+  document.querySelectorAll('#propCats .cx-cat-btn').forEach(function(b) { b.classList.remove('on'); });
+  btn.classList.add('on');
+  document.querySelectorAll('#propGrid .unit-card').forEach(function(card) {
+    card.style.display = (!catId || card.dataset.cat === catId) ? '' : 'none';
+  });
+}
+
+/* ── 모달 열기 (제품용) ── */
+function propGlOpen(idx) {
+  var p = _propData[idx];
+  if (!p) return;
+
+  var specs   = Array.isArray(p.specs) ? p.specs : [];
+  var imgUrl  = p.imageUrl || '';
+  var content = p.description || '';
+
+  document.getElementById('glModalTtl').textContent = p.name || '';
+
+  var specsEl = document.getElementById('glModalSpecs');
+  if (specs.length) {
+    specsEl.style.display = 'grid';
+    specsEl.innerHTML = specs.map(function(s) {
+      return '<div class="gl-modal-spec">' +
+               '<div class="gl-modal-spec-lbl">' + esc(s[0]) + '</div>' +
+               '<div class="gl-modal-spec-val">' + esc(s[1]) + '</div>' +
+             '</div>';
+    }).join('');
+  } else {
+    specsEl.style.display = 'none';
+  }
+
+  _glImgs = imgUrl ? [imgUrl] : [];
   _glIdx  = 0;
   glRenderSlider();
 
-  document.getElementById('glModalCnt').innerHTML = (content || '').replace(/\n/g,'<br>');
+  document.getElementById('glModalCnt').innerHTML = content.replace(/\n/g, '<br>');
   document.getElementById('glModal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 
+/* ── 슬라이더 ── */
 function glRenderSlider() {
-  var track = document.getElementById('glSliderTrack');
-  var dots  = document.getElementById('glSliderDots');
-  var prev  = document.getElementById('glSliderPrev');
-  var next  = document.getElementById('glSliderNext');
+  var track  = document.getElementById('glSliderTrack');
+  var dots   = document.getElementById('glSliderDots');
+  var prev   = document.getElementById('glSliderPrev');
+  var next   = document.getElementById('glSliderNext');
   var slider = document.getElementById('glSlider');
 
   if (!_glImgs.length) { slider.style.display = 'none'; return; }
@@ -162,12 +180,5 @@ function glSlide(d) { glGoTo(_glIdx + d); }
 function glClose() {
   document.getElementById('glModal').classList.remove('open');
   document.body.style.overflow = '';
-}
-
-var _propDone = false;
-function propMore() {
-  if (_propDone) return;
-  _propDone = true;
-  document.getElementById('propMoreBtn').style.display = 'none';
 }
 </script>

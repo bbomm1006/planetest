@@ -12,10 +12,12 @@
         <tr>
           <th class="cn">번호</th>
           <th>제목</th>
-          <th class="cd">등록일</th>
+          <th class="date">등록일</th>
         </tr>
       </thead>
-      <tbody id="complexTbody"></tbody>
+      <tbody id="complexTbody">
+        <tr><td colspan="3" class="board-empty">불러오는 중...</td></tr>
+      </tbody>
     </table>
     <div class="pag" id="complexPag"></div>
   </div>
@@ -40,20 +42,10 @@
 </style>
 
 <script>
-var _mockNotices = [
-  { id:'1',  is_pinned:true,  cat_name:'공지', title:'분양 홍보관 오픈 안내',        created_at:'2025-03-10', content:'홍보관이 오픈되었습니다.\n방문 전 사전 예약을 권장합니다.' },
-  { id:'2',  is_pinned:false, cat_name:'공지', title:'1차 분양 일정 안내',           created_at:'2025-03-08', content:'1차 분양 일정이 확정되었습니다.\n자세한 내용은 아래를 참고해주세요.' },
-  { id:'3',  is_pinned:false, cat_name:'안내', title:'견본주택 관람 시간 변경 안내', created_at:'2025-03-05', content:'견본주택 관람 시간이 변경되었습니다.\n평일 09:00 ~ 18:00 / 주말 10:00 ~ 17:00' },
-  { id:'4',  is_pinned:false, cat_name:'',     title:'입주 예정일 안내',              created_at:'2025-02-20', content:'입주 예정일 안내입니다.' },
-  { id:'5',  is_pinned:false, cat_name:'',     title:'주차장 이용 안내',              created_at:'2025-02-15', content:'주차장 이용 방법 안내입니다.' },
-  { id:'6',  is_pinned:false, cat_name:'안내', title:'커뮤니티 시설 소개',            created_at:'2025-02-10', content:'커뮤니티 시설을 소개합니다.' },
-  { id:'7',  is_pinned:false, cat_name:'',     title:'조경 계획 안내',                created_at:'2025-02-01', content:'조경 계획 안내입니다.' },
-  { id:'8',  is_pinned:false, cat_name:'공지', title:'계약금 납부 안내',              created_at:'2025-01-25', content:'계약금 납부 안내입니다.' },
-  { id:'9',  is_pinned:false, cat_name:'',     title:'발코니 확장 옵션 안내',         created_at:'2025-01-20', content:'발코니 확장 옵션 안내입니다.' },
-  { id:'10', is_pinned:false, cat_name:'안내', title:'하자보수 접수 방법',            created_at:'2025-01-10', content:'하자보수 접수 방법 안내입니다.' }
-];
-
-var _cxLim = 8, _cxPg = 1, _cxCat = '';
+var _cxAll  = [];   /* 전체 게시글 */
+var _cxLim  = 8;
+var _cxPg   = 1;
+var _cxCat  = '';
 
 function fmtDt(s) { return s ? String(s).slice(0,10).replace(/-/g,'.') : ''; }
 function escH(s)  { if(s==null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
@@ -67,47 +59,86 @@ function renderPag(el, cur, total, cb) {
   el.innerHTML = html;
 }
 
-(function buildCats() {
-  var cats = [];
-  _mockNotices.forEach(function(n){ if(n.cat_name && cats.indexOf(n.cat_name)===-1) cats.push(n.cat_name); });
-  var el = document.getElementById('cxCats');
-  var html = '<button class="cx-cat-btn on" onclick="cxFilter(this,\'\')">전체</button>';
-  cats.forEach(function(c){ html += '<button class="cx-cat-btn" onclick="cxFilter(this,\''+escH(c)+'\')">'+escH(c)+'</button>'; });
-  el.innerHTML = html;
-})();
+/* ── API fetch ── */
+fetch('/admin/api_front/board_public.php?table=notice')
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (!data.ok || !data.posts) {
+      document.getElementById('complexTbody').innerHTML =
+        '<tr><td colspan="3" class="board-empty">등록된 내용이 없습니다.</td></tr>';
+      return;
+    }
+    _cxAll = data.posts;
 
+    /* 분류 버튼 동적 생성 */
+    var cats = [];
+    _cxAll.forEach(function(p) {
+      var cat = (p.extra && p.extra['분류']) ? p.extra['분류'] : '';
+      if (cat && cats.indexOf(cat) === -1) cats.push(cat);
+    });
+    var catsEl = document.getElementById('cxCats');
+    if (cats.length) {
+      var html = '<button class="cx-cat-btn on" onclick="cxFilter(this,\'\')">전체</button>';
+      cats.forEach(function(c) {
+        html += '<button class="cx-cat-btn" onclick="cxFilter(this,\''+escH(c)+'\')">'+escH(c)+'</button>';
+      });
+      catsEl.innerHTML = html;
+    }
+
+    cxLoad(1);
+  })
+  .catch(function() {
+    document.getElementById('complexTbody').innerHTML =
+      '<tr><td colspan="3" class="board-empty">데이터를 불러올 수 없습니다.</td></tr>';
+  });
+
+/* ── 분류 필터 ── */
 function cxFilter(btn, cat) {
-  document.querySelectorAll('.cx-cat-btn').forEach(function(b){ b.classList.toggle('on', b===btn); });
-  _cxCat = cat; cxLoad(1);
+  document.querySelectorAll('#cxCats .cx-cat-btn').forEach(function(b) { b.classList.toggle('on', b===btn); });
+  _cxCat = cat;
+  cxLoad(1);
 }
 
+/* ── 목록 렌더링 ── */
 function cxLoad(page) {
   _cxPg = page;
   var tb  = document.getElementById('complexTbody');
   var pag = document.getElementById('complexPag');
-  var src = _cxCat ? _mockNotices.filter(function(n){ return n.cat_name === _cxCat; }) : _mockNotices;
+
+  var src = _cxCat
+    ? _cxAll.filter(function(p) { return ((p.extra && p.extra['분류']) || '') === _cxCat; })
+    : _cxAll;
+
   var total = Math.ceil(src.length / _cxLim);
   var items = src.slice((page-1)*_cxLim, page*_cxLim);
+
   if (!items.length) {
     tb.innerHTML = '<tr><td colspan="3" class="board-empty">등록된 내용이 없습니다.</td></tr>';
-    pag.innerHTML = ''; return;
+    pag.innerHTML = '';
+    return;
   }
-  tb.innerHTML = items.map(function(n, i) {
-    var num = src.length - (page-1)*_cxLim - i;
-    var badge = n.is_pinned ? '<span class="pin-badge">NOTICE</span>' : (n.cat_name ? '<span class="cat-badge">'+escH(n.cat_name)+'</span>' : '');
-    return '<tr onclick="bdOpen(\''+n.id+'\')">' +
-      '<td class="cn">' + (n.is_pinned ? '<span class="pin-badge">NOTICE</span>' : num) + '</td>' +
-      '<td><span class="board-link">'+(badge && !n.is_pinned ? badge+' ' : '')+escH(n.title)+'</span></td>' +
-      '<td class="cd">'+fmtDt(n.created_at)+'</td></tr>';
+
+  tb.innerHTML = items.map(function(p, i) {
+    var num    = src.length - (page-1)*_cxLim - i;
+    var cat    = (p.extra && p.extra['분류']) ? p.extra['분류'] : '';
+    var badge  = cat ? '<span class="cat-badge">'+escH(cat)+'</span> ' : '';
+    return '<tr onclick="bdOpen('+p.id+')">' +
+      '<td class="cn">'+num+'</td>' +
+      '<td><span class="board-link">'+badge+escH(p.title)+'</span></td>' +
+      '<td class="date">'+escH(p.date)+'</td>' +
+    '</tr>';
   }).join('');
+
   renderPag(pag, page, total, 'cxLoad');
 }
 
+/* ── 모달 ── */
 function bdOpen(id) {
-  var item = _mockNotices.find(function(n){ return n.id===id; });
+  var item = _cxAll.find(function(p) { return p.id === id; });
   if (!item) return;
+  var cat = (item.extra && item.extra['분류']) ? item.extra['분류'] : '';
   document.getElementById('bdModalTtl').textContent  = item.title;
-  document.getElementById('bdModalMeta').textContent = fmtDt(item.created_at)+(item.cat_name?'  ·  '+item.cat_name:'');
+  document.getElementById('bdModalMeta').textContent = escH(item.date) + (cat ? '  ·  ' + cat : '');
   document.getElementById('bdModalBody').innerHTML   = escH(item.content).replace(/\n/g,'<br>');
   document.getElementById('bdModal').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -116,6 +147,4 @@ function bdClose() {
   document.getElementById('bdModal').classList.remove('open');
   document.body.style.overflow = '';
 }
-
-cxLoad(1);
 </script>
