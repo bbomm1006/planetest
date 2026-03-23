@@ -77,7 +77,8 @@
 .form-inp, .form-sel, .form-ta {
   width: 100%; padding: 11px 14px; font-size: .875rem;
   color: var(--g6); background: var(--w); border: 1px solid var(--ln);
-  outline: none; transition: border-color .2s, box-shadow .2s; -webkit-appearance: none; appearance: none;
+  outline: none; 
+  /* transition: border-color .2s, box-shadow .2s; -webkit-appearance: none; appearance: none; */
 }
 .form-inp:focus, .form-sel:focus, .form-ta:focus {
   border-color: var(--br); box-shadow: 0 0 0 3px rgba(107,66,38,.08);
@@ -222,7 +223,7 @@
 .unit-filter-btn.on { background: var(--br); color: var(--w); border-color: var(--br); }
 .unit-filter-btn:hover:not(.on) { background: var(--br6); color: var(--br); }
 
-.unit-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--ln); }
+.unit-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px;  }
 .unit-card { background: var(--w); overflow: hidden; cursor: pointer; }
 .unit-card:hover .unit-img img { transform: scale(1.06); }
 .unit-img { aspect-ratio: 1; background: var(--br6); overflow: hidden; position: relative; }
@@ -241,7 +242,7 @@
 /* ───────────────────────────────────
    9. 인테리어 갤러리
 ─────────────────────────────────── */
-.int-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 2px; background: var(--ln); }
+.int-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 2px;  }
 .int-card { background: var(--w); overflow: hidden; cursor: pointer; }
 .int-img  { aspect-ratio: 4/3; background: var(--br5); overflow: hidden; position: relative; }
 .int-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }

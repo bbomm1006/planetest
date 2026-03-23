@@ -11,11 +11,38 @@
         </div>
         <h2 class="interest-copy-ttl">경험하는 모든 순간이<strong>자부심이 될</strong></h2>
         <p class="interest-copy-dsc">귀하의 소중한 정보를 남겨주시면 친절한 안내와 정확한 정보제공으로 보답하겠습니다.</p>
+        <?php
+        try {
+          $_intPhone = $pdo->query("SELECT phone FROM homepage_info WHERE id=1")->fetchColumn();
+        } catch(Exception $e) {
+          $_intPhone = '';
+        }
+        ?>
+
+        <?php
+        try {
+          $site = $pdo->query("SELECT phone, hours1, hours2 FROM homepage_info WHERE id=1")->fetch(PDO::FETCH_ASSOC);
+        } catch(Exception $e) {
+          $site = [];
+        }
+        ?>
+
+        <?php if (!empty($site['phone'])): ?>
         <div class="interest-contact">
           <div class="interest-contact-lbl">분양 문의</div>
-          <div class="interest-contact-ph"><?php try { $_intPhone = $pdo->query("SELECT phone FROM homepage_info WHERE id=1")->fetchColumn(); echo htmlspecialchars($_intPhone ?: "0000-0000"); } catch(Exception $e) { echo "0000-0000"; } ?></div>
-          <div class="interest-contact-info">평일 09:00 — 18:00 &nbsp;|&nbsp; 주말·공휴일 휴무</div>
+          <div class="interest-contact-ph">
+            <?= htmlspecialchars($site['phone'], ENT_QUOTES, 'UTF-8') ?>
+          </div>
+          <div class="interest-contact-info">
+            <?= htmlspecialchars($site['hours1'] ?? '', ENT_QUOTES, 'UTF-8') ?>
+            <?php if (!empty($site['hours1']) && !empty($site['hours2'])): ?>
+              &nbsp;|&nbsp;
+            <?php endif; ?>
+            <?= htmlspecialchars($site['hours2'] ?? '', ENT_QUOTES, 'UTF-8') ?>
+          </div>
         </div>
+        <?php endif; ?>
+
       </div>
       <div>
         <form id="intForm" onsubmit="submitInterest(event)">
