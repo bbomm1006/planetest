@@ -371,31 +371,31 @@ body.castle{
   /* ───────────────────────────────────
     11. FAQ
   ─────────────────────────────────── */
-  .faq-wrap { }
-  .faq-list { border-top: 2px solid var(--bk); }
-  .faq-grp  { margin-bottom: 16px; }
-  .faq-grp-lbl { font-size: .65rem; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.08); margin-bottom: 0; display: flex; align-items: center; gap: 8px; }
-  .sec-white .faq-grp-lbl { color: var(--br); border-bottom-color: var(--ln); }
-  .faq-grp-lbl::before { content: ''; width: 16px; height: 1px; background: var(--gold); }
-  .sec-white .faq-grp-lbl::before { background: var(--br3); }
-  .faq-itm { border-bottom: 1px solid rgba(255,255,255,.06); }
-  .sec-white .faq-itm { border-bottom-color: var(--ln); }
-  .faq-q { width: 100%; display: flex; align-items: flex-start; gap: 14px; padding: 18px 0; text-align: left; cursor: pointer; background: none; border: none; font-family: var(--ff); flex-direction: row;}
-  .faq-qmark { width: 24px; height: 24px; background: var(--gold); color: var(--bk); display: flex; align-items: center; justify-content: center; font-size: .7rem; font-weight: 900; flex-shrink: 0; margin-top: 1px; }
-  .sec-white .faq-qmark { background: var(--br); color: var(--w); }
-  .faq-qt { flex: 1; font-size: .9rem; font-weight: 600; color: rgba(255,255,255,.85); line-height: 1.6; transition: color .15s; letter-spacing: -.01em; }
-  .sec-white .faq-qt { color: var(--g6); }
-  .faq-q:hover .faq-qt { color: var(--gold); }
-  .sec-white .faq-q:hover .faq-qt { color: var(--br); }
-  .faq-qa { flex-shrink: 0; font-size: .76rem; color: rgba(255,255,255,.3); transition: transform .22s; margin-top: 3px; }
-  .sec-white .faq-qa { color: var(--g4); }
-  .faq-itm.open .faq-qa { transform: rotate(180deg); }
-  .faq-a { display: none; padding: 0 0 20px 38px; }
-  .faq-itm.open .faq-a { display: block; }
-  .faq-amark { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: rgba(255,255,255,.08); color: var(--gold); font-size: .7rem; font-weight: 800; margin-right: 10px; vertical-align: top; margin-top: 2px; }
-  .sec-white .faq-amark { background: var(--br5); color: var(--br); }
-  .faq-at { font-size: .875rem; color: rgba(255,255,255,.45); line-height: 1.88; }
-  .sec-white .faq-at { color: var(--g5); }
+  .buildFaq-wrap { }
+  .buildFaq-list { border-top: 2px solid var(--bk); }
+  .buildFaq-grp  { margin-bottom: 16px; }
+  .buildFaq-grp-lbl { font-size: .65rem; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.08); margin-bottom: 0; display: flex; align-items: center; gap: 8px; }
+  .sec-white .buildFaq-grp-lbl { color: var(--br); border-bottom-color: var(--ln); }
+  .buildFaq-grp-lbl::before { content: ''; width: 16px; height: 1px; background: var(--gold); }
+  .sec-white .buildFaq-grp-lbl::before { background: var(--br3); }
+  .buildFaq-itm { border-bottom: 1px solid rgba(255,255,255,.06); }
+  .sec-white .buildFaq-itm { border-bottom-color: var(--ln); }
+  .buildFaq-q { width: 100%; display: flex; align-items: flex-start; gap: 14px; padding: 18px 0; text-align: left; cursor: pointer; background: none; border: none; font-family: var(--ff); flex-direction: row; }
+  .buildFaq-qmark { width: 24px; height: 24px; background: var(--gold); color: var(--bk); display: flex; align-items: center; justify-content: center; font-size: .7rem; font-weight: 900; flex-shrink: 0; margin-top: 1px; }
+  .sec-white .buildFaq-qmark { background: var(--br); color: var(--w); }
+  .buildFaq-qt { flex: 1; font-size: .9rem; font-weight: 600; color: rgba(255,255,255,.85); line-height: 1.6; transition: color .15s; letter-spacing: -.01em; }
+  .sec-white .buildFaq-qt { color: var(--g6); }
+  .buildFaq-q:hover .buildFaq-qt { color: var(--gold); }
+  .sec-white .buildFaq-q:hover .buildFaq-qt { color: var(--br); }
+  .buildFaq-qa { flex-shrink: 0; font-size: .76rem; color: rgba(255,255,255,.3); transition: transform .22s; margin-top: 3px; }
+  .sec-white .buildFaq-qa { color: var(--g4); }
+  .buildFaq-itm.open .buildFaq-qa { transform: rotate(180deg); }
+  .buildFaq-a { display: none; padding: 0 0 20px 38px; }
+  .buildFaq-itm.open .buildFaq-a { display: block; }
+  .buildFaq-amark { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: rgba(255,255,255,.08); color: var(--gold); font-size: .7rem; font-weight: 800; margin-right: 10px; vertical-align: top; margin-top: 2px; }
+  .sec-white .buildFaq-amark { background: var(--br5); color: var(--br); }
+  .buildFaq-at { font-size: .875rem; color: rgba(255,255,255,.45); line-height: 1.88; }
+  .sec-white .buildFaq-at { color: var(--g5); }
 
   /* ───────────────────────────────────
     12. 문의하기
