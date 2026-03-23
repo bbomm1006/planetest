@@ -5,11 +5,11 @@ const MENU_LIST_BASE = [
   // 시스템 관리
   { key:'adminMgmt',     label:'관리자 관리',           group:'시스템 관리' },
   { key:'menuMgmt',      label:'관리자 기능 관리',       group:'시스템 관리' },
-  { key:'sectionMgmt',   label:'섹션 관리',             group:'시스템 관리' },
+  { key:'sectionMgmt',   label:'섹션 관리',             group:'디자인 관리' },
   { key:'scriptMgmt',    label:'스크립트 관리',          group:'시스템 관리' },
   { key:'socialMgmt',    label:'소셜 관리',             group:'시스템 관리' },
   { key:'homepageInfo',  label:'홈페이지 정보 관리',     group:'시스템 관리' },
-  { key:'colorMgmt',     label:'컬러 설정',             group:'시스템 관리' },
+  { key:'colorMgmt',     label:'컬러 설정',             group:'디자인 관리' },
   { key:'legalTermsMgmt',label:'법적 약관 관리',         group:'시스템 관리' },
   // 콘텐츠 관리
   { key:'banner',        label:'상단 메인 배너',         group:'콘텐츠 관리' },
@@ -28,8 +28,8 @@ const MENU_LIST_BASE = [
   // 게시판 관리
   { key:'boardCreate',   label:'게시판 추가',           group:'게시판 관리' },
   { key:'boardList',     label:'게시판 목록',           group:'게시판 관리' },
-  // 알림톡 관리
-  { key:'alimtalk',      label:'알림톡 설정',           group:'알림톡 관리' },
+  // 알림 관리
+  { key:'alimtalk',      label:'알림톡 설정',           group:'알림 관리' },
   // 문의 폼 관리
   { key:'customInquiryCreate', label:'문의 폼 추가',    group:'문의 폼 관리' },
   { key:'customInquiry', label:'문의 폼 목록',          group:'문의 폼 관리' },
@@ -151,7 +151,7 @@ const PAGE_LABELS = {
   bkfDetail: ['예약 폼','폼 설정'],
   bkfRecords:['예약 폼','예약 내역'],
 
-  alimtalkMgmt:        ['알림톡 관리','알림톡 설정'],
+  alimtalkMgmt:        ['알림 관리','알림톡 설정'],
 };
 
 // ===========================
@@ -287,9 +287,6 @@ async function doLogin() {
   if (res.ok) {
     err.classList.remove('show');
     document.getElementById('loginPw').value = '';
-    // 로그인 시 이전 페이지 상태 초기화
-    localStorage.removeItem('adminPage');
-    history.replaceState(null, '', location.pathname);  // hash 제거
     enterAdmin(res.name, res.username, res.email || '');
   } else {
     err.textContent = res.msg || '아이디 또는 비밀번호가 올바르지 않습니다.';
@@ -337,8 +334,9 @@ function enterAdmin(name, username, email = '') {
       _adminHashRestore();
     } else {
       // hash 없으면 localStorage 기반으로 표시
-      const firstMenu = MENU_LIST_BASE.find(m => menuState[m.key] !== false);
-      showPage(firstMenu ? firstMenu.key : 'adminMgmt', true);
+      const saved = localStorage.getItem('adminPage') || 'adminMgmt';
+      const savedEl = document.getElementById('page-' + saved);
+      showPage(savedEl ? saved : 'adminMgmt', true);
     }
   });
 }
@@ -905,7 +903,7 @@ function renderMenuChecks() {
     '상품 관리':    '제품·카테고리·결합상담 관련 메뉴입니다.',
     '매장 관리':    '매장 지점 및 카카오 API 관련 메뉴입니다.',
     '게시판 관리':  '게시판 추가·목록 메뉴입니다. 게시판별 사용 여부는 각 게시판 설정 페이지에서 별도로 관리합니다.',
-    '알림톡 관리':  '알림톡 발송 설정 메뉴입니다.',
+    '알림 관리':  '알림톡 발송 설정 메뉴입니다.',
     '문의 폼 관리': '문의 폼 메뉴입니다. 개별 폼의 사용 여부는 문의 폼 목록의 각 폼 설정에서 별도로 관리합니다.',
     '예약 폼 관리': '예약 폼 메뉴입니다. 개별 폼의 사용 여부는 예약 폼 목록의 각 폼 설정에서 별도로 관리합니다.',
     // '예약 관리':    '예약 시간 및 예약 내역 관리 메뉴입니다.',

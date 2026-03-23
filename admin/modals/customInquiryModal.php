@@ -100,7 +100,7 @@
       <!-- 알림톡/SMS 설정 안내 -->
       <div id="ci-mgr-panel-alimtalk" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:14px;margin-bottom:12px;">
         <p style="font-size:.82rem;color:#1e40af;line-height:1.7;margin:0;">
-          💬 알림톡/SMS 발송 설정은 <strong>알림톡 관리</strong> 메뉴에서 공통으로 설정합니다.<br>
+          💬 알림톡/SMS 발송 설정은 <strong>알림 관리 > 알림톡 설정</strong> 메뉴에서 공통으로 설정합니다.<br>
           담당자 전화번호가 입력되어 있으면 선택한 방식으로 알림이 발송됩니다.
         </p>
       </div>

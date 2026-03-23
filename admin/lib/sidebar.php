@@ -6,19 +6,26 @@
       </div>
     </div>
     <nav class="sidebar-nav">
-      <div class="nav-section" data-menu-keys="adminMgmt menuMgmt sectionMgmt scriptMgmt socialMgmt homepageInfo colorMgmt legalTermsMgmt">
+      <div class="nav-section" data-menu-keys="adminMgmt menuMgmt scriptMgmt socialMgmt homepageInfo legalTermsMgmt">
         <div class="nav-item">
           <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">🔧</span>시스템 관리<span class="nav-arrow">›</span></div>
           <div class="nav-sub">
             <div class="nav-sub-link" data-menu-key="adminMgmt" onclick="showPage('adminMgmt')">관리자 관리</div>
             <div class="nav-sub-link" data-menu-key="menuMgmt" onclick="showPage('menuMgmt')">관리자 기능 관리</div>
-            <div class="nav-sub-link" data-menu-key="sectionMgmt" onclick="showPage('sectionMgmt')">섹션 관리</div>
             <div class="nav-sub-link" data-menu-key="scriptMgmt" onclick="showPage('scriptMgmt')">스크립트 관리</div>
             <div class="nav-sub-link" data-menu-key="socialMgmt" onclick="showPage('socialMgmt')">소셜 관리</div>
             <!-- <div class="nav-sub-link" onclick="showPage('siteMgmt')">사이트 정보 관리</div> -->
             <div class="nav-sub-link" data-menu-key="homepageInfo" onclick="showPage('homepageInfo')">홈페이지 정보 관리</div>
-            <div class="nav-sub-link" data-menu-key="colorMgmt" onclick="showPage('colorMgmt')">컬러 설정</div>
             <div class="nav-sub-link" data-menu-key="legalTermsMgmt" onclick="showPage('legalTermsMgmt')">법적 약관 관리</div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-section" data-menu-keys="sectionMgmt colorMgmt">
+        <div class="nav-item">
+          <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">🎨</span>디자인 관리<span class="nav-arrow">›</span></div>
+          <div class="nav-sub">
+            <div class="nav-sub-link" data-menu-key="sectionMgmt" onclick="showPage('sectionMgmt')">섹션 관리</div>
+            <div class="nav-sub-link" data-menu-key="colorMgmt" onclick="showPage('colorMgmt')">컬러 설정</div>
           </div>
         </div>
       </div>
@@ -66,7 +73,7 @@
       </div>
       <div class="nav-section" data-menu-keys="alimtalk">
         <div class="nav-item">
-          <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">💬</span>알림톡 관리<span class="nav-arrow">›</span></div>
+          <div class="nav-link" onclick="toggleNav(this)"><span class="nav-icon">💬</span>알림 관리<span class="nav-arrow">›</span></div>
           <div class="nav-sub">
             <div class="nav-sub-link" data-menu-key="alimtalk" onclick="showPage('alimtalkMgmt')">알림톡 설정</div>
           </div>
