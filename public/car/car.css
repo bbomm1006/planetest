@@ -2,6 +2,20 @@
    비전오토플랜 - 장기렌트카 랜딩페이지
    style.css
 ══════════════════════════════════════════ */
+html{-webkit-text-size-adjust:100%;}
+body{font-family:var(--font);background:#fff;color:var(--dark);overflow-x:hidden;}
+/* 넓은 화면: 양옆 여백으로 모바일 랜딩과 유사한 가독 폭 */
+@media(min-width:769px){
+  body{background:#ececef;}
+}
+body.has-floating-cta{padding-bottom:calc(88px + env(safe-area-inset-bottom,0px));}
+@media(max-width:480px){
+  body.has-floating-cta{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px));}
+}
+img{max-width:100%;display:block;}
+a{text-decoration:none;color:inherit;}
+button{font-family:var(--font);cursor:pointer;border:none;background:none;}
+
 
 /* ══════════════════════════════════════════
    SCROLL ANIMATION BASE
@@ -21,20 +35,6 @@
 .delay-5{transition-delay:0.5s!important;}
 
 
-
-html{-webkit-text-size-adjust:100%;}
-body{font-family:var(--font);background:#fff;color:var(--dark);overflow-x:hidden;}
-/* 넓은 화면: 양옆 여백으로 모바일 랜딩과 유사한 가독 폭 */
-@media(min-width:769px){
-  body{background:#ececef;}
-}
-body.has-floating-cta{padding-bottom:calc(88px + env(safe-area-inset-bottom,0px));}
-@media(max-width:480px){
-  body.has-floating-cta{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px));}
-}
-img{max-width:100%;display:block;}
-a{text-decoration:none;color:inherit;}
-button{font-family:var(--font);cursor:pointer;border:none;background:none;}
 
 /* ══════════════════════════════════════════
    1. HERO
