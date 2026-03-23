@@ -53,7 +53,7 @@ try {
         <h2 class="section-title">가장 많이 선택한<br><span>데이터 요금제</span></h2>
         <p class="section-sub">실시간 인기 순위 기준 · 매주 업데이트</p>
       </div>
-      <a class="view-all" href="#">전체보기 <i class="fa-solid fa-arrow-right"></i></a>
+      <!-- <a class="view-all" href="#">전체보기 <i class="fa-solid fa-arrow-right"></i></a> -->
     </div>
     <div class="plans-list">
 

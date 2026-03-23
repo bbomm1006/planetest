@@ -7,7 +7,7 @@
         <h2 class="section-title" style="color:white">함께 쓰면<br><span>더 저렴해요</span></h2>
         <p class="section-sub" style="color:rgba(255,255,255,0.55)">가족, 인터넷, 태블릿과 묶으면 추가 할인</p>
       </div>
-      <a class="view-all" href="#" style="color:rgba(255,255,255,0.6)">전체보기 <i class="fa-solid fa-arrow-right"></i></a>
+      <!-- <a class="view-all" href="#" style="color:rgba(255,255,255,0.6)">전체보기 <i class="fa-solid fa-arrow-right"></i></a> -->
     </div>
     <div class="bundle-grid">
       <div class="bundle-card">
