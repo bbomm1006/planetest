@@ -258,7 +258,9 @@ if ($action === 'dynSectionReorder') {
         }
 
         // 두 항목 위치 교환
-        [$rows[$pos], $rows[$target]] = [$rows[$target], $rows[$pos]];
+        $tmp = $rows[$pos];
+        $rows[$pos] = $rows[$target];
+        $rows[$target] = $tmp;
 
         // 전체 sort_order 재번호화
         $stmt = $pdo->prepare('UPDATE front_sections SET sort_order=? WHERE id=?');

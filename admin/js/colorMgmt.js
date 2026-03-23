@@ -25,7 +25,7 @@ function colorLoad() {
       colorSetAll('color_base',  d.color_base  || '#1255a6');
       colorSetAll('color_point', d.color_point || '#1e7fe8');
       colorSetAll('color_sub',   d.color_sub   || '#00c6ff');
-      colorSetAll('color_sub2',  d.color_sub2  || '#ff6b35');
+      colorSetAll('color_sub2',  d.color_sub2  || '#1a2540');
       colorRefreshPreview();
     })
     .catch(err => {

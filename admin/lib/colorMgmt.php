@@ -101,15 +101,15 @@
             <small style="color:var(--text3);font-weight:400;margin-left:4px;">--color-sub2</small>
           </label>
           <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
-            <input type="color" id="color_sub2_picker" value="#ff6b35"
+            <input type="color" id="color_sub2_picker" value="#1a2540"
               style="width:44px;height:44px;padding:2px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;flex-shrink:0;"
               oninput="colorSyncText('color_sub2',this.value)">
-            <input type="text" class="form-control" id="color_sub2_text" value="#ff6b35"
-              placeholder="#ff6b35" maxlength="20"
+            <input type="text" class="form-control" id="color_sub2_text" value="#1a2540"
+              placeholder="#1a2540" maxlength="20"
               style="flex:1;font-family:monospace;font-size:.88rem;"
               oninput="colorSyncPicker('color_sub2',this.value)">
           </div>
-          <div id="color_sub2_bar" style="margin-top:10px;height:32px;border-radius:8px;background:#ff6b35;transition:background .2s;"></div>
+          <div id="color_sub2_bar" style="margin-top:10px;height:32px;border-radius:8px;background:#1a2540;transition:background .2s;"></div>
         </div>
 
       </div>
@@ -135,7 +135,7 @@
         <a id="clr_prev_link" href="#" onclick="return false;" style="font-size:.86rem;font-weight:600;color:#1255a6;text-decoration:none;">링크 텍스트</a>
         <div id="clr_prev_outline" style="padding:8px 16px;border-radius:8px;border:2px solid #1e7fe8;font-size:.78rem;font-weight:700;color:#1e7fe8;">포인트 테두리</div>
         <div id="clr_prev_dot" style="width:14px;height:14px;border-radius:50%;background:#00c6ff;box-shadow:0 0 0 5px rgba(0,198,255,.2);"></div>
-        <div id="clr_prev_dot2" style="width:14px;height:14px;border-radius:50%;background:#ff6b35;box-shadow:0 0 0 5px rgba(255,107,53,.2);"></div>
+        <div id="clr_prev_dot2" style="width:14px;height:14px;border-radius:50%;background:#1a2540;box-shadow:0 0 0 5px rgba(255,107,53,.2);"></div>
       </div>
     </div>
   </div>
