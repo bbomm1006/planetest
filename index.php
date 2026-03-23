@@ -110,7 +110,6 @@
   <?php else: ?>
     <div<?= $anchorId !== '' ? ' id="' . htmlspecialchars($anchorId) . '"' : '' ?> data-section-key="<?= htmlspecialchars($sec['key'] ?? '') ?>">
       <?php if ($fn === 'bkf_front'): ?>
-      <link rel="stylesheet" href="/css/bkf_public.css"/>
       <?php endif; ?>
       <?php include $filePath; ?>
     </div>
@@ -189,7 +188,6 @@
   <script src="js/popup.js"></script>
   <?php endif; ?>
   <?php if (isset($jsToLoad['bkf_public.js']) || in_array('bkf_front', $activeFileNames)): ?>
-  <link rel="stylesheet" href="/css/bkf_public.css"/>
   <script src="/js/bkf_public.js" defer></script>
   <?php endif; ?>
 
