@@ -7,7 +7,7 @@
   padding: var(--section-pad-v) var(--section-pad-h);
   &.dark      { background: var(--ink); color: #fff; }
   &.off       { background: var(--off); }
-  &.blue-grad { background: linear-gradient(145deg, #071a4a 0%, #0d3b8a 45%, var(--sky) 100%); }
+  &.blue-grad { background: linear-gradient(145deg, #071a4a 0%, #0d3b8a 45%, var(--color-point) 100%); }
 }
 .inner { max-width: var(--content-max); margin: 0 auto; }
 
@@ -18,9 +18,9 @@
     display: inline-block; font-size: var(--fs-tag); font-weight: 800;
     letter-spacing: 2.5px; text-transform: uppercase;
     padding: 4px 14px; border-radius: 100px;
-    background: var(--mist); color: var(--sky);
+    background: var(--mist); color: var(--color-point);
   }
-  .dark &, .blue-grad & { span { background: rgba(0,198,255,.1); color: var(--aqua); } }
+  .dark &, .blue-grad & { span { background: rgba(0,198,255,.1); color: var(--color-sub); } }
 }
 .s-h {
   text-align: center; font-size: var(--fs-section-title); font-weight: 900;

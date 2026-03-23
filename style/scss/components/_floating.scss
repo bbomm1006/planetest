@@ -16,8 +16,8 @@
   &:hover { transform: translateY(-3px); }
   svg { width: 15px; height: 15px; }
 }
-.fb-call    { background: #fff; color: var(--blue); }
-.fb-consult { background: linear-gradient(90deg, var(--blue), var(--sky)); color: #fff; }
+.fb-call    { background: #fff; color: var(--color-base); }
+.fb-consult { background: linear-gradient(90deg, var(--color-base), var(--color-point)); color: #fff; }
 .fb-recommend {
   background: linear-gradient(135deg, #7c3aed, #1e7fe8); color: #fff; position: relative;
   &::before {
@@ -75,7 +75,7 @@
 }
 .rec-progress-fill {
   height: 100%; border-radius: 10px;
-  background: linear-gradient(90deg, #7c3aed, var(--sky));
+  background: linear-gradient(90deg, #7c3aed, var(--color-point));
   transition: width .4s var(--ease-out);
 }
 .rec-progress-label { font-size: .7rem; font-weight: 700; color: var(--g4); white-space: nowrap; }
@@ -93,7 +93,7 @@
   padding: 13px 14px; border: 2px solid var(--mist); border-radius: 14px;
   background: var(--off); cursor: pointer; transition: all .18s;
   display: flex; align-items: center; gap: 10px; font-family: inherit;
-  &:hover { border-color: var(--sky); background: rgba(30,127,232,.05); }
+  &:hover { border-color: var(--color-point); background: rgba(30,127,232,.05); }
   &.sel   { border-color: #7c3aed; background: rgba(124,58,237,.07); }
 }
 .rec-opt-ico {
@@ -114,7 +114,7 @@
 .rec-card {
   border: 1.5px solid var(--mist); border-radius: 16px; padding: 14px; background: #fff;
   transition: border-color .2s, box-shadow .2s;
-  &:hover { border-color: var(--sky); box-shadow: 0 4px 20px rgba(30,127,232,.12); }
+  &:hover { border-color: var(--color-point); box-shadow: 0 4px 20px rgba(30,127,232,.12); }
 }
 .rec-card-top   { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
 .rec-card-thumb {
@@ -125,13 +125,13 @@
 .rec-card-info   { flex: 1; min-width: 0; }
 .rec-card-badge  { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: .62rem; font-weight: 800; letter-spacing: .3px; margin-bottom: 4px; }
 .rec-card-name   { font-size: .92rem; font-weight: 800; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.rec-card-price  { font-size: .82rem; font-weight: 700; color: var(--blue); span { font-size: .65rem; font-weight: 500; color: var(--g5); } }
+.rec-card-price  { font-size: .82rem; font-weight: 700; color: var(--color-base); span { font-size: .65rem; font-weight: 500; color: var(--g5); } }
 .rec-card-reason { font-size: .73rem; color: var(--g5); line-height: 1.55; margin-bottom: 10px; padding: 8px 10px; background: var(--off); border-radius: 9px; border-left: 3px solid #7c3aed; }
 .rec-card-feats  { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
-.rec-feat-tag    { padding: 3px 9px; border-radius: 6px; font-size: .66rem; font-weight: 600; background: var(--mist); color: var(--blue); }
+.rec-feat-tag    { padding: 3px 9px; border-radius: 6px; font-size: .66rem; font-weight: 600; background: var(--mist); color: var(--color-base); }
 .rec-card-apply  {
   width: 100%; padding: 10px; border: none; border-radius: 10px;
-  background: linear-gradient(90deg, var(--blue), var(--sky)); color: #fff;
+  background: linear-gradient(90deg, var(--color-base), var(--color-point)); color: #fff;
   font-weight: 800; font-size: .83rem; cursor: pointer; font-family: inherit;
   transition: opacity .18s; letter-spacing: .2px;
   &:hover { opacity: .88; }
@@ -160,7 +160,7 @@
 }
 .rec-btn-next {
   display: flex; align-items: center; gap: 5px; padding: 10px 24px; border-radius: 100px;
-  border: none; background: linear-gradient(90deg, #7c3aed, var(--sky)); color: #fff;
+  border: none; background: linear-gradient(90deg, #7c3aed, var(--color-point)); color: #fff;
   font-weight: 700; font-size: .82rem; cursor: pointer; font-family: inherit; transition: opacity .2s;
   &:hover   { opacity: .88; }
   &:disabled { opacity: .4; pointer-events: none; }

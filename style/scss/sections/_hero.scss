@@ -50,7 +50,7 @@
   backdrop-filter: blur(12px); border-radius: 100px;
   padding: 6px 16px 6px 9px; margin-bottom: 20px;
 }
-.h-pill-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--aqua); box-shadow: 0 0 0 4px rgba(0,198,255,.18); }
+.h-pill-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-sub); box-shadow: 0 0 0 4px rgba(0,198,255,.18); }
 .h-pill-txt { font-size: .72rem; font-weight: 600; letter-spacing: .5px; color: rgba(255,255,255,.88); }
 .h-ttl  { font-size: clamp(2.2rem,5vw,4.4rem); font-weight: 900; line-height: 1.08; letter-spacing: -1.5px; margin-bottom: 18px; white-space: pre-line; word-break: keep-all; }
 .h-dsc  { font-size: .96rem; line-height: 1.78; margin-bottom: 32px; font-weight: 300; color: rgba(255,255,255,.68); max-width: 440px; word-break: keep-all; }
@@ -79,7 +79,7 @@
 }
 
 .h-prog     { position: absolute; bottom: 0; left: 0; right: 0; height: 2px; z-index: 10; background: rgba(255,255,255,.08); }
-.h-prog-bar { height: 100%; background: linear-gradient(90deg, var(--aqua), rgba(255,255,255,.6)); width: 0%; }
+.h-prog-bar { height: 100%; background: linear-gradient(90deg, var(--color-sub), rgba(255,255,255,.6)); width: 0%; }
 .h-ctrl     { position: absolute; bottom: 28px; left: var(--section-pad-h); z-index: 10; display: flex; gap: 6px; }
 .h-arr {
   width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,.07);

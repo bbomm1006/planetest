@@ -47,7 +47,7 @@
 }
 
 // ── 그라디언트 버튼 공통
-@mixin btn-gradient($from: var(--blue), $to: var(--sky)) {
+@mixin btn-gradient($from: var(--color-base), $to: var(--color-point)) {
   background: linear-gradient(90deg, #{$from}, #{$to});
   color: #fff;
   border: none;

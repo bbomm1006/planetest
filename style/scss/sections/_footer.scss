@@ -6,7 +6,7 @@ footer { background: var(--ink); padding: 72px var(--section-pad-h) 36px; }
 .ft-in  { max-width: var(--content-max); margin: 0 auto; }
 .ft-top { display: grid; grid-template-columns: 1fr 280px; gap: 60px; align-items: start; padding-bottom: 44px; border-bottom: 1px solid rgba(255,255,255,.07); }
 
-.ft-brand-n { display: flex; align-items: center; gap: 8px; font-family: inherit; font-size: .84rem; font-weight: 700; color: rgba(255,255,255,.75); letter-spacing: 0; margin-bottom: 10px; em { color: var(--aqua); font-style: normal; } }
+.ft-brand-n { display: flex; align-items: center; gap: 8px; font-family: inherit; font-size: .84rem; font-weight: 700; color: rgba(255,255,255,.75); letter-spacing: 0; margin-bottom: 10px; em { color: var(--color-sub); font-style: normal; } }
 .ft-brand p { font-size: .78rem; color: rgba(255,255,255,.36); line-height: 1.82; max-width: none; }
 .ft-info-row { font-size: .74rem; color: rgba(255,255,255,.38); line-height: 1.9; white-space: normal; max-width: none; }
 .ft-biz-link { color: rgba(100,180,255,.6); text-decoration: underline; text-underline-offset: 2px; transition: color .18s; &:hover { color: rgba(100,180,255,.9); } }
@@ -55,7 +55,7 @@ p.ft-legal  { display: flex; align-items: center; gap: 10px; margin: 0; a { font
 }
 .legal-page-inner    { width: 100%; }
 .legal-page-top      { display: flex; justify-content: flex-start; margin-bottom: 16px; }
-.legal-page-back     { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; font-weight: 500; color: var(--g5); text-decoration: none; transition: color .18s; &:hover { color: var(--sky); } }
+.legal-page-back     { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; font-weight: 500; color: var(--g5); text-decoration: none; transition: color .18s; &:hover { color: var(--color-point); } }
 .legal-page-head     { margin: 0; padding: 0; border: none; text-align: center; }
 .legal-page-title    { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 800; margin: 0 0 22px; letter-spacing: -.035em; color: var(--ink2); line-height: 1.22; word-break: keep-all; }
 .legal-page-version-row { display: flex; align-items: center; justify-content: center; margin: 0 0 12px; }

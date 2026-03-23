@@ -13,7 +13,7 @@
   transition: transform .28s var(--ease-out), box-shadow .28s;
   &::after {
     content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, var(--sky), var(--aqua));
+    background: linear-gradient(90deg, var(--color-point), var(--color-sub));
     transform: scaleX(0); transform-origin: left; transition: transform .35s var(--ease-out);
   }
   &:hover { transform: translateY(-6px); box-shadow: 0 16px 44px rgba(18,85,166,.1); }

@@ -125,7 +125,7 @@
 <!-- 로그인 모달 -->
 <div id="boardLoginModal" style="display:none;position:fixed;inset:0;background:rgba(8,14,26,.5);z-index:8000;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:22px;padding:34px 28px;width:380px;max-width:92vw;box-shadow:0 20px 60px rgba(8,14,26,.22);text-align:center;">
-    <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--sky),var(--aqua));display:grid;place-items:center;margin:0 auto 14px;">
+    <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--color-point),var(--color-sub));display:grid;place-items:center;margin:0 auto 14px;">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
     </div>
     <div style="font-weight:900;font-size:1.12rem;color:var(--ink);margin-bottom:6px;">문의게시판 로그인</div>

@@ -39,11 +39,11 @@
       <!-- 시/도 · 시/군/구 필터 -->
       <div id="rsvRegionFilter" style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
         <select id="rsvSido" onchange="rsvOnSidoChange()"
-          style="flex:1;min-width:110px;padding:9px 12px;border:1.5px solid var(--sky);border-radius:10px;background:#fff;font-family:inherit;font-size:.85rem;font-weight:600;color:var(--ink);cursor:pointer;">
+          style="flex:1;min-width:110px;padding:9px 12px;border:1.5px solid var(--color-point);border-radius:10px;background:#fff;font-family:inherit;font-size:.85rem;font-weight:600;color:var(--ink);cursor:pointer;">
           <option value="">시/도 전체</option>
         </select>
         <select id="rsvSigungu" onchange="rsvOnSigunguChange()"
-          style="flex:1;min-width:110px;padding:9px 12px;border:1.5px solid var(--sky);border-radius:10px;background:#fff;font-family:inherit;font-size:.85rem;font-weight:600;color:var(--ink);cursor:pointer;">
+          style="flex:1;min-width:110px;padding:9px 12px;border:1.5px solid var(--color-point);border-radius:10px;background:#fff;font-family:inherit;font-size:.85rem;font-weight:600;color:var(--ink);cursor:pointer;">
           <option value="">시/군/구 전체</option>
         </select>
       </div>
@@ -57,8 +57,8 @@
       </div>
       <div style="text-align:center;margin-top:18px;">
         <button onclick="document.getElementById('reservation-lookup').scrollIntoView({behavior:'smooth',block:'start'})"
-          style="padding:10px 26px;border-radius:100px;border:1.5px solid var(--sky);background:var(--mist);
-          color:var(--blue);font-family:inherit;font-size:.82rem;font-weight:700;cursor:pointer;
+          style="padding:10px 26px;border-radius:100px;border:1.5px solid var(--color-point);background:var(--mist);
+          color:var(--color-base);font-family:inherit;font-size:.82rem;font-weight:700;cursor:pointer;
           transition:all .2s;" onmouseover="this.style.background='var(--pale)'" onmouseout="this.style.background='var(--mist)'">
           예약 조회 · 변경하기
         </button>
@@ -78,7 +78,7 @@
           </button>
           <div style="display:flex;align-items:center;gap:10px;">
             <div class="rsv-cal-month" id="rsvCalTitle">2026년 1월</div>
-            <button onclick="rsvGoToday()" style="padding:4px 12px;border-radius:100px;border:1.5px solid var(--sky);background:var(--mist);color:var(--blue);font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .18s;" onmouseover="this.style.background='var(--pale)'" onmouseout="this.style.background='var(--mist)'">오늘</button>
+            <button onclick="rsvGoToday()" style="padding:4px 12px;border-radius:100px;border:1.5px solid var(--color-point);background:var(--mist);color:var(--color-base);font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .18s;" onmouseover="this.style.background='var(--pale)'" onmouseout="this.style.background='var(--mist)'">오늘</button>
           </div>
           <button class="rsv-cal-nav-btn" onclick="rsvCalNav(1)" title="다음 달">
             <svg viewBox="0 0 24 24" fill="none"><polyline points="9 18 15 12 9 6"/></svg>
@@ -203,7 +203,7 @@
         <button onclick="rsvReset()" style="padding:12px 32px;border-radius:11px;
           border:1.5px solid var(--g2);background:var(--white);color:var(--g5);
           font-family:inherit;font-weight:700;font-size:.88rem;cursor:pointer;
-          transition:all .2s;" onmouseover="this.style.borderColor='var(--sky)';this.style.color='var(--blue)'"
+          transition:all .2s;" onmouseover="this.style.borderColor='var(--color-point)';this.style.color='var(--color-base)'"
           onmouseout="this.style.borderColor='var(--g2)';this.style.color='var(--g5)'">
           새 예약 신청하기
         </button>

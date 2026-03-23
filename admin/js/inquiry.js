@@ -156,7 +156,7 @@ function showProdInfo(p) {
     + '<div style="flex:1;min-width:0"><div style="font-size:.68rem;color:var(--g5)">선택 제품</div>'
     + '<div style="font-weight:700;font-size:.87rem">' + esc(p.name) + '</div></div>'
     + '<div style="text-align:right;flex-shrink:0">'
-    + '<div style="font-size:1rem;font-weight:900;color:var(--blue)">' + comma(p.priceMonthly || 0)
+    + '<div style="font-size:1rem;font-weight:900;color:var(--color-base)">' + comma(p.priceMonthly || 0)
     + '<span style="font-size:.66rem;font-weight:500">원/월</span></div>'
     + (p.priceOriginal ? '<div style="font-size:.68rem;color:var(--g4);text-decoration:line-through">' + comma(p.priceOriginal) + '원</div>' : '')
     + '</div></div>';

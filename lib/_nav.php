@@ -58,17 +58,17 @@ nav{
 nav.s{background:rgba(8,14,26,.97);border-bottom-color:rgba(255,255,255,.09);}
 .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0;}
 .nav-mark{width:34px;height:34px;border-radius:10px;
-  background:linear-gradient(135deg,var(--sky),var(--aqua));
+  background:linear-gradient(135deg,var(--color-point),var(--color-sub));
   display:grid;place-items:center;}
 .nav-mark svg{width:17px;height:17px;fill:#fff;}
 .nav-name{font-family:'Bebas Neue',sans-serif;font-size:1.45rem;color:var(--white);letter-spacing:1px;line-height:1;}
-.nav-name em{color:var(--aqua);font-style:normal;}
+.nav-name em{color:var(--color-sub);font-style:normal;}
 .nav-links{display:flex;gap:24px;list-style:none;}
 .nav-links a{text-decoration:none;color:rgba(255,255,255,.68);font-size:.83rem;font-weight:500;
   transition:color .2s;letter-spacing:.2px;white-space:nowrap;}
 .nav-links a:hover{color:#fff;}
 .nav-cta{padding:8px 20px;border-radius:100px;
-  background:linear-gradient(135deg,var(--blue),var(--sky));
+  background:linear-gradient(135deg,var(--color-base),var(--color-point));
   color:#fff;font-size:.81rem;font-weight:700;border:none;cursor:pointer;
   text-decoration:none;letter-spacing:.3px;white-space:nowrap;
   transition:transform .22s,box-shadow .22s;}
@@ -146,7 +146,7 @@ nav.s{background:rgba(8,14,26,.97);border-bottom-color:rgba(255,255,255,.09);}
 .nav-drawer-cta a {
   display: block; text-align: center;
   padding: 13px; border-radius: 100px;
-  background: linear-gradient(135deg, var(--blue), var(--sky));
+  background: linear-gradient(135deg, var(--color-base), var(--color-point));
   color: #fff; font-size: .85rem; font-weight: 700;
   text-decoration: none; letter-spacing: .3px;
   transition: opacity .2s, transform .2s;

@@ -40,7 +40,7 @@
 .vnav   { display: flex; gap: 8px; align-items: center; justify-content: center; margin-top: 26px; }
 .vnarr  { width: 42px; height: 42px; border-radius: 12px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; display: grid; place-items: center; transition: all .2s; &:hover { background: rgba(255,255,255,.18); } svg { width: 15px; height: 15px; stroke: #fff; stroke-width: 2.5; } }
 .vdots { display: flex; gap: 6px; align-items: center; }
-.vdot  { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,.2); cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all .22s; &.on { background: var(--aqua); width: 16px; border-radius: 3px; } }
+.vdot  { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,.2); cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all .22s; &.on { background: var(--color-sub); width: 16px; border-radius: 3px; } }
 
 // ── 리뷰 (영상과 동일 구조)
 .rvwrap  { overflow: hidden; position: relative; }
@@ -61,7 +61,7 @@
 .rvnav   { display: flex; gap: 8px; align-items: center; justify-content: center; margin-top: 26px; }
 .rvnarr  { width: 42px; height: 42px; border-radius: 12px; background: var(--mist); border: 1px solid var(--g2); cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; display: grid; place-items: center; transition: all .2s; &:hover { background: var(--g2); } svg { width: 15px; height: 15px; stroke: var(--ink2); stroke-width: 2.5; } }
 .rvdots { display: flex; gap: 6px; align-items: center; }
-.rvdot  { width: 5px; height: 5px; border-radius: 50%; background: var(--g3); cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all .22s; &.on { background: var(--sky); width: 16px; border-radius: 3px; } }
+.rvdot  { width: 5px; height: 5px; border-radius: 50%; background: var(--g3); cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all .22s; &.on { background: var(--color-point); width: 16px; border-radius: 3px; } }
 
 // ── 반응형
 @media (max-width: 768px) {

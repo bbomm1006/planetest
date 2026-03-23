@@ -563,7 +563,7 @@ function ciRenderFields(t, fields) {
         (f.options || []).forEach(o => {
           const lbl = document.createElement('label');
           lbl.style.cssText = 'display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:400;font-size:.88rem;';
-          lbl.innerHTML = `<input type="radio" name="ci_radio_${t}_${f.field_key}" value="${ciEsc(o)}" style="accent-color:var(--sky);"> ${ciEsc(o)}`;
+          lbl.innerHTML = `<input type="radio" name="ci_radio_${t}_${f.field_key}" value="${ciEsc(o)}" style="accent-color:var(--color-point);"> ${ciEsc(o)}`;
           radioWrap.appendChild(lbl);
         });
         wrap.appendChild(radioWrap);
@@ -580,7 +580,7 @@ function ciRenderFields(t, fields) {
         (f.options || []).forEach(o => {
           const lbl = document.createElement('label');
           lbl.style.cssText = 'display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:400;font-size:.88rem;';
-          lbl.innerHTML = `<input type="checkbox" value="${ciEsc(o)}" style="accent-color:var(--sky);"> ${ciEsc(o)}`;
+          lbl.innerHTML = `<input type="checkbox" value="${ciEsc(o)}" style="accent-color:var(--color-point);"> ${ciEsc(o)}`;
           cbWrap.appendChild(lbl);
         });
         wrap.appendChild(cbWrap);

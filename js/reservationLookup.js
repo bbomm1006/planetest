@@ -71,7 +71,7 @@
       html+='<div class="lkp-card-head"><span class="lkp-card-id">'+(r.res_number?lkpEsc(r.res_number):'#'+r.id)+'</span>';
       html+='<span class="'+badgeCls+'">'+lkpEsc(r.status||'접수')+'</span></div>';
       html+='<div class="lkp-rows">';
-      if(r.res_number) html+='<div class="lkp-row"><span class="lkp-row-key">예약번호</span><span class="lkp-row-val" style="font-weight:800;color:var(--blue);">'+lkpEsc(r.res_number)+'</span></div>';
+      if(r.res_number) html+='<div class="lkp-row"><span class="lkp-row-key">예약번호</span><span class="lkp-row-val" style="font-weight:800;color:var(--color-base);">'+lkpEsc(r.res_number)+'</span></div>';
       html+='<div class="lkp-row"><span class="lkp-row-key">예약일</span><span class="lkp-row-val">'+lkpEsc(dateLabel)+'</span></div>';
       if(timeLabel) html+='<div class="lkp-row"><span class="lkp-row-key">예약시간</span><span class="lkp-row-val">'+lkpEsc(timeLabel)+'</span></div>';
       html+='<div class="lkp-row"><span class="lkp-row-key">지점</span><span class="lkp-row-val">'+lkpEsc(r.branch_name||'-')+'</span></div>';
@@ -164,12 +164,12 @@
       var canSel=false, bg='#fff', border='1.5px solid var(--g2)';
       var color=dow===0?'var(--red)':dow===6?'#5ab0f5':'var(--g7)', badge='';
       if(isPast||isToday){ bg='var(--g1)'; color='var(--g3)'; if(isToday) badge='<div style="font-size:.52rem;font-weight:700;color:#92400e;line-height:1;">당일</div>'; }
-      else if(isOrig){ canSel=true; bg='#eff6ff'; color=dow===0?'#be185d':dow===6?'#1d4ed8':'var(--blue)'; badge='<div style="font-size:.47rem;font-weight:700;color:var(--blue);line-height:1;">현재</div>'; }
+      else if(isOrig){ canSel=true; bg='#eff6ff'; color=dow===0?'#be185d':dow===6?'#1d4ed8':'var(--color-base)'; badge='<div style="font-size:.47rem;font-weight:700;color:var(--color-base);line-height:1;">현재</div>'; }
       else if(!av){ bg='#fff'; color='var(--g3)'; }
       else if(av.is_closed=='1'||av.is_closed===1){ bg='#fee2e2'; color='#fca5a5'; badge='<div style="font-size:.52rem;font-weight:700;color:#dc2626;line-height:1;">불가</div>'; }
       else if(av.is_full=='1'||av.is_full===1){ bg='#fef9c3'; color='#92400e'; badge='<div style="font-size:.52rem;font-weight:700;color:#b45309;line-height:1;">마감</div>'; }
       else { canSel=true; bg='#d1fae5'; color=dow===0?'#be185d':dow===6?'#1d4ed8':'#065f46'; badge='<div style="font-size:.52rem;font-weight:700;color:#047857;line-height:1;">가능</div>'; }
-      if(isSel&&canSel) border='2px solid var(--blue)';
+      if(isSel&&canSel) border='2px solid var(--color-base)';
       html+='<div onclick="'+(isToday?'alert(\'당일 예약은 어렵습니다.\\n내일 이후 날짜를 선택해주세요.\')':canSel?'lkpCalChgSelect('+idx+',\''+dateStr+'\')':'')+'"'
         +' style="border:'+border+';border-radius:5px;padding:4px 2px;min-height:42px;background:'+bg+';display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:'+(isToday||canSel?'pointer':'default')+';user-select:none;">'
         +'<div style="font-size:.72rem;font-weight:700;color:'+color+';">'+d+'</div>'+badge+'</div>';
@@ -180,10 +180,10 @@
       var dows2=['일','월','화','수','목','금','토'];
       var isSameDate=(s.selectedDate===s.originalDate);
       html+='<div style="margin-top:10px;padding:10px 12px;background:#eff6ff;border-radius:8px;border:1.5px solid #bfdbfe;">'
-        +'<div style="font-size:.8rem;font-weight:700;color:var(--blue);margin-bottom:8px;">✓ '+s.selectedDate.replace(/-/g,'.')+' ('+dows2[selDt.getDay()]+')'
+        +'<div style="font-size:.8rem;font-weight:700;color:var(--color-base);margin-bottom:8px;">✓ '+s.selectedDate.replace(/-/g,'.')+' ('+dows2[selDt.getDay()]+')'
         +(isSameDate?' <span style="font-size:.7rem;font-weight:400;color:var(--g5);">(현재 예약일)</span>':'')+'</div>'
         +'<div id="lkpTimeSlotWrap'+idx+'"></div>'
-        +'<button onclick="lkpCalChgConfirm('+idx+')" style="margin-top:8px;width:100%;padding:9px;border-radius:8px;border:none;background:var(--blue);color:#fff;font-family:inherit;font-weight:800;font-size:.78rem;cursor:pointer;">변경 확인</button></div>';
+        +'<button onclick="lkpCalChgConfirm('+idx+')" style="margin-top:8px;width:100%;padding:9px;border-radius:8px;border:none;background:var(--color-base);color:#fff;font-family:inherit;font-weight:800;font-size:.78rem;cursor:pointer;">변경 확인</button></div>';
     }
     wrap.innerHTML=html;
     if(s.selectedDate) lkpLoadTimeSlots(idx,s.selectedDate);
@@ -214,7 +214,7 @@
         var isFull=!isClosed&&booked>=cap, disabled=isClosed||isFull;
         var isSel=(s.selectedTime===sl.avail_time);
         html+='<button type="button" onclick="'+(disabled?'void(0)':'lkpSelectTime('+idx+',\''+sl.avail_time+'\')')+'" '
-          +'style="padding:7px 14px;border-radius:8px;border:2px solid '+(isSel?'var(--blue)':'var(--g2)')+';background:'+(isSel?'var(--blue)':disabled?'var(--off)':'#fff')+';color:'+(isSel?'#fff':disabled?'var(--g3)':'var(--ink3)')+';font-size:.78rem;font-weight:700;cursor:'+(disabled?'default':'pointer')+';font-family:inherit;">'
+          +'style="padding:7px 14px;border-radius:8px;border:2px solid '+(isSel?'var(--color-base)':'var(--g2)')+';background:'+(isSel?'var(--color-base)':disabled?'var(--off)':'#fff')+';color:'+(isSel?'#fff':disabled?'var(--g3)':'var(--ink3)')+';font-size:.78rem;font-weight:700;cursor:'+(disabled?'default':'pointer')+';font-family:inherit;">'
           +lkpEsc(sl.avail_time)+(isClosed?' (불가)':isFull?' (마감)':'')+'</button>';
       });
       html+='</div>'; tw.innerHTML=html;
@@ -232,8 +232,8 @@
       var m=(btn.getAttribute('onclick')||'').match(/lkpSelectTime\(\d+,'([^']+)'\)/);
       if(!m) return;
       var isSel=(s.selectedTime===m[1]);
-      btn.style.borderColor=isSel?'var(--blue)':'var(--g2)';
-      btn.style.background=isSel?'var(--blue)':'#fff';
+      btn.style.borderColor=isSel?'var(--color-base)':'var(--g2)';
+      btn.style.background=isSel?'var(--color-base)':'#fff';
       btn.style.color=isSel?'#fff':'var(--ink3)';
     });
   }
