@@ -1,0 +1,887 @@
+<style>
+/* =====================================================
+   핑크모바일 — style.css 
+   ===================================================== */
+
+:root {
+  /* ── 브랜드 컬러 토큰 ── */  
+  --color-base:  #FF4D7D;   
+  /* 기본컬러  · 버튼·링크·뱃지      */
+
+  --color-point: #FF7FA3;   
+  /* 포인트컬러· 호버·그라디언트·활성 */
+
+  --color-sub:   #FFF0F4;   
+  /* 서브컬러  · 액센트·네비·아이콘   */
+
+  --color-sub2:  #FFD6E4;   
+  /* 서브컬러2                        */
+
+}
+
+/* ─── VARIABLES ─── */
+:root {
+
+
+  /* ── 이전 변수명 alias (하위 호환) ── */
+  --pink:       var(--color-base);
+  --pink-light: var(--color-point);
+  --pink-pale:  var(--color-sub);
+  --pink-soft:  var(--color-sub2);
+
+  --white:    #FFFFFF;
+  --gray-50:  #FAFAFA;
+  --gray-100: #F5F5F5;
+  --gray-200: #EEEEEE;
+  --gray-400: #BDBDBD;
+  --gray-600: #757575;
+  --gray-800: #424242;
+  --dark:     #1A1A2E;
+  --r-sm: 10px; --r-md: 16px; --r-lg: 24px; --r-xl: 32px;
+  --sh-sm: 0 2px 12px rgba(255,77,125,0.08);
+  --sh-md: 0 8px 32px rgba(255,77,125,0.12);
+  --trans: all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
+/***************************************************************/
+
+.ci-status-default  { background: #fff0f4; color: #be185d; }
+.ci-status-progress { background: #ffe4ed; color: #9d174d; }
+.ci-status-done     { background: #ffd6e4; color: #831843; }
+.ci-status-closed   { background: #f9fafb; color: #9ca3af; }
+
+/* ── 화이트 네비 override ── */
+nav {
+  background: rgba(255,255,255,.96);
+  border-bottom: 1px solid rgba(0,0,0,.08);
+  box-shadow: 0 1px 0 rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06);
+}
+nav.s {
+  background: rgba(255,255,255,.99);
+  border-bottom-color: rgba(0,0,0,.10);
+}
+.nav-name       { color: var(--dark); }
+.nav-name em    { color: var(--color-base); }
+.nav-links a    { color: rgba(26,26,46,.60); }
+.nav-links a:hover { color: #1A1A2E; }
+.nav-ham span   { background: #1A1A2E; }
+
+/* 일러스트 슬라이드 */
+.hero-slide-illust { overflow:hidden; }
+.illust-bg { position:absolute; inset:0; background:linear-gradient(135deg,var(--color-base) 0%,var(--color-point) 45%,var(--color-sub2) 100%); }
+.illust-circle { position:absolute; border-radius:50%; pointer-events:none; }
+.illust-circle-1 { width:300px; height:300px; top:-80px; right:-60px; background:rgba(255,255,255,0.12); }
+.illust-circle-2 { width:160px; height:160px; bottom:-40px; left:40%; background:rgba(255,255,255,0.08); }
+.illust-circle-3 { width:80px; height:80px; top:60px; left:30%; background:rgba(255,255,255,0.1); }
+.illust-svg { position:absolute; right:0; top:0; width:55%; height:100%; pointer-events:none; }
+.hero-slide-illust .hero-slide-label { color:rgba(255,255,255,0.85); text-transform:none; letter-spacing:0.04em; }
+
+/* 화살표 */
+.hero-arrow { position:absolute; top:50%; transform:translateY(-50%); z-index:10; width:40px; height:40px; border-radius:50%; border:1.5px solid rgba(255,255,255,0.5); background:rgba(255,255,255,0.15); backdrop-filter:blur(8px); color:white; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+.hero-arrow:hover { background:rgba(255,255,255,0.3); border-color:white; }
+.hero-arrow-prev { left:16px; }
+.hero-arrow-next { right:16px; }
+
+/* 페이징 컨트롤 */
+.hero-controls { display:flex; align-items:center; justify-content:center; gap:10px; padding:12px 0 8px; }
+.hero-pg-bar-wrap { display:none; }
+.hero-pg-arrow { background:none; border:none; font-size:20px; color:var(--gray-600); cursor:pointer; line-height:1; padding:0 2px; transition:color 0.2s; }
+.hero-pg-arrow:hover { color:var(--dark); }
+.hero-pg-num { font-size:13px; font-weight:700; color:var(--dark); display:flex; align-items:center; gap:5px; min-width:48px; justify-content:center; }
+.hero-pg-sep { color:var(--gray-400); font-weight:400; }
+.hero-pause-btn { width:24px; height:24px; border-radius:50%; border:1.5px solid var(--gray-200); background:white; color:var(--gray-600); font-size:9px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+.hero-pause-btn:hover { border-color:var(--dark); color:var(--dark); }
+
+/* ─── QUICK MENU ─── */
+#quick-menu { background:white; padding:16px 24px 20px; border-bottom:1px solid var(--gray-100); position:relative; z-index:2; box-shadow:0 2px 12px rgba(0,0,0,0.04); }
+.section-inner { max-width:1200px; margin:0 auto; }
+.quick-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; max-width:660px; margin:0 auto; }
+.quick-item { display:flex; flex-direction:column; align-items:center; gap:8px; padding:12px 8px; border-radius:16px; cursor:pointer; transition:var(--trans); text-decoration:none; color:var(--gray-800); border:1.5px solid transparent; }
+.quick-item:hover { background:var(--color-sub); border-color:var(--color-sub2); transform:translateY(-2px); }
+.quick-icon-wrap { width:56px; height:56px; border-radius:16px; display:flex; align-items:center; justify-content:center; filter:drop-shadow(0 5px 10px rgba(255,77,125,0.25)); transition:var(--trans); }
+.quick-item:hover .quick-icon-wrap { transform:translateY(-2px); filter:drop-shadow(0 8px 16px rgba(255,77,125,0.35)); }
+.quick-3d-icon { width:56px; height:56px; display:block; border-radius:16px; }
+.quick-label { font-size:13px; font-weight:700; text-align:center; line-height:1.3; color:var(--dark); }
+
+/* ─── SECTION COMMON ─── */
+section { padding:64px 24px; }
+.section-header { margin-bottom:32px; }
+.section-tag { display:inline-block; background:var(--color-sub); color:var(--color-base); font-size:11px; font-weight:700; padding:4px 12px; border-radius:100px; margin-bottom:8px; letter-spacing:0.5px; text-transform:uppercase; }
+.section-title { color: var(--dark); font-size:clamp(28px,3.5vw,44px); font-weight:900; letter-spacing:-1.5px; line-height:1.2; }
+.section-title span { color:var(--color-base); }
+.section-sub { font-size:15px; color:var(--gray-600); margin-top:8px; }
+.section-header-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; gap:16px; }
+.view-all { font-size:13px; font-weight:600; color:var(--color-base); text-decoration:none; display:flex; align-items:center; gap:4px; white-space:nowrap; flex-shrink:0; }
+.view-all:hover { text-decoration:underline; }
+
+/* ─── 공통 스크롤 롤링 ─── */
+.scroll-wrap { position:relative; }
+.scroll-track {
+  display:flex; gap:16px;
+  overflow-x:auto; scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch; scrollbar-width:none;
+  padding:4px 2px 8px;
+}
+.scroll-track::-webkit-scrollbar { display:none; }
+.scroll-track > * { scroll-snap-align:start; flex:0 0 auto; }
+.scroll-track.cols-3 > * { width:calc((100% - 32px) / 3); }
+.scroll-track.cols-2 > * { width:calc((100% - 16px) / 2); }
+.scroll-track.cols-4 > * { width:calc((100% - 48px) / 4); }
+.scroll-arrow { position:absolute; top:50%; transform:translateY(-50%); z-index:5; width:36px; height:36px; border-radius:50%; border:1.5px solid var(--gray-200); background:white; color:var(--gray-600); font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 10px rgba(0,0,0,0.08); transition:all 0.2s; }
+.scroll-arrow:hover { border-color:var(--color-base); color:var(--color-base); box-shadow:0 4px 16px rgba(255,77,125,0.2); }
+.scroll-arrow.sa-left { left:-18px; }
+.scroll-arrow.sa-right { right:-18px; }
+
+.show-more-btn { display:none; width:100%; margin-top:16px; padding:13px; border-radius:12px; border:1.5px solid var(--gray-200); background:white; font-size:14px; font-weight:700; color:var(--gray-600); cursor:pointer; transition:var(--trans); }
+.show-more-btn:hover { border-color:var(--color-base); color:var(--color-base); }
+
+/* ─── USIM PLANS ─── */
+#usim { background:var(--gray-50); color: var(--dark); }
+.plan-tabs { display:flex; gap:6px; margin-bottom:24px; flex-wrap:wrap; }
+.plan-tab { padding:8px 18px; border-radius:100px; font-size:13px; font-weight:600; border:1.5px solid var(--gray-200); background:white; cursor:pointer; transition:var(--trans); color:var(--gray-600); }
+.plan-tab.active, .plan-tab:hover { border-color:var(--color-base); color:var(--color-base); background:var(--color-sub); }
+.plan-select { display:none; width:100%; padding:10px 14px; border-radius:10px; border:1.5px solid var(--gray-200); font-size:14px; font-weight:600; color:var(--dark); background:white; margin-bottom:20px; cursor:pointer; }
+.plan-card { background:white; border-radius:var(--r-lg); padding:22px; border:1.5px solid var(--gray-200); transition:var(--trans); position:relative; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.04); }
+.plan-card:hover { border-color:var(--color-base); box-shadow:var(--sh-md); transform:translateY(-3px); }
+.plan-card.featured { border-color:var(--color-base); box-shadow:var(--sh-md); }
+.plan-badge { position:absolute; top:14px; right:14px; background:var(--color-base); color:white; font-size:11px; font-weight:700; padding:3px 10px; border-radius:100px; }
+.plan-operator { font-size:11px; font-weight:700; color:var(--gray-400); letter-spacing:0.5px; text-transform:uppercase; margin-bottom:5px; }
+.plan-name { font-size:15px; font-weight:700; margin-bottom:14px; }
+.plan-price { font-size:28px; font-weight:900; color:var(--dark); letter-spacing:-1px; display:flex; align-items:baseline; gap:2px; }
+.plan-price small { font-size:13px; font-weight:500; color:var(--gray-600); }
+.plan-original { font-size:12px; color:var(--gray-400); text-decoration:line-through; margin-top:2px; margin-bottom:14px; }
+.plan-specs { display:flex; flex-direction:column; gap:7px; margin-bottom:18px; }
+.plan-spec { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--gray-600); }
+.plan-spec i { color:var(--color-base); font-size:11px; width:13px; }
+.plan-spec strong { color:var(--dark); font-weight:700; }
+.btn-plan { width:100%; padding:10px; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; transition:var(--trans); border:1.5px solid var(--gray-200); background:white; color:var(--dark); }
+.plan-card.featured .btn-plan { background:linear-gradient(135deg,var(--color-base),var(--color-point)); color:white; border-color:transparent; box-shadow:0 4px 14px rgba(255,77,125,0.3); }
+.btn-plan:hover { border-color:var(--color-base); color:var(--color-base); }
+
+/* ─── DATA PLANS (BEST) ─── */
+#data { background:white; }
+.best-label { display:inline-flex; align-items:center; gap:6px; background:linear-gradient(135deg,var(--color-base),var(--color-point)); color:white; padding:4px 12px; border-radius:100px; font-size:11px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; margin-bottom:8px; }
+.plans-list { display:flex; flex-direction:column; gap:10px; }
+.plan-row { display:flex; align-items:center; background:white; border:1.5px solid var(--gray-200); border-radius:16px; padding:20px 24px; transition:var(--trans); position:relative; box-shadow:0 2px 8px rgba(0,0,0,0.03); gap:16px; }
+.plan-row:hover { border-color:var(--color-base); box-shadow:var(--sh-sm); }
+.plan-row-hot { background:var(--dark); border-color:var(--color-base); box-shadow:0 4px 24px rgba(255,77,125,0.18); }
+.plan-row-badge { flex:0 0 auto; width:44px; height:44px; border-radius:50%; background:var(--color-base); color:white; font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center; text-align:center; line-height:1.2; flex-direction:column; }
+.plan-row-badge-dark { flex:0 0 auto; width:44px; height:44px; border-radius:50%; background:var(--gray-800); color:white; font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center; text-align:center; line-height:1.2; flex-direction:column; }
+.plan-row-left { flex:0 0 140px; }
+.plan-row-op { font-size:11px; font-weight:700; color:var(--color-base); letter-spacing:0.3px; margin-bottom:3px; }
+.plan-row-name { font-size:16px; font-weight:800; color:var(--dark); letter-spacing:-0.3px; }
+.plan-row-specs { flex:1; display:flex; gap:28px; padding:0 20px; }
+.plan-row-spec { display:flex; flex-direction:column; gap:2px; }
+.plan-row-spec-label { font-size:10px; color:var(--gray-400); font-weight:500; }
+.plan-row-spec-val { font-size:13px; font-weight:700; color:var(--dark); }
+.plan-row-spec-val.pink { color:var(--color-base); }
+.plan-row-price { flex:0 0 auto; text-align:right; display:flex; flex-direction:column; align-items:flex-end; justify-content:center; gap:2px; }
+.plan-row-original { font-size:11px; color:var(--gray-400); text-decoration:line-through; }
+.plan-row-num-row { display:flex; align-items:baseline; gap:6px; }
+.plan-row-num { font-size:26px; font-weight:900; color:var(--dark); letter-spacing:-1px; line-height:1; }
+.plan-row-num span { font-size:13px; font-weight:600; color:var(--gray-600); }
+.plan-row-vat { font-size:10px; color:var(--gray-400); }
+.plan-row-btn { flex:0 0 auto; padding:10px 20px; border-radius:10px; border:1.5px solid var(--gray-200); background:white; font-size:13px; font-weight:700; color:var(--dark); cursor:pointer; transition:var(--trans); white-space:nowrap; }
+.plan-row-btn:hover { border-color:var(--color-base); color:var(--color-base); }
+.plan-row-btn-hot { background:var(--color-base); border-color:var(--color-base); color:white; }
+.plan-row-btn-hot:hover { background:#e6345a; border-color:#e6345a; color:white; }
+
+/* ─── BUTTONS ─── */
+.btn-primary { background:linear-gradient(135deg,var(--color-base),var(--color-point)); color:white; border:none; padding:13px 26px; border-radius:12px; font-size:14px; font-weight:700; cursor:pointer; transition:var(--trans); box-shadow:0 6px 20px rgba(255,77,125,0.35); display:inline-flex; align-items:center; gap:8px; }
+.btn-primary:hover { transform:translateY(-2px); box-shadow:0 10px 28px rgba(255,77,125,0.45); }
+.btn-white { background:white; color:var(--color-base); border:none; padding:13px 26px; border-radius:12px; font-size:14px; font-weight:700; cursor:pointer; transition:var(--trans); box-shadow:0 6px 20px rgba(0,0,0,0.12); display:flex; align-items:center; gap:8px; }
+.btn-white:hover { transform:translateY(-2px); box-shadow:0 10px 28px rgba(0,0,0,0.18); }
+
+/* ─── BUNDLE ─── */
+#bundle { background:var(--dark); color:white; }
+#bundle .section-title { color:white; }
+#bundle .section-sub { color:rgba(255,255,255,0.6); }
+#bundle .section-tag { background:rgba(255,77,125,0.2); color:var(--color-point); }
+.bundle-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+.bundle-card { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:var(--r-lg); padding:26px; transition:var(--trans); }
+.bundle-card:hover { background:rgba(255,77,125,0.08); border-color:rgba(255,77,125,0.4); transform:translateY(-3px); }
+.bundle-icon { font-size:26px; margin-bottom:14px; }
+.bundle-name { font-size:16px; font-weight:700; margin-bottom:8px; }
+.bundle-desc { font-size:13px; color:rgba(255,255,255,0.55); line-height:1.6; margin-bottom:18px; }
+.bundle-save { display:inline-flex; align-items:center; gap:6px; background:rgba(255,77,125,0.2); color:var(--color-point); font-size:13px; font-weight:700; padding:5px 12px; border-radius:100px; }
+
+/* ─── PHONES ─── */
+#phones { background:white; }
+.phone-card { border-radius:var(--r-lg); border:1.5px solid var(--gray-200); overflow:hidden; transition:var(--trans); background:white; box-shadow:0 2px 8px rgba(0,0,0,0.04); }
+.phone-card:hover { border-color:var(--color-base); box-shadow:var(--sh-md); transform:translateY(-3px); }
+.phone-card-img { background:linear-gradient(160deg,#f2f2f2,#e8e8e8); height:210px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.phone-card-img img { width:65%; height:85%; object-fit:contain; filter:drop-shadow(0 8px 20px rgba(0,0,0,0.14)); }
+.phone-card-info { padding:16px; }
+.phone-brand { font-size:11px; font-weight:700; color:var(--color-base); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:3px; }
+.phone-model { font-size:15px; font-weight:800; margin-bottom:3px; color: var(--dark);}
+.phone-storage { font-size:12px; color:var(--gray-400); margin-bottom:10px; }
+.phone-monthly { font-size:24px; font-weight:900; color:var(--color-base); letter-spacing:-1px; }
+.phone-monthly small { font-size:12px; font-weight:600; color:var(--gray-600); }
+.phone-full-price { font-size:11px; color:var(--gray-400); text-decoration:line-through; margin-top:2px; }
+
+/* ─── EVENT ─── */
+#event { background:var(--gray-50); }
+.event-card { border-radius:var(--r-lg); overflow:hidden; background:white; border:1.5px solid var(--gray-200); transition:var(--trans); box-shadow:0 2px 8px rgba(0,0,0,0.04); }
+.event-card:hover { border-color:var(--color-base); box-shadow:var(--sh-md); transform:translateY(-3px); }
+.event-thumb { height:240px; position:relative; display:flex; align-items:flex-end; overflow:hidden; }
+.event-thumb::after { content:''; position:absolute; inset:0; background:linear-gradient(to top,rgba(0,0,0,0.68) 0%,rgba(0,0,0,0.08) 60%,transparent 100%); }
+.event-thumb.pink { background:linear-gradient(135deg,var(--color-base) 0%,var(--color-point) 50%,var(--color-sub2) 100%); }
+.event-thumb.dark { background:linear-gradient(135deg,var(--dark),#2d2d4a); }
+.event-thumb.soft { background:linear-gradient(135deg,var(--color-sub),var(--color-sub2)); }
+.event-thumb-inner { position:relative; z-index:1; padding:20px; width:100%; }
+.event-thumb-tag { display:inline-block; font-size:11px; font-weight:700; background:rgba(255,255,255,0.22); color:white; padding:3px 10px; border-radius:100px; margin-bottom:6px; }
+.event-thumb.soft .event-thumb-tag { background:rgba(255,77,125,0.15); color:var(--color-base); }
+.event-thumb-title { font-size:20px; font-weight:800; line-height:1.3; color:white; }
+.event-thumb.soft .event-thumb-title { color:var(--dark); }
+.event-thumb-desc { font-size:12px; color:rgba(255,255,255,0.75); margin-top:5px; }
+.event-thumb.soft .event-thumb-desc { color:var(--gray-600); }
+.event-thumb-period { font-size:11px; margin-top:8px; opacity:0.6; color:white; }
+.event-thumb.soft .event-thumb-period { color:var(--gray-600); }
+
+/* ─── REVIEWS ─── */
+#reviews { background:white; }
+.review-card { background:var(--gray-50); border-radius:var(--r-md); padding:20px; border:1.5px solid var(--gray-100); transition:var(--trans); }
+.review-card:hover { border-color:var(--color-sub2); box-shadow:var(--sh-sm); }
+.review-stars { color:#FFB800; font-size:12px; margin-bottom:8px; }
+.review-text { font-size:13px; color:var(--gray-800); line-height:1.7; margin-bottom:14px; }
+.review-author { display:flex; align-items:center; gap:10px; }
+.review-avatar { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,var(--color-base),var(--color-point)); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:white; flex-shrink:0; }
+.review-name { font-size:13px; font-weight:700; }
+.review-plan { font-size:11px; color:var(--gray-400); margin-top:1px; }
+
+/* ─── RECOMMEND ─── */
+#recommend { background:var(--gray-50); padding-left:0; padding-right:0; }
+.recommend-wrap {
+  background:linear-gradient(135deg,var(--color-base),var(--color-point));
+  border-radius:0; padding:52px 48px; color:white;
+  display:flex; flex-direction:column; align-items:center; gap:36px;
+  position:relative; overflow:hidden; text-align:center;
+}
+.recommend-wrap::before { content:''; position:absolute; right:-60px; top:-60px; width:260px; height:260px; border-radius:50%; background:rgba(255,255,255,0.1); }
+.recommend-wrap::after { content:''; position:absolute; left:-40px; bottom:-80px; width:180px; height:180px; border-radius:50%; background:rgba(255,255,255,0.07); }
+.recommend-content { position:relative; z-index:1; }
+.recommend-content h2 { font-size:clamp(26px,3vw,36px); font-weight:900; margin-bottom:8px; letter-spacing:-1px; }
+.recommend-content p { font-size:15px; opacity:0.85; line-height:1.6; }
+.recommend-steps { display:flex; gap:12px; position:relative; z-index:1; width:100%; justify-content:center; flex-wrap:nowrap; }
+.recommend-step { background:rgba(255,255,255,0.18); border-radius:14px; padding:16px 20px; display:flex; align-items:center; gap:10px; font-size:14px; font-weight:700; flex:1; max-width:240px; }
+.recommend-step-num { width:28px; height:28px; border-radius:50%; flex-shrink:0; background:white; color:var(--color-base); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; }
+.data-slider-wrap { position:relative; z-index:1; width:100%; max-width:680px; padding:0; }
+.data-slider-label { font-size:13px; font-weight:600; opacity:0.85; margin-bottom:6px; }
+.data-slider-value { font-size:44px; font-weight:900; letter-spacing:-2px; line-height:1; margin-bottom:18px; }
+.data-slider-value span { font-size:18px; font-weight:600; opacity:0.8; margin-left:3px; }
+.data-slider { -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:3px; outline:none; cursor:pointer; background:rgba(255,255,255,0.3); }
+.data-slider::-webkit-slider-thumb { -webkit-appearance:none; width:24px; height:24px; border-radius:50%; background:white; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.2); }
+.data-slider::-moz-range-thumb { width:24px; height:24px; border-radius:50%; border:none; background:white; cursor:pointer; }
+.data-slider-ticks { display:flex; justify-content:space-between; margin-top:8px; font-size:11px; opacity:0.6; }
+.data-slider-result { margin-top:18px; padding-top:18px; border-top:1px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:space-between; gap:14px; }
+.data-slider-result-label { font-size:12px; opacity:0.8; }
+.data-slider-result-plan { font-size:17px; font-weight:800; }
+.data-slider-btn { padding:11px 24px; border-radius:10px; background:white; color:var(--color-base); border:none; font-size:14px; font-weight:800; cursor:pointer; transition:all 0.2s; white-space:nowrap; box-shadow:0 4px 14px rgba(0,0,0,0.12); }
+.data-slider-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(0,0,0,0.16); }
+
+.si-clone { pointer-events:auto; }
+.scroll-track { scroll-behavior:smooth; }
+.plan-row-num-row { display:flex; align-items:baseline; gap:6px; }
+
+/* ─── NOTICE + FAQ ─── */
+#notice-faq { background:var(--gray-50); text-align: left; }
+.notice-faq-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+.notice-section, .faq-section { background:white; border-radius:var(--r-lg); padding:24px; box-shadow:0 2px 8px rgba(0,0,0,0.04); }
+.subsection-title { color: var(--dark);font-size:16px; font-weight:800; margin-bottom:16px; letter-spacing:-0.3px; display:flex; align-items:center; gap:8px; }
+.subsection-title i { color:var(--color-base); font-size:15px; }
+.notice-list { display:flex; flex-direction:column; }
+.notice-item { display:flex; align-items:center; padding:11px 0; border-bottom:1px solid var(--gray-100); text-decoration:none; color:var(--dark); transition:var(--trans); gap:10px; }
+.notice-item:last-child { border-bottom:none; }
+.notice-item:hover { color:var(--color-base); }
+.notice-item-text { font-size:13px; font-weight:500; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.notice-tag { font-size:10px; font-weight:700; padding:2px 8px; border-radius:100px; flex-shrink:0; }
+.notice-tag.new { background:var(--color-sub); color:var(--color-base); }
+.notice-tag.info { background:var(--color-mint); color:var(--color-point); }
+.notice-date { font-size:11px; color:var(--gray-400); flex-shrink:0; }
+.faq-list { display:flex; flex-direction:column; gap:6px; }
+.faq-item { border:1.5px solid var(--gray-200); border-radius:10px; overflow:hidden; }
+.faq-q {color: var(--dark); display: flex; align-items: center; justify-content: space-between; padding: 13px 15px; cursor: pointer; transition: var(--trans); font-size: 13px; font-weight: 600; flex-direction: row;}
+.faq-q:hover, .faq-q.open { background:var(--color-sub); color:var(--color-base); }
+.faq-q i { font-size:11px; transition:var(--trans); }
+.faq-q.open i { transform:rotate(180deg); }
+.faq-a { display:none; padding:13px 15px; font-size:13px; color:var(--gray-600); line-height:1.7; background:var(--gray-50); border-top:1px solid var(--gray-200); }
+.faq-a.open { display:block; }
+
+/* ─── FOOTER ─── */
+footer { background:var(--dark); color:white; padding:44px 24px 28px; }
+.footer-inner { max-width:1200px; margin:0 auto; }
+.footer-top { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:40px; margin-bottom:32px; }
+.footer-desc { font-size:13px; color:rgba(255,255,255,0.4); line-height:1.8; margin-top:10px; }
+.footer-col-title { font-size:12px; font-weight:700; color:rgba(255,255,255,0.6); margin-bottom:12px; letter-spacing:0.3px; }
+.footer-links { display:flex; flex-direction:column; gap:7px; }
+.footer-links a { font-size:13px; color:rgba(255,255,255,0.38); text-decoration:none; transition:var(--trans); }
+.footer-links a:hover { color:var(--color-point); }
+.footer-bottom { border-top:1px solid rgba(255,255,255,0.08); padding-top:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+.footer-copy { font-size:12px; color:rgba(255,255,255,0.28); }
+.footer-legal { display:flex; gap:14px; }
+.footer-legal a { font-size:12px; color:rgba(255,255,255,0.32); text-decoration:none; }
+.footer-legal a:hover { color:var(--color-point); }
+
+/* ─── RESPONSIVE: 1024px ─── */
+@media (max-width:1024px) {
+  .bundle-grid { grid-template-columns:1fr 1fr; }
+  .footer-top { grid-template-columns:1fr 1fr; gap:28px; }
+  .scroll-track.cols-4 > * { width:calc((100% - 32px) / 3); }
+}
+
+/* ─── RESPONSIVE: 768px (Mobile) ─── */
+@media (max-width:768px) {
+  section { padding:44px 16px; }
+  .hamburger { display:flex; }
+  .quick-grid { max-width:100%; }
+  .quick-label { font-size:12px; }
+  .quick-icon-wrap { width:48px; height:48px; }
+  .quick-3d-icon { width:48px; height:48px; }
+  .section-header-row { flex-direction:column; align-items:flex-start; gap:8px; }
+  .plan-tabs { display:none; }
+  .plan-select { display:block; }
+  .scroll-track.cols-3 > *, .scroll-track.cols-2 > *, .scroll-track.cols-4 > * { width:78vw; max-width:300px; }
+  .scroll-wrap { padding:0 18px; }
+  .scroll-arrow { display:flex; width:28px; height:28px; font-size:11px; }
+  .scroll-arrow.sa-left { left:-4px; }
+  .scroll-arrow.sa-right { right:-4px; }
+  .show-more-btn { display:none; }
+  .plan-row { flex-direction:column; align-items:stretch; gap:12px; padding:18px 16px; }
+  .plan-row-badge, .plan-row-badge-dark { position:absolute; top:12px; left:12px; width:36px; height:36px; font-size:9px; }
+  .plan-row-left { flex:none; padding-left:44px; }
+  .plan-row-specs { flex:none; display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; padding:0; }
+  .plan-row-price { flex:none; text-align:center; align-items:center; }
+  .plan-row-btn { width:100%; text-align:center; margin:0; padding:12px; }
+  .bundle-grid { grid-template-columns:1fr; }
+  .reviews-summary { gap:12px; flex-wrap:wrap; }
+  .inquiry-contacts { flex-direction:column; }
+  .recommend-wrap { padding:32px 20px; }
+  .recommend-steps { flex-direction:column; }
+  .recommend-step { max-width:100%; }
+  .data-slider-wrap { padding:22px 20px; }
+  .data-slider-result { flex-direction:column; align-items:flex-start; gap:12px; }
+  .notice-faq-grid { grid-template-columns:1fr; }
+  .footer-top { grid-template-columns:1fr; gap:20px; }
+  .footer-bottom { flex-direction:column; align-items:flex-start; }
+}
+
+@media (max-width:480px) {
+  .quick-grid { gap:4px; }
+  .quick-item { padding:10px 4px; }
+  .plan-row-specs { gap:8px; }
+}
+
+
+</style>
+
+
+<!-- QUICK MENU -->
+<div id="quick-menu">
+  <div class="section-inner">
+    <div class="quick-grid">
+      <a class="quick-item" href="#usim">
+        <div class="quick-icon-wrap">
+          <svg viewBox="0 0 52 52" fill="none" class="quick-3d-icon"><rect x="4" y="4" width="44" height="44" rx="13" fill="url(#q1)"/><rect x="4" y="4" width="44" height="44" rx="13" fill="url(#qs1)" opacity=".5"/><rect x="14" y="12" width="24" height="28" rx="5" fill="white" opacity=".25"/><rect x="14" y="12" width="12" height="10" rx="3" fill="white" opacity=".55"/><rect x="17" y="26" width="18" height="2.5" rx="1.25" fill="white" opacity=".7"/><rect x="17" y="31" width="13" height="2.5" rx="1.25" fill="white" opacity=".5"/><defs><linearGradient id="q1" x1="4" y1="4" x2="48" y2="48" gradientUnits="userSpaceOnUse"><stop stop-color="#FF6B9D"/><stop offset="1" stop-color="#FF2D6B"/></linearGradient><linearGradient id="qs1" x1="4" y1="4" x2="26" y2="26" gradientUnits="userSpaceOnUse"><stop stop-color="white" stop-opacity=".4"/><stop offset="1" stop-color="white" stop-opacity="0"/></linearGradient></defs></svg>
+        </div>
+        <span class="quick-label">유심 요금제</span>
+      </a>
+      <a class="quick-item" href="#data">
+        <div class="quick-icon-wrap">
+          <svg viewBox="0 0 52 52" fill="none" class="quick-3d-icon"><rect x="4" y="4" width="44" height="44" rx="13" fill="url(#q2)"/><rect x="4" y="4" width="44" height="44" rx="13" fill="url(#qs2)" opacity=".5"/><path d="M26 34C20 34 15 29.5 15 24S20 14 26 14s11 4.5 11 10" stroke="white" stroke-width="2.8" stroke-linecap="round" opacity=".45" fill="none"/><path d="M26 34C22 34 19 29.5 19 24S22 14 26 14" stroke="white" stroke-width="2.8" stroke-linecap="round" opacity=".75" fill="none"/><path d="M26 34C24 34 23 29.5 23 24S24 14 26 14" stroke="white" stroke-width="2.8" stroke-linecap="round" fill="none"/><circle cx="26" cy="38" r="2.5" fill="white"/><defs><linearGradient id="q2" x1="4" y1="4" x2="48" y2="48" gradientUnits="userSpaceOnUse"><stop stop-color="#FF85A8"/><stop offset="1" stop-color="#FF3D7D"/></linearGradient><linearGradient id="qs2" x1="4" y1="4" x2="26" y2="26" gradientUnits="userSpaceOnUse"><stop stop-color="white" stop-opacity=".4"/><stop offset="1" stop-color="white" stop-opacity="0"/></linearGradient></defs></svg>
+        </div>
+        <span class="quick-label">데이터 요금제</span>
+      </a>
+      <a class="quick-item" href="#bundle">
+        <div class="quick-icon-wrap">
+          <svg viewBox="0 0 52 52" fill="none" class="quick-3d-icon"><rect x="4" y="4" width="44" height="44" rx="13" fill="url(#q3)"/><rect x="4" y="4" width="44" height="44" rx="13" fill="url(#qs3)" opacity=".5"/><rect x="13" y="22" width="26" height="18" rx="4" fill="white" opacity=".25"/><rect x="13" y="22" width="26" height="7" rx="4" fill="white" opacity=".5"/><path d="M21 22C21 17.5 24 15 26 15s5 2.5 5 7" stroke="white" stroke-width="2.8" stroke-linecap="round" fill="none"/><rect x="24" y="28" width="4" height="4" rx="2" fill="white" opacity=".9"/><defs><linearGradient id="q3" x1="4" y1="4" x2="48" y2="48" gradientUnits="userSpaceOnUse"><stop stop-color="#FF6B9D"/><stop offset="1" stop-color="#E8195A"/></linearGradient><linearGradient id="qs3" x1="4" y1="4" x2="26" y2="26" gradientUnits="userSpaceOnUse"><stop stop-color="white" stop-opacity=".4"/><stop offset="1" stop-color="white" stop-opacity="0"/></linearGradient></defs></svg>
+        </div>
+        <span class="quick-label">결합 상품</span>
+      </a>
+      <a class="quick-item" href="#phones">
+        <div class="quick-icon-wrap">
+          <svg viewBox="0 0 52 52" fill="none" class="quick-3d-icon"><rect x="4" y="4" width="44" height="44" rx="13" fill="url(#q4)"/><rect x="4" y="4" width="44" height="44" rx="13" fill="url(#qs4)" opacity=".5"/><rect x="18" y="11" width="16" height="30" rx="4" fill="white" opacity=".25"/><rect x="18" y="11" width="16" height="6" rx="3" fill="white" opacity=".5"/><rect x="20" y="20" width="12" height="14" rx="2" fill="white" opacity=".55"/><rect x="24" y="37" width="4" height="2.5" rx="1.25" fill="white" opacity=".8"/><defs><linearGradient id="q4" x1="4" y1="4" x2="48" y2="48" gradientUnits="userSpaceOnUse"><stop stop-color="#FF85B3"/><stop offset="1" stop-color="#FF1F6B"/></linearGradient><linearGradient id="qs4" x1="4" y1="4" x2="26" y2="26" gradientUnits="userSpaceOnUse"><stop stop-color="white" stop-opacity=".4"/><stop offset="1" stop-color="white" stop-opacity="0"/></linearGradient></defs></svg>
+        </div>
+        <span class="quick-label">휴대폰 추천</span>
+      </a>
+      <a class="quick-item" href="#event">
+        <div class="quick-icon-wrap">
+          <svg viewBox="0 0 52 52" fill="none" class="quick-3d-icon"><rect x="4" y="4" width="44" height="44" rx="13" fill="url(#q5)"/><rect x="4" y="4" width="44" height="44" rx="13" fill="url(#qs5)" opacity=".5"/><rect x="13" y="22" width="26" height="18" rx="4" fill="white" opacity=".25"/><rect x="13" y="22" width="26" height="6" rx="3" fill="white" opacity=".5"/><line x1="26" y1="22" x2="26" y2="13" stroke="white" stroke-width="2.5" stroke-linecap="round"/><path d="M26 13C26 13 22 17 26 19C30 17 26 13Z" fill="white" opacity=".9"/><rect x="24" y="28" width="4" height="8" rx="1" fill="white" opacity=".7"/><defs><linearGradient id="q5" x1="4" y1="4" x2="48" y2="48" gradientUnits="userSpaceOnUse"><stop stop-color="#FF6BA8"/><stop offset="1" stop-color="#FF2060"/></linearGradient><linearGradient id="qs5" x1="4" y1="4" x2="26" y2="26" gradientUnits="userSpaceOnUse"><stop stop-color="white" stop-opacity=".4"/><stop offset="1" stop-color="white" stop-opacity="0"/></linearGradient></defs></svg>
+        </div>
+        <span class="quick-label">이벤트</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ USIM PLANS ═══ -->
+<section id="usim">
+  <div class="section-inner">
+    <div class="section-header-row">
+      <div class="section-header" style="margin-bottom:0">
+        <div class="section-tag">유심 요금제</div>
+        <h2 class="section-title">내 번호 그대로,<br><span>요금만 확 줄이세요</span></h2>
+        <p class="section-sub">번호이동 / 신규가입 모두 가능 · 당일 개통</p>
+      </div>
+      <a class="view-all" href="#">전체보기 <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+    <!-- PC: 탭 버튼 / 모바일: select 드롭다운 -->
+    <div class="plan-tabs">
+      <button class="plan-tab active">전체</button>
+      <button class="plan-tab">SK망</button>
+      <button class="plan-tab">KT망</button>
+      <button class="plan-tab">LG망</button>
+      <button class="plan-tab">5G</button>
+    </div>
+    <select class="plan-select">
+      <option>전체 요금제</option>
+      <option>SK망</option>
+      <option>KT망</option>
+      <option>LG망</option>
+      <option>5G</option>
+    </select>
+    <div class="scroll-wrap">
+      <button class="scroll-arrow sa-left" onclick="scrollTrack(this,-1)"><i class="fa-solid fa-chevron-left"></i></button>
+      <div class="scroll-track cols-4" id="usimTrack">
+        <div class="plan-card">
+          <div class="plan-operator">SK망 LTE</div>
+          <div class="plan-name">미니 2GB</div>
+          <div class="plan-price">9,900<small>원/월</small></div>
+          <div class="plan-original">기존 55,000원</div>
+          <div class="plan-specs">
+            <div class="plan-spec"><i class="fa-solid fa-database"></i><span><strong>2GB</strong> + 속도제한 무제한</span></div>
+            <div class="plan-spec"><i class="fa-solid fa-phone"></i><span>음성 <strong>100분</strong></span></div>
+            <div class="plan-spec"><i class="fa-regular fa-comment"></i><span>문자 <strong>기본제공</strong></span></div>
+          </div>
+          <button class="btn-plan">신청하기</button>
+        </div>
+        <div class="plan-card featured">
+          <div class="plan-badge">인기</div>
+          <div class="plan-operator">KT망 LTE</div>
+          <div class="plan-name">슬림 15GB 플러스</div>
+          <div class="plan-price">19,900<small>원/월</small></div>
+          <div class="plan-original">기존 69,000원</div>
+          <div class="plan-specs">
+            <div class="plan-spec"><i class="fa-solid fa-database"></i><span><strong>15GB</strong> + 1Mbps 무제한</span></div>
+            <div class="plan-spec"><i class="fa-solid fa-phone"></i><span>음성 <strong>무제한</strong></span></div>
+            <div class="plan-spec"><i class="fa-regular fa-comment"></i><span>문자 <strong>무제한</strong></span></div>
+          </div>
+          <button class="btn-plan">신청하기</button>
+        </div>
+        <div class="plan-card">
+          <div class="plan-operator">LG망 LTE</div>
+          <div class="plan-name">스탠다드 30GB</div>
+          <div class="plan-price">28,900<small>원/월</small></div>
+          <div class="plan-original">기존 79,000원</div>
+          <div class="plan-specs">
+            <div class="plan-spec"><i class="fa-solid fa-database"></i><span><strong>30GB</strong> + 3Mbps 무제한</span></div>
+            <div class="plan-spec"><i class="fa-solid fa-phone"></i><span>음성 <strong>무제한</strong></span></div>
+            <div class="plan-spec"><i class="fa-regular fa-comment"></i><span>문자 <strong>무제한</strong></span></div>
+          </div>
+          <button class="btn-plan">신청하기</button>
+        </div>
+        <div class="plan-card">
+          <div class="plan-badge" style="background:var(--dark)">5G</div>
+          <div class="plan-operator">SK망 5G</div>
+          <div class="plan-name">5G 완전 무제한</div>
+          <div class="plan-price">39,900<small>원/월</small></div>
+          <div class="plan-original">기존 110,000원</div>
+          <div class="plan-specs">
+            <div class="plan-spec"><i class="fa-solid fa-database"></i><span>5G <strong>완전 무제한</strong></span></div>
+            <div class="plan-spec"><i class="fa-solid fa-phone"></i><span>음성 <strong>무제한</strong></span></div>
+            <div class="plan-spec"><i class="fa-regular fa-comment"></i><span>문자 <strong>무제한</strong></span></div>
+          </div>
+          <button class="btn-plan">신청하기</button>
+        </div>
+      </div>
+      <button class="scroll-arrow sa-right" onclick="scrollTrack(this,1)"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+    <button class="show-more-btn" onclick="showMore('usimTrack',this)">더보기 <i class="fa-solid fa-chevron-down"></i></button>
+  </div>
+</section>
+
+<!-- ═══ DATA PLANS (BEST) ═══ -->
+<section id="data">
+  <div class="section-inner">
+    <div class="section-header-row">
+      <div class="section-header" style="margin-bottom:0">
+        <div class="best-label"><i class="fa-solid fa-crown"></i> BEST 요금제</div>
+        <h2 class="section-title">가장 많이 선택한<br><span>데이터 요금제</span></h2>
+        <p class="section-sub">실시간 인기 순위 기준 · 매주 업데이트</p>
+      </div>
+      <a class="view-all" href="#">전체보기 <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+    <div class="plans-list">
+      <div class="plan-row plan-row-hot" style="position:relative">
+        <div class="plan-row-badge">1위</div>
+        <div class="plan-row-left">
+          <div class="plan-row-op" style="color:rgba(255,255,255,0.6)">KT망 · LTE</div>
+          <div class="plan-row-name" style="color:white">슬림 데이터 플러스</div>
+        </div>
+        <div class="plan-row-specs">
+          <div class="plan-row-spec"><span class="plan-row-spec-label" style="color:rgba(255,255,255,0.5)">데이터</span><span class="plan-row-spec-val" style="color:#FF7FA3">10GB + 속도제한 무제한</span></div>
+          <div class="plan-row-spec"><span class="plan-row-spec-label" style="color:rgba(255,255,255,0.5)">음성통화</span><span class="plan-row-spec-val" style="color:white">무제한</span></div>
+          <div class="plan-row-spec"><span class="plan-row-spec-label" style="color:rgba(255,255,255,0.5)">테더링</span><span class="plan-row-spec-val" style="color:white">제공</span></div>
+        </div>
+        <div class="plan-row-price">
+          <div class="plan-row-original" style="color:rgba(255,255,255,0.4)">기존 55,000원</div>
+          <div class="plan-row-num-row">
+            <div class="plan-row-num" style="color:white">16,500<span style="color:rgba(255,255,255,0.65)">원</span></div>
+            <div class="plan-row-vat" style="color:rgba(255,255,255,0.45)">/월 (VAT포함)</div>
+          </div>
+        </div>
+        <button class="plan-row-btn plan-row-btn-hot">신청하기 →</button>
+      </div>
+      <div class="plan-row" style="position:relative">
+        <div class="plan-row-badge-dark">2위</div>
+        <div class="plan-row-left">
+          <div class="plan-row-op">SK망 · LTE</div>
+          <div class="plan-row-name">스마트 무제한</div>
+        </div>
+        <div class="plan-row-specs">
+          <div class="plan-row-spec"><span class="plan-row-spec-label">데이터</span><span class="plan-row-spec-val pink">완전 무제한</span></div>
+          <div class="plan-row-spec"><span class="plan-row-spec-label">음성통화</span><span class="plan-row-spec-val">무제한</span></div>
+          <div class="plan-row-spec"><span class="plan-row-spec-label">테더링</span><span class="plan-row-spec-val">10GB</span></div>
+        </div>
+        <div class="plan-row-price">
+          <div class="plan-row-original">기존 79,000원</div>
+          <div class="plan-row-num-row">
+            <div class="plan-row-num">24,900<span>원</span></div>
+            <div class="plan-row-vat">/월 (VAT포함)</div>
+          </div>
+        </div>
+        <button class="plan-row-btn">신청하기 →</button>
+      </div>
+      <div class="plan-row" style="position:relative">
+        <div class="plan-row-badge-dark" style="background:var(--dark)">3위</div>
+        <div class="plan-row-left">
+          <div class="plan-row-op">LG망 · 5G</div>
+          <div class="plan-row-name">5G 알뜰 플랜</div>
+        </div>
+        <div class="plan-row-specs">
+          <div class="plan-row-spec"><span class="plan-row-spec-label">데이터</span><span class="plan-row-spec-val pink">50GB + 5G 고속</span></div>
+          <div class="plan-row-spec"><span class="plan-row-spec-label">음성통화</span><span class="plan-row-spec-val">무제한</span></div>
+          <div class="plan-row-spec"><span class="plan-row-spec-label">테더링</span><span class="plan-row-spec-val">20GB</span></div>
+        </div>
+        <div class="plan-row-price">
+          <div class="plan-row-original">기존 110,000원</div>
+          <div class="plan-row-num-row">
+            <div class="plan-row-num">34,900<span>원</span></div>
+            <div class="plan-row-vat">/월 (VAT포함)</div>
+          </div>
+        </div>
+        <button class="plan-row-btn">신청하기 →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ BUNDLE ═══ -->
+<section id="bundle">
+  <div class="section-inner">
+    <div class="section-header-row">
+      <div class="section-header" style="margin-bottom:0">
+        <div class="section-tag">결합 상품</div>
+        <h2 class="section-title" style="color:white">함께 쓰면<br><span>더 저렴해요</span></h2>
+        <p class="section-sub" style="color:rgba(255,255,255,0.55)">가족, 인터넷, 태블릿과 묶으면 추가 할인</p>
+      </div>
+      <a class="view-all" href="#" style="color:rgba(255,255,255,0.6)">전체보기 <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+    <div class="bundle-grid">
+      <div class="bundle-card">
+        <div class="bundle-icon"><i class="fa-solid fa-people-group" style="color:#FF7FA3"></i></div>
+        <div class="bundle-name">가족 결합 할인</div>
+        <div class="bundle-desc">가족이 함께 가입하면 1인당 최대 5,000원 추가 할인. 최대 5회선까지 적용.</div>
+        <span class="bundle-save"><i class="fa-solid fa-tag"></i> 최대 25,000원 절감</span>
+      </div>
+      <div class="bundle-card">
+        <div class="bundle-icon"><i class="fa-solid fa-house-signal" style="color:#FF7FA3"></i></div>
+        <div class="bundle-name">인터넷 결합 할인</div>
+        <div class="bundle-desc">기가 인터넷과 함께 쓰면 휴대폰 월 요금에서 3,000원 자동 할인.</div>
+        <span class="bundle-save"><i class="fa-solid fa-tag"></i> 월 3,000원 절감</span>
+      </div>
+      <div class="bundle-card">
+        <div class="bundle-icon"><i class="fa-solid fa-tablet-screen-button" style="color:#FF7FA3"></i></div>
+        <div class="bundle-name">태블릿 추가 회선</div>
+        <div class="bundle-desc">스마트폰과 태블릿을 함께 개통하면 태블릿 요금 30% 할인 혜택.</div>
+        <span class="bundle-save"><i class="fa-solid fa-tag"></i> 태블릿 30% 할인</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PHONES ═══ -->
+<section id="phones">
+  <div class="section-inner">
+    <div class="section-header-row">
+      <div class="section-header" style="margin-bottom:0">
+        <div class="section-tag">휴대폰 추천</div>
+        <h2 class="section-title">알뜰하게 구매하는<br><span>최신 스마트폰</span></h2>
+        <p class="section-sub">공시지원금 + 알뜰폰 요금제 조합 최적화</p>
+      </div>
+      <a class="view-all" href="#">전체보기 <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+    <div class="scroll-wrap">
+      <button class="scroll-arrow sa-left" onclick="scrollTrack(this,-1)"><i class="fa-solid fa-chevron-left"></i></button>
+      <div class="scroll-track cols-3" id="phonesTrack">
+        <div class="phone-card">
+          <div class="phone-card-img"><img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&q=80" alt="iPhone 16"></div>
+          <div class="phone-card-info">
+            <div class="phone-brand">Apple</div>
+            <div class="phone-model">iPhone 16</div>
+            <div class="phone-storage">128GB · 5가지 색상</div>
+            <div class="phone-monthly">39,900<small>원~/월</small></div>
+            <div class="phone-full-price">출고가 1,350,000원</div>
+          </div>
+        </div>
+        <div class="phone-card">
+          <div class="phone-card-img"><img src="https://images.unsplash.com/photo-1610945264803-c22b62d2a7b3?w=600&q=80" alt="Galaxy S25"></div>
+          <div class="phone-card-info">
+            <div class="phone-brand">Samsung</div>
+            <div class="phone-model">Galaxy S25</div>
+            <div class="phone-storage">256GB · 4가지 색상</div>
+            <div class="phone-monthly">42,900<small>원~/월</small></div>
+            <div class="phone-full-price">출고가 1,155,000원</div>
+          </div>
+        </div>
+        <div class="phone-card">
+          <div class="phone-card-img"><img src="https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=600&q=80" alt="Galaxy A55"></div>
+          <div class="phone-card-info">
+            <div class="phone-brand">Samsung</div>
+            <div class="phone-model">Galaxy A55</div>
+            <div class="phone-storage">256GB · 3가지 색상</div>
+            <div class="phone-monthly">19,900<small>원~/월</small></div>
+            <div class="phone-full-price">출고가 699,000원</div>
+          </div>
+        </div>
+        <div class="phone-card">
+          <div class="phone-card-img"><img src="https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=600&q=80" alt="보급형"></div>
+          <div class="phone-card-info">
+            <div class="phone-brand">자급제</div>
+            <div class="phone-model">보급형 추천폰</div>
+            <div class="phone-storage">64GB · 기본형</div>
+            <div class="phone-monthly">9,900<small>원~/월</small></div>
+            <div class="phone-full-price">출고가 299,000원</div>
+          </div>
+        </div>
+      </div>
+      <button class="scroll-arrow sa-right" onclick="scrollTrack(this,1)"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+    <button class="show-more-btn" onclick="showMore('phonesTrack',this)">더보기 <i class="fa-solid fa-chevron-down"></i></button>
+  </div>
+</section>
+
+<!-- ═══ EVENT ═══ -->
+<section id="event">
+  <div class="section-inner">
+    <div class="section-header-row">
+      <div class="section-header" style="margin-bottom:0">
+        <div class="section-tag">이벤트</div>
+        <h2 class="section-title">지금 놓치면 후회하는<br><span>혜택 모음</span></h2>
+      </div>
+      <a class="view-all" href="#">전체보기 <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+    <div class="scroll-wrap">
+      <button class="scroll-arrow sa-left" onclick="scrollTrack(this,-1)"><i class="fa-solid fa-chevron-left"></i></button>
+      <div class="scroll-track cols-2" id="eventTrack">
+        <div class="event-card">
+          <div class="event-thumb pink"><div class="event-thumb-inner"><span class="event-thumb-tag">신규혜택</span><div class="event-thumb-title">신규 가입하면<br>첫 달 무료</div><div class="event-thumb-desc">요금제 종류 상관없이 첫 달 100% 환급</div><div class="event-thumb-period">2025.06.01 ~ 2025.06.30</div></div></div>
+        </div>
+        <div class="event-card">
+          <div class="event-thumb dark"><div class="event-thumb-inner"><span class="event-thumb-tag">추천 이벤트</span><div class="event-thumb-title">친구 추천하고<br>캐시백 받기</div><div class="event-thumb-desc">친구 1명 추천 시 1만원 즉시 캐시백</div><div class="event-thumb-period">2025.05.01 ~ 2025.07.31</div></div></div>
+        </div>
+        <div class="event-card">
+          <div class="event-thumb soft"><div class="event-thumb-inner"><span class="event-thumb-tag">번호이동</span><div class="event-thumb-title">번호이동 개통 시<br>갤럭시 버즈 증정</div><div class="event-thumb-desc">선착순 500명 한정 · 당일 개통 필수</div><div class="event-thumb-period">2025.06.15 ~ 2025.06.30</div></div></div>
+        </div>
+        <div class="event-card">
+          <div class="event-thumb" style="background:linear-gradient(135deg,#667eea,#764ba2)"><div class="event-thumb-inner"><span class="event-thumb-tag">결합혜택</span><div class="event-thumb-title">가족 결합 시<br>최대 25,000원 절감</div><div class="event-thumb-desc">2회선부터 최대 5회선까지 할인 적용</div><div class="event-thumb-period">2025.06.01 ~ 2025.08.31</div></div></div>
+        </div>
+      </div>
+      <button class="scroll-arrow sa-right" onclick="scrollTrack(this,1)"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+    <button class="show-more-btn" onclick="showMore('eventTrack',this)">더보기 <i class="fa-solid fa-chevron-down"></i></button>
+  </div>
+</section>
+
+<!-- ═══ REVIEWS ═══ -->
+<section id="reviews">
+  <div class="section-inner">
+    <div class="section-header-row">
+      <div class="section-header" style="margin-bottom:0">
+        <div class="section-tag">사용 후기</div>
+        <h2 class="section-title">실제 고객이 전하는<br><span>솔직한 이야기</span></h2>
+      </div>
+      <a class="view-all" href="#">전체보기 <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+    <div class="scroll-wrap">
+      <button class="scroll-arrow sa-left" onclick="scrollTrack(this,-1)"><i class="fa-solid fa-chevron-left"></i></button>
+      <div class="scroll-track cols-3" id="reviewsTrack">
+        <div class="review-card">
+          <div class="review-stars">★★★★★</div>
+          <p class="review-text">KT 쓰다가 바꿨는데 품질은 똑같고 요금은 절반 이하에요. 개통도 너무 간편하고 신호도 잘 터져서 만족합니다.</p>
+          <div class="review-author"><div class="review-avatar">김</div><div><div class="review-name">김지원 님</div><div class="review-plan">KT망 19,900원 요금제</div></div></div>
+        </div>
+        <div class="review-card">
+          <div class="review-stars">★★★★★</div>
+          <p class="review-text">가족 4명 다 같이 바꿨어요. 한 달에 20만원 나오던 요금이 8만원대로 줄었습니다. 고객센터도 빠르고 친절해요!</p>
+          <div class="review-author"><div class="review-avatar">박</div><div><div class="review-name">박서연 님</div><div class="review-plan">가족결합 4회선</div></div></div>
+        </div>
+        <div class="review-card">
+          <div class="review-stars">★★★★☆</div>
+          <p class="review-text">5G 요금제로 바꿨는데 속도도 빠르고 데이터 걱정이 없어졌어요. 유튜브나 넷플릭스 끊김 없이 잘 됩니다.</p>
+          <div class="review-author"><div class="review-avatar">이</div><div><div class="review-name">이민준 님</div><div class="review-plan">SK 5G 39,900원 요금제</div></div></div>
+        </div>
+      </div>
+      <button class="scroll-arrow sa-right" onclick="scrollTrack(this,1)"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+    <button class="show-more-btn" onclick="showMore('reviewsTrack',this)">더보기 <i class="fa-solid fa-chevron-down"></i></button>
+  </div>
+</section>
+
+
+<!-- ═══ RECOMMEND ═══ -->
+<section id="recommend" style="padding:0">
+  <div class="recommend-wrap">
+      <div class="recommend-content">
+        <h2>내게 딱 맞는 요금제를 찾아드려요</h2>
+        <p>사용 패턴 3가지 질문으로 최적의 요금제를 추천해 드립니다.</p>
+      </div>
+      <div class="recommend-steps">
+        <div class="recommend-step"><span class="recommend-step-num">1</span> 데이터 사용량 입력</div>
+        <div class="recommend-step"><span class="recommend-step-num">2</span> 통화 패턴 선택</div>
+        <div class="recommend-step"><span class="recommend-step-num">3</span> 맞춤 요금제 확인</div>
+      </div>
+      <div class="data-slider-wrap">
+        <div class="data-slider-label">📊 1단계 · 한 달 데이터 사용량이 얼마나 되나요?</div>
+        <div class="data-slider-value" id="sliderVal">10<span>GB</span></div>
+        <input type="range" class="data-slider" id="dataSlider" min="0" max="6" value="2" step="1" oninput="updateSlider(this.value)">
+        <div class="data-slider-ticks"><span>1GB</span><span>3GB</span><span>10GB</span><span>15GB</span><span>30GB</span><span>50GB</span><span>무제한</span></div>
+        <div class="data-slider-result">
+          <div>
+            <div class="data-slider-result-label">추천 요금제</div>
+            <div class="data-slider-result-plan" id="sliderPlan">슬림 15GB 플러스 · 월 19,900원</div>
+          </div>
+          <button class="data-slider-btn" onclick="location.href='#usim'">요금제 보기 →</button>
+        </div>
+      </div>
+  </div>
+</section>
+
+<!-- ═══ NOTICE + FAQ ═══ -->
+<section id="notice-faq">
+  <div class="section-inner">
+    <div class="notice-faq-grid">
+      <div class="notice-section">
+        <div class="subsection-title"><i class="fa-regular fa-bell"></i> 공지사항</div>
+        <div class="notice-list">
+          <a class="notice-item" href="#"><span class="notice-tag new">NEW</span><span class="notice-item-text">2025년 6월 요금제 개편 안내</span><span class="notice-date">25.06.10</span></a>
+          <a class="notice-item" href="#"><span class="notice-tag info">안내</span><span class="notice-item-text">KT망 일시적 서비스 점검 예정</span><span class="notice-date">25.06.05</span></a>
+          <a class="notice-item" href="#"><span class="notice-tag new">NEW</span><span class="notice-item-text">개인정보처리방침 개정 안내 (2025.06)</span><span class="notice-date">25.06.01</span></a>
+          <a class="notice-item" href="#"><span class="notice-tag info">안내</span><span class="notice-item-text">고객센터 운영시간 변경 안내</span><span class="notice-date">25.05.20</span></a>
+          <a class="notice-item" href="#"><span class="notice-tag info">안내</span><span class="notice-item-text">5G 요금제 신규 출시 안내</span><span class="notice-date">25.05.01</span></a>
+        </div>
+      </div>
+      <div class="faq-section">
+        <div class="subsection-title"><i class="fa-regular fa-circle-question"></i> 자주 묻는 질문</div>
+        <div class="faq-list">
+          <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span>번호이동 시 기존 번호를 유지할 수 있나요?</span><i class="fa-solid fa-chevron-down"></i></div><div class="faq-a">네, 번호이동 신청 시 기존 번호를 그대로 유지하실 수 있습니다. 개통 완료까지 영업일 기준 1~2일 소요됩니다.</div></div>
+          <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span>개통은 어떻게 진행하나요?</span><i class="fa-solid fa-chevron-down"></i></div><div class="faq-a">온라인으로 요금제 선택 → 신분증 인증 → 유심 배송(1~2일) 순서로 진행됩니다.</div></div>
+          <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span>통화 품질이 기존 통신사와 다른가요?</span><i class="fa-solid fa-chevron-down"></i></div><div class="faq-a">알뜰폰은 SKT, KT, LG U+ 망을 그대로 사용합니다. 통화 품질은 기존 통신사와 동일합니다.</div></div>
+          <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span>해지 시 위약금이 있나요?</span><i class="fa-solid fa-chevron-down"></i></div><div class="faq-a">약정 없는 요금제는 위약금이 없습니다. 약정 요금제의 경우 잔여 기간에 따른 위약금이 발생할 수 있습니다.</div></div>
+          <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span>해외 로밍이 가능한가요?</span><i class="fa-solid fa-chevron-down"></i></div><div class="faq-a">일부 요금제에서 해외 로밍 서비스를 지원합니다. 출국 전 고객센터에 문의해 주세요.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<script>
+/* ── 메뉴 ── */
+function toggleMenu(){document.getElementById('mobileNav').classList.toggle('open');}
+function closeMenu(){document.getElementById('mobileNav').classList.remove('open');}
+
+/* ── 공통 스크롤 롤링 (무한 루프) ── */
+var _scrollInited = {};
+function scrollTrack(btn, dir) {
+  var wrap = btn.closest('.scroll-wrap');
+  var track = wrap.querySelector('.scroll-track');
+  var id = track.id;
+  if (!id) { id = 'st_' + Math.random().toString(36).slice(2); track.id = id; }
+  if (!_scrollInited[id]) { _initInfiniteScroll(track); _scrollInited[id] = true; }
+  var item = track.querySelector('*:not(.si-clone)');
+  var w = item ? (item.offsetWidth + 16) : 300;
+  track.scrollLeft += dir * w;
+}
+
+function _initInfiniteScroll(track) {
+  var items = Array.from(track.children);
+  var total = items.length;
+  // 앞뒤에 clone 추가
+  items.forEach(function(el) {
+    var c = el.cloneNode(true); c.classList.add('si-clone');
+    track.appendChild(c);
+  });
+  items.slice().reverse().forEach(function(el) {
+    var c = el.cloneNode(true); c.classList.add('si-clone');
+    track.insertBefore(c, track.firstChild);
+  });
+  // 초기 위치: 앞 clone 영역만큼 이동
+  var item = track.querySelector('*:not(.si-clone)');
+  if (!item) return;
+  var itemW = item.offsetWidth + 16;
+  track.scrollLeft = total * itemW;
+
+  // 경계 감지 후 순간 점프
+  track.addEventListener('scroll', function() {
+    var sl = track.scrollLeft;
+    var contentW = total * itemW;
+    if (sl <= 0) {
+      track.style.scrollBehavior = 'auto';
+      track.scrollLeft = contentW;
+      setTimeout(function() { track.style.scrollBehavior = ''; }, 20);
+    } else if (sl >= contentW * 2) {
+      track.style.scrollBehavior = 'auto';
+      track.scrollLeft = contentW;
+      setTimeout(function() { track.style.scrollBehavior = ''; }, 20);
+    }
+  }, { passive: true });
+}
+
+/* ── 더보기 버튼 (모바일) ── */
+function showMore(trackId,btn){
+  var track=document.getElementById(trackId);
+  track.querySelectorAll('*').forEach(function(el){el.style.display='';});
+  btn.style.display='none';
+}
+
+/* ── 데이터 슬라이더 ── */
+var sliderPlans=['미니 2GB · 월 9,900원','슬림 3GB · 월 12,900원','슬림 10GB · 월 16,500원','슬림 15GB 플러스 · 월 19,900원','스탠다드 30GB · 월 28,900원','5G 알뜰 플랜 50GB · 월 34,900원','5G 완전 무제한 · 월 39,900원'];
+var sliderLabels=['1GB','3GB','10GB','15GB','30GB','50GB','무제한'];
+function updateSlider(v){
+  var val=parseInt(v), label=sliderLabels[val];
+  document.getElementById('sliderVal').innerHTML=label==='무제한'?'무제한<span></span>':label.replace('GB','')+'<span>GB</span>';
+  document.getElementById('sliderPlan').textContent=sliderPlans[val];
+  var pct=(val/6)*100, s=document.getElementById('dataSlider');
+  s.style.background='linear-gradient(to right,rgba(255,255,255,0.9) '+pct+'%,rgba(255,255,255,0.3) '+pct+'%)';
+}
+var _s=document.getElementById('dataSlider');
+if(_s) updateSlider(_s.value);
+
+/* ── FAQ ── */
+function toggleFaq(el){
+  var a=el.nextElementSibling, open=el.classList.contains('open');
+  document.querySelectorAll('.faq-q').forEach(function(q){q.classList.remove('open');});
+  document.querySelectorAll('.faq-a').forEach(function(a){a.classList.remove('open');});
+  if(!open){el.classList.add('open');a.classList.add('open');}
+}
+
+/* ── 플랜 탭 ── */
+document.querySelectorAll('.plan-tab').forEach(function(tab){
+  tab.addEventListener('click',function(){
+    document.querySelectorAll('.plan-tab').forEach(function(t){t.classList.remove('active');});
+    tab.classList.add('active');
+  });
+});
+
+
+</script>
