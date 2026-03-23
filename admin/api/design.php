@@ -53,17 +53,24 @@ function _ensureDesignTables(PDO $pdo) {
     // 기본 컬러 그룹 보장
     $cntC = $pdo->query("SELECT COUNT(*) FROM color_groups WHERE is_default=1")->fetchColumn();
     if (!$cntC) {
-        try {
-            $hi = $pdo->query("SELECT color_base,color_point,color_sub,color_sub2 FROM homepage_info WHERE id=1")->fetch(PDO::FETCH_ASSOC);
-        } catch(Exception $e) { $hi = array(); }
-        $pdo->prepare("INSERT INTO color_groups (name,color_base,color_point,color_sub,color_sub2,is_default) VALUES (?,?,?,?,?,1)")
-            ->execute(array(
-                '기본 컬러',
-                isset($hi['color_base'])  ? $hi['color_base']  : '#1255a6',
-                isset($hi['color_point']) ? $hi['color_point'] : '#1e7fe8',
-                isset($hi['color_sub'])   ? $hi['color_sub']   : '#00c6ff',
-                isset($hi['color_sub2'])  ? $hi['color_sub2']  : '#1a2540',
-            ));
+        // 기존 그룹이 있으면 첫 번째 행을 기본으로 승격 (새 INSERT 금지 → 중복 방지)
+        $firstId = $pdo->query("SELECT id FROM color_groups ORDER BY id LIMIT 1")->fetchColumn();
+        if ($firstId) {
+            $pdo->prepare("UPDATE color_groups SET is_default=1 WHERE id=?")->execute(array($firstId));
+        } else {
+            // 진짜 아무 행도 없을 때만 INSERT
+            try {
+                $hi = $pdo->query("SELECT color_base,color_point,color_sub,color_sub2 FROM homepage_info WHERE id=1")->fetch(PDO::FETCH_ASSOC);
+            } catch(Exception $e) { $hi = array(); }
+            $pdo->prepare("INSERT INTO color_groups (name,color_base,color_point,color_sub,color_sub2,is_default) VALUES (?,?,?,?,?,1)")
+                ->execute(array(
+                    '기본 컬러',
+                    isset($hi['color_base'])  ? $hi['color_base']  : '#1255a6',
+                    isset($hi['color_point']) ? $hi['color_point'] : '#1e7fe8',
+                    isset($hi['color_sub'])   ? $hi['color_sub']   : '#00c6ff',
+                    isset($hi['color_sub2'])  ? $hi['color_sub2']  : '#1a2540',
+                ));
+        }
     }
 }
 
@@ -201,8 +208,16 @@ if ($action === 'colorGroupDelete') {
     $isDef = $stmt->fetchColumn();
     if ($isDef) { echo json_encode(array('ok'=>false,'msg'=>'기본 컬러 그룹은 삭제할 수 없습니다. 다른 그룹을 기본으로 설정 후 삭제하세요.')); exit; }
     $pdo->prepare("DELETE FROM color_groups WHERE id=?")->execute(array($id));
-    // 이 그룹 쓰던 design_pages는 기본 그룹으로 변경
+    // 삭제 후 is_default=1 이 아무도 없으면 남은 첫 번째 그룹을 기본으로 승격
     $defId = $pdo->query("SELECT id FROM color_groups WHERE is_default=1 LIMIT 1")->fetchColumn();
+    if (!$defId) {
+        $firstId = $pdo->query("SELECT id FROM color_groups ORDER BY id LIMIT 1")->fetchColumn();
+        if ($firstId) {
+            $pdo->prepare("UPDATE color_groups SET is_default=1 WHERE id=?")->execute(array($firstId));
+            $defId = $firstId;
+        }
+    }
+    // 이 그룹 쓰던 design_pages는 기본 그룹으로 변경
     if ($defId) { $pdo->prepare("UPDATE design_pages SET color_group_id=? WHERE color_group_id=?")->execute(array($defId, $id)); }
     logAdminAction($pdo, 'delete', 'color_groups', (string)$id);
     echo json_encode(array('ok'=>true)); exit;

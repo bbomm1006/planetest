@@ -1038,9 +1038,20 @@ let currentColorGroupId = 1;
 async function loadColorGroups() {
   const res = await apiGet('api/design.php', { action: 'colorGroupList' });
   colorGroupList = res.ok ? (res.data || []) : [];
-  renderColorGroupTabs();
-  const defaultGrp = colorGroupList.find(g => _isDefault(g.is_default)) || colorGroupList[0];
-  if (defaultGrp) switchColorGroup(defaultGrp.id, false);
+
+  // 현재 선택된 그룹이 목록에 여전히 존재하면 유지, 없으면 기본 그룹으로 fallback
+  const stillExists = colorGroupList.find(g => g.id == currentColorGroupId);
+  const targetGrp = stillExists
+    || colorGroupList.find(g => _isDefault(g.is_default))
+    || colorGroupList[0];
+
+  if (targetGrp) {
+    currentColorGroupId = targetGrp.id; // 탭 강조 기준을 먼저 맞춤
+    renderColorGroupTabs();             // 탭 렌더 (강조 포함)
+    switchColorGroup(targetGrp.id, true); // 내용도 동일 그룹으로 로드
+  } else {
+    renderColorGroupTabs();
+  }
 }
 
 function renderColorGroupTabs() {
@@ -1136,7 +1147,7 @@ async function colorSave() {
   const grp = colorGroupList.find(g => g.id == currentColorGroupId);
   const name = grp ? grp.name : '기본 컬러';
   const res = await apiPost('api/design.php', { action: 'colorGroupSave', id: currentColorGroupId, name, color_base: base, color_point: point, color_sub: sub, color_sub2: sub2 });
-  if (res.ok) { showToast('저장되었습니다.', 'success'); await loadColorGroups(); }
+  if (res.ok) { showToast('저장되었습니다.', 'success'); await loadColorGroups(); switchColorGroup(currentColorGroupId, false); }
   else { showToast(res.msg || '저장 실패', 'error'); }
 }
 
