@@ -66,21 +66,35 @@ try {
     </div>
 
     <!-- 완료 모달 -->
-    <div class="ci-modal-overlay" id="ci-ok-modal-overlay-<?= $ci_table_safe ?>" style="display:none;"></div>
-    <div class="ci-modal ci-ok-modal" id="ci-ok-modal-<?= $ci_table_safe ?>" style="display:none;">
-      <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:72px;height:72px;margin-bottom:16px;">
-        <circle cx="40" cy="40" r="38" fill="#dcfce7" stroke="#86efac" stroke-width="2"/>
-        <path d="M24 40l12 12 20-24" stroke="#16a34a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <style>
+    .ci-modal-overlay, .ci-ok-modal { display: none; }
+    .ci-ok-icon { width: 72px; height: 72px; margin-bottom: 16px; }
+    .ci-ok-title { margin: 0 0 8px; font-size: 1.2rem; }
+    .ci-ok-desc { margin: 0 0 12px; color: var(--g4, #666); font-size: .9rem; }
+    .ci-submit-ok-email-note { display: none; margin-bottom: 16px; }
+    .ci-email-icon { width: 16px; height: 16px; vertical-align: middle; margin-right: 4px; }
+    .f-sub.ci-ok-btn { max-width: 200px; }
+    </style>
+    <div class="ci-modal-overlay" id="ci-ok-modal-overlay-<?= $ci_table_safe ?>"></div>
+    <div class="ci-modal ci-ok-modal" id="ci-ok-modal-<?= $ci_table_safe ?>">
+      
+      <svg class="ci-ok-icon" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="38" fill="var(--mist)" stroke="--color-base" stroke-width="2"/>
+        <path d="M24 40l12 12 20-24" stroke="var(--color-point)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      <h3 style="margin:0 0 8px;font-size:1.2rem;">접수되었습니다!</h3>
-      <p style="margin:0 0 12px;color:var(--g4,#666);font-size:.9rem;">궁금한 점을 자유롭게 문의해 주세요. 빠르게 답변드립니다.</p>
-      <div class="ci-submit-ok-email-note" id="ci-ok-modal-email-note-<?= $ci_table_safe ?>" style="display:none;margin-bottom:16px;">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;vertical-align:middle;margin-right:4px;">
+      
+      <h3 class="ci-ok-title">접수되었습니다!</h3>
+      <p class="ci-ok-desc">궁금한 점을 자유롭게 문의해 주세요. 빠르게 답변드립니다.</p>
+      
+      <div class="ci-submit-ok-email-note" id="ci-ok-modal-email-note-<?= $ci_table_safe ?>">
+        <svg class="ci-email-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 8l9 6 9-6"/><rect x="3" y="6" width="18" height="12" rx="2"/>
         </svg>
         접수 확인 메일을 발송했습니다
       </div>
-      <button class="f-sub" style="max-width:200px;" onclick="ciCloseOkModal('<?= $ci_table_safe ?>')">확인</button>
+      
+      <button class="f-sub ci-ok-btn" onclick="ciCloseOkModal('<?= $ci_table_safe ?>')">확인</button>
+
     </div>
 
     <!-- 기간 외 안내 -->
