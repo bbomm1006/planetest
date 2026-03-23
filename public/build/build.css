@@ -310,6 +310,7 @@
    16. CTA 섹션
 ─────────────────────────────────── */
 .cta-sec  { padding: 80px 0; background: var(--br); }
+.cta-sec .container{ max-width: none;}
 .cta-inner { display: flex; align-items: center; justify-content: space-between; gap: 36px; flex-wrap: wrap; }
 .cta-eyebrow { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
 .cta-eyebrow-line { width: 20px; height: 1px; background: rgba(255,255,255,.4); }
@@ -342,7 +343,7 @@
   .interest-layout    { grid-template-columns: 1fr; }
 }
 @media (max-width: 680px) {
-  :root { --hh: 60px; }
+
   .container     { padding: 0 20px; }
   .sec           { padding: 68px 0; }
   
@@ -356,10 +357,14 @@
   .unit-filter-btn { flex: none; width: 50%; }
   .int-grid      { grid-template-columns: 1fr 1fr; }
   .board-tbl th.cc, .board-tbl td.cc { display: none; }
-  .cta-inner     { flex-direction: column; text-align: center; }
+
   .cta-acts      { justify-content: center; }
   .form-row.r2   { grid-template-columns: 1fr; }
 }
+
+@media (max-width:1024px){.inq-layout{grid-template-columns:1fr;gap:32px;}}
+@media (max-width:768px){.sec-head{margin-bottom:30px}.inq-layout{grid-template-columns:1fr;gap:24px;}.inq-quick{display:none}.inq-layout>div:last-child{order:-1;}.inq-side-card{padding:20px 18px;}.inq-side-ph{font-size:1rem;}.inq-side-txt{font-size:.75rem;}.inq-layout>div:last-child>div:last-child{padding:16px 18px;}.btn-solid{height:44px;font-size:.9rem;}.form-row{margin-bottom:14px;}.form-ta{min-height:120px;}}
+@media (max-width:480px){.inq-side-lbl{font-size:.55rem;}.inq-side-ph{font-size:.95rem;}.inq-side-txt{line-height:1.6;}.btn-solid{height:42px;font-size:.85rem;}}
 
 .terms-view-btn {
   flex-shrink: 0;

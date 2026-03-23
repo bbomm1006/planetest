@@ -23,7 +23,7 @@
   --ln: #e0d4c3;    /* 구분선 컬러 */
   --ff: 'Pretendard', 'Noto Sans KR', sans-serif; /* 기본 폰트 */
   --cont: 1260px;   /* 최대 콘텐츠 너비 */
-  --hh:   72px;     /* 헤더 높이 */
+
   --sw:   40px;     /* 서비스 전환 바 높이 */
   --ease: cubic-bezier(.22, .68, 0, 1.2); /* 기본 이징 곡선 */
 }

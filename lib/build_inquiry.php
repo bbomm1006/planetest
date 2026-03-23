@@ -23,7 +23,7 @@
           <div class="inq-side-ph" style="color:var(--bk);">0000-0000</div>
           <div class="inq-side-txt" style="color:var(--g5);">평일 09:00 — 18:00<br>주말·공휴일 휴무</div>
         </div>
-        <div style="background:var(--bk);padding:20px 24px;">
+        <div class="inq-quick" style="background:var(--bk);padding:20px 24px;">
           <div class="inq-side-lbl">빠른 신청</div>
           <button class="btn-solid" style="display:block;width:100%;justify-content:center;margin-bottom:8px;" onclick="navTo('sec-interest')">관심고객 등록</button>
         </div>
