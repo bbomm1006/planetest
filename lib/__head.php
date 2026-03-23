@@ -32,6 +32,7 @@ $script = $pdo->query('SELECT head_code, body_code FROM scripts WHERE id = 1')->
 <meta property="og:type" content="website">
 
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <link rel="stylesheet" href="style/main.min.css">
 

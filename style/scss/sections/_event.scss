@@ -50,7 +50,7 @@
 .f-priv        { background: var(--off); border-radius: var(--btn-r); padding: 12px 14px; margin-bottom: 14px; border: 1px solid var(--g2); }
 .f-priv-scroll { max-height: 72px; overflow-y: auto; font-size: .71rem; color: var(--g5); line-height: 1.65; margin-bottom: 8px; }
 .f-priv-chk    { display: flex; align-items: center; gap: 8px; cursor: pointer; input { width: 14px; height: 14px; accent-color: var(--color-point); cursor: pointer; } span { font-size: .77rem; font-weight: 600; color: var(--ink2); } }
-.f-sub         { width: 100%; padding: 13px; border-radius: var(--btn-r); border: none; cursor: pointer; background: linear-gradient(90deg, var(--color-base), var(--color-point)); color: #fff; font-weight: 800; font-size: .92rem; font-family: inherit; box-shadow: 0 6px 20px rgba(18,85,166,.25); transition: all .22s; &:hover { transform: translateY(-2px); } }
+.f-sub         { width: 100%; padding: 13px; border-radius: var(--btn-r); border: none; cursor: pointer; background: linear-gradient(90deg, var(--color-base), var(--color-point)); color: #fff; font-weight: 800; font-size: .92rem; font-family: inherit; box-shadow: 0 6px 20px var(--mist); transition: all .22s; &:hover { transform: translateY(-2px); } }
 .f-ok          { display: none; text-align: center; padding: 48px 16px; svg { width: 68px; height: 68px; margin-bottom: 16px; } h3 { font-size: 1.3rem; font-weight: 900; color: var(--ink2); margin-bottom: 8px; } p { font-size: .87rem; color: var(--g5); line-height: 1.72; } }
 
 @media (max-width: 640px)  { .fgrid { grid-template-columns: 1fr; } }

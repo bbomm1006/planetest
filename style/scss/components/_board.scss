@@ -43,7 +43,7 @@
 }
 .board-list-num    { font-size: .72rem; color: var(--g4); font-weight: 600; min-width: 28px; text-align: center; flex-shrink: 0; }
 .board-list-body   { flex: 1; min-width: 0; }
-.board-list-title  { font-size: .9rem; font-weight: 700; color: var(--color-sub2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+.board-list-title  { font-size: .9rem; font-weight: 700; color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
 .board-list-meta   { font-size: .74rem; color: var(--g4); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .board-list-secret { display: inline-flex; align-items: center; gap: 3px; font-size: .72rem; color: var(--g4); font-weight: 600; }
 .board-status-badge { display: inline-flex; align-items: center; font-size: .67rem; font-weight: 700; padding: 2px 8px; border-radius: 100px; }
