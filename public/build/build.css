@@ -155,7 +155,7 @@
 /* ───────────────────────────────────
    8. 게시글 모달
 ─────────────────────────────────── */
-.bd-modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 9500; align-items: flex-start; justify-content: center; padding: 60px 20px 40px; overflow-y: auto; }
+.bd-modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 9500; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
 .bd-modal-bg.open { display: flex; }
 .bd-modal { background: var(--w); width: 100%; max-width: 760px; flex-shrink: 0; animation: modalIn .28s var(--ease); }
 .bd-modal-hd { display: flex; align-items: flex-start; justify-content: space-between; padding: 24px 28px 18px; border-bottom: 1px solid var(--ln); }
@@ -165,25 +165,6 @@
 .bd-modal-meta { padding: 10px 28px 14px; border-bottom: 1px solid var(--ln); font-size: .76rem; color: var(--g4); display: flex; gap: 16px; }
 .bd-modal-body { padding: 28px; font-size: .9rem; line-height: 1.92; color: var(--g6); min-height: 160px; }
 .bd-modal-body img { max-width: 100%; margin: 10px 0; }
-
-/* ───────────────────────────────────
-   9. 갤러리 모달
-─────────────────────────────────── */
-.gl-modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.82); z-index: 9500; align-items: center; justify-content: center; padding: 20px; }
-.gl-modal-bg.open { display: flex; }
-.gl-modal { background: var(--w); width: 100%; max-width: 880px; max-height: 90vh; overflow-y: auto; animation: modalIn .28s var(--ease); }
-.gl-modal-hd { display: flex; align-items: center; justify-content: space-between; padding: 20px 28px; border-bottom: 1px solid var(--ln); position: sticky; top: 0; background: var(--w); z-index: 2; }
-.gl-modal-ttl { font-size: 1rem; font-weight: 700; color: var(--bk); letter-spacing: -.02em; }
-.gl-modal-x { font-size: 1.2rem; color: var(--g4); padding: 4px 10px; transition: color .2s; cursor: pointer; }
-.gl-modal-x:hover { color: var(--br); }
-.gl-modal-body { padding: 28px; }
-.gl-modal-specs { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--ln); margin-bottom: 24px; }
-.gl-modal-spec { background: var(--br6); padding: 16px 14px; }
-.gl-modal-spec-lbl { font-size: .66rem; font-weight: 700; color: var(--br); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 5px; }
-.gl-modal-spec-val { font-size: .95rem; font-weight: 800; color: var(--bk); }
-.gl-modal-imgs { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-.gl-modal-imgs img { width: 100%; }
-.gl-modal-cnt { font-size: .9rem; color: var(--g5); line-height: 1.9; font-weight: 300; }
 
 /* ───────────────────────────────────
    10. 토스트 메시지
@@ -430,5 +411,41 @@
   .cta-inner     { flex-direction: column; text-align: center; }
   .cta-acts      { justify-content: center; }
   .form-row.r2   { grid-template-columns: 1fr; }
-  .gl-modal-specs { grid-template-columns: 1fr 1fr; }
 }
+
+.terms-view-btn {
+  flex-shrink: 0;
+  margin-left: 6px;
+  padding: 2px 8px;
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--br);
+  background: none;
+  border: 1px solid var(--br3);
+  cursor: pointer;
+  font-family: var(--ff);
+  line-height: 1.6;
+  transition: all .18s;
+  white-space: nowrap;
+}
+.terms-view-btn:hover { background: var(--br); color: var(--w); border-color: var(--br); }
+.terms-view-btn-light { color: rgba(255,255,255,.55); border-color: rgba(255,255,255,.25); }
+.terms-view-btn-light:hover { background: var(--gold); color: var(--bk); border-color: var(--gold); }
+
+.terms-modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.72); z-index: 9600; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
+.terms-modal-bg.open { display: flex; }
+.terms-modal { background: var(--w); width: 100%; max-width: 640px; flex-shrink: 0; animation: modalIn .28s var(--ease); }
+.terms-modal-hd { display: flex; align-items: flex-start; justify-content: space-between; padding: 22px 28px 16px; border-bottom: 2px solid var(--bk); }
+.terms-modal-ttl { font-size: 1rem; font-weight: 800; color: var(--bk); letter-spacing: -.02em; }
+.terms-modal-x { font-size: 1.2rem; color: var(--g4); padding: 2px 8px; flex-shrink: 0; transition: color .2s; cursor: pointer; background: none; border: none; line-height: 1; }
+.terms-modal-x:hover { color: var(--br); }
+.terms-modal-body { padding: 28px; font-size: .86rem; line-height: 2; color: var(--g6); max-height: 60vh; overflow-y: auto; }
+.terms-modal-body h4 { font-size: .8rem; font-weight: 800; color: var(--bk); margin: 20px 0 6px; letter-spacing: .02em; }
+.terms-modal-body h4:first-child { margin-top: 0; }
+.terms-modal-body table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: .82rem; }
+.terms-modal-body table th,
+.terms-modal-body table td { border: 1px solid var(--ln); padding: 8px 12px; text-align: left; vertical-align: top; }
+.terms-modal-body table th { background: var(--br6); font-weight: 700; color: var(--g5); }
+.terms-modal-ft { padding: 16px 28px 22px; border-top: 1px solid var(--ln); display: flex; justify-content: flex-end; }
+.terms-modal-close-btn { padding: 10px 36px; font-size: .84rem; font-weight: 700; background: var(--br); color: var(--w); border: none; cursor: pointer; font-family: var(--ff); letter-spacing: .06em; transition: background .2s; }
+.terms-modal-close-btn:hover { background: var(--bk2); }
