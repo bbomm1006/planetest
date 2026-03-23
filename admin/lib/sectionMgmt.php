@@ -6,7 +6,7 @@
       <p>섹션 그룹별로 프론트 섹션을 관리합니다. 그룹을 추가해 여러 페이지에 다른 구성을 적용할 수 있습니다.</p>
     </div>
     <div style="display:flex;gap:8px;">
-      <button class="btn btn-secondary" onclick="migrateDynSections()" title="풋터 중복 제거, 파일 없는 섹션 비활성화, 코어 순서 고정">🔧 DB 정리</button>
+      <!-- <button class="btn btn-secondary" onclick="migrateDynSections()" title="풋터 중복 제거, 파일 없는 섹션 비활성화, 코어 순서 고정">🔧 DB 정리</button> -->
       <button class="btn btn-secondary" onclick="initDynSections()">↺ 기본값 초기화</button>
       <button class="btn btn-secondary" onclick="openSectionGroupModal(null)">+ 그룹 추가</button>
       <button class="btn btn-primary" onclick="openDynSectionModal(null)">+ 섹션 추가</button>

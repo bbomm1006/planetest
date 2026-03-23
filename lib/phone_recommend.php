@@ -2,15 +2,15 @@
     #recommend { background:var(--gray-50); padding-left:0; padding-right:0; }
 
     .recommend-wrap {
-    background:linear-gradient(135deg,var(--color-base),var(--color-point));
-    border-radius:0; padding:52px 48px; color:#fff;
-    display:flex; flex-direction:column; align-items:center; gap:36px;
-    position:relative; overflow:hidden; text-align:center;
+        background:linear-gradient(135deg,var(--color-base),var(--color-point));
+        border-radius:0; padding:52px 48px; color:#fff;
+        display:flex; flex-direction:column; align-items:center; gap:36px;
+        position:relative; overflow:hidden; text-align:center;
     }
     .recommend-wrap::before,
     .recommend-wrap::after {
-    content:''; position:absolute; border-radius:50%;
-    background:rgba(255,255,255,0.1);
+        content:''; position:absolute; border-radius:50%;
+        background:rgba(255,255,255,0.1);
     }
     .recommend-wrap::before { right:-60px; top:-60px; width:260px; height:260px; }
     .recommend-wrap::after  { left:-40px; bottom:-80px; width:180px; height:180px; background:rgba(255,255,255,0.07); }
@@ -19,149 +19,421 @@
     .recommend-content h2 { font-size:clamp(26px,3vw,36px); font-weight:900; margin-bottom:8px; letter-spacing:-1px; }
     .recommend-content p { font-size:15px; opacity:.85; line-height:1.6; }
 
+    /* 스텝 인디케이터 */
     .recommend-steps {
-    display:flex; gap:12px; position:relative; z-index:1;
-    width:100%; justify-content:center; flex-wrap:nowrap;
+        display:flex; gap:12px; position:relative; z-index:1;
+        width:100%; justify-content:center; flex-wrap:nowrap;
     }
     .recommend-step {
-    background:rgba(255,255,255,0.18); border-radius:14px;
-    padding:16px 20px; display:flex; align-items:center; gap:10px;
-    font-size:14px; font-weight:700; flex:1; max-width:240px;
+        background:rgba(255,255,255,0.18); border-radius:14px;
+        padding:16px 20px; display:flex; align-items:center; gap:10px;
+        font-size:14px; font-weight:700; flex:1; max-width:240px;
+        transition:.3s;
+    }
+    .recommend-step.active {
+        background:rgba(255,255,255,0.38);
     }
     .recommend-step-num {
-    width:28px; height:28px; border-radius:50%; flex-shrink:0;
-    background:#fff; color:var(--color-base);
-    display:flex; align-items:center; justify-content:center;
-    font-size:13px; font-weight:900;
+        width:28px; height:28px; border-radius:50%; flex-shrink:0;
+        background:#fff; color:var(--color-base);
+        display:flex; align-items:center; justify-content:center;
+        font-size:13px; font-weight:900;
+    }
+    .recommend-step.active .recommend-step-num {
+        background:var(--color-base);
+        color:#fff;
+        box-shadow:0 0 0 3px rgba(255,255,255,0.5);
     }
 
-    .data-slider-wrap { position:relative; z-index:1; width:100%; max-width:680px; }
-    .data-slider-label { font-size:13px; font-weight:600; opacity:.85; margin-bottom:6px; }
-    .data-slider-value { font-size:44px; font-weight:900; letter-spacing:-2px; line-height:1; margin-bottom:18px; }
+    /* ─── 스텝 카드 공통 ─── */
+    .step-card {
+        position:relative; z-index:1;
+        width:100%; max-width:680px;
+        background:rgba(255,255,255,0.15);
+        border-radius:20px;
+        padding:28px 32px 24px;
+        backdrop-filter:blur(6px);
+        display:none;
+        flex-direction:column;
+        gap:16px;
+        animation:stepIn .3s ease;
+    }
+    .step-card.active { display:flex; }
+
+    @keyframes stepIn {
+        from { opacity:0; transform:translateY(10px); }
+        to   { opacity:1; transform:translateY(0); }
+    }
+
+    .step-question {
+        font-size:13px; font-weight:600; opacity:.85;
+        margin-bottom:2px; text-align:left;
+    }
+
+    /* ─── STEP 1: 슬라이더 ─── */
+    .data-slider-value { font-size:44px; font-weight:900; letter-spacing:-2px; line-height:1; margin-bottom:4px; text-align:left; }
     .data-slider-value span { font-size:18px; font-weight:600; opacity:.8; margin-left:3px; }
 
     .data-slider {
-    -webkit-appearance:none; appearance:none;
-    width:100%; height:6px; border-radius:3px;
-    background:rgba(255,255,255,0.3); cursor:pointer; outline:none;
+        -webkit-appearance:none; appearance:none;
+        width:100%; height:6px; border-radius:3px;
+        background:rgba(255,255,255,0.3); cursor:pointer; outline:none;
     }
     .data-slider::-webkit-slider-thumb,
     .data-slider::-moz-range-thumb {
-    width:24px; height:24px; border-radius:50%;
-    background:#fff; cursor:pointer; border:none;
-    box-shadow:0 2px 8px rgba(0,0,0,0.2);
+        width:24px; height:24px; border-radius:50%;
+        background:#fff; cursor:pointer; border:none;
+        box-shadow:0 2px 8px rgba(0,0,0,0.2);
     }
-
     .data-slider-ticks { display:flex; justify-content:space-between; margin-top:8px; font-size:11px; opacity:.6; }
 
-    .data-slider-result {
-    margin-top:18px; padding-top:18px;
-    border-top:1px solid rgba(255,255,255,0.2);
-    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    /* ─── STEP 2,3: 선택지 버튼 ─── */
+    .choice-list { display:flex; flex-direction:column; gap:10px; }
+    .choice-btn {
+        background:rgba(255,255,255,0.18);
+        border:2px solid transparent;
+        border-radius:12px;
+        padding:14px 20px;
+        color:#fff;
+        font-size:15px; font-weight:700;
+        cursor:pointer;
+        text-align:center;
+        transition:.2s;
+        width:100%;
     }
-    .data-slider-result-label { font-size:12px; opacity:.8; }
-    .data-slider-result-plan { font-size:17px; font-weight:800; }
-
-    .data-slider-btn {
-    padding:11px 24px; border-radius:10px;
-    background:#fff; color:var(--color-base);
-    border:none; font-size:14px; font-weight:800;
-    cursor:pointer; white-space:nowrap;
-    transition:.2s; box-shadow:0 4px 14px rgba(0,0,0,0.12);
+    .choice-btn:hover {
+        background:rgba(255,255,255,0.32);
+        border-color:rgba(255,255,255,0.5);
+        transform:translateY(-1px);
     }
-    .data-slider-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(0,0,0,0.16); }
+    .choice-btn .choice-keyword { color:#fff; font-weight:900; }
 
-    /* 기타 */
-    .si-clone { pointer-events:auto; }
-    .scroll-track { scroll-behavior:smooth; }
-    .plan-row-num-row { display:flex; align-items:baseline; gap:6px; }
+    /* ─── STEP 4: 결과 ─── */
+    .result-title {
+        font-size:15px; font-weight:700; opacity:.9;
+        text-align:left; margin-bottom:4px;
+    }
+    .result-slider-wrap { position:relative; overflow:hidden; }
+    .result-track {
+        display:flex;
+        transition:transform .35s cubic-bezier(.4,0,.2,1);
+    }
+    .result-card {
+        flex:0 0 100%;
+        background:#fff;
+        border-radius:16px;
+        padding:20px 22px;
+        color:#222;
+        box-sizing:border-box;
+    }
+    .result-card-name { font-size:16px; font-weight:800; margin-bottom:6px; }
+    .result-card-price-wrap { display:flex; align-items:baseline; gap:8px; margin-bottom:14px; }
+    .result-card-price-origin { font-size:13px; color:#999; text-decoration:line-through; }
+    .result-card-price { font-size:26px; font-weight:900; color:var(--color-base); }
+    .result-card-specs {
+        display:flex; gap:8px;
+        background:#f5f5f7; border-radius:10px;
+        padding:10px 14px;
+    }
+    .result-card-spec {
+        flex:1; font-size:13px; font-weight:700; color:#444;
+        display:flex; align-items:center; gap:5px; justify-content:center;
+    }
+    .result-card-desc { margin-top:10px; font-size:12px; color:#888; }
+
+    .result-nav {
+        display:flex; align-items:center; justify-content:center; gap:12px;
+        margin-top:12px;
+    }
+    .result-nav-btn {
+        width:32px; height:32px; border-radius:50%;
+        background:rgba(255,255,255,0.25);
+        border:none; color:#fff; font-size:16px;
+        cursor:pointer; display:flex; align-items:center; justify-content:center;
+        transition:.2s;
+    }
+    .result-nav-btn:hover { background:rgba(255,255,255,0.4); }
+    .result-nav-btn:disabled { opacity:.3; cursor:default; }
+    .result-dots { display:flex; gap:6px; }
+    .result-dot {
+        width:7px; height:7px; border-radius:50%;
+        background:rgba(255,255,255,0.35); transition:.2s;
+    }
+    .result-dot.active { background:#fff; }
+
+    /* ─── 하단 버튼 영역 ─── */
+    .step-btn-row {
+        display:flex; gap:10px; width:100%; max-width:680px;
+        position:relative; z-index:1;
+    }
+    .step-btn {
+        padding:13px 28px; border-radius:12px;
+        font-size:15px; font-weight:800;
+        cursor:pointer; border:none;
+        transition:.2s; box-shadow:0 4px 14px rgba(0,0,0,0.12);
+        white-space:nowrap;
+    }
+    .step-btn-primary {
+        background:#fff; color:var(--color-base);
+        flex:1;
+    }
+    .step-btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(0,0,0,0.16); }
+    .step-btn-secondary {
+        background:rgba(255,255,255,0.2);
+        color:#fff;
+        border:2px solid rgba(255,255,255,0.35);
+    }
+    .step-btn-secondary:hover { background:rgba(255,255,255,0.3); }
 
     /* ─── RESPONSIVE: 768px ─── */
     @media (max-width:768px) {
-    .recommend-wrap { padding:36px 20px; gap:28px; }
-    .recommend-content h2 { font-size:clamp(20px,5.5vw,28px); letter-spacing:-.5px; }
-    .recommend-content p { font-size:14px; }
-
-    .recommend-steps { flex-direction:column; gap:10px; }
-    .recommend-step {
-        max-width:100%; padding:14px 18px; font-size:13px;
-        justify-content:flex-start;
+        .recommend-wrap { padding:36px 20px; gap:24px; }
+        .recommend-content h2 { font-size:clamp(20px,5.5vw,28px); letter-spacing:-.5px; }
+        .recommend-content p { font-size:14px; }
+        .recommend-steps { flex-direction:column; gap:10px; }
+        .recommend-step { max-width:100%; padding:14px 18px; font-size:13px; justify-content:flex-start; }
+        .step-card { padding:22px 18px 20px; }
+        .data-slider-value { font-size:38px; }
+        .step-btn-row { flex-direction:column; }
+        .step-btn-secondary { order:-1; }
     }
 
-    .data-slider-wrap { padding:22px 20px; box-sizing:border-box; }
-    .data-slider-value { font-size:38px; }
-
-    .data-slider-result {
-        flex-direction:column; align-items:flex-start; gap:12px;
-    }
-    .data-slider-btn { width:100%; padding:13px; text-align:center; }
-    }
-
-    /* ─── RESPONSIVE: 480px ─── */
     @media (max-width:480px) {
-    .data-slider-value { font-size:32px; }
-    .recommend-step { padding:12px 14px; font-size:12px; }
+        .data-slider-value { font-size:32px; }
     }
 </style>
 
 <!-- ═══ RECOMMEND ═══ -->
 <section id="recommend" style="padding:0">
     <div class="recommend-wrap">
+
+        <!-- 타이틀 -->
         <div class="recommend-content">
             <h2>내게 딱 맞는 요금제를 찾아드려요</h2>
             <p>사용 패턴 3가지 질문으로 최적의 요금제를 추천해 드립니다.</p>
         </div>
+
+        <!-- 스텝 인디케이터 -->
         <div class="recommend-steps">
-            <div class="recommend-step"><span class="recommend-step-num">1</span> 데이터 사용량 입력</div>
-            <div class="recommend-step"><span class="recommend-step-num">2</span> 통화 패턴 선택</div>
-            <div class="recommend-step"><span class="recommend-step-num">3</span> 맞춤 요금제 확인</div>
+            <div class="recommend-step active" id="si-1"><span class="recommend-step-num">1</span> 데이터 사용량 입력</div>
+            <div class="recommend-step" id="si-2"><span class="recommend-step-num">2</span> 통화 패턴 선택</div>
+            <div class="recommend-step" id="si-3"><span class="recommend-step-num">3</span> 맞춤 요금제 확인</div>
         </div>
-        <div class="data-slider-wrap">
-            <div class="data-slider-label">📊 1단계 · 한 달 데이터 사용량이 얼마나 되나요?</div>
+
+        <!-- ── STEP 1: 데이터 슬라이더 ── -->
+        <div class="step-card active" id="step1">
+            <div class="step-question">📊 1단계 · 한 달 데이터 사용량이 얼마나 되나요?</div>
             <div class="data-slider-value" id="sliderVal">10<span>GB</span></div>
             <input type="range" class="data-slider" id="dataSlider" min="0" max="6" value="2" step="1" oninput="updateSlider(this.value)">
             <div class="data-slider-ticks"><span>1GB</span><span>3GB</span><span>10GB</span><span>15GB</span><span>30GB</span><span>50GB</span><span>무제한</span></div>
-            <div class="data-slider-result">
-            <div>
-                <div class="data-slider-result-label">추천 요금제</div>
-                <div class="data-slider-result-plan" id="sliderPlan">슬림 15GB 플러스 · 월 19,900원</div>
-            </div>
-            <button class="data-slider-btn" onclick="location.href='#usim'">요금제 보기 →</button>
+        </div>
+
+        <!-- ── STEP 2: 데이터 속도 ── -->
+        <div class="step-card" id="step2">
+            <div class="step-question">📶 2단계 · 데이터 속도가 중요한가요?</div>
+            <div class="choice-list">
+                <button class="choice-btn" onclick="selectChoice('speed','5g')"><span class="choice-keyword">5G</span>로 빠른 속도가 필요해요</button>
+                <button class="choice-btn" onclick="selectChoice('speed','lte')"><span class="choice-keyword">LTE</span> 여도 괜찮아요</button>
             </div>
         </div>
+
+        <!-- ── STEP 3: 통화량 ── -->
+        <div class="step-card" id="step3">
+            <div class="step-question">📞 3단계 · 통화를 많이 하시나요?</div>
+            <div class="choice-list">
+                <button class="choice-btn" onclick="selectChoice('call','heavy')"><span class="choice-keyword">통화량</span>이 많아요</button>
+                <button class="choice-btn" onclick="selectChoice('call','light')">통화 <span class="choice-keyword">별로 안</span>해요</button>
+            </div>
+        </div>
+
+        <!-- ── STEP 4: 결과 ── -->
+        <div class="step-card" id="step4">
+            <div class="result-title">🎉 고객님의 사용량을 기반으로 알맞은 요금제를 찾았어요!</div>
+            <div class="result-slider-wrap">
+                <div class="result-track" id="resultTrack"></div>
+            </div>
+            <div class="result-nav" id="resultNav" style="display:none">
+                <button class="result-nav-btn" id="rPrev" onclick="slideResult(-1)">&#8592;</button>
+                <div class="result-dots" id="resultDots"></div>
+                <button class="result-nav-btn" id="rNext" onclick="slideResult(1)">&#8594;</button>
+            </div>
+        </div>
+
+        <!-- ── 하단 버튼 ── -->
+        <div class="step-btn-row" id="btnRow">
+            <!-- step1 -->
+            <button class="step-btn step-btn-primary" id="btnNext1" onclick="goStep(2)">맞춤 요금제 찾기 →</button>
+        </div>
+
     </div>
 </section>
 
 <script>
-    /* ── 데이터 슬라이더 ── */
-    var sliderPlans = [
-    '미니 2GB · 월 9,900원',
-    '슬림 3GB · 월 12,900원',
-    '슬림 10GB · 월 16,500원',
-    '슬림 15GB 플러스 · 월 19,900원',
-    '스탠다드 30GB · 월 28,900원',
-    '5G 알뜰 플랜 50GB · 월 34,900원',
-    '5G 완전 무제한 · 월 39,900원'
+(function(){
+
+    /* ── 요금제 데이터 ── */
+    var plans = [
+        { name:'미니 2GB',       price:'9,900',  origin:'19,800', data:'2GB',   call:'기본제공', sms:'기본',  desc:'최대 1Mbps 속도로 데이터 무제한 이용', type:'lte',  callType:'light', dataIdx:0 },
+        { name:'슬림 3GB',       price:'12,900', origin:'25,800', data:'3GB',   call:'기본제공', sms:'기본',  desc:'최대 1Mbps 속도로 데이터 무제한 이용', type:'lte',  callType:'light', dataIdx:1 },
+        { name:'슬림 10GB',      price:'16,500', origin:'33,000', data:'10GB',  call:'기본제공', sms:'기본',  desc:'최대 1Mbps 속도로 데이터 무제한 이용', type:'lte',  callType:'light', dataIdx:2 },
+        { name:'슬림 15GB 플러스',price:'19,900', origin:'39,800', data:'15GB',  call:'200분',   sms:'100건', desc:'최대 1Mbps 속도로 데이터 무제한 이용', type:'lte',  callType:'heavy', dataIdx:3 },
+        { name:'스탠다드 30GB',  price:'28,900', origin:'57,800', data:'30GB',  call:'무제한',  sms:'기본',  desc:'LTE 속도 기반 넉넉한 데이터', type:'lte',  callType:'heavy', dataIdx:4 },
+        { name:'5G 알뜰 50GB',   price:'34,900', origin:'59,900', data:'50GB',  call:'무제한',  sms:'기본',  desc:'5G 속도, 합리적인 가격', type:'5g',   callType:'heavy', dataIdx:5 },
+        { name:'5G 완전 무제한', price:'39,900', origin:'69,900', data:'무제한', call:'무제한', sms:'무제한', desc:'5G 완전 무제한, 최상의 속도', type:'5g',   callType:'heavy', dataIdx:6 },
+        { name:'LTE 완전 무제한',price:'29,900', origin:'59,800', data:'무제한', call:'무제한', sms:'무제한', desc:'LTE 완전 무제한 데이터', type:'lte',  callType:'heavy', dataIdx:6 },
     ];
+
     var sliderLabels = ['1GB','3GB','10GB','15GB','30GB','50GB','무제한'];
+    var answers = { dataIdx:2, speed:'', call:'' };
+    var currentStep = 1;
+    var resultIdx = 0;
+    var filteredPlans = [];
 
-    function updateSlider(v) {
-    var val   = parseInt(v);
-    var label = sliderLabels[val];
-    var pct   = (val / 6) * 100;
-    var s     = document.getElementById('dataSlider');
+    /* ── 슬라이더 업데이트 ── */
+    window.updateSlider = function(v){
+        var val   = parseInt(v);
+        answers.dataIdx = val;
+        var label = sliderLabels[val];
+        var pct   = (val / 6) * 100;
+        var s     = document.getElementById('dataSlider');
 
-    document.getElementById('sliderVal').innerHTML =
-        label === '무제한'
-        ? '무제한<span></span>'
-        : label.replace('GB', '') + '<span>GB</span>';
+        document.getElementById('sliderVal').innerHTML =
+            label === '무제한'
+            ? '무제한<span></span>'
+            : label.replace('GB','') + '<span>GB</span>';
 
-    document.getElementById('sliderPlan').textContent = sliderPlans[val];
+        s.style.background =
+            'linear-gradient(to right, rgba(255,255,255,0.9) ' + pct + '%, rgba(255,255,255,0.3) ' + pct + '%)';
+    };
 
-    s.style.background =
-        'linear-gradient(to right, rgba(255,255,255,0.9) ' + pct + '%, rgba(255,255,255,0.3) ' + pct + '%)';
+    /* ── 선택지 선택 → 다음 스텝 ── */
+    window.selectChoice = function(type, val){
+        answers[type === 'speed' ? 'speed' : 'call'] = val;
+        if(type === 'speed') goStep(3);
+        else                  goStep(4);
+    };
+
+    /* ── 스텝 이동 ── */
+    window.goStep = function(n){
+        // 카드 전환
+        for(var i=1;i<=4;i++){
+            var el = document.getElementById('step'+i);
+            if(el){ el.classList.toggle('active', i===n); }
+        }
+        // 스텝 인디케이터
+        for(var j=1;j<=3;j++){
+            var si = document.getElementById('si-'+j);
+            if(si){ si.classList.toggle('active', j===n || (n===4 && j===3)); }
+        }
+        currentStep = n;
+        renderBtnRow();
+        if(n===4) renderResult();
+    };
+
+    /* ── 버튼 렌더 ── */
+    function renderBtnRow(){
+        var row = document.getElementById('btnRow');
+        row.innerHTML = '';
+
+        if(currentStep === 1){
+            row.innerHTML = '<button class="step-btn step-btn-primary" onclick="goStep(2)">맞춤 요금제 찾기 →</button>';
+        } else if(currentStep === 2){
+            row.innerHTML = '<button class="step-btn step-btn-secondary" onclick="goStep(1)">← 이전</button>';
+        } else if(currentStep === 3){
+            row.innerHTML = '<button class="step-btn step-btn-secondary" onclick="goStep(2)">← 이전</button>';
+        } else if(currentStep === 4){
+            row.innerHTML = '<button class="step-btn step-btn-primary" onclick="resetWizard()">다시 찾아보기</button>';
+        }
     }
 
+    /* ── 결과 렌더 ── */
+    function renderResult(){
+        var dIdx  = answers.dataIdx;
+        var speed = answers.speed;
+        var call  = answers.call;
+
+        // 필터링: dataIdx 근접 + 속도 + 통화 매칭
+        filteredPlans = plans.filter(function(p){
+            var dataMatch = Math.abs(p.dataIdx - dIdx) <= 1;
+            var speedMatch = !speed || p.type === speed;
+            var callMatch = !call || p.callType === call || (call === 'light');
+            return dataMatch && speedMatch && callMatch;
+        });
+
+        // 필터 결과 없으면 dataIdx만으로 fallback
+        if(!filteredPlans.length){
+            filteredPlans = plans.filter(function(p){ return p.dataIdx === dIdx; });
+        }
+        if(!filteredPlans.length){ filteredPlans = [plans[dIdx] || plans[2]]; }
+
+        // 중복 제거
+        var seen = {};
+        filteredPlans = filteredPlans.filter(function(p){
+            if(seen[p.name]) return false;
+            seen[p.name] = true;
+            return true;
+        });
+
+        resultIdx = 0;
+        var track = document.getElementById('resultTrack');
+        var nav   = document.getElementById('resultNav');
+        var dots  = document.getElementById('resultDots');
+
+        track.innerHTML = filteredPlans.map(function(p){
+            return '<div class="result-card">'
+                + '<div class="result-card-name">' + p.name + '</div>'
+                + '<div class="result-card-price-wrap">'
+                +   '<span class="result-card-price-origin">' + p.origin + '원</span>'
+                +   '<span class="result-card-price">' + p.price + '<small style="font-size:14px;font-weight:700">원</small></span>'
+                + '</div>'
+                + '<div class="result-card-specs">'
+                +   '<div class="result-card-spec">⬇ ' + p.data + '</div>'
+                +   '<div class="result-card-spec">📞 ' + p.call + '</div>'
+                +   '<div class="result-card-spec">✉ ' + p.sms + '</div>'
+                + '</div>'
+                + '<div class="result-card-desc">· ' + p.desc + '</div>'
+                + '</div>';
+        }).join('');
+
+        if(filteredPlans.length > 1){
+            nav.style.display = 'flex';
+            dots.innerHTML = filteredPlans.map(function(_,i){
+                return '<div class="result-dot' + (i===0?' active':'') + '"></div>';
+            }).join('');
+            updateResultNav();
+        } else {
+            nav.style.display = 'none';
+        }
+    }
+
+    /* ── 결과 슬라이드 ── */
+    window.slideResult = function(dir){
+        var len = filteredPlans.length;
+        resultIdx = Math.max(0, Math.min(len-1, resultIdx + dir));
+        document.getElementById('resultTrack').style.transform = 'translateX(-' + (resultIdx*100) + '%)';
+        var allDots = document.querySelectorAll('.result-dot');
+        allDots.forEach(function(d,i){ d.classList.toggle('active', i===resultIdx); });
+        updateResultNav();
+    };
+
+    function updateResultNav(){
+        var prev = document.getElementById('rPrev');
+        var next = document.getElementById('rNext');
+        if(prev) prev.disabled = resultIdx === 0;
+        if(next) next.disabled = resultIdx === filteredPlans.length - 1;
+    }
+
+    /* ── 리셋 ── */
+    window.resetWizard = function(){
+        answers = { dataIdx:2, speed:'', call:'' };
+        var s = document.getElementById('dataSlider');
+        if(s){ s.value = 2; updateSlider(2); }
+        goStep(1);
+    };
+
+    /* ── 초기화 ── */
     var _s = document.getElementById('dataSlider');
-    if (_s) updateSlider(_s.value);
+    if(_s) updateSlider(_s.value);
+
+})();
 </script>

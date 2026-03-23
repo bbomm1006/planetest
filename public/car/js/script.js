@@ -368,8 +368,174 @@ document.querySelectorAll('#vehicle-grid .vehicle-card').forEach(card => {
 document.querySelectorAll('[data-close-modal]').forEach(el => {
   el.addEventListener('click', closeVehicleModal);
 });
+
+/* ── 마이카 추천 영상: 썸네일 선택 → 메인 반영 · 메인 클릭 → 팝업 ── */
+function openVideoModal(youtubeId) {
+  const modal = document.getElementById('video-modal');
+  const iframe = document.getElementById('videoModalIframe');
+  if (!modal || !iframe || !youtubeId) return;
+  iframe.src =
+    'https://www.youtube-nocookie.com/embed/' +
+    encodeURIComponent(youtubeId) +
+    '?autoplay=1&rel=0&modestbranding=1';
+  modal.classList.add('is-open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('video-modal-open');
+}
+
+function closeVideoModal() {
+  const modal = document.getElementById('video-modal');
+  const iframe = document.getElementById('videoModalIframe');
+  if (!modal || !iframe) return;
+  iframe.src = '';
+  modal.classList.remove('is-open');
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('video-modal-open');
+}
+
+(function initVideoSection() {
+  const VISIBLE_MAX = 4;
+
+  const feature = document.getElementById('videoFeature');
+  const poster = document.getElementById('videoFeaturePoster');
+  const heading = document.getElementById('videoFeatureHeading');
+  const sub = document.getElementById('videoFeatureSub');
+  const track = document.getElementById('videoRollTrack');
+  const prevBtn = document.getElementById('videoStripPrev');
+  const nextBtn = document.getElementById('videoStripNext');
+  const stripRoot = document.getElementById('videoStrip');
+  if (!feature || !poster || !heading || !sub || !track || !prevBtn || !nextBtn) return;
+
+  const viewport = stripRoot.querySelector('.video-strip__viewport');
+  const items = Array.from(track.querySelectorAll('.video-roll-item'));
+  const n = items.length;
+  if (n === 0) return;
+
+  if (n <= VISIBLE_MAX) stripRoot.classList.add('video-strip-wrap--few');
+  else stripRoot.classList.remove('video-strip-wrap--few');
+
+  let selectedIndex = 0;
+  let scrollStart = 0;
+
+  function applyFromThumb(btn) {
+    const g = btn.getAttribute('data-gradient');
+    const yid = btn.getAttribute('data-youtube');
+    const title = btn.getAttribute('data-title');
+    const subText = btn.getAttribute('data-sub');
+    if (g) poster.style.background = g;
+    if (title) heading.textContent = title;
+    if (subText) sub.textContent = subText;
+    if (yid) feature.setAttribute('data-youtube', yid);
+    items.forEach(function (b) {
+      b.classList.toggle('is-active', b === btn);
+    });
+  }
+
+  function getMetrics() {
+    const item = items[0];
+    if (!item || !viewport) return { step: 0, visible: 1, maxScroll: 0 };
+    const cs = getComputedStyle(track);
+    const gap = parseFloat(cs.columnGap || cs.gap) || 12;
+    const w = item.getBoundingClientRect().width;
+    const step = w + gap;
+    if (step <= gap) return { step: 0, visible: 1, maxScroll: 0 };
+    const vw = viewport.clientWidth;
+    const visible = Math.min(VISIBLE_MAX, Math.max(1, Math.floor((vw + gap) / step)));
+    const maxScroll = Math.max(0, n - visible);
+    return { step, visible, maxScroll };
+  }
+
+  function ensureVisible() {
+    const { visible, maxScroll } = getMetrics();
+    if (n <= visible) {
+      scrollStart = 0;
+      return;
+    }
+    if (selectedIndex < scrollStart) scrollStart = selectedIndex;
+    if (selectedIndex >= scrollStart + visible) scrollStart = selectedIndex - visible + 1;
+    scrollStart = Math.max(0, Math.min(maxScroll, scrollStart));
+  }
+
+  function syncTrack() {
+    const { step } = getMetrics();
+    track.style.transform = 'translateX(-' + scrollStart * step + 'px)';
+  }
+
+  function refreshStrip() {
+    ensureVisible();
+    syncTrack();
+  }
+
+  function go(to) {
+    selectedIndex = ((to % n) + n) % n;
+    refreshStrip();
+    applyFromThumb(items[selectedIndex]);
+  }
+
+  prevBtn.addEventListener('click', function () {
+    go(selectedIndex - 1);
+  });
+  nextBtn.addEventListener('click', function () {
+    go(selectedIndex + 1);
+  });
+
+  track.addEventListener('click', function (e) {
+    const btn = e.target.closest('.video-roll-item');
+    if (!btn) return;
+    const i = items.indexOf(btn);
+    if (i === -1) return;
+    go(i);
+  });
+
+  if (stripRoot) {
+    stripRoot.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        go(selectedIndex - 1);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        go(selectedIndex + 1);
+      }
+    });
+  }
+
+  if (viewport && typeof ResizeObserver !== 'undefined') {
+    const ro = new ResizeObserver(function () {
+      refreshStrip();
+    });
+    ro.observe(viewport);
+  }
+  window.addEventListener('resize', function () {
+    refreshStrip();
+  });
+
+  refreshStrip();
+
+  feature.addEventListener('click', function () {
+    const id = feature.getAttribute('data-youtube');
+    if (id) openVideoModal(id);
+  });
+  feature.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const id = feature.getAttribute('data-youtube');
+      if (id) openVideoModal(id);
+    }
+  });
+
+  document.querySelectorAll('[data-close-video-modal]').forEach(function (el) {
+    el.addEventListener('click', closeVideoModal);
+  });
+})();
+
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeVehicleModal();
+  if (e.key !== 'Escape') return;
+  const videoModal = document.getElementById('video-modal');
+  if (videoModal && videoModal.classList.contains('is-open')) {
+    closeVideoModal();
+    return;
+  }
+  closeVehicleModal();
 });
 
 /* ── 이벤트 배너: 커버플로(중앙 고정·강조) + 빠른 롤링 트랙 ── */
