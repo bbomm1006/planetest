@@ -6,116 +6,118 @@
   <title>Hero Slider</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: "DM Sans", "Noto Sans KR", sans-serif; background: #fff; }
+  
+</head>
+<body>
 
-#hero { padding-top: 64px; background: #fff; }
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "DM Sans", "Noto Sans KR", sans-serif; background: #fff; }
 
-.hero-viewport {
+  #hero { padding-top: 64px; background: #fff; }
+
+  .hero-viewport {
   position: relative;
   width: 100%;
   padding-top: 24px;
   background: #fff;
   overflow: hidden;
-}
+  }
 
-.hero-track {
+  .hero-track {
   display: flex;
   gap: 16px;
   transition: transform 0.55s cubic-bezier(0.4,0,0.2,1);
   will-change: transform;
-}
-.hero-track.no-transition { transition: none; }
+  }
+  .hero-track.no-transition { transition: none; }
 
-.hero-slide {
+  .hero-slide {
   flex: 0 0 auto;
   height: 460px;
   position: relative;
   overflow: hidden;
   cursor: pointer;
   border-radius: 18px;
-}
+  }
 
-/* 이미지 슬라이드 */
-.hero-slide-bg {
+  /* 이미지 슬라이드 */
+  .hero-slide-bg {
   position: absolute; inset: 0;
   background-size: cover; background-position: center;
   transition: transform 0.55s ease;
-}
-.hero-slide:not(.hero-slide-video):hover .hero-slide-bg { transform: scale(1.03); }
+  }
+  .hero-slide:not(.hero-slide-video):hover .hero-slide-bg { transform: scale(1.03); }
 
-.hero-slide-overlay {
+  .hero-slide-overlay {
   position: absolute; inset: 0;
   background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.15) 55%, transparent 100%);
-}
+  }
 
-.hero-slide-content {
+  .hero-slide-content {
   position: absolute; left: 28px; bottom: 44px; right: 28px;
   color: #fff; z-index: 3;
-}
-.hero-slide-label {
+  }
+  .hero-slide-label {
   display: block; font-size: 11px; font-weight: 700;
   letter-spacing: 0.12em; text-transform: uppercase;
   color: rgba(255,255,255,0.7); margin-bottom: 8px;
-}
-.hero-slide-title {
+  }
+  .hero-slide-title {
   font-size: clamp(24px,3vw,40px); font-weight: 900;
   line-height: 1.18; letter-spacing: -1px; margin-bottom: 8px; color: #fff;
-}
-.hero-slide-desc { font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.6; }
+  }
+  .hero-slide-desc { font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.6; }
 
-/* 유튜브 슬라이드 */
-.hero-slide-video { cursor: default; }
-.hero-yt-wrap { position: absolute; inset: 0; overflow: hidden; background: #000; }
-.hero-yt-wrap iframe {
+  /* 유튜브 슬라이드 */
+  .hero-slide-video { cursor: default; }
+  .hero-yt-wrap { position: absolute; inset: 0; overflow: hidden; background: #000; }
+  .hero-yt-wrap iframe {
   position: absolute; top: 50%; left: 50%;
   width: 177.78vh; height: 100%;
   min-width: 100%; min-height: 56.25vw;
   transform: translate(-50%,-50%);
   border: none; pointer-events: none;
-}
-.hero-yt-overlay {
+  }
+  .hero-yt-overlay {
   position: absolute; inset: 0; z-index: 2;
   background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.08) 45%, transparent 100%);
-}
+  }
 
-/* 하단 컨트롤 */
-.hero-controls {
+  /* 하단 컨트롤 */
+  .hero-controls {
   display: flex; align-items: center; justify-content: center;
   gap: 10px; padding: 14px 0 18px;
-}
-.hero-pg-arrow {
+  }
+  .hero-pg-arrow {
   width: 28px; height: 28px; border: none; background: none;
   color: #aaa; font-size: 22px; line-height: 1; padding: 0;
   cursor: pointer; display: grid; place-items: center;
   transition: color 0.18s;
-}
-.hero-pg-arrow:hover { color: #333; }
-.hero-pg-bar-wrap { display: flex; align-items: center; gap: 5px; }
-.hero-pg-bar {
+  }
+  .hero-pg-arrow:hover { color: #333; }
+  .hero-pg-bar-wrap { display: flex; align-items: center; gap: 5px; }
+  .hero-pg-bar {
   width: 28px; height: 3px; border-radius: 2px;
   background: #ddd; cursor: pointer;
   transition: background 0.25s, width 0.25s;
-}
-.hero-pg-bar.active { background: #1a2540; width: 44px; }
-.hero-pg-num {
+  }
+  .hero-pg-bar.active { background: #1a2540; width: 44px; }
+  .hero-pg-num {
   font-size: 12px; font-weight: 700; color: #999;
   letter-spacing: 1px; min-width: 52px; text-align: center;
-}
-.hero-pg-sep { color: #ccc; }
+  }
+  .hero-pg-sep { color: #ccc; }
 
-/* 모바일 */
-@media (max-width: 768px) {
+  /* 모바일 */
+  @media (max-width: 768px) {
   .hero-viewport { padding-top: 0; }
   .hero-slide { height: 56vw; min-height: 240px; border-radius: 0; }
   .hero-track { gap: 0; }
   .hero-slide-title { font-size: 22px; }
   .hero-slide-content { left: 18px; bottom: 40px; right: 18px; }
-}
-  </style>
-</head>
-<body>
+  }
+</style>
 
 <section id="hero">
   <div class="hero-viewport">
@@ -197,39 +199,39 @@ body { font-family: "DM Sans", "Noto Sans KR", sans-serif; background: #fff; }
 <!-- YouTube IFrame API -->
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
-/* ── YouTube IFrame API 준비 콜백 ── */
-var ytPlayer = null;
-var ytReady  = false;
+  /* ── YouTube IFrame API 준비 콜백 ── */
+  var ytPlayer = null;
+  var ytReady  = false;
 
-function onYouTubeIframeAPIReady(){
-  ytPlayer = new YT.Player('heroYtPlayer', {
-    videoId: 'RuoqgEIxrgk',
-    playerVars: {
-      autoplay: 1,
-      mute:     1,
-      controls: 0,
-      modestbranding: 1,
-      playsinline: 1,
-      rel: 0
-    },
-    events: {
-      onReady: function(e){
-        ytReady = true;
-        e.target.mute();
-        e.target.playVideo();
+  function onYouTubeIframeAPIReady(){
+    ytPlayer = new YT.Player('heroYtPlayer', {
+      videoId: 'RuoqgEIxrgk',
+      playerVars: {
+        autoplay: 1,
+        mute:     1,
+        controls: 0,
+        modestbranding: 1,
+        playsinline: 1,
+        rel: 0
       },
-      onStateChange: function(e){
-        /* 영상 종료(0) → 슬라이더에 알림 */
-        if(e.data === YT.PlayerState.ENDED){
-          heroSlider.onVideoEnded();
+      events: {
+        onReady: function(e){
+          ytReady = true;
+          e.target.mute();
+          e.target.playVideo();
+        },
+        onStateChange: function(e){
+          /* 영상 종료(0) → 슬라이더에 알림 */
+          if(e.data === YT.PlayerState.ENDED){
+            heroSlider.onVideoEnded();
+          }
         }
       }
-    }
-  });
-}
+    });
+  }
 
-/* ── 슬라이더 ── */
-var heroSlider = (function(){
+  /* ── 슬라이더 ── */
+  var heroSlider = (function(){
   var vp      = document.querySelector('.hero-viewport'),
       track   = document.getElementById('heroTrack'),
       origins = Array.from(track.querySelectorAll('.hero-slide')),
