@@ -108,7 +108,7 @@
 .fl  { font-size: .73rem; font-weight: 700; color: var(--ink2); em { color: var(--color-point); font-style: normal; } }
 .fi, .fs, .fta {
   border: 1.5px solid var(--g2); border-radius: 10px; padding: 10px 14px;
-  font-size: .85rem; font-family: inherit; color: var(--color-sub2); background: #fff; outline: none; width: 100%;
+  font-size: .85rem; font-family: inherit; color: var(--ink2); background: #fff; outline: none; width: 100%;
   transition: border-color .2s, box-shadow .2s;
   &:focus { border-color: var(--color-point); box-shadow: 0 0 0 3px rgba(30,127,232,.1); }
 }

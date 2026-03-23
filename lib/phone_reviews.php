@@ -1,3 +1,34 @@
+<?php
+/* ── 리뷰 게시판 (bp_review) ── */
+$reviewRows = [];
+try {
+    $st = $pdo->query(
+        "SELECT p.title, p.content, p.author,
+                CAST(p.extra AS CHAR) AS extra
+         FROM bp_review p
+         WHERE p.is_visible = 1
+         ORDER BY p.is_notice DESC, p.id DESC"
+    );
+    $rows = $st->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($rows as &$r) {
+        $extra = [];
+        if (!empty($r['extra'])) {
+            try { $extra = json_decode($r['extra'], true) ?: []; } catch (Exception $e) {}
+        }
+        $rating      = isset($extra['별점']) ? (int)$extra['별점'] : 5;
+        $rating      = max(1, min(5, $rating));
+        $r['stars']  = str_repeat('★', $rating) . str_repeat('☆', 5 - $rating);
+        $r['plan']   = $extra['요금제'] ?? $extra['제품명'] ?? $extra['플랜'] ?? '';
+        /* 작성자 첫 글자 */
+        $name        = trim($r['author'] ?? '');
+        $r['avatar'] = $name ? mb_substr($name, 0, 1) : '익';
+        $r['authorName'] = $name ? $name . ' 님' : '익명';
+    }
+    unset($r);
+    $reviewRows = $rows;
+} catch (Exception $e) {}
+?>
+
 <!-- ═══ REVIEWS ═══ -->
 <section id="reviews">
   <div class="section-inner">
@@ -11,24 +42,49 @@
     <div class="scroll-wrap">
       <button class="scroll-arrow sa-left" onclick="scrollTrack(this,-1)"><i class="fa-solid fa-chevron-left"></i></button>
       <div class="scroll-track cols-3" id="reviewsTrack">
-        <div class="review-card">
-          <div class="review-stars">★★★★★</div>
-          <p class="review-text">KT 쓰다가 바꿨는데 품질은 똑같고 요금은 절반 이하에요. 개통도 너무 간편하고 신호도 잘 터져서 만족합니다.</p>
-          <div class="review-author"><div class="review-avatar">김</div><div><div class="review-name">김지원 님</div><div class="review-plan">KT망 19,900원 요금제</div></div></div>
-        </div>
-        <div class="review-card">
-          <div class="review-stars">★★★★★</div>
-          <p class="review-text">가족 4명 다 같이 바꿨어요. 한 달에 20만원 나오던 요금이 8만원대로 줄었습니다. 고객센터도 빠르고 친절해요!</p>
-          <div class="review-author"><div class="review-avatar">박</div><div><div class="review-name">박서연 님</div><div class="review-plan">가족결합 4회선</div></div></div>
-        </div>
-        <div class="review-card">
-          <div class="review-stars">★★★★☆</div>
-          <p class="review-text">5G 요금제로 바꿨는데 속도도 빠르고 데이터 걱정이 없어졌어요. 유튜브나 넷플릭스 끊김 없이 잘 됩니다.</p>
-          <div class="review-author"><div class="review-avatar">이</div><div><div class="review-name">이민준 님</div><div class="review-plan">SK 5G 39,900원 요금제</div></div></div>
-        </div>
+
+        <?php if (empty($reviewRows)): ?>
+          <p style="padding:40px 0; color:#999;">등록된 후기가 없습니다.</p>
+        <?php else: ?>
+          <?php foreach ($reviewRows as $r): ?>
+          <div class="review-card">
+            <div class="review-stars"><?= $r['stars'] ?></div>
+            <p class="review-text"><?= htmlspecialchars($r['content'] ?? '') ?></p>
+            <div class="review-author">
+              <div class="review-avatar"><?= htmlspecialchars($r['avatar']) ?></div>
+              <div>
+                <div class="review-name"><?= htmlspecialchars($r['authorName']) ?></div>
+                <div class="review-plan"><?= htmlspecialchars($r['plan']) ?></div>
+              </div>
+            </div>
+          </div>
+          <?php endforeach; ?>
+        <?php endif; ?>
+
       </div>
       <button class="scroll-arrow sa-right" onclick="scrollTrack(this,1)"><i class="fa-solid fa-chevron-right"></i></button>
     </div>
     <button class="show-more-btn" onclick="showMore('reviewsTrack',this)">더보기 <i class="fa-solid fa-chevron-down"></i></button>
   </div>
 </section>
+
+<script>
+(function () {
+  var section = document.getElementById('reviews');
+  if (!section) return;
+  var btnL  = section.querySelector('.sa-left');
+  var btnR  = section.querySelector('.sa-right');
+  var track = document.getElementById('reviewsTrack');
+  if (!btnL || !btnR || !track) return;
+
+  function updateArrows() {
+    var count    = track.querySelectorAll('.review-card').length;
+    var isMobile = window.innerWidth <= 768;
+    var hide     = isMobile ? count <= 1 : count <= 4;
+    btnL.style.display = hide ? 'none' : '';
+    btnR.style.display = hide ? 'none' : '';
+  }
+  updateArrows();
+  window.addEventListener('resize', updateArrows);
+})();
+</script>

@@ -1,3 +1,49 @@
+<?php
+/* ── BEST 제품 조회 (badge_text = 'BEST' + tags에 n위 포함, tags 숫자 순) ── */
+$bestProducts = [];
+try {
+    $prods = $pdo->query(
+        "SELECT p.id, p.category_id, p.name, p.model_no,
+                p.badge_text, p.tags, p.price, p.discount
+         FROM product_products p
+         INNER JOIN product_categories c ON c.id = p.category_id AND c.is_active = 1
+         WHERE p.badge_text = 'BEST'
+           AND p.tags REGEXP '(^|,)[[:space:]]*[0-9]+위[[:space:]]*(,|$)'
+         ORDER BY CAST(TRIM(SUBSTRING_INDEX(p.tags, '위', 1)) AS UNSIGNED), p.id"
+    )->fetchAll(PDO::FETCH_ASSOC);
+
+    /* 카테고리명 */
+    $cats = $pdo->query(
+        "SELECT id, name FROM product_categories WHERE is_active=1"
+    )->fetchAll(PDO::FETCH_ASSOC);
+    $catMap = [];
+    foreach ($cats as $c) { $catMap[$c['id']] = $c['name']; }
+
+    /* 스팩 */
+    if (!empty($prods)) {
+        $ids      = implode(',', array_map('intval', array_column($prods, 'id')));
+        $allSpecs = $pdo->query(
+            "SELECT product_id, spec_name, spec_value
+             FROM product_specs
+             WHERE product_id IN ($ids)
+             ORDER BY product_id, sort_order, id"
+        )->fetchAll(PDO::FETCH_ASSOC);
+        $specsMap = [];
+        foreach ($allSpecs as $s) {
+            $specsMap[$s['product_id']][] = ['name' => $s['spec_name'], 'value' => $s['spec_value']];
+        }
+        foreach ($prods as &$p) {
+            $p['catName']       = $catMap[$p['category_id']] ?? '';
+            $p['specs']         = $specsMap[$p['id']] ?? [];
+            $p['priceMonthly']  = (int)$p['price'];
+            $p['priceOriginal'] = $p['discount'] > 0 ? (int)($p['price'] + $p['discount']) : null;
+        }
+        unset($p);
+    }
+    $bestProducts = $prods;
+} catch (Exception $e) {}
+?>
+
 <!-- ═══ DATA PLANS (BEST) ═══ -->
 <section id="data">
   <div class="section-inner">
@@ -10,66 +56,67 @@
       <a class="view-all" href="#">전체보기 <i class="fa-solid fa-arrow-right"></i></a>
     </div>
     <div class="plans-list">
-      <div class="plan-row plan-row-hot" style="position:relative">
-        <div class="plan-row-badge">1위</div>
-        <div class="plan-row-left">
-          <div class="plan-row-op" style="color:rgba(255,255,255,0.6)">KT망 · LTE</div>
-          <div class="plan-row-name" style="color:white">슬림 데이터 플러스</div>
-        </div>
-        <div class="plan-row-specs">
-          <div class="plan-row-spec"><span class="plan-row-spec-label" style="color:rgba(255,255,255,0.5)">데이터</span><span class="plan-row-spec-val" style="color:#FF7FA3">10GB + 속도제한 무제한</span></div>
-          <div class="plan-row-spec"><span class="plan-row-spec-label" style="color:rgba(255,255,255,0.5)">음성통화</span><span class="plan-row-spec-val" style="color:white">무제한</span></div>
-          <div class="plan-row-spec"><span class="plan-row-spec-label" style="color:rgba(255,255,255,0.5)">테더링</span><span class="plan-row-spec-val" style="color:white">제공</span></div>
-        </div>
-        <div class="plan-row-price">
-          <div class="plan-row-original" style="color:rgba(255,255,255,0.4)">기존 55,000원</div>
-          <div class="plan-row-num-row">
-            <div class="plan-row-num" style="color:white">16,500<span style="color:rgba(255,255,255,0.65)">원</span></div>
-            <div class="plan-row-vat" style="color:rgba(255,255,255,0.45)">/월 (VAT포함)</div>
+
+      <?php if (empty($bestProducts)): ?>
+        <p style="padding:32px 0; color:#999; text-align:center;">등록된 BEST 요금제가 없습니다.</p>
+      <?php else: ?>
+        <?php foreach ($bestProducts as $rank => $p):
+          /* tags 에서 'n위' 추출 */
+          $rankLabel = '';
+          foreach (array_map('trim', explode(',', $p['tags'] ?? '')) as $tag) {
+              if (preg_match('/^(\d+위)$/', $tag, $m)) { $rankLabel = $m[1]; break; }
+          }
+          if (!$rankLabel) $rankLabel = ($rank + 1) . '위'; // fallback
+          $isFirst = ($rankLabel === '1위');
+          $rowClass     = $isFirst ? 'plan-row plan-row-hot' : 'plan-row';
+          $badgeHtml    = $isFirst
+            ? '<div class="plan-row-badge">' . $rankLabel . '</div>'
+            : '<div class="plan-row-badge-dark">' . $rankLabel . '</div>';
+          $opStyle      = $isFirst ? ' style="color:rgba(255,255,255,0.6)"' : '';
+          $nameStyle    = $isFirst ? ' style="color:white"' : '';
+          $labelStyle   = $isFirst ? ' style="color:rgba(255,255,255,0.5)"' : '';
+          $val1Style    = $isFirst ? ' style="color:#FF7FA3"' : ' class="pink"';
+          $valStyle     = $isFirst ? ' style="color:white"' : '';
+          $origStyle    = $isFirst ? ' style="color:rgba(255,255,255,0.4)"' : '';
+          $numStyle     = $isFirst ? ' style="color:white"' : '';
+          $numSpanStyle = $isFirst ? ' style="color:rgba(255,255,255,0.65)"' : '';
+          $vatStyle     = $isFirst ? ' style="color:rgba(255,255,255,0.45)"' : '';
+          $btnClass     = $isFirst ? 'plan-row-btn plan-row-btn-hot' : 'plan-row-btn';
+          $opText       = $p['catName'] . ($p['model_no'] ? ' · ' . $p['model_no'] : '');
+        ?>
+        <div class="<?= $rowClass ?>" style="position:relative">
+          <?= $badgeHtml ?>
+          <div class="plan-row-left">
+            <div class="plan-row-op"<?= $opStyle ?>><?= htmlspecialchars($opText) ?></div>
+            <div class="plan-row-name"<?= $nameStyle ?>><?= htmlspecialchars($p['name']) ?></div>
           </div>
-        </div>
-        <button class="plan-row-btn plan-row-btn-hot">신청하기 →</button>
-      </div>
-      <div class="plan-row" style="position:relative">
-        <div class="plan-row-badge-dark">2위</div>
-        <div class="plan-row-left">
-          <div class="plan-row-op">SK망 · LTE</div>
-          <div class="plan-row-name">스마트 무제한</div>
-        </div>
-        <div class="plan-row-specs">
-          <div class="plan-row-spec"><span class="plan-row-spec-label">데이터</span><span class="plan-row-spec-val pink">완전 무제한</span></div>
-          <div class="plan-row-spec"><span class="plan-row-spec-label">음성통화</span><span class="plan-row-spec-val">무제한</span></div>
-          <div class="plan-row-spec"><span class="plan-row-spec-label">테더링</span><span class="plan-row-spec-val">10GB</span></div>
-        </div>
-        <div class="plan-row-price">
-          <div class="plan-row-original">기존 79,000원</div>
-          <div class="plan-row-num-row">
-            <div class="plan-row-num">24,900<span>원</span></div>
-            <div class="plan-row-vat">/월 (VAT포함)</div>
+          <div class="plan-row-specs">
+            <?php foreach ($p['specs'] as $si => $spec): ?>
+            <div class="plan-row-spec">
+              <span class="plan-row-spec-label"<?= $labelStyle ?>><?= htmlspecialchars($spec['name']) ?></span>
+              <span class="plan-row-spec-val"<?= $si === 0 ? $val1Style : $valStyle ?>><?= htmlspecialchars($spec['value']) ?></span>
+            </div>
+            <?php endforeach; ?>
           </div>
-        </div>
-        <button class="plan-row-btn">신청하기 →</button>
-      </div>
-      <div class="plan-row" style="position:relative">
-        <div class="plan-row-badge-dark" style="background:var(--dark)">3위</div>
-        <div class="plan-row-left">
-          <div class="plan-row-op">LG망 · 5G</div>
-          <div class="plan-row-name">5G 알뜰 플랜</div>
-        </div>
-        <div class="plan-row-specs">
-          <div class="plan-row-spec"><span class="plan-row-spec-label">데이터</span><span class="plan-row-spec-val pink">50GB + 5G 고속</span></div>
-          <div class="plan-row-spec"><span class="plan-row-spec-label">음성통화</span><span class="plan-row-spec-val">무제한</span></div>
-          <div class="plan-row-spec"><span class="plan-row-spec-label">테더링</span><span class="plan-row-spec-val">20GB</span></div>
-        </div>
-        <div class="plan-row-price">
-          <div class="plan-row-original">기존 110,000원</div>
-          <div class="plan-row-num-row">
-            <div class="plan-row-num">34,900<span>원</span></div>
-            <div class="plan-row-vat">/월 (VAT포함)</div>
+          <div class="plan-row-price">
+            <?php if ($p['priceOriginal']): ?>
+            <div class="plan-row-original"<?= $origStyle ?>>기존 <?= number_format($p['priceOriginal']) ?>원</div>
+            <?php else: ?>
+            <div class="plan-row-original"></div>
+            <?php endif; ?>
+            <div class="plan-row-num-row">
+              <div class="plan-row-num"<?= $numStyle ?>><?= number_format($p['priceMonthly']) ?><span<?= $numSpanStyle ?>>원</span></div>
+              <div class="plan-row-vat"<?= $vatStyle ?>>/월 (VAT포함)</div>
+            </div>
           </div>
+          <button class="<?= $btnClass ?>"
+                  onclick="ciSelectProduct('form2', <?= (int)$p['id'] ?>); document.getElementById('form2').scrollIntoView({behavior:'smooth',block:'start'});">
+            신청하기 →
+          </button>
         </div>
-        <button class="plan-row-btn">신청하기 →</button>
-      </div>
+        <?php endforeach; ?>
+      <?php endif; ?>
+
     </div>
   </div>
 </section>

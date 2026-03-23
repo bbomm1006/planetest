@@ -1,3 +1,33 @@
+<?php
+/* ── 분류 1번(sort_order 첫번째) 제품 조회 ── */
+$phoneProducts  = [];
+$phoneCat1Id    = null;
+try {
+    $cat1 = $pdo->query(
+        "SELECT id FROM product_categories WHERE is_active=1 ORDER BY sort_order, id LIMIT 1"
+    )->fetch(PDO::FETCH_ASSOC);
+
+    if ($cat1) {
+        $phoneCat1Id = $cat1['id'];
+        $prods = $pdo->prepare(
+            "SELECT p.id, p.name, p.model_no, p.short_desc,
+                    p.price, p.discount, p.image
+             FROM product_products p
+             WHERE p.category_id = ? 
+             ORDER BY p.sort_order, p.id"
+        );
+        $prods->execute([$phoneCat1Id]);
+        $phoneProducts = $prods->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($phoneProducts as &$p) {
+            $p['priceMonthly']  = (int)$p['price'];
+            $p['priceOriginal'] = $p['discount'] > 0 ? (int)($p['price'] + $p['discount']) : null;
+        }
+        unset($p);
+    }
+} catch (Exception $e) {}
+?>
+
 <!-- ═══ PHONES ═══ -->
 <section id="phones">
   <div class="section-inner">
@@ -12,49 +42,61 @@
     <div class="scroll-wrap">
       <button class="scroll-arrow sa-left" onclick="scrollTrack(this,-1)"><i class="fa-solid fa-chevron-left"></i></button>
       <div class="scroll-track cols-3" id="phonesTrack">
-        <div class="phone-card">
-          <div class="phone-card-img"><img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&q=80" alt="iPhone 16"></div>
-          <div class="phone-card-info">
-            <div class="phone-brand">Apple</div>
-            <div class="phone-model">iPhone 16</div>
-            <div class="phone-storage">128GB · 5가지 색상</div>
-            <div class="phone-monthly">39,900<small>원~/월</small></div>
-            <div class="phone-full-price">출고가 1,350,000원</div>
+
+        <?php if (empty($phoneProducts)): ?>
+          <p style="padding:40px 0; color:#999;">등록된 제품이 없습니다.</p>
+        <?php else: ?>
+          <?php foreach ($phoneProducts as $p): ?>
+          <div class="phone-card">
+            <div class="phone-card-img">
+              <?php if (!empty($p['image'])): ?>
+                <img src="<?= htmlspecialchars($p['image']) ?>" alt="<?= htmlspecialchars($p['name']) ?>">
+              <?php else: ?>
+                <img src="" alt="<?= htmlspecialchars($p['name']) ?>" style="background:#f0f0f0;">
+              <?php endif; ?>
+            </div>
+            <div class="phone-card-info">
+              <div class="phone-brand"><?= htmlspecialchars($p['model_no'] ?? '') ?></div>
+              <div class="phone-model"><?= htmlspecialchars($p['name']) ?></div>
+              <div class="phone-storage"><?= htmlspecialchars($p['short_desc'] ?? '') ?></div>
+              <div class="phone-monthly"><?= number_format($p['priceMonthly']) ?><small>원~/월</small></div>
+              <?php if ($p['priceOriginal']): ?>
+              <div class="phone-full-price">출고가 <?= number_format($p['priceOriginal']) ?>원</div>
+              <?php else: ?>
+              <div class="phone-full-price"></div>
+              <?php endif; ?>
+            </div>
           </div>
-        </div>
-        <div class="phone-card">
-          <div class="phone-card-img"><img src="https://images.unsplash.com/photo-1610945264803-c22b62d2a7b3?w=600&q=80" alt="Galaxy S25"></div>
-          <div class="phone-card-info">
-            <div class="phone-brand">Samsung</div>
-            <div class="phone-model">Galaxy S25</div>
-            <div class="phone-storage">256GB · 4가지 색상</div>
-            <div class="phone-monthly">42,900<small>원~/월</small></div>
-            <div class="phone-full-price">출고가 1,155,000원</div>
-          </div>
-        </div>
-        <div class="phone-card">
-          <div class="phone-card-img"><img src="https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=600&q=80" alt="Galaxy A55"></div>
-          <div class="phone-card-info">
-            <div class="phone-brand">Samsung</div>
-            <div class="phone-model">Galaxy A55</div>
-            <div class="phone-storage">256GB · 3가지 색상</div>
-            <div class="phone-monthly">19,900<small>원~/월</small></div>
-            <div class="phone-full-price">출고가 699,000원</div>
-          </div>
-        </div>
-        <div class="phone-card">
-          <div class="phone-card-img"><img src="https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=600&q=80" alt="보급형"></div>
-          <div class="phone-card-info">
-            <div class="phone-brand">자급제</div>
-            <div class="phone-model">보급형 추천폰</div>
-            <div class="phone-storage">64GB · 기본형</div>
-            <div class="phone-monthly">9,900<small>원~/월</small></div>
-            <div class="phone-full-price">출고가 299,000원</div>
-          </div>
-        </div>
+          <?php endforeach; ?>
+        <?php endif; ?>
+
       </div>
       <button class="scroll-arrow sa-right" onclick="scrollTrack(this,1)"><i class="fa-solid fa-chevron-right"></i></button>
     </div>
     <button class="show-more-btn" onclick="showMore('phonesTrack',this)">더보기 <i class="fa-solid fa-chevron-down"></i></button>
   </div>
 </section>
+
+<script>
+(function () {
+  var section = document.getElementById('phones');
+  if (!section) return;
+
+  var btnL  = section.querySelector('.sa-left');
+  var btnR  = section.querySelector('.sa-right');
+  var track = document.getElementById('phonesTrack');
+  if (!btnL || !btnR || !track) return;
+
+  function updateArrows() {
+    var isMobile = window.innerWidth <= 768;
+    var cards    = track.querySelectorAll('.phone-card');
+    var count    = cards.length;
+    var hide     = isMobile ? count <= 1 : count <= 3;
+    btnL.style.display = hide ? 'none' : '';
+    btnR.style.display = hide ? 'none' : '';
+  }
+
+  updateArrows();
+  window.addEventListener('resize', updateArrows);
+})();
+</script>

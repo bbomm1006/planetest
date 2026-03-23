@@ -41,7 +41,7 @@
 // ── 제품 선택
 .ci-product-wrap { background: var(--off); border: 1px solid var(--g2); border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; }
 .ci-product-label { font-size: .75rem; font-weight: 700; color: var(--ink2); margin-bottom: 10px; display: flex; align-items: center; gap: 4px; em { color: var(--color-point); font-style: normal; } }
-.ci-product-selects { display: flex; gap: 10px; flex-wrap: wrap; select { flex: 1; min-width: 140px; padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--g2); background: #fff; font-family: inherit; font-size: .86rem; color: var(--color-sub2); outline: none; transition: border-color .2s; cursor: pointer; &:focus { border-color: var(--color-point); } } }
+.ci-product-selects { display: flex; gap: 10px; flex-wrap: wrap; select { flex: 1; min-width: 140px; padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--g2); background: #fff; font-family: inherit; font-size: .86rem; color: var(--ink2); outline: none; transition: border-color .2s; cursor: pointer; &:focus { border-color: var(--color-point); } } }
 
 // ── 공개/비공개 선택 토글
 .ci-visibility-wrap { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
