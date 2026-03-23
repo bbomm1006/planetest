@@ -39,11 +39,11 @@
       <!-- 시/도 · 시/군/구 필터 -->
       <div id="rsvRegionFilter" style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
         <select id="rsvSido" onchange="rsvOnSidoChange()"
-          style="flex:1;min-width:110px;padding:9px 12px;border:1.5px solid var(--color-point);border-radius:10px;background:#fff;font-family:inherit;font-size:.85rem;font-weight:600;color:var(--ink);cursor:pointer;">
+          style="flex:1;min-width:110px;padding:9px 12px;border:1.5px solid var(--color-point);border-radius:10px;background:#fff;font-family:inherit;font-size:.85rem;font-weight:600;color:var(--color-sub2);cursor:pointer;">
           <option value="">시/도 전체</option>
         </select>
         <select id="rsvSigungu" onchange="rsvOnSigunguChange()"
-          style="flex:1;min-width:110px;padding:9px 12px;border:1.5px solid var(--color-point);border-radius:10px;background:#fff;font-family:inherit;font-size:.85rem;font-weight:600;color:var(--ink);cursor:pointer;">
+          style="flex:1;min-width:110px;padding:9px 12px;border:1.5px solid var(--color-point);border-radius:10px;background:#fff;font-family:inherit;font-size:.85rem;font-weight:600;color:var(--color-sub2);cursor:pointer;">
           <option value="">시/군/구 전체</option>
         </select>
       </div>

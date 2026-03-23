@@ -81,13 +81,33 @@
             style="margin-top:10px;height:32px;border-radius:8px;background:#00c6ff;transition:background .2s;"></div>
         </div>
 
+        <!-- 서브컬러2 -->
+        <div class="form-group">
+          <label style="font-weight:700;font-size:.88rem;">
+            서브컬러2
+            <small style="color:var(--text3);font-weight:400;margin-left:4px;">--color-sub2</small>
+          </label>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
+            <input type="color" id="color_sub2_picker" value="#ff6b35"
+              style="width:44px;height:44px;padding:2px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;flex-shrink:0;"
+              oninput="colorSyncText('color_sub2',this.value)">
+            <input type="text" class="form-control" id="color_sub2_text" value="#ff6b35"
+              placeholder="#ff6b35" maxlength="20"
+              style="flex:1;font-family:monospace;font-size:.88rem;"
+              oninput="colorSyncPicker('color_sub2',this.value)">
+          </div>
+          <div id="color_sub2_bar"
+            style="margin-top:10px;height:32px;border-radius:8px;background:#ff6b35;transition:background .2s;"></div>
+        </div>
+
       </div>
 
       <div style="margin-top:24px;padding:14px 18px;background:var(--bg2);border-radius:10px;font-size:.8rem;color:var(--text3);line-height:1.8;border:1px solid var(--border);">
         <strong style="color:var(--text);display:block;margin-bottom:4px;">적용 범위 안내</strong>
         • <strong>기본컬러</strong>: 주요 버튼, 텍스트 링크, 뱃지, 가격 강조, 활성 탭 테두리<br>
         • <strong>포인트컬러</strong>: 호버 그라디언트, 포커스 링, 파생 그라디언트 끝색<br>
-        • <strong>서브컬러</strong>: 상단 네비 활성 아이콘, 히어로 프로그레스 바, 도트 강조
+        • <strong>서브컬러</strong>: 상단 네비 활성 아이콘, 히어로 프로그레스 바, 도트 강조<br>
+        • <strong>서브컬러2</strong>: --color-sub2 CSS 변수로 프론트에서 자유롭게 활용
       </div>
     </div>
   </div>
@@ -119,6 +139,9 @@
         </div>
         <div id="clr_prev_dot"
           style="width:14px;height:14px;border-radius:50%;background:#00c6ff;box-shadow:0 0 0 5px rgba(0,198,255,.2);">
+        </div>
+        <div id="clr_prev_dot2"
+          style="width:14px;height:14px;border-radius:50%;background:#ff6b35;box-shadow:0 0 0 5px rgba(255,107,53,.2);">
         </div>
       </div>
     </div>

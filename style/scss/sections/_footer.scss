@@ -2,7 +2,7 @@
 //   FOOTER
 // ══════════════════════════════════════
 
-footer { background: var(--ink); padding: 72px var(--section-pad-h) 36px; }
+footer { background: var(--color-sub2); padding: 72px var(--section-pad-h) 36px; }
 .ft-in  { max-width: var(--content-max); margin: 0 auto; }
 .ft-top { display: grid; grid-template-columns: 1fr 280px; gap: 60px; align-items: start; padding-bottom: 44px; border-bottom: 1px solid rgba(255,255,255,.07); }
 

@@ -25,6 +25,7 @@ function colorLoad() {
       colorSetAll('color_base',  d.color_base  || '#1255a6');
       colorSetAll('color_point', d.color_point || '#1e7fe8');
       colorSetAll('color_sub',   d.color_sub   || '#00c6ff');
+      colorSetAll('color_sub2',  d.color_sub2  || '#ff6b35');
       colorRefreshPreview();
     })
     .catch(err => {
@@ -68,6 +69,7 @@ function colorRefreshPreview() {
   const base  = (document.getElementById('color_base_text')?.value  || '').trim();
   const point = (document.getElementById('color_point_text')?.value || '').trim();
   const sub   = (document.getElementById('color_sub_text')?.value   || '').trim();
+  const sub2  = (document.getElementById('color_sub2_text')?.value  || '').trim();
   const ok = v => /^#[0-9a-fA-F]{3,8}$/.test(v);
 
   const solid = document.getElementById('clr_prev_solid');
@@ -91,6 +93,9 @@ function colorRefreshPreview() {
 
   const dot = document.getElementById('clr_prev_dot');
   if (dot && ok(sub)) dot.style.background = sub;
+
+  const dot2 = document.getElementById('clr_prev_dot2');
+  if (dot2 && ok(sub2)) dot2.style.background = sub2;
 }
 
 // ── 저장 ────────────────────────────────────────────────
@@ -98,9 +103,10 @@ function colorSave() {
   const base  = (document.getElementById('color_base_text')?.value  || '').trim();
   const point = (document.getElementById('color_point_text')?.value || '').trim();
   const sub   = (document.getElementById('color_sub_text')?.value   || '').trim();
+  const sub2  = (document.getElementById('color_sub2_text')?.value  || '').trim();
 
   const hexOk = v => /^#[0-9a-fA-F]{3,8}$/.test(v);
-  if (!hexOk(base) || !hexOk(point) || !hexOk(sub)) {
+  if (!hexOk(base) || !hexOk(point) || !hexOk(sub) || !hexOk(sub2)) {
     showToast('올바른 HEX 색상 코드를 입력해주세요. (예: #1255a6)', 'error');
     return;
   }
@@ -110,6 +116,7 @@ function colorSave() {
   fd.append('color_base',  base);
   fd.append('color_point', point);
   fd.append('color_sub',   sub);
+  fd.append('color_sub2',  sub2);
 
   fetch('api/color.php', { method: 'POST', body: fd })
     .then(r => r.json())

@@ -27,7 +27,7 @@
   input {
     flex: 1; min-width: 0; max-width: 260px; padding: 8px 13px; border-radius: 10px;
     border: 1.5px solid var(--g2); font-size: .83rem; font-family: inherit;
-    color: var(--ink); outline: none; background: #fff; transition: border-color .18s;
+    color: var(--color-sub2); outline: none; background: #fff; transition: border-color .18s;
     &:focus { border-color: var(--color-point); }
   }
 }
@@ -43,7 +43,7 @@
 }
 .board-list-num    { font-size: .72rem; color: var(--g4); font-weight: 600; min-width: 28px; text-align: center; flex-shrink: 0; }
 .board-list-body   { flex: 1; min-width: 0; }
-.board-list-title  { font-size: .9rem; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+.board-list-title  { font-size: .9rem; font-weight: 700; color: var(--color-sub2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
 .board-list-meta   { font-size: .74rem; color: var(--g4); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .board-list-secret { display: inline-flex; align-items: center; gap: 3px; font-size: .72rem; color: var(--g4); font-weight: 600; }
 .board-status-badge { display: inline-flex; align-items: center; font-size: .67rem; font-weight: 700; padding: 2px 8px; border-radius: 100px; }
@@ -68,7 +68,7 @@
 // ── 상세
 .board-detail-wrap  { background: #fff; border-radius: 16px; border: 1px solid var(--g2); overflow: hidden; box-shadow: var(--sh-card); }
 .board-detail-head  { padding: 22px 24px 16px; }
-.board-detail-title { font-size: 1.08rem; font-weight: 800; color: var(--ink); margin-bottom: 10px; line-height: 1.45; word-break: keep-all; }
+.board-detail-title { font-size: 1.08rem; font-weight: 800; color: var(--color-sub2); margin-bottom: 10px; line-height: 1.45; word-break: keep-all; }
 .board-detail-meta  {
   display: flex; gap: 0; font-size: .76rem; color: var(--g4); flex-wrap: wrap; align-items: center;
   span { display: flex; align-items: center; gap: 4px; }
@@ -80,7 +80,7 @@
 // ── 댓글
 .board-comments-wrap { border-top: 1px solid var(--g2); }
 .board-comments-head {
-  padding: 16px 24px 12px; font-size: .86rem; font-weight: 800; color: var(--ink);
+  padding: 16px 24px 12px; font-size: .86rem; font-weight: 800; color: var(--color-sub2);
   display: flex; align-items: center; gap: 6px;
   span { background: var(--color-point); color: #fff; font-size: .66rem; font-weight: 800; padding: 2px 7px; border-radius: 100px; }
 }
@@ -99,7 +99,7 @@
   padding: 14px 24px 20px;
   textarea {
     width: 100%; padding: 11px 14px; border-radius: 10px; border: 1.5px solid var(--g2);
-    font-size: .84rem; font-family: inherit; color: var(--ink); resize: vertical; min-height: 76px;
+    font-size: .84rem; font-family: inherit; color: var(--color-sub2); resize: vertical; min-height: 76px;
     outline: none; transition: border-color .18s; box-sizing: border-box;
     &:focus { border-color: var(--color-point); }
   }
@@ -107,25 +107,25 @@
 .board-comment-submit-row  { display: flex; justify-content: flex-end; margin-top: 8px; }
 .board-comment-edit-wrap textarea {
   width: 100%; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--color-point);
-  font-size: .83rem; font-family: inherit; color: var(--ink); resize: vertical; min-height: 58px; outline: none; box-sizing: border-box;
+  font-size: .83rem; font-family: inherit; color: var(--color-sub2); resize: vertical; min-height: 58px; outline: none; box-sizing: border-box;
 }
 .board-comment-edit-actions { display: flex; gap: 6px; justify-content: flex-end; margin-top: 6px; }
 
 // ── 글쓰기
 .board-write-wrap   { background: #fff; border-radius: 16px; border: 1px solid var(--g2); overflow: hidden; box-shadow: var(--sh-card); }
-.board-write-head   { padding: 18px 24px 0; font-size: .95rem; font-weight: 800; color: var(--ink); }
+.board-write-head   { padding: 18px 24px 0; font-size: .95rem; font-weight: 800; color: var(--color-sub2); }
 .board-write-body   { padding: 18px 24px 24px; display: flex; flex-direction: column; gap: 14px; }
 .board-write-label  { font-size: .78rem; font-weight: 700; color: var(--ink3); margin-bottom: 5px; display: block; em { color: var(--red); margin-left: 2px; } }
 .board-write-input  {
   width: 100%; padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--g2);
-  font-size: .87rem; font-family: inherit; color: var(--ink); outline: none;
+  font-size: .87rem; font-family: inherit; color: var(--color-sub2); outline: none;
   transition: border-color .18s; box-sizing: border-box;
   &:focus { border-color: var(--color-point); }
   &.half  { max-width: 260px; }
 }
 .board-write-ta {
   width: 100%; padding: 11px 14px; border-radius: 10px; border: 1.5px solid var(--g2);
-  font-size: .87rem; font-family: inherit; color: var(--ink); resize: vertical; min-height: 160px;
+  font-size: .87rem; font-family: inherit; color: var(--color-sub2); resize: vertical; min-height: 160px;
   outline: none; transition: border-color .18s; box-sizing: border-box;
   &:focus { border-color: var(--color-point); }
 }

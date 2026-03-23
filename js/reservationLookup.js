@@ -149,7 +149,7 @@
     var isCurMon=(s.year===_kstNow.getUTCFullYear()&&s.month===(_kstNow.getUTCMonth()+1));
     var html='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
       +'<button onclick="lkpCalChgNav('+idx+',-1)"'+(isCurMon?' disabled':'')+' style="background:none;border:1.5px solid var(--g2);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:.9rem;color:var(--g5);'+(isCurMon?'opacity:.3;cursor:default;':'')+'">‹</button>'
-      +'<span style="font-weight:800;font-size:.88rem;color:var(--ink);">'+s.year+'년 '+s.month+'월</span>'
+      +'<span style="font-weight:800;font-size:.88rem;color:var(--color-sub2);">'+s.year+'년 '+s.month+'월</span>'
       +'<button onclick="lkpCalChgNav('+idx+',1)" style="background:none;border:1.5px solid var(--g2);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:.9rem;color:var(--g5);">›</button></div>';
     html+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;">';
     ['일','월','화','수','목','금','토'].forEach(function(d,i){ html+='<div style="text-align:center;font-size:.65rem;font-weight:800;color:'+(i===0?'var(--red)':i===6?'#5ab0f5':'var(--g4)')+';">'+d+'</div>'; });

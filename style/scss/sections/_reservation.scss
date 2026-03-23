@@ -98,7 +98,7 @@
 .rsv-form-summary-val { color: var(--ink2); font-weight: 700; text-align: right; word-break: keep-all; }
 .rsv-fg  { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
 .rsv-fl  { font-size: .73rem; font-weight: 700; color: var(--ink2); em { color: var(--color-point); font-style: normal; } }
-.rsv-fi, .rsv-fta { border: 1.5px solid var(--g2); border-radius: 10px; padding: 10px 14px; font-size: .86rem; font-family: inherit; color: var(--ink); background: var(--white); outline: none; width: 100%; box-sizing: border-box; transition: border-color .2s, box-shadow .2s; &:focus { border-color: var(--color-point); box-shadow: 0 0 0 3px rgba(30,127,232,.1); } }
+.rsv-fi, .rsv-fta { border: 1.5px solid var(--g2); border-radius: 10px; padding: 10px 14px; font-size: .86rem; font-family: inherit; color: var(--color-sub2); background: var(--white); outline: none; width: 100%; box-sizing: border-box; transition: border-color .2s, box-shadow .2s; &:focus { border-color: var(--color-point); box-shadow: 0 0 0 3px rgba(30,127,232,.1); } }
 .rsv-fta { min-height: 72px; resize: vertical; }
 .rsv-priv        { background: var(--off); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; border: 1px solid var(--g2); }
 .rsv-priv-scroll { max-height: 70px; overflow-y: auto; font-size: .71rem; color: var(--g5); line-height: 1.65; margin-bottom: 8px; }
@@ -109,7 +109,7 @@
 .rsv-phone-wrap         { display: flex; gap: 8px; align-items: stretch; .rsv-fi { flex: 1; min-width: 0; } }
 .rsv-phone-send-btn     { flex-shrink: 0; padding: 10px 14px; border-radius: 10px; border: none; background: linear-gradient(90deg, var(--color-base), var(--color-point)); color: #fff; font-family: inherit; font-weight: 700; font-size: .78rem; cursor: pointer; white-space: nowrap; transition: opacity .18s; line-height: 1.2; &:hover { opacity: .85; } &:disabled { opacity: .45; cursor: default; } }
 .rsv-verify-box         { margin-top: 8px; display: none; &.show { display: flex; gap: 8px; align-items: stretch; } }
-.rsv-verify-inp         { flex: 1; min-width: 0; border: 1.5px solid var(--color-point); border-radius: 10px; padding: 10px 14px; font-family: inherit; font-size: .9rem; color: var(--ink); outline: none; letter-spacing: 4px; text-align: center; font-weight: 700; background: var(--white); &:focus { box-shadow: 0 0 0 3px rgba(30,127,232,.12); } }
+.rsv-verify-inp         { flex: 1; min-width: 0; border: 1.5px solid var(--color-point); border-radius: 10px; padding: 10px 14px; font-family: inherit; font-size: .9rem; color: var(--color-sub2); outline: none; letter-spacing: 4px; text-align: center; font-weight: 700; background: var(--white); &:focus { box-shadow: 0 0 0 3px rgba(30,127,232,.12); } }
 .rsv-verify-confirm-btn { flex-shrink: 0; padding: 10px 16px; border-radius: 10px; border: none; background: var(--green); color: #fff; font-family: inherit; font-weight: 700; font-size: .8rem; cursor: pointer; transition: opacity .18s; &:hover { opacity: .85; } }
 .rsv-phone-timer  { font-size: .75rem; color: var(--red); font-weight: 700; margin-top: 4px; display: none; text-align: right; }
 .rsv-phone-status { font-size: .75rem; margin-top: 5px; font-weight: 600; &.ok { color: var(--green); } &.err { color: var(--red); } }
@@ -167,7 +167,7 @@
 .lkp-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
 .lkp-fg { display: flex; flex-direction: column; gap: 5px; }
 .lkp-fl { font-size: .75rem; font-weight: 700; color: var(--g7); }
-.lkp-fi { padding: 11px 14px; border-radius: 10px; border: 1.5px solid var(--g2); font-family: inherit; font-size: .88rem; color: var(--ink); background: #fff; outline: none; transition: border-color .2s; &:focus { border-color: var(--color-point); } }
+.lkp-fi { padding: 11px 14px; border-radius: 10px; border: 1.5px solid var(--g2); font-family: inherit; font-size: .88rem; color: var(--color-sub2); background: #fff; outline: none; transition: border-color .2s; &:focus { border-color: var(--color-point); } }
 .lkp-btn-search { width: 100%; padding: 13px; border-radius: 12px; border: none; background: linear-gradient(90deg, var(--color-base), var(--color-point)); color: #fff; font-family: inherit; font-weight: 800; font-size: .92rem; cursor: pointer; box-shadow: 0 6px 20px rgba(18,85,166,.25); transition: all .22s; margin-top: 4px; &:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(18,85,166,.35); } }
 .lkp-result { margin-top: 28px; }
 .lkp-empty  { text-align: center; padding: 36px 20px; color: var(--g4); font-size: .88rem; }
@@ -189,7 +189,7 @@
 .lkp-lock-msg  { font-size: .76rem; color: var(--g4); display: flex; align-items: center; gap: 5px; padding: 8px 12px; background: var(--off); border-radius: 8px; margin-top: 8px; }
 .lkp-datechg   { background: var(--mist); border-radius: 12px; padding: 16px 18px; margin-top: 10px; border: 1.5px solid var(--pale); }
 .lkp-datechg-title { font-size: .76rem; font-weight: 800; color: var(--color-base); margin-bottom: 10px; letter-spacing: .5px; }
-.lkp-datechg-row   { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; input[type=date] { padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--g2); font-family: inherit; font-size: .84rem; color: var(--ink); background: #fff; outline: none; transition: border-color .2s; &:focus { border-color: var(--color-point); } } }
+.lkp-datechg-row   { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; input[type=date] { padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--g2); font-family: inherit; font-size: .84rem; color: var(--color-sub2); background: #fff; outline: none; transition: border-color .2s; &:focus { border-color: var(--color-point); } } }
 .lkp-btn-confirm { padding: 9px 18px; border-radius: 8px; border: none; background: var(--color-base); color: #fff; font-family: inherit; font-weight: 700; font-size: .8rem; cursor: pointer; transition: opacity .2s; &:hover { opacity: .85; } }
 .lkp-btn-cancel2 { padding: 9px 14px; border-radius: 8px; border: 1.5px solid var(--g2); background: #fff; color: var(--g5); font-family: inherit; font-weight: 600; font-size: .8rem; cursor: pointer; transition: all .2s; &:hover { border-color: var(--g3); } }
 

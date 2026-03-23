@@ -36,7 +36,7 @@
 }
 
 // ── 할인 계산기
-.disc-box   { background: linear-gradient(135deg, var(--ink) 0%, #0d2a5e 100%); border-radius: 16px; padding: 22px 22px 18px; color: #fff; margin-bottom: 18px; }
+.disc-box   { background: linear-gradient(135deg, var(--color-sub2) 0%, #0d2a5e 100%); border-radius: 16px; padding: 22px 22px 18px; color: #fff; margin-bottom: 18px; }
 .disc-row   { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: .83rem; & + & { border-top: 1px solid rgba(255,255,255,.08); } }
 .disc-row.orig    { color: rgba(255,255,255,.5); }
 .disc-row.discount { color: #6ee7b7; }
@@ -108,7 +108,7 @@
 .fl  { font-size: .73rem; font-weight: 700; color: var(--ink2); em { color: var(--color-point); font-style: normal; } }
 .fi, .fs, .fta {
   border: 1.5px solid var(--g2); border-radius: 10px; padding: 10px 14px;
-  font-size: .85rem; font-family: inherit; color: var(--ink); background: #fff; outline: none; width: 100%;
+  font-size: .85rem; font-family: inherit; color: var(--color-sub2); background: #fff; outline: none; width: 100%;
   transition: border-color .2s, box-shadow .2s;
   &:focus { border-color: var(--color-point); box-shadow: 0 0 0 3px rgba(30,127,232,.1); }
 }

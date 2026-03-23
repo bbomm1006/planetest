@@ -21,6 +21,7 @@ $toAdd = [];
 if (!in_array('color_base',  $existingCols)) $toAdd[] = "ADD COLUMN color_base  VARCHAR(20) NULL";
 if (!in_array('color_point', $existingCols)) $toAdd[] = "ADD COLUMN color_point VARCHAR(20) NULL";
 if (!in_array('color_sub',   $existingCols)) $toAdd[] = "ADD COLUMN color_sub   VARCHAR(20) NULL";
+if (!in_array('color_sub2',  $existingCols)) $toAdd[] = "ADD COLUMN color_sub2  VARCHAR(20) NULL";
 if ($toAdd) {
     $pdo->exec("ALTER TABLE homepage_info " . implode(', ', $toAdd));
 }
@@ -35,13 +36,15 @@ if ($action === 'get') {
         "SELECT
             COALESCE(NULLIF(TRIM(color_base),''),  '#1255a6') AS color_base,
             COALESCE(NULLIF(TRIM(color_point),''), '#1e7fe8') AS color_point,
-            COALESCE(NULLIF(TRIM(color_sub),''),   '#00c6ff') AS color_sub
+            COALESCE(NULLIF(TRIM(color_sub),''),   '#00c6ff') AS color_sub,
+            COALESCE(NULLIF(TRIM(color_sub2),''),  '#ff6b35') AS color_sub2
          FROM homepage_info WHERE id=1"
     )->fetch(PDO::FETCH_ASSOC);
     echo json_encode(['ok' => true, 'data' => $row ?: [
         'color_base'  => '#1255a6',
         'color_point' => '#1e7fe8',
         'color_sub'   => '#00c6ff',
+        'color_sub2'  => '#080e1a',
     ]]);
     exit;
 }
@@ -56,9 +59,10 @@ if ($action === 'save') {
     $base  = $sanitize($_POST['color_base']  ?? '', '#1255a6');
     $point = $sanitize($_POST['color_point'] ?? '', '#1e7fe8');
     $sub   = $sanitize($_POST['color_sub']   ?? '', '#00c6ff');
+    $sub2  = $sanitize($_POST['color_sub2']  ?? '', '#ff6b35');
 
-    $stmt = $pdo->prepare("UPDATE homepage_info SET color_base=?, color_point=?, color_sub=? WHERE id=1");
-    $stmt->execute([$base, $point, $sub]);
+    $stmt = $pdo->prepare("UPDATE homepage_info SET color_base=?, color_point=?, color_sub=?, color_sub2=? WHERE id=1");
+    $stmt->execute([$base, $point, $sub, $sub2]);
 
     logAdminAction($pdo, 'update', 'homepage_info', '1');
     echo json_encode(['ok' => true]);

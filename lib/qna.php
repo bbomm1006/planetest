@@ -109,7 +109,7 @@
     <!-- 비밀글 비밀번호 모달 (비활성화) -->
     <div id="boardPwModal" style="display:none !important;position:fixed;inset:0;background:rgba(8,14,26,.5);z-index:8000;align-items:center;justify-content:center;">
       <div style="background:#fff;border-radius:18px;padding:28px 26px;width:340px;max-width:92vw;box-shadow:0 16px 56px rgba(8,14,26,.22);">
-        <div style="font-weight:800;font-size:1rem;color:var(--ink);margin-bottom:6px;">🔒 비밀글</div>
+        <div style="font-weight:800;font-size:1rem;color:var(--color-sub2);margin-bottom:6px;">🔒 비밀글</div>
         <p style="font-size:.82rem;color:var(--g5);margin-bottom:16px;line-height:1.6;">비밀번호를 입력하면 내용을 확인할 수 있습니다.</p>
         <input class="board-write-input" id="boardPwInput" type="password" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')confirmBoardPw()">
         <div style="display:flex;gap:8px;margin-top:14px;">
@@ -128,7 +128,7 @@
     <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--color-point),var(--color-sub));display:grid;place-items:center;margin:0 auto 14px;">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
     </div>
-    <div style="font-weight:900;font-size:1.12rem;color:var(--ink);margin-bottom:6px;">문의게시판 로그인</div>
+    <div style="font-weight:900;font-size:1.12rem;color:var(--color-sub2);margin-bottom:6px;">문의게시판 로그인</div>
     <p style="font-size:.82rem;color:var(--g5);margin-bottom:24px;line-height:1.6;">SNS 계정으로 간편하게 로그인하세요.</p>
     <div style="display:flex;flex-direction:column;gap:10px;">
       <button class="board-social-btn board-kakao" onclick="boardSocialLogin('kakao')">

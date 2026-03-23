@@ -26,7 +26,7 @@
 .nt-search-inp {
   flex: 1; min-width: 160px; padding: 9px 14px; border-radius: 9px;
   border: 1.5px solid var(--g2); font-family: inherit; font-size: .83rem;
-  color: var(--ink); background: #fff; outline: none; transition: border-color .18s;
+  color: var(--color-sub2); background: #fff; outline: none; transition: border-color .18s;
   &:focus { border-color: var(--color-point); }
 }
 .nt-search-btn {

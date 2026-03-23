@@ -40,12 +40,13 @@ $script = $pdo->query('SELECT head_code, body_code FROM scripts WHERE id = 1')->
 <?php
 // 관리자에서 저장한 대표 컬러를 :root 변수로 주입 (없으면 CSS 기본값 사용)
 try {
-    $colorRow = $pdo->query("SELECT color_base, color_point, color_sub FROM homepage_info WHERE id=1")->fetch(PDO::FETCH_ASSOC);
+    $colorRow = $pdo->query("SELECT color_base, color_point, color_sub, color_sub2 FROM homepage_info WHERE id=1")->fetch(PDO::FETCH_ASSOC);
     $cvars = [];
     $colorMap = [
         'color_base'  => '--color-base',
         'color_point' => '--color-point',
         'color_sub'   => '--color-sub',
+        'color_sub2'   => '--color-sub2',
     ];
     foreach ($colorMap as $col => $var) {
         $v = trim($colorRow[$col] ?? '');
