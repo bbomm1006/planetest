@@ -658,8 +658,6 @@ function openDynSectionModal(id) {
   document.getElementById('dynSecName').value       = sec ? sec.name : '';
   const fileVal = (sec ? (sec.file_name || '') : '').replace(/\.php$/i, '');
   document.getElementById('dynSecFile').value       = fileVal;
-  document.getElementById('dynSecTitle').value      = sec ? (sec.title || '') : '';
-  document.getElementById('dynSecSubtitle').value   = sec ? (sec.subtitle || '') : '';
   document.getElementById('dynSecNavLabel').value   = sec ? (sec.nav_label || '') : '';
   document.getElementById('dynSecAnchorId').value   = sec ? (sec.anchor_id || '') : '';
   document.getElementById('dynSecParams').value     = sec ? (sec.params || '') : '';
@@ -676,14 +674,14 @@ function openDynSectionModal(id) {
     _showDynSecFileGuide(fileVal);
   }
 
-  document.getElementById('dynSectionModal').style.display = 'flex';
+  openModal('dynSectionModal');
   document.getElementById('dynSecActive').onchange = function() {
     document.getElementById('dynSecActiveLabel').textContent = this.checked ? '노출' : '미노출';
   };
 }
 
 function closeDynSectionModal() {
-  document.getElementById('dynSectionModal').style.display = 'none';
+  closeModal('dynSectionModal');
 }
 
 // 파일 드롭다운 선택 시 파일명 입력란 자동 채우기 + 가이드 표시
@@ -728,8 +726,6 @@ async function saveDynSection() {
   const id       = document.getElementById('dynSecId').value;
   const name     = document.getElementById('dynSecName').value.trim();
   const fileName = document.getElementById('dynSecFile').value.trim();
-  const title    = document.getElementById('dynSecTitle').value.trim();
-  const subtitle = document.getElementById('dynSecSubtitle').value.trim();
   const isActive = document.getElementById('dynSecActive').checked ? 1 : 0;
   const sortOrder= parseInt(document.getElementById('dynSecOrder').value) || 0;
 
@@ -748,7 +744,7 @@ async function saveDynSection() {
 
   const res = await apiPost('api/system.php', {
     action: 'dynSectionSave',
-    id, name, file_name: fileBase, title, subtitle,
+    id, name, file_name: fileBase,
     nav_label: navLabel, anchor_id: anchorId, params,
     is_active: isActive, sort_order: sortOrder
   });
