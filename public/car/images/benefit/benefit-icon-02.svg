@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" role="img" aria-hidden="true">
+  <ellipse cx="100" cy="108" rx="72" ry="28" fill="rgba(0,0,0,.18)"/>
+  <path d="M100 32 L148 58 V118 Q100 152 52 118 V58 Z" fill="#ede9fe" stroke="rgba(255,255,255,.55)" stroke-width="2"/>
+  <text x="100" y="92" text-anchor="middle" fill="#6b21a8" font-family="system-ui,sans-serif" font-size="13" font-weight="800">02</text>
+</svg>

@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>비전오토플랜 - 장기렌트카</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Bebas+Neue&family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://plane01.gabia.io/style/main.min.css">
+
+<style>
+  :root{
+    --lime:#ceff57; /* --color-sub2 */
+    --purple:#7B2FBE;  /* --color-base */
+    --purple-dark:#5A1F8E; /* --color-sub2 */
+    --purple-light:#9B4FDE; /* --color-sub */
+    --purple-pale:#EDE0FF;
+    --green:#4CD964; 
+    --green-dark:#2ECC50;
+    --white:#FFFFFF;
+    --gray-100:#F8F8FC;
+    --gray-200:#EEECF5;
+    --gray-500:#9991B0;
+    --gray-700:#4A4560;
+    --dark:#1A0F2E;
+    --font:'Noto Sans KR',sans-serif;
+    --display:'Bebas Neue',cursive;
+    --mono:'Montserrat',sans-serif;
+    --transition:0.65s cubic-bezier(0.22,1,0.36,1);
+    /* 모바일~PC 공통: 네이버 프로모션형 중앙 칼럼 (모바일 웹 폭에 가깝게, PC에서도 동일 UX) */
+    --page-gutter:clamp(16px,5vw,28px);
+    --hero-gutter:clamp(18px,5.5vw,40px);
+    --container-max:720px;
+    --section-pad-y:clamp(48px,9vw,92px);
+    /* 히어로 하단: 스크롤 힌트 + 플로팅 CTA 높이 */
+    --hero-bottom-safe:calc(clamp(28px,7vw,40px) + 92px + env(safe-area-inset-bottom,0px));
+  }
+</style>
+
+<link rel="stylesheet" href="car.css">
+</head>
+<body class="has-floating-cta">
+
+<!-- ════════════════════════════════════════
+     1. 메인 배너
+════════════════════════════════════════ -->
+<section class="hero">
+  <div class="confetti-layer" id="confetti"></div>
+  <div class="hero-bg-text">ZERO PROMOTION</div>
+
+  <div class="hero-inner">
+    <div class="hero-eyebrow">🏆 비전오토플랜 최저가 혜택!</div>
+
+    <h1 class="hero-title">
+      <span class="hl-yellow">현재 이 페이지에서만!</span>
+      <span class="title-main-row">
+        <span class="hl-white"><span class="hl-zero">0</span> 제로 프로모션의</span>
+        <span class="hl-pink">기회!</span>
+      </span>
+    </h1>
+    <p class="hero-sub">
+      일단 신청해보세요!
+      <small>* 이벤트 신청 후 걸려오는 전화를 꼭 받아주셔야 상담이 가능합니다.</small>
+      <a href="#popular" class="hero-link-sec">차량 둘러보기 →</a>
+    </p>
+
+    <div class="hero-stats-row" aria-label="실시간 현황">
+      <div class="hstat-card">
+        <div class="hstat-live"><div class="live-dot"></div>LIVE</div>
+        <div class="hstat-num"><span id="quote-count">0</span><span class="hstat-unit">건</span></div>
+        <div class="hstat-label">견적 발송</div>
+      </div>
+      <div class="hstat-card">
+        <div class="hstat-live"><div class="live-dot"></div>TODAY</div>
+        <div class="hstat-num"><span id="contract-count">0</span><span class="hstat-unit">건</span></div>
+        <div class="hstat-label">계약 완료</div>
+      </div>
+      <div class="hstat-card">
+        <div class="hstat-live"><div class="live-dot"></div>이달</div>
+        <div class="hstat-num"><span id="monthly-count">0</span><span class="hstat-unit">건</span></div>
+        <div class="hstat-label">이달 누적 계약</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-indicator">
+    <div class="scroll-arrow"><div class="scroll-dot"></div></div>
+    <span>SCROLL</span>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     2. 그린 롤링 안내 티커
+════════════════════════════════════════ -->
+<section class="ticker-bar" aria-label="실시간 안내">
+  <div class="ticker-bar-inner">
+    <div class="ticker-track">
+      <span class="ticker-segment">
+        비전오토플랜 장기렌트 · 실시간 견적 접수 진행 중 · 오늘도 최저가 상담 다수 진행 · 이벤트 한정 0원 프로모션 · 전담 매니저 배정 완료 ·
+      </span>
+      <span class="ticker-segment" aria-hidden="true">
+        비전오토플랜 장기렌트 · 실시간 견적 접수 진행 중 · 오늘도 최저가 상담 다수 진행 · 이벤트 한정 0원 프로모션 · 전담 매니저 배정 완료 ·
+      </span>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     이벤트 프로모션 (커버플로 썸네일 + 부드러운 무한 롤링)
+════════════════════════════════════════ -->
+<section class="event-promo" id="event-promo" aria-labelledby="event-promo-title">
+  <div class="event-promo-inner">
+    <div class="event-promo-copy reveal">
+      <p class="event-promo-badge">ZERO EVENT</p>
+      <h2 id="event-promo-title" class="event-promo-title">
+        장기렌트카에서는 바로 계약하면<br><span class="event-promo-em">2달 월 0원!</span>
+      </h2>
+
+      <div class="event-promo-zero-stage">
+        <div class="event-promo-roll event-promo-roll--through-zero" aria-hidden="true">
+          <div class="event-promo-roll-track">
+            <div class="event-promo-set">
+              <div class="event-promo-slide">
+                <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=900&amp;h=560&amp;fit=crop&amp;auto=format&amp;q=80" width="900" height="560" loading="eager" decoding="async" alt="">
+              </div>
+              <div class="event-promo-slide">
+                <img src="https://images.unsplash.com/photo-1617814076667-1bd2159e6d09?w=900&amp;h=560&amp;fit=crop&amp;auto=format&amp;q=80" width="900" height="560" loading="eager" decoding="async" alt="">
+              </div>
+              <div class="event-promo-slide">
+                <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=900&amp;h=560&amp;fit=crop&amp;auto=format&amp;q=80" width="900" height="560" loading="eager" decoding="async" alt="">
+              </div>
+              <div class="event-promo-slide">
+                <img src="https://images.unsplash.com/photo-1519641471654-76ce32f0b6dd?w=900&amp;h=560&amp;fit=crop&amp;auto=format&amp;q=80" width="900" height="560" loading="eager" decoding="async" alt="">
+              </div>
+              <div class="event-promo-slide">
+                <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=900&amp;h=560&amp;fit=crop&amp;auto=format&amp;q=80" width="900" height="560" loading="eager" decoding="async" alt="">
+              </div>
+            </div>
+            <div class="event-promo-set" aria-hidden="true">
+              <div class="event-promo-slide">
+                <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=900&amp;h=560&amp;fit=crop&amp;auto=format&amp;q=80" width="900" height="560" loading="eager" decoding="async" alt="">
+              </div>
+              <div class="event-promo-slide">
+                <img src="https://images.unsplash.com/photo-1617814076667-1bd2159e6d09?w=900&amp;h=560&amp;fit=crop&amp;auto=format&amp;q=80" width="900" height="560" loading="eager" decoding="async" alt="">
+              </div>
+              <div class="event-promo-slide">
+                <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=900&amp;h=560&amp;fit=crop&amp;auto=format&amp;q=80" width="900" height="560" loading="eager" decoding="async" alt="">
+              </div>
+              <div class="event-promo-slide">
+                <img src="https://images.unsplash.com/photo-1519641471654-76ce32f0b6dd?w=900&amp;h=560&amp;fit=crop&amp;auto=format&amp;q=80" width="900" height="560" loading="eager" decoding="async" alt="">
+              </div>
+              <div class="event-promo-slide">
+                <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=900&amp;h=560&amp;fit=crop&amp;auto=format&amp;q=80" width="900" height="560" loading="eager" decoding="async" alt="">
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="event-promo-zero-mega" aria-hidden="true">0</p>
+      </div>
+
+      <button type="button" class="event-promo-cta" onclick="document.getElementById('form-section').scrollIntoView({behavior:'smooth'})">
+        실시간 견적 상담
+      </button>
+      <p class="event-promo-note">* 상세 조건은 상담 시 안내드립니다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     3. 접수현황
+════════════════════════════════════════ -->
+<section class="section-wrap reception-section">
+  <div class="inner">
+    <header class="reception-intro reveal">
+      <div class="reception-intro-inner">
+        <p class="reception-kicker">RECEPTION · LIVE</p>
+        <h2 class="reception-title">
+          실시간 <em>접수현황</em>
+        </h2>
+        <p class="reception-desc">접수 완료부터 계약까지, 지금 이 순간 업데이트되는 고객 현황입니다.</p>
+      </div>
+    </header>
+
+    <div class="reception-flat reveal" id="receptionCarousel">
+      <div class="rf-roll-wrap">
+        <div class="rf-roll" id="receptionRoll" aria-live="polite" aria-atomic="true">
+          <div class="rf-slot rf-slot--side" id="rfPrev"></div>
+          <div class="rf-slot rf-slot--focus" id="rfFocus"></div>
+          <div class="rf-slot rf-slot--side" id="rfNext"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     4. 이달의 인기차량
+════════════════════════════════════════ -->
+<section class="section-wrap popular-section" id="popular">
+  <div class="inner">
+    <header class="reception-intro reveal">
+      <div class="reception-intro-inner">
+        <p class="reception-kicker">POPULAR · BEST</p>
+        <h2 class="reception-title">
+          이달의 <em>인기 차량</em>
+        </h2>
+        <p class="reception-desc">비전오토플랜에서 최저가로 BEST 차량을 만나보세요!</p>
+      </div>
+    </header>
+
+    <div class="popular-list" role="list">
+      <article class="popular-item reveal delay-1" role="listitem">
+        <div class="popular-item-inner">
+          <span class="popular-rank" aria-label="1위">01</span>
+          <figure class="popular-thumb">
+            <img class="popular-thumb-img" src="images/popular/thumb-01.svg" width="160" height="107" loading="lazy" alt="현대 팰리세이드">
+          </figure>
+          <p class="popular-carline">현대 팰리세이드</p>
+          <p class="popular-price" aria-label="월 89만원부터">
+            <span class="popular-price-prefix">월</span><span class="popular-price-num">89</span><span class="popular-price-won">만원</span><span class="popular-price-wave">~</span>
+          </p>
+        </div>
+      </article>
+      <article class="popular-item reveal delay-2" role="listitem">
+        <div class="popular-item-inner">
+          <span class="popular-rank" aria-label="2위">02</span>
+          <figure class="popular-thumb">
+            <img class="popular-thumb-img" src="images/popular/thumb-02.svg" width="160" height="107" loading="lazy" alt="기아 EV6">
+          </figure>
+          <p class="popular-carline">기아 EV6</p>
+          <p class="popular-price" aria-label="월 72만원부터">
+            <span class="popular-price-prefix">월</span><span class="popular-price-num">72</span><span class="popular-price-won">만원</span><span class="popular-price-wave">~</span>
+          </p>
+        </div>
+      </article>
+      <article class="popular-item reveal delay-3" role="listitem">
+        <div class="popular-item-inner">
+          <span class="popular-rank" aria-label="3위">03</span>
+          <figure class="popular-thumb">
+            <img class="popular-thumb-img" src="images/popular/thumb-03.svg" width="160" height="107" loading="lazy" alt="제네시스 GV80">
+          </figure>
+          <p class="popular-carline">제네시스 GV80</p>
+          <p class="popular-price" aria-label="월 115만원부터">
+            <span class="popular-price-prefix">월</span><span class="popular-price-num">115</span><span class="popular-price-won">만원</span><span class="popular-price-wave">~</span>
+          </p>
+        </div>
+      </article>
+      <article class="popular-item reveal delay-4" role="listitem">
+        <div class="popular-item-inner">
+          <span class="popular-rank" aria-label="4위">04</span>
+          <figure class="popular-thumb">
+            <img class="popular-thumb-img" src="images/popular/thumb-04.svg" width="160" height="107" loading="lazy" alt="기아 카니발">
+          </figure>
+          <p class="popular-carline">기아 카니발</p>
+          <p class="popular-price" aria-label="월 81만원부터">
+            <span class="popular-price-prefix">월</span><span class="popular-price-num">81</span><span class="popular-price-won">만원</span><span class="popular-price-wave">~</span>
+          </p>
+        </div>
+      </article>
+      <article class="popular-item reveal delay-1" role="listitem">
+        <div class="popular-item-inner">
+          <span class="popular-rank" aria-label="5위">05</span>
+          <figure class="popular-thumb">
+            <img class="popular-thumb-img" src="images/popular/thumb-05.svg" width="160" height="107" loading="lazy" alt="BMW 5시리즈">
+          </figure>
+          <p class="popular-carline">BMW 5시리즈</p>
+          <p class="popular-price" aria-label="월 138만원부터">
+            <span class="popular-price-prefix">월</span><span class="popular-price-num">138</span><span class="popular-price-won">만원</span><span class="popular-price-wave">~</span>
+          </p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     5. 제조사별 차량 금액안내
+════════════════════════════════════════ -->
+<section class="section-wrap price-section" id="price">
+  <div class="inner">
+    <header class="price-section-head reveal">
+      <div class="badge">PRICE GUIDE</div>
+      <h2 class="section-title price-section-title">제조사별 차량 금액 안내</h2>
+      <p class="section-sub price-section-sub">원하는 제조사와 차량을 선택해 월 렌트료를 확인하세요</p>
+    </header>
+
+    <div class="price-tabs-wrap reveal">
+      <div class="price-tabs-scroll">
+        <div class="price-tabs" role="tablist" aria-label="차량 구분">
+          <button type="button" class="price-tab active" role="tab" data-price-type="domestic" aria-selected="true" onclick="setTab(this,'domestic')">국산차</button>
+          <button type="button" class="price-tab" role="tab" data-price-type="import" aria-selected="false" onclick="setTab(this,'import')">수입차</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="search-bar reveal">
+      <label class="search-field">
+        <span class="search-field-icon" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        </span>
+        <input class="search-input" type="search" autocomplete="off" placeholder="차량명 검색 (예: 팰리세이드, GV80)">
+      </label>
+      <button type="button" class="search-btn">검색</button>
+    </div>
+
+    <div class="brand-tabs-wrap reveal">
+      <div class="brand-tabs-scroll">
+        <div class="brand-tabs" id="brand-grid" role="tablist" aria-label="제조사 선택">
+          <button type="button" class="brand-tab active" role="tab" aria-selected="true" data-brand="현대">
+            <img class="brand-tab__logo" src="images/brands/hyundai.svg" width="120" height="28" loading="lazy" decoding="async" alt="">
+            <span class="brand-tab__label">현대</span>
+          </button>
+          <button type="button" class="brand-tab" role="tab" aria-selected="false" data-brand="기아">
+            <img class="brand-tab__logo" src="images/brands/kia.svg" width="80" height="28" loading="lazy" decoding="async" alt="">
+            <span class="brand-tab__label">기아</span>
+          </button>
+          <button type="button" class="brand-tab" role="tab" aria-selected="false" data-brand="제네시스">
+            <img class="brand-tab__logo" src="images/brands/genesis.svg" width="140" height="28" loading="lazy" decoding="async" alt="">
+            <span class="brand-tab__label">제네시스</span>
+          </button>
+          <button type="button" class="brand-tab" role="tab" aria-selected="false" data-brand="쉐보레">
+            <img class="brand-tab__logo" src="images/brands/chevrolet.svg" width="160" height="28" loading="lazy" decoding="async" alt="">
+            <span class="brand-tab__label">쉐보레</span>
+          </button>
+          <button type="button" class="brand-tab" role="tab" aria-selected="false" data-brand="르노">
+            <img class="brand-tab__logo" src="images/brands/renault.svg" width="130" height="28" loading="lazy" decoding="async" alt="">
+            <span class="brand-tab__label">르노</span>
+          </button>
+          <button type="button" class="brand-tab" role="tab" aria-selected="false" data-brand="KG모빌리티">
+            <img class="brand-tab__logo" src="images/brands/kg.svg" width="180" height="28" loading="lazy" decoding="async" alt="">
+            <span class="brand-tab__label">KG모빌리티</span>
+          </button>
+          <button type="button" class="brand-tab" role="tab" aria-selected="false" data-brand="쌍용">
+            <img class="brand-tab__logo" src="images/brands/ssangyong.svg" width="160" height="28" loading="lazy" decoding="async" alt="">
+            <span class="brand-tab__label">쌍용</span>
+          </button>
+          <button type="button" class="brand-tab" role="tab" aria-selected="false" data-brand="폴스타">
+            <img class="brand-tab__logo" src="images/brands/polestar.svg" width="140" height="28" loading="lazy" decoding="async" alt="">
+            <span class="brand-tab__label">폴스타</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="vehicle-brand-banner reveal delay-1" id="vehicle-brand-banner">
+      <img class="vehicle-brand-banner__logo" id="vehicle-brand-banner-img" src="images/brands/hyundai.svg" width="200" height="48" loading="eager" decoding="async" alt="현대">
+    </div>
+
+    <p class="vehicle-grid-empty" id="vehicle-grid-empty" hidden>선택한 제조사의 차량 정보를 준비 중입니다.</p>
+
+    <div class="vehicle-grid reveal" id="vehicle-grid">
+      <article class="vehicle-card" tabindex="0" role="button" aria-label="팰리세이드 상세 보기"
+        data-v-name="팰리세이드" data-v-brand="현대" data-v-price="89" data-v-range="3년 · 5만km"
+        data-v-img="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&amp;h=500&amp;fit=crop&amp;q=80"
+        data-v-desc="월 납입 예시 금액입니다. 신용등급·보증금·옵션·프로모션에 따라 실제 약정 금액은 달라질 수 있으며, 전담 매니저가 맞춤 견적을 안내해 드립니다.">
+        <figure class="vehicle-thumb">
+          <img class="vehicle-thumb-img" src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600&amp;h=375&amp;fit=crop&amp;q=80" width="600" height="375" loading="lazy" alt="">
+          <figcaption class="vehicle-thumb-overlay">
+            <h3 class="vehicle-overlay-title">팰리세이드</h3>
+            <div class="vehicle-overlay-price">
+              <span class="vehicle-overlay-from">월</span>
+              <span class="vehicle-overlay-num">89</span><span class="vehicle-overlay-unit">만원</span><span class="vehicle-overlay-tilde">~</span>
+            </div>
+          </figcaption>
+        </figure>
+        <div class="vehicle-card-meta"><p class="vehicle-range">3년 · 5만km · 장기렌트</p></div>
+      </article>
+      <article class="vehicle-card" tabindex="0" role="button" aria-label="아이오닉6 상세 보기"
+        data-v-name="아이오닉6" data-v-brand="현대" data-v-price="68" data-v-range="3년 · 5만km"
+        data-v-img="https://images.unsplash.com/photo-1617814076667-1bd2159e6d09?w=800&amp;h=500&amp;fit=crop&amp;q=80"
+        data-v-desc="전기차 세제 혜택 및 보조금 반영 여부에 따라 월 납입이 달라질 수 있습니다. 상세 조건은 상담 시 안내합니다.">
+        <figure class="vehicle-thumb">
+          <img class="vehicle-thumb-img" src="https://images.unsplash.com/photo-1617814076667-1bd2159e6d09?w=600&amp;h=375&amp;fit=crop&amp;q=80" width="600" height="375" loading="lazy" alt="">
+          <figcaption class="vehicle-thumb-overlay">
+            <h3 class="vehicle-overlay-title">아이오닉6</h3>
+            <div class="vehicle-overlay-price">
+              <span class="vehicle-overlay-from">월</span>
+              <span class="vehicle-overlay-num">68</span><span class="vehicle-overlay-unit">만원</span><span class="vehicle-overlay-tilde">~</span>
+            </div>
+          </figcaption>
+        </figure>
+        <div class="vehicle-card-meta"><p class="vehicle-range">3년 · 5만km · 장기렌트</p></div>
+      </article>
+      <article class="vehicle-card" tabindex="0" role="button" aria-label="그랜저 상세 보기"
+        data-v-name="그랜저" data-v-brand="현대" data-v-price="76" data-v-range="3년 · 5만km"
+        data-v-img="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&amp;h=500&amp;fit=crop&amp;q=80"
+        data-v-desc="대형 세단 인기 모델 기준 예시 금액입니다. 트림·색상·용품에 따라 변동될 수 있습니다.">
+        <figure class="vehicle-thumb">
+          <img class="vehicle-thumb-img" src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=600&amp;h=375&amp;fit=crop&amp;q=80" width="600" height="375" loading="lazy" alt="">
+          <figcaption class="vehicle-thumb-overlay">
+            <h3 class="vehicle-overlay-title">그랜저</h3>
+            <div class="vehicle-overlay-price">
+              <span class="vehicle-overlay-from">월</span>
+              <span class="vehicle-overlay-num">76</span><span class="vehicle-overlay-unit">만원</span><span class="vehicle-overlay-tilde">~</span>
+            </div>
+          </figcaption>
+        </figure>
+        <div class="vehicle-card-meta"><p class="vehicle-range">3년 · 5만km · 장기렌트</p></div>
+      </article>
+      <article class="vehicle-card" tabindex="0" role="button" aria-label="투싼 상세 보기"
+        data-v-name="투싼" data-v-brand="현대" data-v-price="52" data-v-range="3년 · 5만km"
+        data-v-img="https://images.unsplash.com/photo-1519641471654-76ce32f0b6dd?w=800&amp;h=500&amp;fit=crop&amp;q=80"
+        data-v-desc="SUV 라인업 기준 월 렌트 예시입니다. 계약 기간 연장 시 월 납입 조정이 가능합니다.">
+        <figure class="vehicle-thumb">
+          <img class="vehicle-thumb-img" src="https://images.unsplash.com/photo-1519641471654-76ce32f0b6dd?w=600&amp;h=375&amp;fit=crop&amp;q=80" width="600" height="375" loading="lazy" alt="">
+          <figcaption class="vehicle-thumb-overlay">
+            <h3 class="vehicle-overlay-title">투싼</h3>
+            <div class="vehicle-overlay-price">
+              <span class="vehicle-overlay-from">월</span>
+              <span class="vehicle-overlay-num">52</span><span class="vehicle-overlay-unit">만원</span><span class="vehicle-overlay-tilde">~</span>
+            </div>
+          </figcaption>
+        </figure>
+        <div class="vehicle-card-meta"><p class="vehicle-range">3년 · 5만km · 장기렌트</p></div>
+      </article>
+      <article class="vehicle-card" tabindex="0" role="button" aria-label="싼타페 상세 보기"
+        data-v-name="싼타페" data-v-brand="현대" data-v-price="65" data-v-range="3년 · 5만km"
+        data-v-img="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&amp;h=500&amp;fit=crop&amp;q=80"
+        data-v-desc="패밀리 SUV 인기 모델입니다. 5인·7인 시트 등 선택에 따라 금액이 달라질 수 있습니다.">
+        <figure class="vehicle-thumb">
+          <img class="vehicle-thumb-img" src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=600&amp;h=375&amp;fit=crop&amp;q=80" width="600" height="375" loading="lazy" alt="">
+          <figcaption class="vehicle-thumb-overlay">
+            <h3 class="vehicle-overlay-title">싼타페</h3>
+            <div class="vehicle-overlay-price">
+              <span class="vehicle-overlay-from">월</span>
+              <span class="vehicle-overlay-num">65</span><span class="vehicle-overlay-unit">만원</span><span class="vehicle-overlay-tilde">~</span>
+            </div>
+          </figcaption>
+        </figure>
+        <div class="vehicle-card-meta"><p class="vehicle-range">3년 · 5만km · 장기렌트</p></div>
+      </article>
+      <article class="vehicle-card" tabindex="0" role="button" aria-label="스타리아 상세 보기"
+        data-v-name="스타리아" data-v-brand="현대" data-v-price="78" data-v-range="3년 · 5만km"
+        data-v-img="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&amp;h=500&amp;fit=crop&amp;q=80"
+        data-v-desc="승합·레저 수요에 맞는 장기렌트 플랜을 제안해 드립니다. 카고·투어러 등 용도별 상담 가능합니다.">
+        <figure class="vehicle-thumb">
+          <img class="vehicle-thumb-img" src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&amp;h=375&amp;fit=crop&amp;q=80" width="600" height="375" loading="lazy" alt="">
+          <figcaption class="vehicle-thumb-overlay">
+            <h3 class="vehicle-overlay-title">스타리아</h3>
+            <div class="vehicle-overlay-price">
+              <span class="vehicle-overlay-from">월</span>
+              <span class="vehicle-overlay-num">78</span><span class="vehicle-overlay-unit">만원</span><span class="vehicle-overlay-tilde">~</span>
+            </div>
+          </figcaption>
+        </figure>
+        <div class="vehicle-card-meta"><p class="vehicle-range">3년 · 5만km · 장기렌트</p></div>
+      </article>
+      <article class="vehicle-card" tabindex="0" role="button" aria-label="코나 상세 보기"
+        data-v-name="코나" data-v-brand="현대" data-v-price="48" data-v-range="3년 · 5만km"
+        data-v-img="https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=800&amp;h=500&amp;fit=crop&amp;q=80"
+        data-v-desc="소형 SUV 라인업 예시 금액입니다. 트림·파워트레인에 따라 월 납입이 달라질 수 있습니다.">
+        <figure class="vehicle-thumb">
+          <img class="vehicle-thumb-img" src="https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=600&amp;h=375&amp;fit=crop&amp;q=80" width="600" height="375" loading="lazy" alt="">
+          <figcaption class="vehicle-thumb-overlay">
+            <h3 class="vehicle-overlay-title">코나</h3>
+            <div class="vehicle-overlay-price">
+              <span class="vehicle-overlay-from">월</span>
+              <span class="vehicle-overlay-num">48</span><span class="vehicle-overlay-unit">만원</span><span class="vehicle-overlay-tilde">~</span>
+            </div>
+          </figcaption>
+        </figure>
+        <div class="vehicle-card-meta"><p class="vehicle-range">3년 · 5만km · 장기렌트</p></div>
+      </article>
+      <article class="vehicle-card" tabindex="0" role="button" aria-label="쏘나타 상세 보기"
+        data-v-name="쏘나타" data-v-brand="현대" data-v-price="58" data-v-range="3년 · 5만km"
+        data-v-img="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&amp;h=500&amp;fit=crop&amp;q=80"
+        data-v-desc="중형 세단 인기 모델 기준 예시입니다. 하이브리드·가솔린 선택에 따라 금액이 변동될 수 있습니다.">
+        <figure class="vehicle-thumb">
+          <img class="vehicle-thumb-img" src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600&amp;h=375&amp;fit=crop&amp;q=80" width="600" height="375" loading="lazy" alt="">
+          <figcaption class="vehicle-thumb-overlay">
+            <h3 class="vehicle-overlay-title">쏘나타</h3>
+            <div class="vehicle-overlay-price">
+              <span class="vehicle-overlay-from">월</span>
+              <span class="vehicle-overlay-num">58</span><span class="vehicle-overlay-unit">만원</span><span class="vehicle-overlay-tilde">~</span>
+            </div>
+          </figcaption>
+        </figure>
+        <div class="vehicle-card-meta"><p class="vehicle-range">3년 · 5만km · 장기렌트</p></div>
+      </article>
+      <article class="vehicle-card vehicle-card--no-image" tabindex="0" role="button" aria-label="차량명 미정 상세 보기"
+        data-v-name="차량명 미정" data-v-brand="현대" data-v-price="" data-v-range="조건 협의" data-v-img=""
+        data-v-empty="1"
+        data-v-desc="등록된 이미지와 차량 정보가 없습니다. 원하시는 차종을 남겨주시면 담당자가 별도로 연락드립니다.">
+        <figure class="vehicle-thumb vehicle-thumb--empty">
+          <span class="vehicle-thumb-empty-mark">NO IMAGE</span>
+          <span class="vehicle-thumb-empty-hint">이미지 등록 전</span>
+          <figcaption class="vehicle-thumb-overlay vehicle-thumb-overlay--empty">
+            <h3 class="vehicle-overlay-title">차량명 미정</h3>
+            <div class="vehicle-overlay-price">
+              <span class="vehicle-overlay-num vehicle-overlay-num--muted">—</span><span class="vehicle-overlay-unit">만원</span><span class="vehicle-overlay-tilde">~</span>
+            </div>
+          </figcaption>
+        </figure>
+        <div class="vehicle-card-meta"><p class="vehicle-range vehicle-range--muted">조건 협의 · 상담 후 안내</p></div>
+      </article>
+    </div>
+    <!-- 더보기 영역: 8개 초과 시 script.js에서 버튼 삽입 -->
+    <div class="vehicle-more-host" id="vehicle-more-host" aria-live="polite"></div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     5-2. 장기렌트 vs 할부 비교
+════════════════════════════════════════ -->
+<section class="section-wrap lt-compare-section" id="lt-compare" aria-labelledby="lt-compare-heading">
+  <div class="lt-compare-bg" aria-hidden="true"></div>
+  <div class="inner lt-compare-inner">
+    <header class="lt-compare-head reveal">
+      <div class="lt-compare-title-wrap">
+        <h2 class="lt-compare-title" id="lt-compare-heading">장기렌트</h2>
+      </div>
+      <p class="lt-compare-sub">어떤 게 더 유리한가요?</p>
+    </header>
+    <div class="lt-compare-visual reveal delay-1">
+      <div class="lt-compare-car-wrap">
+        <img
+          class="lt-compare-car"
+          src="https://images.unsplash.com/photo-1619407423499-5a764f9d8e7b?w=1400&amp;h=800&amp;fit=crop&amp;auto=format&amp;q=82"
+          width="1400"
+          height="800"
+          loading="lazy"
+          decoding="async"
+          alt="비교 견적 기준 차량"
+        />
+      </div>
+      <p class="lt-compare-note">* 기아 카니발 비교 견적</p>
+    </div>
+    <div class="lt-compare-board reveal delay-2">
+      <article class="lt-compare-col lt-compare-col--finance" aria-label="신차 할부구매 견적">
+        <h3 class="lt-compare-col-title">신차 할부구매 견적</h3>
+        <dl class="lt-compare-list">
+          <div class="lt-compare-item">
+            <dt>출고가</dt>
+            <dd>39,310,000원</dd>
+          </div>
+          <div class="lt-compare-item">
+            <dt>이자</dt>
+            <dd>최저 4.4%</dd>
+          </div>
+          <div class="lt-compare-item">
+            <dt>자동차세</dt>
+            <dd>3,850,000원</dd>
+          </div>
+          <div class="lt-compare-item">
+            <dt>취등록세</dt>
+            <dd>2,501,540원</dd>
+          </div>
+          <div class="lt-compare-item">
+            <dt>보험료(5년)</dt>
+            <dd>4,500,000원</dd>
+          </div>
+        </dl>
+        <div class="lt-compare-foot lt-compare-foot--loan">
+          <span class="lt-compare-foot-label">월</span>
+          <p class="lt-compare-foot-price"><span class="lt-compare-foot-num">84</span><span class="lt-compare-foot-unit">만원</span></p>
+        </div>
+      </article>
+      <article class="lt-compare-col lt-compare-col--rent" aria-label="장기렌트 리스 견적">
+        <h3 class="lt-compare-col-title lt-compare-col-title--accent">장기렌트 / 리스</h3>
+        <dl class="lt-compare-list">
+          <div class="lt-compare-item">
+            <dt>렌탈료</dt>
+            <dd>월 31만원 ~</dd>
+          </div>
+          <div class="lt-compare-item">
+            <dt>이자</dt>
+            <dd><strong>0%</strong></dd>
+          </div>
+          <div class="lt-compare-item">
+            <dt>자동차세</dt>
+            <dd><strong>0원</strong></dd>
+          </div>
+          <div class="lt-compare-item">
+            <dt>취등록세</dt>
+            <dd><strong>0원</strong></dd>
+          </div>
+          <div class="lt-compare-item">
+            <dt>보험료(5년)</dt>
+            <dd><strong>0원</strong></dd>
+          </div>
+        </dl>
+        <div class="lt-compare-foot lt-compare-foot--rent">
+          <span class="lt-compare-foot-label">월</span>
+          <p class="lt-compare-foot-price lt-compare-foot-price--lime">
+            <span class="lt-compare-foot-num">36</span><span class="lt-compare-foot-unit">만원~</span>
+          </p>
+        </div>
+      </article>
+    </div>
+    <p class="lt-compare-summary reveal delay-3">
+      <span class="lt-compare-summary-line">장기렌트 / 리스는 무려</span>
+      <span class="lt-compare-summary-line lt-compare-summary-line--big"><strong class="lt-compare-pct">-55%</strong> 비용 절감이 가능합니다!</span>
+    </p>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     6. 최적의 혜택
+════════════════════════════════════════ -->
+<section class="section-wrap benefit-section" id="benefits">
+  <div class="inner">
+    <header class="benefit-head reveal">
+      <span class="benefit-kicker">WHY US</span>
+      <h2 class="benefit-heading">비전오토플랜만의 최적 혜택</h2>
+      <p class="benefit-lead">고객 만족을 위한 차별화된 서비스를 제공합니다</p>
+    </header>
+    <!-- 혜택: 좌 텍스트(라벨·타이틀·서브·뱃지) / 우 큰 일러스트(누끼 PNG는 동일 파일명 .png로 교체) -->
+    <div class="benefit-thumb-list">
+      <article class="benefit-thumb reveal-left delay-1">
+        <div class="benefit-thumb__copy">
+          <span class="benefit-thumb__label">혜택 1</span>
+          <h3 class="benefit-thumb__title">업계 최저가 보장</h3>
+          <p class="benefit-thumb__desc">타사 대비 최대 30% 저렴한 월 렌트료로 부담 없이 이용하세요</p>
+          <span class="benefit-thumb__badge">최대 30% 절감</span>
+        </div>
+        <div class="benefit-thumb__visual" aria-hidden="true">
+          <img class="benefit-thumb__illust" src="images/benefit/benefit-icon-01.svg" width="280" height="280" loading="lazy" decoding="async" alt="">
+        </div>
+      </article>
+      <article class="benefit-thumb reveal-right delay-2">
+        <div class="benefit-thumb__copy">
+          <span class="benefit-thumb__label">혜택 2</span>
+          <h3 class="benefit-thumb__title">완벽한 보험 처리</h3>
+          <p class="benefit-thumb__desc">자차·대인·대물 완전 보장으로 사고 걱정 없는 드라이빙</p>
+          <span class="benefit-thumb__badge">완전 보장</span>
+        </div>
+        <div class="benefit-thumb__visual" aria-hidden="true">
+          <img class="benefit-thumb__illust" src="images/benefit/benefit-icon-02.svg" width="280" height="280" loading="lazy" decoding="async" alt="">
+        </div>
+      </article>
+      <article class="benefit-thumb reveal-left delay-3">
+        <div class="benefit-thumb__copy">
+          <span class="benefit-thumb__label">혜택 3</span>
+          <h3 class="benefit-thumb__title">당일 출고 서비스</h3>
+          <p class="benefit-thumb__desc">오늘 신청, 오늘 출고. 빠른 계약 프로세스로 즉시 이용</p>
+          <span class="benefit-thumb__badge">당일 출고</span>
+        </div>
+        <div class="benefit-thumb__visual" aria-hidden="true">
+          <img class="benefit-thumb__illust" src="images/benefit/benefit-icon-03.svg" width="280" height="280" loading="lazy" decoding="async" alt="">
+        </div>
+      </article>
+      <article class="benefit-thumb reveal-right delay-4">
+        <div class="benefit-thumb__copy">
+          <span class="benefit-thumb__label">혜택 4</span>
+          <h3 class="benefit-thumb__title">전담 유지관리</h3>
+          <p class="benefit-thumb__desc">정기 점검·소모품 교체까지 전담 매니저가 관리해드립니다</p>
+          <span class="benefit-thumb__badge">전담 매니저</span>
+        </div>
+        <div class="benefit-thumb__visual" aria-hidden="true">
+          <img class="benefit-thumb__illust" src="images/benefit/benefit-icon-04.svg" width="280" height="280" loading="lazy" decoding="async" alt="">
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     7. 맞춤 서비스
+════════════════════════════════════════ -->
+<section class="section-wrap service-section">
+  <div class="inner">
+    <header class="service-intro reveal">
+      <p class="service-intro__kicker">차가 필요한 모든 순간</p>
+      <h2 class="service-intro__title">고객 맞춤 서비스</h2>
+      <p class="service-intro__lead">모든 고객의 상황에 맞는 최적의 솔루션을 제공합니다</p>
+    </header>
+    <div class="service-slider-shell reveal delay-1">
+      <div
+        class="service-slider"
+        id="serviceSlider"
+        role="region"
+        aria-roledescription="캐러셀"
+        aria-label="맞춤 서비스 소개"
+        tabindex="0"
+        data-service-slides="3"
+      >
+        <div class="service-slider__viewport">
+          <div class="service-slider__track" id="serviceSliderTrack">
+            <article class="service-slide" aria-roledescription="슬라이드" aria-label="1 / 3">
+              <div class="service-slide__bg">
+                <img
+                  class="service-slide__img"
+                  src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1600&amp;h=900&amp;fit=crop&amp;auto=format&amp;q=80"
+                  width="1600"
+                  height="900"
+                  loading="lazy"
+                  decoding="async"
+                  alt=""
+                />
+                <div class="service-slide__scrim" aria-hidden="true"></div>
+              </div>
+              <div class="service-slide__body">
+                <span class="service-slide__index">01</span>
+                <h3 class="service-slide__title">개인 맞춤 장기렌트</h3>
+                <p class="service-slide__desc">
+                  개인 신용·예산·선호 차종에 맞는 최적 플랜을 1:1로 설계합니다. 무보증금부터 다양한 조건까지 상담 가능합니다.
+                </p>
+              </div>
+            </article>
+            <article class="service-slide" aria-roledescription="슬라이드" aria-label="2 / 3">
+              <div class="service-slide__bg">
+                <img
+                  class="service-slide__img"
+                  src="https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1600&amp;h=900&amp;fit=crop&amp;auto=format&amp;q=80"
+                  width="1600"
+                  height="900"
+                  loading="lazy"
+                  decoding="async"
+                  alt=""
+                />
+                <div class="service-slide__scrim" aria-hidden="true"></div>
+              </div>
+              <div class="service-slide__body">
+                <span class="service-slide__index">02</span>
+                <h3 class="service-slide__title">법인·사업자 렌트</h3>
+                <p class="service-slide__desc">
+                  절세와 비용처리를 동시에. 법인·개인사업자를 위한 특화 렌트로 세금 부담을 줄여드립니다.
+                </p>
+              </div>
+            </article>
+            <article class="service-slide" aria-roledescription="슬라이드" aria-label="3 / 3">
+              <div class="service-slide__bg">
+                <img
+                  class="service-slide__img"
+                  src="https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=1600&amp;h=900&amp;fit=crop&amp;auto=format&amp;q=80"
+                  width="1600"
+                  height="900"
+                  loading="lazy"
+                  decoding="async"
+                  alt=""
+                />
+                <div class="service-slide__scrim" aria-hidden="true"></div>
+              </div>
+              <div class="service-slide__body">
+                <span class="service-slide__index">03</span>
+                <h3 class="service-slide__title">전기·친환경차 특화</h3>
+                <p class="service-slide__desc">
+                  보조금 활용과 전기차 전용 혜택, 충전 인프라 안내까지 원스톱으로 지원합니다.
+                </p>
+              </div>
+            </article>
+          </div>
+        </div>
+        <button type="button" class="service-slider__btn service-slider__btn--prev" id="serviceSliderPrev" aria-controls="serviceSliderTrack" aria-label="이전 슬라이드">
+          <svg class="service-slider__chev" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <button type="button" class="service-slider__btn service-slider__btn--next" id="serviceSliderNext" aria-controls="serviceSliderTrack" aria-label="다음 슬라이드">
+          <svg class="service-slider__chev" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <div class="service-slider__dots" id="serviceSliderDots" role="tablist" aria-label="슬라이드 이동"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     9. 마이카 추천 (영상)
+════════════════════════════════════════ -->
+<section class="section-wrap video-section">
+  <div class="inner">
+    <div class="reveal"><div class="badge">VIDEO</div></div>
+    <h2 class="section-title reveal">마이카 추천 영상</h2>
+    <p class="section-sub reveal">전문가가 직접 소개하는 인기 장기렌트 차량 리뷰</p>
+    <div class="video-grid">
+      <div class="video-card reveal delay-1">
+        <div class="video-thumb" style="background:linear-gradient(135deg,#5A1F8E,#9B4FDE);">
+          <div class="play-btn">▶</div>
+          <div class="video-duration">8:24</div>
+        </div>
+        <div class="video-info">
+          <div class="video-title">팰리세이드 장기렌트 완전정복 - 월 89만원으로 가능한 이유</div>
+          <div class="video-meta">비전오토플랜 · 조회수 12.4만</div>
+        </div>
+      </div>
+      <div class="video-card reveal delay-2">
+        <div class="video-thumb" style="background:linear-gradient(135deg,#2ECC50,#4CD964);">
+          <div class="play-btn">▶</div>
+          <div class="video-duration">6:51</div>
+        </div>
+        <div class="video-info">
+          <div class="video-title">EV6 전기차 장기렌트 보조금 받는 방법 총정리</div>
+          <div class="video-meta">비전오토플랜 · 조회수 8.7만</div>
+        </div>
+      </div>
+      <div class="video-card reveal delay-3">
+        <div class="video-thumb" style="background:linear-gradient(135deg,#1A0F2E,#5A1F8E);">
+          <div class="play-btn">▶</div>
+          <div class="video-duration">11:03</div>
+        </div>
+        <div class="video-info">
+          <div class="video-title">BMW 5시리즈 vs 벤츠 E클래스 장기렌트 비교분석</div>
+          <div class="video-meta">비전오토플랜 · 조회수 5.2만</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     10. 생생 후기
+════════════════════════════════════════ -->
+<section class="section-wrap review-section" id="reviews">
+  <div class="inner">
+    <div class="reveal"><div class="badge">REVIEW</div></div>
+    <h2 class="section-title reveal">생생 고객 후기</h2>
+    <p class="section-sub reveal">실제 고객님들의 솔직한 장기렌트 이용 후기를 확인하세요</p>
+    <div class="review-grid">
+      <div class="review-card reveal delay-1">
+        <div class="review-stars">★★★★★</div>
+        <div><span class="review-car-tag">팰리세이드 · 3년</span></div>
+        <p class="review-text">타사 대비 월 15만원 이상 저렴하게 이용 중입니다. 담당 매니저분이 꼼꼼하게 상담해주셔서 처음 장기렌트인데도 부담 없이 계약했어요.</p>
+        <div class="review-author">
+          <div class="author-avatar">김</div>
+          <div><div class="author-name">김*현</div><div class="author-date">2024.11.08</div></div>
+        </div>
+      </div>
+      <div class="review-card reveal delay-2">
+        <div class="review-stars">★★★★★</div>
+        <div><span class="review-car-tag">EV6 · 4년</span></div>
+        <p class="review-text">전기차 보조금 받는 방법을 몰랐는데 담당자분이 다 알아서 처리해주셨어요. 덕분에 실질 월 납입금이 훨씬 줄었습니다.</p>
+        <div class="review-author">
+          <div class="author-avatar">이</div>
+          <div><div class="author-name">이*진</div><div class="author-date">2024.10.22</div></div>
+        </div>
+      </div>
+      <div class="review-card reveal delay-3">
+        <div class="review-stars">★★★★☆</div>
+        <div><span class="review-car-tag">카니발 · 3년</span></div>
+        <p class="review-text">법인 사업자라 세금 처리 때문에 고민이 많았는데, 렌트비 전액 비용처리 가능하다는 안내 받고 바로 계약했습니다. 추천합니다!</p>
+        <div class="review-author">
+          <div class="author-avatar">박</div>
+          <div><div class="author-name">박*수</div><div class="author-date">2024.10.05</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     11. FAQ
+════════════════════════════════════════ -->
+<section class="section-wrap faq-section" id="faq">
+  <div class="inner">
+    <div class="reveal" style="text-align:center;"><div class="badge">FAQ</div></div>
+    <h2 class="section-title reveal" style="text-align:center;">자주 묻는 질문</h2>
+    <p class="section-sub reveal" style="text-align:center;margin-bottom:48px;">장기렌트에 대한 궁금증을 해결해드립니다</p>
+    <div class="faq-list">
+      <div class="faq-item open reveal delay-1">
+        <div class="faq-q" onclick="toggleFaq(this)">장기렌트와 할부 구매의 차이는 무엇인가요?<span class="faq-chevron">∨</span></div>
+        <div class="faq-a">장기렌트는 차량 소유 없이 월 렌트료만 납부하는 방식으로, 세금(취득세·등록세·자동차세) 부담이 없으며 보험료가 렌트료에 포함됩니다. 법인·사업자의 경우 렌트비 전액 비용처리가 가능하여 절세 효과가 큽니다.</div>
+      </div>
+      <div class="faq-item reveal delay-2">
+        <div class="faq-q" onclick="toggleFaq(this)">계약 기간은 얼마나 되나요?<span class="faq-chevron">∨</span></div>
+        <div class="faq-a">일반적으로 1년~5년까지 선택 가능하며, 3년 계약이 가장 일반적입니다. 계약 기간이 길수록 월 납입금이 낮아지는 경향이 있습니다.</div>
+      </div>
+      <div class="faq-item reveal delay-3">
+        <div class="faq-q" onclick="toggleFaq(this)">신용등급이 낮아도 이용할 수 있나요?<span class="faq-chevron">∨</span></div>
+        <div class="faq-a">신용등급에 따라 승인 여부와 보증금 조건이 달라질 수 있습니다. 전담 상담사가 개인 상황에 맞는 최적의 방법을 안내해드리니 부담 없이 상담 신청해주세요.</div>
+      </div>
+      <div class="faq-item reveal delay-4">
+        <div class="faq-q" onclick="toggleFaq(this)">사고 발생 시 어떻게 처리되나요?<span class="faq-chevron">∨</span></div>
+        <div class="faq-a">장기렌트 차량은 자차·대인·대물 보험이 모두 포함되어 있습니다. 사고 발생 시 전담 매니저를 통해 신속하게 처리되며, 대차 서비스도 지원됩니다.</div>
+      </div>
+      <div class="faq-item reveal delay-5">
+        <div class="faq-q" onclick="toggleFaq(this)">계약 만료 후 어떻게 되나요?<span class="faq-chevron">∨</span></div>
+        <div class="faq-a">계약 만료 후에는 ① 반납 후 신차로 재계약 ② 차량 인수(잔존가치 지불) ③ 계약 연장 중 선택하실 수 있습니다.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     12. 공지사항
+════════════════════════════════════════ -->
+<section class="section-wrap notice-section">
+  <div class="inner">
+    <div class="notice-header reveal">
+      <div><div class="badge">NOTICE</div><h2 class="section-title" style="margin-bottom:0;">공지사항</h2></div>
+      <a href="#" class="notice-more">전체보기 →</a>
+    </div>
+    <div class="notice-list reveal">
+      <div class="notice-row"><div class="notice-num">공지</div><span class="notice-new">NEW</span><div class="notice-title">2025년 신년 0원 프로모션 이벤트 안내</div><div class="notice-date">2025.01.02</div></div>
+      <div class="notice-row"><div class="notice-num">공지</div><span class="notice-new">NEW</span><div class="notice-title">전기차 정부 보조금 변경 사항 안내 (2025년 기준)</div><div class="notice-date">2024.12.28</div></div>
+      <div class="notice-row"><div class="notice-num">003</div><div style="width:30px;"></div><div class="notice-title">연말 특별 할인 프로모션 종료 안내</div><div class="notice-date">2024.12.20</div></div>
+      <div class="notice-row"><div class="notice-num">002</div><div style="width:30px;"></div><div class="notice-title">고객센터 운영시간 변경 안내 (12월 연휴 기간)</div><div class="notice-date">2024.12.15</div></div>
+      <div class="notice-row"><div class="notice-num">001</div><div style="width:30px;"></div><div class="notice-title">비전오토플랜 홈페이지 리뉴얼 오픈 안내</div><div class="notice-date">2024.11.01</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     13. 실시간 견적받기
+════════════════════════════════════════ -->
+<section class="form-section" id="form-section">
+  <div class="inner">
+    <div class="reveal" style="text-align:center;"><div class="badge" style="background:var(--green);">FREE QUOTE</div></div>
+    <h2 class="section-title reveal" style="text-align:center;">실시간 견적받기</h2>
+    <p class="section-sub reveal" style="text-align:center;">아래 정보를 입력하시면 전담 상담사가 빠르게 연락드립니다</p>
+    <div class="form-card reveal">
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">이름 *</label><input class="form-input" type="text" placeholder="성함을 입력하세요"></div>
+        <div class="form-group"><label class="form-label">연락처 *</label><input class="form-input" type="tel" placeholder="010-0000-0000"></div>
+        <div class="form-group"><label class="form-label">희망 차종</label>
+          <select class="form-select form-input">
+            <option>차종을 선택하세요</option><option>팰리세이드</option><option>EV6</option><option>GV80</option><option>카니발</option><option>그랜저</option><option>아이오닉6</option><option>BMW 5시리즈</option><option>벤츠 E클래스</option><option>기타 (상담 후 결정)</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">계약 기간</label>
+          <select class="form-select form-input">
+            <option>기간을 선택하세요</option><option>1년</option><option>2년</option><option>3년 (추천)</option><option>4년</option><option>5년</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">고객 유형</label>
+          <select class="form-select form-input">
+            <option>유형을 선택하세요</option><option>개인</option><option>개인사업자</option><option>법인</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">월 예산 (희망)</label>
+          <select class="form-select form-input">
+            <option>예산을 선택하세요</option><option>50만원 이하</option><option>50~80만원</option><option>80~100만원</option><option>100~150만원</option><option>150만원 이상</option>
+          </select>
+        </div>
+        <div class="form-group full"><label class="form-label">문의 내용</label><input class="form-input" type="text" placeholder="추가로 문의하실 내용을 자유롭게 입력하세요"></div>
+        <div class="form-group full">
+          <label class="form-check"><input type="checkbox" id="agree"><span>개인정보 수집·이용에 동의합니다. (필수)</span></label>
+        </div>
+      </div>
+      <button class="form-submit" onclick="submitForm()">🚗 무료 견적 신청하기</button>
+      <div class="form-notice">* 이벤트 신청 후 걸려오는 전화를 꼭 받아주셔야 상담이 가능합니다</div>
+    </div>
+  </div>
+</section>
+
+<!-- 차량 상세 팝업 -->
+<div id="vehicle-detail-modal" class="vehicle-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="vehicle-modal-heading">
+  <div class="vehicle-modal-backdrop" data-close-modal></div>
+  <div class="vehicle-modal-panel">
+    <button type="button" class="vehicle-modal-close" aria-label="닫기" data-close-modal>&times;</button>
+    <div class="vehicle-modal-hero" id="vehicle-modal-hero">
+      <img class="vehicle-modal-img" id="vehicle-modal-img" src="" alt="" hidden>
+      <div class="vehicle-modal-img-placeholder" id="vehicle-modal-img-ph">이미지 없음</div>
+    </div>
+    <div class="vehicle-modal-body">
+      <p class="vehicle-modal-brand" id="vehicle-modal-brand"></p>
+      <h2 class="vehicle-modal-title" id="vehicle-modal-heading"></h2>
+      <p class="vehicle-modal-range" id="vehicle-modal-range"></p>
+      <div class="vehicle-modal-price-row" id="vehicle-modal-pricebox">
+        <span class="vehicle-modal-plabel">월 렌트료(예시)</span>
+        <p class="vehicle-modal-priceline" id="vehicle-modal-priceline"></p>
+      </div>
+      <p class="vehicle-modal-desc" id="vehicle-modal-desc"></p>
+      <button type="button" class="vehicle-modal-cta btn-primary" onclick="closeVehicleModal();document.getElementById('form-section').scrollIntoView({behavior:'smooth'});">이 차량으로 견적 신청</button>
+    </div>
+  </div>
+</div>
+
+<button type="button" class="btn-floating-cta" onclick="document.getElementById('form-section').scrollIntoView({behavior:'smooth'})" aria-label="무료 견적 받기">
+  무료 견적 받기
+</button>
+<script src="js/script.js"></script>
+</body>
+</html>
