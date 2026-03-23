@@ -37,6 +37,13 @@
   --sw:   40px;   /* 서비스 전환 바 높이 */
   --ease: cubic-bezier(.22, .68, 0, 1.2);
 }
+body {
+  font-family: var(--ff);
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--g6);
+  background: var(--w);
+}
 </style>
 <link rel="stylesheet" href="build.css">
 
