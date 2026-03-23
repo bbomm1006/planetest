@@ -51,7 +51,9 @@ if ($defaultId === 0 && count($versionsJs)) {
 <div class="legal-page-inner">
   <header class="legal-page-head">
     <div class="legal-page-top">
-      <a class="legal-page-back" href="./index.php">← 홈으로</a>
+      <a class="legal-page-back" href="#" onclick="location.href=location.pathname; return false;">
+  ← 홈으로
+</a>
     </div>
     <h1 class="legal-page-title"><?= htmlspecialchars($cat['name']) ?></h1>
     <?php if (count($versionsJs) > 1): ?>

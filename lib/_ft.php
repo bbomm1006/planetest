@@ -52,14 +52,32 @@ $snsLabels = [
       <!-- 우측: 이용약관(상단) + 고객센터 -->
       <div class="ft-right">
         <p class="ft-legal">
+
+          <?php
+          $currentUrl = strtok($_SERVER["REQUEST_URI"], '?'); // 기존 쿼리 제거
+          $queryChar = strpos($_SERVER["REQUEST_URI"], '?') === false ? '?' : '&';
+          ?>
+
           <?php if (!empty($legalFooterCats)): ?>
+
             <?php foreach ($legalFooterCats as $i => $lc): ?>
+
               <?php if ($i > 0): ?> <span class="ft-legal-sep">|</span> <?php endif; ?>
-              <a href="./index.php?legal=<?= htmlspecialchars($lc['slug'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($lc['name'], ENT_QUOTES, 'UTF-8') ?></a>
+
+              <a href="<?= $currentUrl . $queryChar ?>legal=<?= htmlspecialchars($lc['slug'], ENT_QUOTES, 'UTF-8') ?>">
+                <?= htmlspecialchars($lc['name'], ENT_QUOTES, 'UTF-8') ?>
+              </a>
+
             <?php endforeach; ?>
+
           <?php else: ?>
-            <a href="./index.php?legal=terms">이용약관</a> <span class="ft-legal-sep">|</span> <a href="./index.php?legal=privacy">개인정보처리방침</a>
+
+            <a href="<?= $currentUrl . $queryChar ?>legal=terms">이용약관</a>
+            <span class="ft-legal-sep">|</span>
+            <a href="<?= $currentUrl . $queryChar ?>legal=privacy">개인정보처리방침</a>
+
           <?php endif; ?>
+
         </p>
         <div class="ft-cs">
           <h4>고객센터</h4>
