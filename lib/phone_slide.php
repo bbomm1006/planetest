@@ -108,62 +108,7 @@
   <div class="topSlider-viewport">
     <div class="topSlider-track" id="topSliderTrack">
 
-      <!-- 슬라이드 1 -->
-      <div class="topSlider-slide">
-        <div class="topSlider-slide-bg" style="background-image:url('https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=1400&q=80');"></div>
-        <div class="topSlider-slide-overlay"></div>
-        <div class="topSlider-slide-content">
-          <span class="topSlider-slide-label">요금제 안내</span>
-          <h2 class="topSlider-slide-title">통신사 요금 절반,<br>품질은 그대로</h2>
-          <p class="topSlider-slide-desc">월 9,900원부터 시작하는 합리적인 요금제</p>
-        </div>
-      </div>
-
-      <!-- 슬라이드 2: 유튜브 — div#topSliderYtPlayer 에 API가 플레이어를 생성 -->
-      <div class="topSlider-slide topSlider-slide-video" data-type="video">
-        <div class="topSlider-yt-wrap">
-          <div id="topSliderYtPlayer"></div>
-        </div>
-        <div class="topSlider-yt-overlay"></div>
-        <div class="topSlider-slide-content">
-          <span class="topSlider-slide-label">✦ 핑크모바일 특별 혜택</span>
-          <h2 class="topSlider-slide-title">첫 달 무료,<br>유심도 무료</h2>
-          <p class="topSlider-slide-desc">지금 바로 온라인 개통 · 5분이면 완료</p>
-        </div>
-      </div>
-
-      <!-- 슬라이드 3 -->
-      <div class="topSlider-slide">
-        <div class="topSlider-slide-bg" style="background-image:url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1400&q=80');"></div>
-        <div class="topSlider-slide-overlay"></div>
-        <div class="topSlider-slide-content">
-          <span class="topSlider-slide-label">5G 네트워크</span>
-          <h2 class="topSlider-slide-title">전국 5G 완벽 지원,<br>끊김 없는 연결</h2>
-          <p class="topSlider-slide-desc">LTE·5G 전국망으로 어디서나 빠르게</p>
-        </div>
-      </div>
-
-      <!-- 슬라이드 4 -->
-      <div class="topSlider-slide">
-        <div class="topSlider-slide-bg" style="background-image:url('https://images.unsplash.com/photo-1573804633927-bfcbcd909acd?w=1400&q=80');"></div>
-        <div class="topSlider-slide-overlay"></div>
-        <div class="topSlider-slide-content">
-          <span class="topSlider-slide-label">데이터 요금제</span>
-          <h2 class="topSlider-slide-title">데이터 걱정 없이<br>마음껏 즐기세요</h2>
-          <p class="topSlider-slide-desc">무제한 데이터 · 영상·게임·SNS 자유롭게</p>
-        </div>
-      </div>
-
-      <!-- 슬라이드 5 -->
-      <div class="topSlider-slide">
-        <div class="topSlider-slide-bg" style="background-image:url('https://images.unsplash.com/photo-1616348436168-de43ad0db179?w=1400&q=80');"></div>
-        <div class="topSlider-slide-overlay"></div>
-        <div class="topSlider-slide-content">
-          <span class="topSlider-slide-label">고객 서비스</span>
-          <h2 class="topSlider-slide-title">35만 고객이 선택한<br>핑크모바일</h2>
-          <p class="topSlider-slide-desc">고객 만족도 4.9점 · 24시간 온라인 상담</p>
-        </div>
-      </div>
+      <!-- 배너 데이터는 JS에서 API로 동적 렌더링 -->
 
     </div>
 
@@ -184,201 +129,250 @@
 <!-- YouTube IFrame API -->
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
-  /* ── YouTube IFrame API 준비 콜백 ── */
-  var ytPlayer = null;
-  var ytReady  = false;
+(function(){
 
-  function onYouTubeIframeAPIReady(){
-    ytPlayer = new YT.Player('topSliderYtPlayer', {
-      videoId: 'RuoqgEIxrgk',
-      playerVars: {
-        autoplay: 1,
-        mute:     1,
-        controls: 0,
-        modestbranding: 1,
-        playsinline: 1,
-        rel: 0
-      },
-      events: {
-        onReady: function(e){
-          ytReady = true;
-          e.target.mute();
-          e.target.playVideo();
-        },
-        onStateChange: function(e){
-          /* 영상 종료(0) → 슬라이더에 알림 */
-          if(e.data === YT.PlayerState.ENDED){
-            topSlider.onVideoEnded();
-          }
+  /* ── YouTube 플레이어 상태 ── */
+  var ytPlayer   = null;
+  var ytReady    = false;
+  var ytVideoIdx = -1;   /* 비디오 슬라이드가 몇 번째 인덱스인지 */
+
+  /* ── 유튜브 URL → videoId 추출 ── */
+  function extractYtId(url){
+    if(!url) return '';
+    var m = url.match(/(?:youtu\.be\/|v=|embed\/)([A-Za-z0-9_\-]{11})/);
+    return m ? m[1] : url;
+  }
+
+  /* ── 슬라이드 HTML 빌더 ── */
+  function buildSlideHTML(b, idx){
+    var isVideo = (b.bgType === 'video');
+    var overlay = b.overlayEnabled !== false
+      ? '<div class="topSlider-slide-' + (isVideo ? 'yt-overlay' : 'overlay') + '"></div>'
+      : '';
+
+    var content = '';
+    if(b.subtitle || b.title || b.desc){
+      var label = b.subtitle ? '<span class="topSlider-slide-label">' + b.subtitle + '</span>' : '';
+      var title = b.title    ? '<h2 class="topSlider-slide-title">' + b.title + '</h2>'         : '';
+      var desc  = b.desc     ? '<p class="topSlider-slide-desc">'  + b.desc  + '</p>'           : '';
+      content = '<div class="topSlider-slide-content">' + label + title + desc + '</div>';
+    }
+
+    if(isVideo){
+      var vidId = extractYtId(b.bgSrc);
+      return '<div class="topSlider-slide topSlider-slide-video" data-type="video" data-ytid="' + vidId + '">'
+           + '<div class="topSlider-yt-wrap"><div id="topSliderYtPlayer"></div></div>'
+           + overlay + content + '</div>';
+    } else {
+      var bgImg = b.bgSrc || '';
+      var link  = (b.btn1Enabled && b.btn1Link) ? b.btn1Link : '';
+      var tag   = link ? 'a' : 'div';
+      var href  = link ? ' href="' + link + '"' : '';
+      return '<' + tag + href + ' class="topSlider-slide">'
+           + '<div class="topSlider-slide-bg" style="background-image:url(\'' + bgImg + '\');"></div>'
+           + overlay + content
+           + '</' + tag + '>';
+    }
+  }
+
+  /* ── 슬라이더 초기화 (배너 데이터 받은 뒤 호출) ── */
+  function initSlider(banners, intervalMs){
+    var track   = document.getElementById('topSliderTrack');
+    var numEl   = document.getElementById('topSliderCurrentNum');
+    var totalEl = document.getElementById('topSliderTotalNum');
+    var barWrap = document.getElementById('topSliderPgBarWrap');
+    var vp      = document.querySelector('.topSlider-viewport');
+
+    /* 슬라이드 DOM 생성 */
+    track.innerHTML = banners.map(buildSlideHTML).join('');
+
+    var origins = Array.from(track.querySelectorAll('.topSlider-slide'));
+    var total   = origins.length;
+    var GAP     = 16, SIDE = 20;
+    var cur     = 0, jumping = false, timer;
+
+    /* 비디오 슬라이드 인덱스 수집 */
+    var videoIdxSet = {};
+    origins.forEach(function(s, i){
+      if(s.dataset.type === 'video') videoIdxSet[i] = true;
+    });
+    function isVideoSlide(real){ return !!videoIdxSet[real]; }
+
+    totalEl.textContent = pad(total);
+    function pad(n){ return String(n).padStart(2,'0'); }
+    function isMo(){ return window.innerWidth <= 768; }
+    function slideW(){
+      if(isMo()) return vp.offsetWidth;
+      return (vp.offsetWidth - SIDE * 2 - GAP) / 2;
+    }
+    function stepW(){ return slideW() + (isMo() ? 0 : GAP); }
+
+    function applyW(){
+      var w = slideW();
+      track.querySelectorAll('.topSlider-slide').forEach(function(s){ s.style.width = w + 'px'; });
+    }
+
+    function buildClones(){
+      track.querySelectorAll('.topSlider-slide.clone').forEach(function(c){ c.remove(); });
+      var v = isMo() ? 1 : 2;
+      for(var i = 0; i < v; i++){
+        var cl = origins[i % total].cloneNode(true);
+        cl.classList.add('clone');
+        var ytDiv = cl.querySelector('#topSliderYtPlayer');
+        if(ytDiv){ ytDiv.removeAttribute('id'); ytDiv.innerHTML = ''; }
+        track.appendChild(cl);
+      }
+      for(var j = v - 1; j >= 0; j--){
+        var cl2 = origins[(total - v + j) % total].cloneNode(true);
+        cl2.classList.add('clone');
+        var ytDiv2 = cl2.querySelector('#topSliderYtPlayer');
+        if(ytDiv2){ ytDiv2.removeAttribute('id'); ytDiv2.innerHTML = ''; }
+        track.insertBefore(cl2, track.firstChild);
+      }
+    }
+
+    function cloneOff(){ return (isMo() ? 1 : 2) * stepW(); }
+
+    function setPos(anim){
+      if(total <= 1) return;
+      if(!anim) track.classList.add('no-transition');
+      var x = -(cloneOff() + cur * stepW()) + (isMo() ? 0 : SIDE);
+      track.style.transform = 'translateX(' + x + 'px)';
+      if(!anim){ track.offsetHeight; track.classList.remove('no-transition'); }
+      var real = ((cur % total) + total) % total;
+      numEl.textContent = pad(real + 1);
+      updateBars(real);
+      if(isVideoSlide(real)){
+        clearInterval(timer);
+        if(ytReady && ytPlayer && typeof ytPlayer.seekTo === 'function'){
+          ytPlayer.seekTo(0);
+          ytPlayer.playVideo();
         }
       }
-    });
-  }
-
-  /* ── 슬라이더 ── */
-  var topSlider = (function(){
-  var vp      = document.querySelector('.topSlider-viewport'),
-      track   = document.getElementById('topSliderTrack'),
-      origins = Array.from(track.querySelectorAll('.topSlider-slide')),
-      total   = origins.length,
-      GAP     = 16,
-      SIDE    = 20,   /* 데스크탑 좌우 여백 */
-      cur     = 0,
-      jumping = false,
-      timer,
-      numEl   = document.getElementById('topSliderCurrentNum'),
-      totalEl = document.getElementById('topSliderTotalNum'),
-      barWrap = document.getElementById('topSliderPgBarWrap');
-
-  /* 영상 슬라이드 인덱스 */
-  var videoIdxSet = {};
-  origins.forEach(function(s, i){
-    if(s.dataset.type === 'video') videoIdxSet[i] = true;
-  });
-  function isVideoSlide(real){ return !!videoIdxSet[real]; }
-
-  totalEl.textContent = pad(total);
-
-  function pad(n){ return String(n).padStart(2,'0'); }
-  function isMo(){ return window.innerWidth <= 768; }
-
-  /* 데스크탑: 양쪽 SIDE 여백, 슬라이드 2개 표시
-     모바일  : 풀너비, 슬라이드 1개 */
-  function slideW(){
-    if(isMo()) return vp.offsetWidth;
-    return (vp.offsetWidth - SIDE * 2 - GAP) / 2;
-  }
-  function stepW(){ return slideW() + (isMo() ? 0 : GAP); }
-
-  function applyW(){
-    var w = slideW();
-    track.querySelectorAll('.topSlider-slide').forEach(function(s){ s.style.width = w + 'px'; });
-  }
-
-  /* 클론: 앞뒤에 v개씩 붙여 무한루프 */
-  function buildClones(){
-    track.querySelectorAll('.topSlider-slide.clone').forEach(function(c){ c.remove(); });
-    var v = isMo() ? 1 : 2;
-    /* 뒤 클론 */
-    for(var i = 0; i < v; i++){
-      var cl = origins[i % total].cloneNode(true);
-      cl.classList.add('clone');
-      /* 클론 안의 YT div는 빈 div로 교체 (중복 플레이어 방지) */
-      var ytDiv = cl.querySelector('#topSliderYtPlayer');
-      if(ytDiv){ ytDiv.removeAttribute('id'); ytDiv.innerHTML = ''; }
-      track.appendChild(cl);
     }
-    /* 앞 클론 */
-    for(var j = v - 1; j >= 0; j--){
-      var cl2 = origins[(total - v + j) % total].cloneNode(true);
-      cl2.classList.add('clone');
-      var ytDiv2 = cl2.querySelector('#topSliderYtPlayer');
-      if(ytDiv2){ ytDiv2.removeAttribute('id'); ytDiv2.innerHTML = ''; }
-      track.insertBefore(cl2, track.firstChild);
-    }
-  }
 
-  /* 앞 클론 수 × stepW */
-  function cloneOff(){ return (isMo() ? 1 : 2) * stepW(); }
-
-  /* translateX 계산:
-     cur=0, 데스크탑 → 첫 슬라이드 왼쪽이 SIDE px 에서 시작
-     공식: -(cloneOff + cur×stepW) + SIDE */
-  function setPos(anim){
-    if(total <= 1) return;
-    if(!anim) track.classList.add('no-transition');
-    var x = -(cloneOff() + cur * stepW()) + (isMo() ? 0 : SIDE);
-    track.style.transform = 'translateX(' + x + 'px)';
-    if(!anim){ track.offsetHeight; track.classList.remove('no-transition'); }
-    var real = ((cur % total) + total) % total;
-    numEl.textContent = pad(real + 1);
-    updateBars(real);
-    /* 영상 슬라이드 진입 시 일반 타이머 중단 + 재생 재시작 */
-    if(isVideoSlide(real)){
-      clearInterval(timer);
-      /* YT 플레이어가 준비됐으면 처음부터 다시 재생 */
-      if(ytReady && ytPlayer && typeof ytPlayer.seekTo === 'function'){
-        ytPlayer.seekTo(0);
-        ytPlayer.playVideo();
+    function buildBars(){
+      barWrap.innerHTML = '';
+      for(var i = 0; i < total; i++){
+        var b = document.createElement('div');
+        b.className = 'topSlider-pg-bar' + (i === 0 ? ' active' : '');
+        (function(idx){ b.addEventListener('click', function(){ goTo(idx); startAuto(); }); })(i);
+        barWrap.appendChild(b);
       }
     }
-  }
-
-  function buildBars(){
-    barWrap.innerHTML = '';
-    for(var i = 0; i < total; i++){
-      var b = document.createElement('div');
-      b.className = 'topSlider-pg-bar' + (i === 0 ? ' active' : '');
-      (function(idx){
-        b.addEventListener('click', function(){ goTo(idx); startAuto(); });
-      })(i);
-      barWrap.appendChild(b);
+    function updateBars(real){
+      barWrap.querySelectorAll('.topSlider-pg-bar').forEach(function(b, i){
+        b.classList.toggle('active', i === real);
+      });
     }
-  }
-  function updateBars(real){
-    barWrap.querySelectorAll('.topSlider-pg-bar').forEach(function(b, i){
-      b.classList.toggle('active', i === real);
+
+    function goTo(idx){ cur = idx; setPos(true); }
+
+    track.addEventListener('transitionend', function(e){
+      if(e.target !== track || jumping) return;
+      if(cur < 0 || cur >= total){
+        jumping = true;
+        cur = cur < 0 ? total - 1 : 0;
+        setPos(false);
+        setTimeout(function(){ jumping = false; }, 50);
+      }
     });
-  }
 
-  function goTo(idx){ cur = idx; setPos(true); }
-
-  /* transitionend: 경계 넘으면 순간 점프 */
-  track.addEventListener('transitionend', function(e){
-    if(e.target !== track || jumping) return;
-    if(cur < 0 || cur >= total){
-      jumping = true;
-      cur = cur < 0 ? total - 1 : 0;
-      setPos(false);
-      setTimeout(function(){ jumping = false; }, 50);
+    var autoInterval = intervalMs > 0 ? intervalMs : 5000;
+    function startAuto(){
+      clearInterval(timer);
+      var real = ((cur % total) + total) % total;
+      if(!isVideoSlide(real)){
+        timer = setInterval(function(){ goTo(cur + 1); }, autoInterval);
+      }
     }
-  });
 
-  function startAuto(){
-    clearInterval(timer);
-    timer = setInterval(function(){ goTo(cur + 1); }, 5000);
-  }
+    /* 영상 종료 → 다음 슬라이드 */
+    window._topSliderOnVideoEnded = function(){
+      var real = ((cur % total) + total) % total;
+      if(isVideoSlide(real)){ goTo(cur + 1); startAuto(); }
+    };
 
-  /* 영상 종료 콜백 (onYouTubeIframeAPIReady 에서 호출) */
-  function onVideoEnded(){
-    var real = ((cur % total) + total) % total;
-    if(isVideoSlide(real)){
-      goTo(cur + 1);
+    document.getElementById('topSliderPrev').addEventListener('click', function(){ goTo(cur - 1); startAuto(); });
+    document.getElementById('topSliderNext').addEventListener('click', function(){ goTo(cur + 1); startAuto(); });
+
+    var tx = 0;
+    track.addEventListener('touchstart', function(e){ tx = e.touches[0].clientX; }, {passive:true});
+    track.addEventListener('touchend',   function(e){
+      var d = tx - e.changedTouches[0].clientX;
+      if(Math.abs(d) > 50){ goTo(cur + (d > 0 ? 1 : -1)); startAuto(); }
+    }, {passive:true});
+
+    var rt;
+    window.addEventListener('resize', function(){
+      clearTimeout(rt);
+      rt = setTimeout(function(){ buildClones(); applyW(); setPos(false); }, 100);
+    });
+
+    /* YT 플레이어 생성 (비디오 슬라이드가 있을 때만) */
+    var videoSlide = track.querySelector('.topSlider-slide-video[data-ytid]');
+    if(videoSlide){
+      var vidId = videoSlide.dataset.ytid;
+      window._topSliderInitYT = function(){
+        ytPlayer = new YT.Player('topSliderYtPlayer', {
+          videoId: vidId,
+          playerVars: { autoplay:1, mute:1, controls:0, modestbranding:1, playsinline:1, rel:0 },
+          events: {
+            onReady: function(e){ ytReady = true; e.target.mute(); e.target.playVideo(); },
+            onStateChange: function(e){
+              if(e.data === YT.PlayerState.ENDED && window._topSliderOnVideoEnded){
+                window._topSliderOnVideoEnded();
+              }
+            }
+          }
+        });
+      };
+      /* YT API가 이미 로드됐으면 바로 실행 */
+      if(window.YT && window.YT.Player){ window._topSliderInitYT(); }
+    }
+
+    if(total <= 1){
+      if(origins[0]) origins[0].style.width = vp.offsetWidth + 'px';
+      document.querySelector('.topSlider-controls').style.display = 'none';
+    } else {
+      buildBars();
+      buildClones();
+      applyW();
+      setPos(false);
       startAuto();
     }
   }
 
-  /* 하단 prev/next */
-  document.getElementById('topSliderPrev').addEventListener('click', function(){ goTo(cur - 1); startAuto(); });
-  document.getElementById('topSliderNext').addEventListener('click', function(){ goTo(cur + 1); startAuto(); });
+  /* ── YouTube IFrame API 준비 콜백 ── */
+  window.onYouTubeIframeAPIReady = function(){
+    if(typeof window._topSliderInitYT === 'function') window._topSliderInitYT();
+  };
 
-  /* 터치 스와이프 */
-  var tx = 0;
-  track.addEventListener('touchstart', function(e){ tx = e.touches[0].clientX; }, {passive:true});
-  track.addEventListener('touchend',   function(e){
-    var d = tx - e.changedTouches[0].clientX;
-    if(Math.abs(d) > 50){ goTo(cur + (d > 0 ? 1 : -1)); startAuto(); }
-  }, {passive:true});
-
-  /* 리사이즈 */
-  var rt;
-  window.addEventListener('resize', function(){
-    clearTimeout(rt);
-    rt = setTimeout(function(){ buildClones(); applyW(); setPos(false); }, 100);
-  });
-
-  /* 초기화 */
-  if(total <= 1){
-    if(origins[0]) origins[0].style.width = vp.offsetWidth + 'px';
-    document.querySelector('.topSlider-controls').style.display = 'none';
-  } else {
-    buildBars();
-    buildClones();
-    applyW();
-    setPos(false);
-    startAuto();
+  /* ── API 호출 → 슬라이더 초기화 ── */
+  /* index.php 의 Promise.all 에서 이미 fetch 했을 수도 있으므로
+     window._pbData 에 banners 가 있으면 재사용, 없으면 직접 fetch */
+  function run(){
+    var cached = window._pbData;
+    if(cached && Array.isArray(cached.banners) && cached.banners.length){
+      var interval = (cached.bannerConfig && cached.bannerConfig.interval) || 5000;
+      initSlider(cached.banners, interval);
+    } else {
+      fetch('/admin/api_front/banner_public.php')
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          var banners  = data.banners  || [];
+          var interval = (data.bannerConfig && data.bannerConfig.interval) || 5000;
+          if(banners.length) initSlider(banners, interval);
+        })
+        .catch(function(){});
+    }
   }
 
-  return { onVideoEnded: onVideoEnded };
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', run);
+  } else {
+    run();
+  }
+
 })();
 </script>
