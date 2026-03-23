@@ -1,10 +1,8 @@
 <?php
-$pdo        = getDB();
+// $pdo = getDB(); ← 이 줄 완전히 삭제
 $site       = $pdo->query("SELECT header_logo FROM homepage_info WHERE id=1")->fetch(PDO::FETCH_ASSOC);
 $headerLogo = $site['header_logo'] ?? '';
 
-// front_sections 기반 헤더 메뉴 자동 생성
-// nav_label이 설정된 활성 섹션 중 lib 파일이 실제 존재하는 것만 표시
 $_navItems = [];
 try {
   $_st = $pdo->query(
@@ -24,11 +22,8 @@ try {
       $_navItems[] = $_ni;
     }
   }
-} catch (Exception $e) {
-  // 컬럼/테이블 미존재 시 정적 fallback 사용
-}
+} catch (Exception $e) {}
 
-// CTA anchor: 첫 번째 nav_label 중 '예약' 또는 '상담'이 포함된 항목, 없으면 첫 항목
 $_ctaAnchor = '';
 $_ctaLabel  = '무료 상담 신청';
 foreach ($_navItems as $_ni) {
@@ -212,7 +207,10 @@ nav.s{background:rgba(8,14,26,.97);border-bottom-color:rgba(255,255,255,.09);}
     <?php endif; ?>
   </ul>
 
-  <a class="nav-cta" href="<?= $_ctaAnchor ? '#' . htmlspecialchars($_ctaAnchor) : '#inquiry' ?>"><?= htmlspecialchars($_ctaLabel) ?></a>
+  <!-- <a class="nav-cta" href="<//= $_ctaAnchor ? '#' . htmlspecialchars($_ctaAnchor) : '#inquiry' ?>"><//= htmlspecialchars($_ctaLabel) ?></a> -->
+  <a class="nav-cta" href="<?= htmlspecialchars($quickBtns[0]['url'] ?? '#') ?>">
+    <?= htmlspecialchars($quickBtns[0]['label'] ?? '버튼명') ?>
+  </a>
 
   <button class="nav-ham" id="navHam" aria-label="메뉴 열기">
     <span></span>
@@ -245,8 +243,11 @@ nav.s{background:rgba(8,14,26,.97);border-bottom-color:rgba(255,255,255,.09);}
   </ul>
 
   <div class="nav-drawer-cta">
-    <a href="<?= $_ctaAnchor ? '#'.htmlspecialchars($_ctaAnchor) : '#inquiry' ?>" class="drawer-link">
-      <?= htmlspecialchars($_ctaLabel) ?>
+    <!-- <a href="<//= $_ctaAnchor ? '#'.htmlspecialchars($_ctaAnchor) : '#inquiry' ?>" class="drawer-link">
+      <//= htmlspecialchars($_ctaLabel) ?>
+    </a> -->
+    <a class="nav-cta" href="<?= htmlspecialchars($quickBtns[0]['url'] ?? '#') ?>">
+      <?= htmlspecialchars($quickBtns[0]['label'] ?? '버튼명') ?>
     </a>
   </div>
 </div>

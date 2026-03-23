@@ -82,18 +82,8 @@
         <input type="text" class="form-control" id="hi_footer_copy" placeholder="풋터 상단 문구">
       </div>
       <div class="form-group" style="margin-bottom:16px;">
-        <label>주소</label>
+        <label>풋터 카피2</label>
         <textarea class="form-control" id="hi_address" rows="3" placeholder="서울특별시 ..."></textarea>
-      </div>
-      <div class="form-grid" style="gap:16px;margin-bottom:16px;">
-        <div class="form-group">
-          <label>운영시간 1</label>
-          <input type="text" class="form-control" id="hi_hours1" placeholder="평일 09:00 ~ 18:00">
-        </div>
-        <div class="form-group">
-          <label>운영시간 2</label>
-          <input type="text" class="form-control" id="hi_hours2" placeholder="토·일 휴무">
-        </div>
       </div>
       <div class="form-grid" style="gap:16px;margin-bottom:0;">
         <div class="form-group">
@@ -103,6 +93,16 @@
         <div class="form-group">
           <label>카피라이트</label>
           <input type="text" class="form-control" id="hi_copyright" placeholder="© 2025 Company. All rights reserved.">
+        </div>
+      </div>
+      <div class="form-grid" style="gap:16px;margin-bottom:16px;">
+        <div class="form-group">
+          <label>운영시간 1</label>
+          <input type="text" class="form-control" id="hi_hours1" placeholder="평일 09:00 ~ 18:00">
+        </div>
+        <div class="form-group">
+          <label>운영시간 2</label>
+          <input type="text" class="form-control" id="hi_hours2" placeholder="토·일 휴무">
         </div>
       </div>
     </div>
@@ -116,6 +116,25 @@
     <div class="card-body">
       <div id="hiSnsList">
         <div style="text-align:center;padding:24px;color:var(--text3);font-size:.84rem;">SNS 링크를 추가하세요.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>바로가기 버튼 관리</h3>
+      <button class="btn btn-sm btn-outline" onclick="hiAddBtn()">+ 추가</button>
+    </div>
+    <div class="card-body">
+      <p style="font-size:.8rem;color:var(--text3);margin:0 0 14px;">버튼명과 링크를 입력하세요. 드래그로 순서를 변경할 수 있습니다.</p>
+      <div style="background:#f8f9fc;border:1px solid #e5e7eb;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:.78rem;color:#374151;line-height:2;">
+        <strong style="display:block;margin-bottom:4px;">📌 프론트 적용 예시 (PHP)</strong>
+        링크 : <code style="background:#e8eeff;padding:2px 6px;border-radius:4px;">&lt;?= htmlspecialchars($quickBtns[0]['url'] ?? '#') ?&gt;</code><br>
+        버튼명 : <code style="background:#e8eeff;padding:2px 6px;border-radius:4px;">&lt;?= htmlspecialchars($quickBtns[0]['label'] ?? '버튼명') ?&gt;</code><br>
+        <span style="color:#6b7280;">※ 버튼이 여러 개인 경우 [0] → [1], [2] 순서로 사용하세요.</span>
+      </div>
+      <div id="hiBtnList">
+        <div style="text-align:center;padding:24px;color:var(--text3);font-size:.84rem;">바로가기 버튼을 추가하세요.</div>
       </div>
     </div>
   </div>

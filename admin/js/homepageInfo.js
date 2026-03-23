@@ -11,6 +11,7 @@ const HI_SNS_TYPES = [
 ];
 
 let hiSnsData = [];
+let hiBtnData = [];
 
 // ── 페이지 진입 시 데이터 로드 ──────────────────────────
 function hiLoad() {
@@ -39,6 +40,10 @@ function hiLoad() {
       // SNS
       hiSnsData = Array.isArray(d.sns) ? d.sns : [];
       hiRenderSns();
+
+      // 바로가기 버튼
+      hiBtnData = Array.isArray(d.quick_btns) ? d.quick_btns : [];
+      hiRenderBtn();
     });
 }
 
@@ -157,6 +162,88 @@ function hiSyncSnsSort() {
   });
 }
 
+// ── 바로가기 버튼 렌더링 ────────────────────────────────
+function hiRenderBtn() {
+  const wrap = document.getElementById('hiBtnList');
+  if (!wrap) return;
+
+  if (!hiBtnData.length) {
+    wrap.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3);font-size:.84rem;">바로가기 버튼을 추가하세요.</div>';
+    return;
+  }
+
+  hiBtnData.sort((a, b) => (a.sort || 0) - (b.sort || 0));
+
+  wrap.innerHTML = '<div class="repeat-group">' + hiBtnData.map((item, idx) => `
+    <div class="repeat-row" draggable="true" data-idx="${idx}">
+      <span class="drag-handle" title="드래그하여 순서 변경">⠿</span>
+      <input type="text" class="form-control" placeholder="버튼명"
+        style="width:160px;flex-shrink:0;"
+        value="${(item.label || '').replace(/"/g, '&quot;')}"
+        oninput="hiBtnChange(${idx},'label',this.value)">
+      <input type="text" class="form-control" placeholder="https://"
+        value="${(item.url || '').replace(/"/g, '&quot;')}"
+        oninput="hiBtnChange(${idx},'url',this.value)">
+      <button type="button" class="btn btn-sm btn-danger" onclick="hiRemoveBtn(${idx})">삭제</button>
+    </div>
+  `).join('') + '</div>';
+
+  hiInitBtnDrag();
+}
+
+function hiBtnChange(idx, key, val) {
+  if (hiBtnData[idx]) hiBtnData[idx][key] = val;
+}
+
+function hiAddBtn() {
+  const maxSort = hiBtnData.length ? Math.max(...hiBtnData.map(b => b.sort || 0)) : 0;
+  hiBtnData.push({ label: '', url: '', sort: maxSort + 1 });
+  hiRenderBtn();
+  const rows = document.querySelectorAll('#hiBtnList .repeat-row');
+  if (rows.length) {
+    const lastInput = rows[rows.length - 1].querySelector('input[type="text"]');
+    if (lastInput) lastInput.focus();
+  }
+}
+
+function hiRemoveBtn(idx) {
+  hiBtnData.splice(idx, 1);
+  hiBtnData.forEach((b, i) => { b.sort = i + 1; });
+  hiRenderBtn();
+}
+
+function hiInitBtnDrag() {
+  const wrap = document.querySelector('#hiBtnList .repeat-group');
+  if (!wrap) return;
+  let dragging = null;
+
+  wrap.querySelectorAll('.repeat-row').forEach(row => {
+    row.addEventListener('dragstart', e => {
+      dragging = row;
+      row.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    row.addEventListener('dragend', () => {
+      dragging = null;
+      row.classList.remove('dragging');
+      hiSyncBtnSort();
+    });
+    row.addEventListener('dragover', e => {
+      e.preventDefault();
+      if (!dragging || dragging === row) return;
+      const mid = row.getBoundingClientRect().top + row.offsetHeight / 2;
+      wrap.insertBefore(dragging, e.clientY < mid ? row : row.nextSibling);
+    });
+  });
+}
+
+function hiSyncBtnSort() {
+  document.querySelectorAll('#hiBtnList .repeat-row').forEach((row, i) => {
+    const idx = parseInt(row.dataset.idx);
+    if (!isNaN(idx) && hiBtnData[idx]) hiBtnData[idx].sort = i + 1;
+  });
+}
+
 // ── 저장 ───────────────────────────────────────────────
 function hiSave() {
   const fd = new FormData();
@@ -171,6 +258,7 @@ function hiSave() {
   fd.append('hours2',      document.getElementById('hi_hours2')?.value      || '');
   fd.append('address',     document.getElementById('hi_address')?.value     || '');
   fd.append('sns',         JSON.stringify(hiSnsData));
+  fd.append('quick_btns', JSON.stringify(hiBtnData));
 
   // 이미지 파일 첨부
   const ogFile      = document.getElementById('hi_og_file');

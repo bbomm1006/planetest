@@ -58,5 +58,13 @@ try {
 } catch (Exception $e) { /* 컬럼 미생성 시 CSS 기본값으로 동작 */ }
 ?>
 
+<?php
+try {
+    $quickBtnsRaw = $pdo->query("SELECT CAST(quick_btns AS CHAR) FROM homepage_info WHERE id=1")->fetchColumn();
+    $quickBtns = $quickBtnsRaw ? json_decode($quickBtnsRaw, true) : [];
+} catch (Exception $e) {
+    $quickBtns = [];
+}
+?>
 <?php if (!empty($script['head_code'])) echo $script['head_code']; ?>
 </head>

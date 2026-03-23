@@ -25,6 +25,7 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS homepage_info (
   hours2       VARCHAR(255)  DEFAULT NULL,
   address      TEXT          DEFAULT NULL,
   sns          JSON          DEFAULT NULL,
+  quick_btns   JSON          DEFAULT NULL,
   updated_at   DATETIME      DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
@@ -33,15 +34,30 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS homepage_info (
 $cnt = $pdo->query('SELECT COUNT(*) FROM homepage_info')->fetchColumn();
 if ($cnt == 0) $pdo->exec('INSERT INTO homepage_info (id) VALUES (1)');
 
+// quick_btns 컬럼 자동 추가 (기존 DB 호환)
+try {
+    $dbName = $pdo->query("SELECT DATABASE()")->fetchColumn();
+    $hasBtns = $pdo->query(
+        "SELECT COUNT(*) FROM information_schema.columns
+         WHERE table_schema = " . $pdo->quote($dbName) . "
+         AND table_name = 'homepage_info' AND column_name = 'quick_btns'"
+    )->fetchColumn();
+    if (!$hasBtns) {
+        $pdo->exec("ALTER TABLE homepage_info ADD COLUMN quick_btns JSON DEFAULT NULL");
+    }
+} catch (Exception $e) { /* 무시 */ }
+
 // ── GET ──────────────────────────────────────────────
 if ($action === 'get') {
     $row = $pdo->query("SELECT id, title, description, og_image, favicon,
         header_logo, footer_logo, footer_copy, copyright,
         phone, hours1, hours2, address,
-        CAST(sns AS CHAR) as sns
+        CAST(sns AS CHAR) as sns,
+        CAST(quick_btns AS CHAR) as quick_btns
         FROM homepage_info WHERE id=1")->fetch(PDO::FETCH_ASSOC);
     if ($row) {
-        $row['sns'] = $row['sns'] ? json_decode($row['sns'], true) : [];
+        $row['sns']        = $row['sns']        ? json_decode($row['sns'],        true) : [];
+        $row['quick_btns'] = $row['quick_btns'] ? json_decode($row['quick_btns'], true) : [];
     }
     echo json_encode(['ok' => true, 'data' => $row]);
     exit;
@@ -69,15 +85,17 @@ if ($action === 'save') {
     $header_logo = uploadImg('header_logo', $old['header_logo'] ?? '');
     $footer_logo = uploadImg('footer_logo', $old['footer_logo'] ?? '');
 
-    $snsRaw = $_POST['sns'] ?? '[]';
-    $sns    = json_decode($snsRaw, true) ?: [];
+    $snsRaw  = $_POST['sns']        ?? '[]';
+    $btnsRaw = $_POST['quick_btns'] ?? '[]';
+    $sns     = json_decode($snsRaw,  true) ?: [];
+    $btns    = json_decode($btnsRaw, true) ?: [];
 
     $stmt = $pdo->prepare("UPDATE homepage_info SET
         title=?, description=?, og_image=?, favicon=?,
         header_logo=?, footer_logo=?,
         footer_copy=?, copyright=?,
         phone=?, hours1=?, hours2=?, address=?,
-        sns=?
+        sns=?, quick_btns=?
         WHERE id=1");
 
     $stmt->execute([
@@ -93,7 +111,8 @@ if ($action === 'save') {
         $_POST['hours1']      ?? '',
         $_POST['hours2']      ?? '',
         $_POST['address']     ?? '',
-        json_encode($sns, JSON_UNESCAPED_UNICODE),
+        json_encode($sns,  JSON_UNESCAPED_UNICODE),
+        json_encode($btns, JSON_UNESCAPED_UNICODE),
     ]);
 
     logAdminAction($pdo, 'update', 'homepage_info', '1');
