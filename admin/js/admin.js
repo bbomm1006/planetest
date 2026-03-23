@@ -287,6 +287,9 @@ async function doLogin() {
   if (res.ok) {
     err.classList.remove('show');
     document.getElementById('loginPw').value = '';
+    // 로그인 시 이전 페이지 상태 초기화
+    localStorage.removeItem('adminPage');
+    history.replaceState(null, '', location.pathname);  // hash 제거
     enterAdmin(res.name, res.username, res.email || '');
   } else {
     err.textContent = res.msg || '아이디 또는 비밀번호가 올바르지 않습니다.';
@@ -334,9 +337,8 @@ function enterAdmin(name, username, email = '') {
       _adminHashRestore();
     } else {
       // hash 없으면 localStorage 기반으로 표시
-      const saved = localStorage.getItem('adminPage') || 'adminMgmt';
-      const savedEl = document.getElementById('page-' + saved);
-      showPage(savedEl ? saved : 'adminMgmt', true);
+      const firstMenu = MENU_LIST_BASE.find(m => menuState[m.key] !== false);
+      showPage(firstMenu ? firstMenu.key : 'adminMgmt', true);
     }
   });
 }
