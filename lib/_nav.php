@@ -5,11 +5,22 @@ $headerLogo = $site['header_logo'] ?? '';
 
 $_navItems = [];
 try {
-  $_st = $pdo->query(
-    "SELECT nav_label, anchor_id, file_name FROM front_sections
-      WHERE is_active = 1 AND nav_label IS NOT NULL AND nav_label != ''
-      ORDER BY sort_order, id"
-  );
+  $_navGroupId = isset($pageSectionGroupId) && $pageSectionGroupId > 0 ? (int)$pageSectionGroupId : 0;
+  if ($_navGroupId > 0) {
+    $_st = $pdo->prepare(
+      "SELECT nav_label, anchor_id, file_name FROM front_sections
+        WHERE is_active = 1 AND nav_label IS NOT NULL AND nav_label != ''
+        AND group_id = ?
+        ORDER BY sort_order, id"
+    );
+    $_st->execute([$_navGroupId]);
+  } else {
+    $_st = $pdo->query(
+      "SELECT nav_label, anchor_id, file_name FROM front_sections
+        WHERE is_active = 1 AND nav_label IS NOT NULL AND nav_label != ''
+        ORDER BY sort_order, id"
+    );
+  }
   $_coreNavFiles = ['_site', '_nav', '_ft'];
   foreach ($_st->fetchAll(PDO::FETCH_ASSOC) as $_ni) {
     if (in_array($_ni['file_name'], $_coreNavFiles, true)) {
@@ -67,7 +78,7 @@ nav.s{background:rgba(8,14,26,.97);border-bottom-color:rgba(255,255,255,.09);}
   color:#fff;font-size:.81rem;font-weight:700;border:none;cursor:pointer;
   text-decoration:none;letter-spacing:.3px;white-space:nowrap;
   transition:transform .22s,box-shadow .22s;}
-.nav-cta:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(30,127,232,.45);}
+
 
 /* 햄버거 (모바일 전용) */
 .nav-ham{
