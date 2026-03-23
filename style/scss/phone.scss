@@ -21,7 +21,7 @@
   --trans: all 0.3s cubic-bezier(0.4,0,0.2,1);
 }
 
-body.mobile{
+body.phone{
 
   .ci-status-default  { background: #fff0f4; color: #be185d; }
     .ci-status-progress { background: #ffe4ed; color: #9d174d; }
@@ -308,45 +308,199 @@ body.mobile{
     }
 
     /* ─── RESPONSIVE: 768px (Mobile) ─── */
-    @media (max-width:768px) {
-    section { padding:44px 16px; }
-    .hamburger { display:flex; }
-    .quick-grid { max-width:100%; }
-    .quick-label { font-size:12px; }
-    .quick-icon-wrap { width:48px; height:48px; }
-    .quick-3d-icon { width:48px; height:48px; }
-    .section-header-row { flex-direction:column; align-items:flex-start; gap:8px; }
-    .plan-tabs { display:none; }
-    .plan-select { display:block; }
-    .scroll-track.cols-3 > *, .scroll-track.cols-2 > *, .scroll-track.cols-4 > * { width:78vw; max-width:300px; }
-    .scroll-wrap { padding:0 18px; }
-    .scroll-arrow { display:flex; width:28px; height:28px; font-size:11px; }
-    .scroll-arrow.sa-left { left:-4px; }
-    .scroll-arrow.sa-right { right:-4px; }
-    .show-more-btn { display:none; }
-    .plan-row { flex-direction:column; align-items:stretch; gap:12px; padding:18px 16px; }
-    .plan-row-badge, .plan-row-badge-dark { position:absolute; top:12px; left:12px; width:36px; height:36px; font-size:9px; }
-    .plan-row-left { flex:none; padding-left:44px; }
-    .plan-row-specs { flex:none; display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; padding:0; }
-    .plan-row-price { flex:none; text-align:center; align-items:center; }
-    .plan-row-btn { width:100%; text-align:center; margin:0; padding:12px; }
-    .bundle-grid { grid-template-columns:1fr; }
-    .reviews-summary { gap:12px; flex-wrap:wrap; }
-    .inquiry-contacts { flex-direction:column; }
-    .recommend-wrap { padding:32px 20px; }
-    .recommend-steps { flex-direction:column; }
-    .recommend-step { max-width:100%; }
-    .data-slider-wrap { padding:22px 20px; }
-    .data-slider-result { flex-direction:column; align-items:flex-start; gap:12px; }
-    .notice-faq-grid { grid-template-columns:1fr; }
-    .footer-top { grid-template-columns:1fr; gap:20px; }
-    .footer-bottom { flex-direction:column; align-items:flex-start; }
-    }
+@media (max-width:768px) {
+  /* ─ 공통 ─ */
+  section { padding:36px 16px; }
+  .section-title { font-size:clamp(22px,6vw,32px); letter-spacing:-0.8px; }
 
-    @media (max-width:480px) {
-    .quick-grid { gap:4px; }
-    .quick-item { padding:10px 4px; }
-    .plan-row-specs { gap:8px; }
-    }
+  /* ─ 퀵메뉴 ─ */
+  #quick-menu { padding:14px 12px 18px; }
+  .quick-grid { max-width:100%; gap:4px; }
+  .quick-item { padding:10px 4px; border-radius:12px; }
+  .quick-icon-wrap { width:46px; height:46px; border-radius:12px; }
+  .quick-3d-icon { width:46px; height:46px; }
+  .quick-label { font-size:11px; }
+
+  /* ─ 섹션 헤더 ─ */
+  .section-header-row { flex-direction:column; align-items:flex-start; gap:8px; }
+
+  /* ─ 플랜 탭/select ─ */
+  .plan-tabs { display:none; }
+  .plan-select { display:block; }
+
+  /* ─ 공통 스크롤 트랙 ─ */
+  .scroll-wrap { padding:0 8px; margin:0 -8px; }
+  .scroll-track { padding:4px 8px 10px; gap:12px; }
+  .scroll-track.cols-3 > *,
+  .scroll-track.cols-2 > *,
+  .scroll-track.cols-4 > * {
+    width: min(80vw, 280px);
+    min-width: min(80vw, 280px);
+    flex-shrink: 0;
+  }
+  .scroll-arrow { display:flex; width:28px; height:28px; font-size:10px; }
+  .scroll-arrow.sa-left { left:-2px; }
+  .scroll-arrow.sa-right { right:-2px; }
+
+  /* ─ 더보기 버튼 ─ */
+  .show-more-btn { display:block; }
+
+  /* ─ USIM 플랜 카드 ─ */
+  .plan-card { padding:18px; }
+  .plan-price { font-size:24px; }
+
+  /* ─ DATA BEST 플랜 로우 ─ */
+  .plans-list { gap:10px; }
+  .plan-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 16px 14px 14px;
+    position: relative;
+    overflow: visible;
+  }
+  .plan-row-badge,
+  .plan-row-badge-dark {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    width: 34px;
+    height: 34px;
+    font-size: 9px;
+  }
+  .plan-row-left {
+    flex: none;
+    padding-left: 46px;
+    min-width: 0;
+  }
+  .plan-row-op { font-size:11px; margin-bottom:2px; }
+  .plan-row-name { font-size:15px; }
+  .plan-row-specs {
+    flex: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    padding: 0;
+  }
+  .plan-row-spec { gap:2px; }
+  .plan-row-spec-label { font-size:9px; }
+  .plan-row-spec-val { font-size:12px; }
+  .plan-row-price {
+    flex: none;
+    text-align: left;
+    align-items: flex-start;
+    padding-left: 0;
+  }
+  .plan-row-num { font-size:22px; }
+  .plan-row-btn {
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  /* ─ BUNDLE ─ */
+  .bundle-grid { grid-template-columns:1fr; gap:12px; }
+  .bundle-card { padding:22px; }
+
+  /* ─ PHONES 카드 ─ */
+  .phone-card-img { height:180px; }
+
+  /* ─ EVENT 카드 ─ */
+  .event-thumb { height:200px; }
+  .event-thumb-title { font-size:18px; }
+
+  /* ─ REVIEWS ─ */
+  .review-card { padding:18px; }
+
+  /* ─ RECOMMEND ─ */
+  .recommend-wrap {
+    padding: 36px 20px;
+    border-radius: 0;
+    overflow: hidden;
+    text-align: center;
+    gap: 28px;
+  }
+  .recommend-content h2 { font-size:clamp(20px,5.5vw,28px); letter-spacing:-0.5px; }
+  .recommend-content p { font-size:14px; }
+  .recommend-steps {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+  .recommend-step {
+    max-width: 100%;
+    padding: 14px 18px;
+    font-size:13px;
+    justify-content: flex-start;
+  }
+  .data-slider-wrap { width:100%; padding:22px 20px; box-sizing:border-box; }
+  .data-slider-value { font-size:38px; }
+  .data-slider-result {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .data-slider-btn { width:100%; text-align:center; padding:13px; }
+
+  /* ─ NOTICE + FAQ ─ */
+  #notice-faq { padding:36px 0; }
+  .notice-faq-grid { grid-template-columns:1fr; gap:16px; }
+  .notice-section, .faq-section { padding:20px 16px; border-radius:16px; }
+  .notice-item-text { font-size:12px; }
+
+  /* ─ FOOTER ─ */
+  footer { padding:36px 20px 24px; }
+  .footer-top { grid-template-columns:1fr; gap:20px; }
+  .footer-bottom { flex-direction:column; align-items:flex-start; gap:8px; }
+  .footer-legal { flex-wrap:wrap; gap:10px; }
+}
+
+/* ─── RESPONSIVE: 480px ─── */
+@media (max-width:480px) {
+  section { padding:28px 0; }
+
+  .scroll-wrap{padding:0;margin:0;padding-left:5vw}
+  .show-more-btn,
+  .plan-select{width:90vw;margin-left:auto;margin-right:auto}
+  .section-inner,
+  .plans-list,
+  .section-header-row{padding-left:5vw;padding-right:5vw}
+
+  #reviews .section-inner,
+  #phones .section-inner,
+  #event .section-inner{padding-left:0;padding-right:0}
+
+  .scroll-arrow{display: none;}
+
+  /* 퀵메뉴 더 작게 */
+  #quick-menu { padding:12px 8px 14px; }
+  .quick-grid { gap:2px; }
+  .quick-item { padding:8px 2px; }
+  .quick-icon-wrap, .quick-3d-icon { width:40px; height:40px; border-radius:10px; }
+  .quick-label { font-size:10px; }
+
+  /* 스크롤 카드 */
+  .scroll-track.cols-3 > *,
+  .scroll-track.cols-2 > *,
+  .scroll-track.cols-4 > * {
+    width: min(85vw, 260px);
+    min-width: min(85vw, 260px);
+  }
+
+  /* 플랜 로우 스펙 2열로 */
+  .plan-row-specs { grid-template-columns: 1fr 1fr; gap:8px; }
+
+  /* 번들 */
+  .bundle-card { padding:18px; }
+
+  /* 이벤트 */
+  .event-thumb { height:180px; }
+  .event-thumb-title { font-size:16px; }
+
+  /* 추천 */
+  .data-slider-value { font-size:32px; }
+  .recommend-step { padding:12px 14px; font-size:12px; }
+}
 
 }
