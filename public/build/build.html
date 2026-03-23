@@ -63,14 +63,11 @@ body {
 
 <!-- ============================================================
    히어로 섹션 (슬라이드 배너)
-   - 자동 슬라이드 (5초 간격)
-   - 터치 스와이프 지원
-   - 퀵 바: 매물·단지·FAQ·관심고객 바로가기
    ============================================================ -->
 <section id="sec-build">
   <div class="build-slides" id="buildSlides">
 
-    <!-- 슬라이드 1: 문화 공간 메시지 -->
+    <!-- 슬라이드 1 -->
     <div class="build-sl on">
       <div class="build-bg" style="background-image:url('https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg')"></div>
       <div class="build-ov" style="background:rgba(20,11,4,.52)"></div>
@@ -91,7 +88,7 @@ body {
       </div>
     </div>
 
-    <!-- 슬라이드 2: 프리미엄 라이프스타일 메시지 -->
+    <!-- 슬라이드 2 -->
     <div class="build-sl">
       <div class="build-bg" style="background-image:url('https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg')"></div>
       <div class="build-ov" style="background:rgba(20,11,4,.48)"></div>
@@ -112,7 +109,7 @@ body {
       </div>
     </div>
 
-    <!-- 슬라이드 3: 커뮤니티 메시지 -->
+    <!-- 슬라이드 3 -->
     <div class="build-sl">
       <div class="build-bg" style="background-image:url('https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg')"></div>
       <div class="build-ov" style="background:rgba(20,11,4,.5)"></div>
@@ -135,11 +132,9 @@ body {
 
   </div>
 
-  <!-- 슬라이드 이전/다음 버튼 -->
   <button class="build-arrow build-arrow-prev" onclick="buildNav(-1)">&#8249;</button>
   <button class="build-arrow build-arrow-next" onclick="buildNav(1)">&#8250;</button>
 
-  <!-- 슬라이드 인디케이터 (점 버튼) -->
   <div class="build-ctrl">
     <div class="build-dots" id="buildDots">
       <button class="build-dot on"  onclick="buildGo(0)"></button>
@@ -148,7 +143,6 @@ body {
     </div>
   </div>
 
-  <!-- 분양 기본 정보 패널 (문의전화·홍보관·상담시간) -->
   <div class="build-info-panel">
     <div class="build-info-item">
       <div class="build-info-lbl">분양 문의</div>
@@ -164,14 +158,12 @@ body {
     </div>
   </div>
 
-  <!-- 스크롤 유도 힌트 -->
   <div class="build-scroll-hint">
     <span>Scroll</span>
     <div class="build-scroll-line"></div>
   </div>
 </section>
 
-<!-- 퀵 바: 주요 섹션 바로가기 -->
 <div class="quick-bar">
   <div class="container">
     <div class="quick-grid">
@@ -183,7 +175,6 @@ body {
   </div>
 </div>
 
-<!-- 히어로 슬라이드 전용 스타일 -->
 <style>
 .build-arrow { position:absolute; top:50%; transform:translateY(-50%); z-index:10; background:rgba(0,0,0,.3); color:#fff; border:none; font-size:2.4rem; line-height:1; padding:12px 18px; cursor:pointer; transition:background .2s; }
 .build-arrow:hover { background:rgba(0,0,0,.6); }
@@ -194,43 +185,32 @@ body {
 }
 </style>
 
-<!-- 히어로 슬라이드 스크립트 -->
 <script>
 (function() {
   var sl  = document.querySelectorAll('.build-sl');
   var dt  = document.querySelectorAll('.build-dot');
   var cur = 0, timer = null;
-
-  /* 지정한 인덱스 슬라이드로 전환 */
   function go(n) {
     sl[cur].classList.remove('on'); if(dt[cur]) dt[cur].classList.remove('on');
     cur = (n + sl.length) % sl.length;
     sl[cur].classList.add('on'); if(dt[cur]) dt[cur].classList.add('on');
   }
-
-  /* 자동 재생 타이머 (재설정 포함) */
   function startTimer() {
     if(timer) clearInterval(timer);
     timer = setInterval(function(){ go(cur+1); }, 5000);
   }
-
-  /* 전역 함수: 점 버튼 클릭 / 화살표 버튼 클릭 */
   window.buildGo  = function(n) { go(n); startTimer(); };
   window.buildNav = function(d) { go(cur+d); startTimer(); };
-
-  /* 모바일 터치 스와이프 처리 */
   var sx = 0, slides = document.getElementById('buildSlides');
   slides.addEventListener('touchstart', function(e){ sx = e.touches[0].clientX; }, {passive:true});
   slides.addEventListener('touchend',   function(e){ var dx = sx - e.changedTouches[0].clientX; if(Math.abs(dx)>50) { go(cur+(dx>0?1:-1)); startTimer(); } });
-
   startTimer();
 })();
 </script>
 
 
 <!-- ============================================================
-   프리미엄 섹션 (상권분석 / 입지 포인트)
-   - 4가지 입지 강점 카드 나열
+   프리미엄 섹션
    ============================================================ -->
 <section class="sec sec-dark" id="sec-premium">
   <div class="container">
@@ -241,8 +221,6 @@ body {
       </div>
       <p class="sec-sub sec-sub-light" style="margin-top:14px;">탁월한 입지 조건과 풍부한 인프라를 확인하세요.</p>
     </div>
-
-    <!-- 입지 포인트 카드 4개 -->
     <div class="prem-points">
       <div class="prem-point">
         <span class="prem-point-num">Point 01.</span>
@@ -275,9 +253,6 @@ body {
 
 <!-- ============================================================
    매물정보 섹션
-   - 타입별 카드 그리드
-   - 카드 클릭 시 이미지 슬라이드 모달 오픈 (glOpen)
-   - 갤러리 모달: 다중 이미지 슬라이더 + 면적/세대수 스펙 표시
    ============================================================ -->
 <section class="sec sec-cream" id="sec-property">
   <div class="container">
@@ -285,20 +260,16 @@ body {
       <div class="sec-eyebrow"><span class="sec-eyebrow-line"></span><span class="sec-eyebrow-txt">Unit Plan</span></div>
       <div class="sec-head-row">
         <h2 class="sec-ttl sec-ttl-dark">매물정보</h2>
-        <span class="btn-more" id="propMoreBtn" onclick="propMore()">
-          더보기 <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </span>
+        <div class="cx-cats" id="intCats">
+          <button class="cx-cat-btn on" onclick="intFilter(this,'')">전체</button>
+          <button class="cx-cat-btn" onclick="intFilter(this,'거실')">거실</button>
+        </div>
       </div>
       <p class="sec-sub" style="margin-top:12px;">단순한 주거공간을 넘어 새로운 라이프스타일을 창조합니다.</p>
     </div>
-
-    <!-- 타입별 매물 카드 그리드 -->
     <div class="unit-grid" id="propGrid">
-      <!-- 84A 타입 -->
       <div class="unit-card" onclick="glOpen('1','84A 타입',['https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg'],'전용 84㎡ / 계약 112㎡ / 150세대',true,'84.00','28.00','112.00','150')">
-        <div class="unit-img">
-          <img src="https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg" alt="84A 타입" loading="lazy">
-        </div>
+        <div class="unit-img"><img src="https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg" alt="84A 타입" loading="lazy"></div>
         <div class="unit-card-body">
           <div class="unit-card-ttl">84A 타입</div>
           <div class="unit-specs">
@@ -308,11 +279,8 @@ body {
           </div>
         </div>
       </div>
-      <!-- 84B 타입 -->
       <div class="unit-card" onclick="glOpen('2','84B 타입',['https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg'],'전용 84㎡ / 계약 110㎡ / 120세대',true,'84.00','26.00','110.00','120')">
-        <div class="unit-img">
-          <img src="https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg" alt="84B 타입" loading="lazy">
-        </div>
+        <div class="unit-img"><img src="https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg" alt="84B 타입" loading="lazy"></div>
         <div class="unit-card-body">
           <div class="unit-card-ttl">84B 타입</div>
           <div class="unit-specs">
@@ -322,11 +290,8 @@ body {
           </div>
         </div>
       </div>
-      <!-- 101A 타입 -->
       <div class="unit-card" onclick="glOpen('3','101A 타입',['https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg'],'전용 101㎡ / 계약 136㎡ / 80세대',true,'101.00','35.00','136.00','80')">
-        <div class="unit-img">
-          <img src="https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg" alt="101A 타입" loading="lazy">
-        </div>
+        <div class="unit-img"><img src="https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg" alt="101A 타입" loading="lazy"></div>
         <div class="unit-card-body">
           <div class="unit-card-ttl">101A 타입</div>
           <div class="unit-specs">
@@ -336,11 +301,8 @@ body {
           </div>
         </div>
       </div>
-      <!-- 120 타입 -->
       <div class="unit-card" onclick="glOpen('4','120 타입',['https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg'],'전용 120㎡ / 계약 158㎡ / 50세대',true,'120.00','38.00','158.00','50')">
-        <div class="unit-img">
-          <img src="https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg" alt="120 타입" loading="lazy">
-        </div>
+        <div class="unit-img"><img src="https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg" alt="120 타입" loading="lazy"></div>
         <div class="unit-card-body">
           <div class="unit-card-ttl">120 타입</div>
           <div class="unit-specs">
@@ -354,7 +316,7 @@ body {
   </div>
 </section>
 
-<!-- 갤러리 슬라이드 모달 (매물·인테리어 공통 사용) -->
+<!-- 갤러리 슬라이드 모달 -->
 <div class="gl-modal-bg" id="glModal" onclick="if(event.target===this)glClose()">
   <div class="gl-modal">
     <div class="gl-modal-hd">
@@ -362,22 +324,18 @@ body {
       <button class="gl-modal-x" onclick="glClose()">&#10005;</button>
     </div>
     <div class="gl-modal-body">
-      <!-- 면적·세대수 스펙 영역 (매물 타입에서만 표시) -->
       <div class="gl-modal-specs" id="glModalSpecs" style="display:none;"></div>
-      <!-- 이미지 슬라이더 -->
       <div class="gl-slider" id="glSlider">
         <div class="gl-slider-track" id="glSliderTrack"></div>
         <button class="gl-slider-prev" id="glSliderPrev" onclick="glSlide(-1)">&#8249;</button>
         <button class="gl-slider-next" id="glSliderNext" onclick="glSlide(1)">&#8250;</button>
         <div class="gl-slider-dots" id="glSliderDots"></div>
       </div>
-      <!-- 텍스트 설명 영역 -->
       <div class="gl-modal-cnt" id="glModalCnt"></div>
     </div>
   </div>
 </div>
 
-<!-- 갤러리 모달 전용 스타일 -->
 <style>
 .gl-slider { position:relative; overflow:hidden; background:#000; }
 .gl-slider-track { display:flex; transition:transform .35s ease; }
@@ -393,25 +351,11 @@ body {
 .gl-slider-dot.on { background:#fff; }
 </style>
 
-<!-- 갤러리 모달 스크립트 -->
 <script>
 var _glImgs = [], _glIdx = 0;
-
-/* XSS 방지용 HTML 이스케이프 함수 */
 function esc(s) { if(s==null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
-
-/* 갤러리 모달 열기
- * @param id      - 항목 고유 ID
- * @param title   - 모달 제목
- * @param imgs    - 이미지 URL 배열 또는 쉼표 구분 문자열
- * @param content - 하단 텍스트 설명
- * @param hasSpecs - 면적 스펙 표시 여부
- * @param ae, ac, actr, hh - 전용·공용·계약면적, 세대수
- */
 function glOpen(id, title, imgs, content, hasSpecs, ae, ac, actr, hh) {
   document.getElementById('glModalTtl').textContent = title || '';
-
-  /* 스펙 영역: 매물 타입인 경우에만 렌더링 */
   var specs = document.getElementById('glModalSpecs');
   if (hasSpecs && (ae || ac || actr || hh)) {
     specs.style.display = 'grid';
@@ -421,32 +365,23 @@ function glOpen(id, title, imgs, content, hasSpecs, ae, ac, actr, hh) {
       (actr ? '<div class="gl-modal-spec"><div class="gl-modal-spec-lbl">계약면적</div><div class="gl-modal-spec-val">'+esc(actr)+' ㎡</div></div>' : '') +
       (hh   ? '<div class="gl-modal-spec"><div class="gl-modal-spec-lbl">세대수</div><div class="gl-modal-spec-val">'+esc(hh)+' 세대</div></div>' : '');
   } else { specs.style.display = 'none'; }
-
-  /* 이미지 목록 정규화 (배열 또는 문자열 모두 처리) */
   _glImgs = Array.isArray(imgs) ? imgs : (imgs ? String(imgs).split(/[\n,]+/).map(function(s){return s.trim();}).filter(Boolean) : []);
   _glIdx  = 0;
   glRenderSlider();
-
   document.getElementById('glModalCnt').innerHTML = (content || '').replace(/\n/g,'<br>');
   document.getElementById('glModal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
-
-/* 슬라이더 DOM 렌더링 */
 function glRenderSlider() {
   var track  = document.getElementById('glSliderTrack');
   var dots   = document.getElementById('glSliderDots');
   var prev   = document.getElementById('glSliderPrev');
   var next   = document.getElementById('glSliderNext');
   var slider = document.getElementById('glSlider');
-
   if (!_glImgs.length) { slider.style.display = 'none'; return; }
   slider.style.display = 'block';
-
   track.innerHTML = _glImgs.map(function(u){ return '<img src="'+esc(u)+'" alt="" loading="lazy">'; }).join('');
   track.style.transform = 'translateX(0)';
-
-  /* 이미지가 1장이면 화살표·점 숨김 */
   var single = _glImgs.length <= 1;
   prev.style.display = single ? 'none' : '';
   next.style.display = single ? 'none' : '';
@@ -454,24 +389,16 @@ function glRenderSlider() {
     return '<button class="gl-slider-dot'+(i===0?' on':'')+'\" onclick="glGoTo('+i+')"></button>';
   }).join('');
 }
-
-/* 슬라이더 특정 인덱스로 이동 */
 function glGoTo(n) {
   _glIdx = (n + _glImgs.length) % _glImgs.length;
   document.getElementById('glSliderTrack').style.transform = 'translateX(-'+(_glIdx * 100)+'%)';
   document.querySelectorAll('.gl-slider-dot').forEach(function(d,i){ d.classList.toggle('on', i===_glIdx); });
 }
-
-/* 슬라이더 방향 이동 (+1 / -1) */
 function glSlide(d) { glGoTo(_glIdx + d); }
-
-/* 갤러리 모달 닫기 */
 function glClose() {
   document.getElementById('glModal').classList.remove('open');
   document.body.style.overflow = '';
 }
-
-/* 매물 더보기 버튼 처리 (한 번만 실행) */
 var _propDone = false;
 function propMore() {
   if (_propDone) return;
@@ -482,10 +409,7 @@ function propMore() {
 
 
 <!-- ============================================================
-   단지안내 섹션
-   - 공지 게시판 형태 (목록 + 페이지네이션)
-   - 카테고리 필터 버튼
-   - 게시글 클릭 시 상세 모달 오픈 (bdOpen)
+   단지안내 섹션 — thead에 카테고리(cc) 컬럼 추가로 레이아웃 수정
    ============================================================ -->
 <section class="sec sec-white" id="sec-complex">
   <div class="container">
@@ -493,22 +417,20 @@ function propMore() {
       <div class="sec-eyebrow"><span class="sec-eyebrow-line"></span><span class="sec-eyebrow-txt">Complex</span></div>
       <div class="sec-head-row">
         <h2 class="sec-ttl sec-ttl-dark">단지안내</h2>
-        <!-- 카테고리 필터 버튼 (JS로 동적 생성) -->
         <div class="cx-cats" id="cxCats"></div>
       </div>
     </div>
-    <!-- 공지 목록 테이블 -->
     <table class="board-tbl">
       <thead>
         <tr>
           <th class="cn">번호</th>
+          <th class="cc">카테고리</th><!-- ★ 추가 -->
           <th>제목</th>
-          <th class="cd">등록일</th>
+          <th class="date">등록일</th>
         </tr>
       </thead>
       <tbody id="complexTbody"></tbody>
     </table>
-    <!-- 페이지네이션 -->
     <div class="pag" id="complexPag"></div>
   </div>
 </section>
@@ -525,7 +447,6 @@ function propMore() {
   </div>
 </div>
 
-<!-- 카테고리 버튼 전용 스타일 (다크/라이트 섹션 공통) -->
 <style>
 .cx-cats { display:flex; gap:6px; flex-wrap:wrap; }
 .cx-cat-btn { padding:6px 14px; font-size:.72rem; font-weight:700; letter-spacing:.04em; color:var(--g5); border:1px solid var(--ln); background:var(--w); cursor:pointer; transition:all .18s; font-family:var(--ff); }
@@ -533,9 +454,7 @@ function propMore() {
 .cx-cat-btn:hover:not(.on) { border-color:var(--br3); color:var(--br); }
 </style>
 
-<!-- 단지안내 게시판 스크립트 -->
 <script>
-/* 목 데이터: 실제 서비스 시 API 응답으로 교체 */
 var _mockNotices = [
   { id:'1',  is_pinned:true,  cat_name:'공지', title:'분양 홍보관 오픈 안내',        created_at:'2025-03-10', content:'홍보관이 오픈되었습니다.\n방문 전 사전 예약을 권장합니다.' },
   { id:'2',  is_pinned:false, cat_name:'공지', title:'1차 분양 일정 안내',           created_at:'2025-03-08', content:'1차 분양 일정이 확정되었습니다.\n자세한 내용은 아래를 참고해주세요.' },
@@ -551,17 +470,9 @@ var _mockNotices = [
 
 var _cxLim = 8, _cxPg = 1, _cxCat = '';
 
-/* 날짜 포맷: YYYY-MM-DD → YYYY.MM.DD */
 function fmtDt(s) { return s ? String(s).slice(0,10).replace(/-/g,'.') : ''; }
-/* XSS 방지 이스케이프 */
 function escH(s)  { if(s==null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
-/* 범용 페이지네이션 렌더링 함수
- * @param el    - 렌더링할 DOM 요소
- * @param cur   - 현재 페이지
- * @param total - 전체 페이지 수
- * @param cb    - 페이지 이동 시 호출할 함수명 (문자열)
- */
 function renderPag(el, cur, total, cb) {
   if (total <= 1) { el.innerHTML = ''; return; }
   var s = Math.max(1, cur-2), e = Math.min(total, cur+2);
@@ -571,7 +482,6 @@ function renderPag(el, cur, total, cb) {
   el.innerHTML = html;
 }
 
-/* 카테고리 버튼 동적 생성 (중복 제거) */
 (function buildCats() {
   var cats = [];
   _mockNotices.forEach(function(n){ if(n.cat_name && cats.indexOf(n.cat_name)===-1) cats.push(n.cat_name); });
@@ -581,13 +491,11 @@ function renderPag(el, cur, total, cb) {
   el.innerHTML = html;
 })();
 
-/* 카테고리 필터 적용 */
 function cxFilter(btn, cat) {
   document.querySelectorAll('.cx-cat-btn').forEach(function(b){ b.classList.toggle('on', b===btn); });
   _cxCat = cat; cxLoad(1);
 }
 
-/* 페이지 데이터 로드 및 테이블 렌더링 */
 function cxLoad(page) {
   _cxPg = page;
   var tb  = document.getElementById('complexTbody');
@@ -596,21 +504,25 @@ function cxLoad(page) {
   var total = Math.ceil(src.length / _cxLim);
   var items = src.slice((page-1)*_cxLim, page*_cxLim);
   if (!items.length) {
-    tb.innerHTML = '<tr><td colspan="3" class="board-empty">등록된 내용이 없습니다.</td></tr>';
+    tb.innerHTML = '<tr><td colspan="4" class="board-empty">등록된 내용이 없습니다.</td></tr>';
     pag.innerHTML = ''; return;
   }
   tb.innerHTML = items.map(function(n, i) {
-    var num   = src.length - (page-1)*_cxLim - i;
-    var badge = n.is_pinned ? '<span class="pin-badge">NOTICE</span>' : (n.cat_name ? '<span class="cat-badge">'+escH(n.cat_name)+'</span>' : '');
-    return '<tr onclick="bdOpen(\''+n.id+'\')">' +
-      '<td class="cn">' + (n.is_pinned ? '<span class="pin-badge">NOTICE</span>' : num) + '</td>' +
-      '<td><span class="board-link">'+(badge && !n.is_pinned ? badge+' ' : '')+escH(n.title)+'</span></td>' +
-      '<td class="cd">'+fmtDt(n.created_at)+'</td></tr>';
+    var num = src.length - (page-1)*_cxLim - i;
+    /* 번호 셀: 고정글 → NOTICE 뱃지, 일반 → 숫자 */
+    var numCell = n.is_pinned
+      ? '<td class="cn"><span class="pin-badge">NOTICE</span></td>'
+      : '<td class="cn">' + num + '</td>';
+    /* 카테고리 셀: 별도 컬럼으로 분리 */
+    var catCell = '<td class="cc">' + (n.cat_name ? '<span class="cat-badge">'+escH(n.cat_name)+'</span>' : '') + '</td>';
+    return '<tr onclick="bdOpen(\''+n.id+'\')" style="cursor:pointer;">' +
+      numCell + catCell +
+      '<td><span class="board-link">'+escH(n.title)+'</span></td>' +
+      '<td class="date">'+fmtDt(n.created_at)+'</td></tr>';
   }).join('');
   renderPag(pag, page, total, 'cxLoad');
 }
 
-/* 공지 상세 모달 열기 */
 function bdOpen(id) {
   var item = _mockNotices.find(function(n){ return n.id===id; });
   if (!item) return;
@@ -620,22 +532,17 @@ function bdOpen(id) {
   document.getElementById('bdModal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
-/* 공지 상세 모달 닫기 */
 function bdClose() {
   document.getElementById('bdModal').classList.remove('open');
   document.body.style.overflow = '';
 }
 
-/* 초기 목록 렌더링 */
 cxLoad(1);
 </script>
 
 
 <!-- ============================================================
    인테리어 섹션
-   - 공간별 이미지 카드 그리드
-   - 카테고리 필터 + 페이지네이션
-   - 카드 클릭 시 갤러리 모달 공유 사용 (glOpen)
    ============================================================ -->
 <section class="sec sec-beige" id="sec-interior">
   <div class="container">
@@ -643,20 +550,15 @@ cxLoad(1);
       <div class="sec-eyebrow"><span class="sec-eyebrow-line"></span><span class="sec-eyebrow-txt">Interior</span></div>
       <div class="sec-head-row">
         <h2 class="sec-ttl sec-ttl-dark">인테리어</h2>
-        <!-- 공간 카테고리 필터 버튼 (JS로 동적 생성) -->
         <div class="cx-cats" id="intCats"></div>
       </div>
     </div>
-    <!-- 인테리어 이미지 카드 그리드 -->
     <div class="int-grid" id="intGrid"></div>
-    <!-- 페이지네이션 -->
     <div class="pag" id="intPag"></div>
   </div>
 </section>
 
-<!-- 인테리어 스크립트 -->
 <script>
-/* 목 데이터: 실제 서비스 시 API 응답으로 교체 */
 var _mockInterior = [
   { id:'i1',  cat:'거실',    title:'거실 — Living Room',     created_at:'2025-03-01', imgs:['https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg'], content:'넓고 개방감 있는 거실 공간입니다.' },
   { id:'i2',  cat:'주방',    title:'주방 — Kitchen',         created_at:'2025-03-01', imgs:['https://plane02.gabia.io/uploads/admin/20260319161727_9f7556dd.jpg'], content:'현대적인 시스템 키친이 적용되었습니다.' },
@@ -674,7 +576,6 @@ var _intLim = 6, _intPg = 1, _intCat = '';
 function fmtDtInt(s) { return s ? String(s).slice(0,10).replace(/-/g,'.') : ''; }
 function escI(s) { if(s==null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
-/* 인테리어 카테고리 버튼 동적 생성 */
 (function buildIntCats() {
   var cats = [];
   _mockInterior.forEach(function(n){ if(n.cat && cats.indexOf(n.cat)===-1) cats.push(n.cat); });
@@ -684,13 +585,11 @@ function escI(s) { if(s==null) return ''; return String(s).replace(/&/g,'&amp;')
   el.innerHTML = html;
 })();
 
-/* 인테리어 카테고리 필터 */
 function intFilter(btn, cat) {
   document.querySelectorAll('#intCats .cx-cat-btn').forEach(function(b){ b.classList.toggle('on', b===btn); });
   _intCat = cat; intLoad(1);
 }
 
-/* 인테리어 전용 페이지네이션 렌더링 */
 function renderPagInt(el, cur, total, cb) {
   if (total <= 1) { el.innerHTML = ''; return; }
   var s = Math.max(1, cur-2), e = Math.min(total, cur+2);
@@ -700,7 +599,6 @@ function renderPagInt(el, cur, total, cb) {
   el.innerHTML = html;
 }
 
-/* 인테리어 카드 그리드 렌더링 */
 function intLoad(page) {
   _intPg = page;
   var grid = document.getElementById('intGrid');
@@ -716,7 +614,6 @@ function intLoad(page) {
   items.forEach(function(item) {
     var div = document.createElement('div'); div.className = 'int-card';
     var thumb = item.imgs && item.imgs[0] ? item.imgs[0] : '';
-    /* 카드 클릭 시 공용 갤러리 모달 오픈 (스펙 없음) */
     div.onclick = function(){ glOpen(item.id, item.title, item.imgs, item.content||'', false,'','','',''); };
     div.innerHTML =
       '<div class="int-img">' +
@@ -729,15 +626,12 @@ function intLoad(page) {
   renderPagInt(pag, page, total, 'intLoad');
 }
 
-/* 초기 그리드 렌더링 */
 intLoad(1);
 </script>
 
 
 <!-- ============================================================
-   FAQ 섹션 (자주하는 질문)
-   - 카테고리 그룹별 아코디언
-   - 카테고리 필터 버튼
+   FAQ 섹션
    ============================================================ -->
 <section class="sec sec-dark" id="sec-faq">
   <div class="container">
@@ -745,7 +639,6 @@ intLoad(1);
       <div class="sec-eyebrow"><span class="sec-eyebrow-line"></span><span class="sec-eyebrow-txt">FAQ</span></div>
       <div class="sec-head-row">
         <h2 class="sec-ttl sec-ttl-light">자주하는 <span style="color:var(--gold)">질문</span></h2>
-        <!-- 카테고리 필터 버튼 (JS로 동적 생성) -->
         <div class="cx-cats" id="faqCats"></div>
       </div>
     </div>
@@ -755,17 +648,14 @@ intLoad(1);
   </div>
 </section>
 
-<!-- FAQ 다크 섹션에서의 카테고리 버튼 색상 오버라이드 -->
 <style>
 .cx-cats .cx-cat-btn { color:rgba(255,255,255,.5); border-color:rgba(255,255,255,.15); background:none; }
 .cx-cats .cx-cat-btn.on { background:var(--gold); color:var(--bk); border-color:var(--gold); }
 .cx-cats .cx-cat-btn:hover:not(.on) { border-color:var(--gold); color:var(--gold); }
 </style>
 
-<!-- FAQ 스크립트 -->
 <script>
 (function() {
-  /* FAQ 데이터: 실제 서비스 시 API 응답으로 교체 */
   var data = [
     { cat:'분양 일정', items:[
       { q:'분양 신청은 어떻게 하나요?',       a:'홍보관 방문 또는 유선 상담 후 청약 일정에 맞춰 신청 가능합니다. 자세한 내용은 문의 게시판을 이용해주세요.' },
@@ -782,18 +672,12 @@ intLoad(1);
       { q:'중도금 대출이 가능한가요?',         a:'중도금 집단대출이 가능하며, 자세한 내용은 상담을 통해 안내드립니다.' }
     ]}
   ];
-
   function escF(s) { if(s==null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-  /* 카테고리 필터 버튼 동적 생성 */
   var catEl = document.getElementById('faqCats');
   var html = '<button class="cx-cat-btn on" onclick="faqFilter(this,\'\')">전체</button>';
   data.forEach(function(g){ html += '<button class="cx-cat-btn" onclick="faqFilter(this,\''+escF(g.cat)+'\')">'+escF(g.cat)+'</button>'; });
   catEl.innerHTML = html;
-
   window._faqData = data;
-
-  /* FAQ 목록 렌더링 (필터 적용 포함) */
   function renderFaq(filter) {
     var list = document.getElementById('faqList');
     var src = filter ? data.filter(function(g){ return g.cat===filter; }) : data;
@@ -813,26 +697,18 @@ intLoad(1);
       '</div>';
     }).join('');
   }
-
-  /* 카테고리 필터 전환 */
   window.faqFilter = function(btn, cat) {
     document.querySelectorAll('#faqCats .cx-cat-btn').forEach(function(b){ b.classList.toggle('on', b===btn); });
     renderFaq(cat);
   };
-
   renderFaq('');
 })();
-
-/* FAQ 아코디언 토글 */
 function faqToggle(btn) { btn.closest('.faq-itm').classList.toggle('open'); }
 </script>
 
 
 <!-- ============================================================
    문의하기 섹션
-   - 이름·연락처·문의내용 폼
-   - 개인정보 동의 체크박스
-   - 사이드: 전화번호 + 관심고객 등록 바로가기
    ============================================================ -->
 <section class="sec sec-white" id="sec-inquiry">
   <div class="container">
@@ -842,7 +718,6 @@ function faqToggle(btn) { btn.closest('.faq-itm').classList.toggle('open'); }
     </div>
     <div class="inq-layout">
       <div>
-        <!-- 문의 폼 -->
         <form id="inqForm" onsubmit="submitInq(event)">
           <div class="form-row r2">
             <div><label class="form-lbl">이름 <span class="req">*</span></label><input class="form-inp" type="text" name="name" placeholder="성함" required></div>
@@ -852,10 +727,8 @@ function faqToggle(btn) { btn.closest('.faq-itm').classList.toggle('open'); }
           <div class="form-chk"><input type="checkbox" id="inqPriv" required><label class="form-chk-lbl" for="inqPriv">개인정보 수집 및 이용에 동의합니다. (이름·연락처 수집 / 상담 회신 목적)</label></div>
           <button type="submit" class="form-sub">문의 접수</button>
         </form>
-        <!-- 폼 제출 결과 메시지 -->
         <div id="inqRes" class="form-res"></div>
       </div>
-      <!-- 사이드 패널: 전화 상담 + 빠른 신청 -->
       <div>
         <div class="inq-side-card" style="background:var(--br6);border-color:var(--ln);">
           <div class="inq-side-lbl" style="color:var(--br);">Contact</div>
@@ -871,13 +744,11 @@ function faqToggle(btn) { btn.closest('.faq-itm').classList.toggle('open'); }
   </div>
 </section>
 
-<!-- 문의 폼 제출 처리 스크립트 -->
 <script>
 function submitInq(e) {
   e.preventDefault();
   var f   = e.target;
   var res = document.getElementById('inqRes');
-  /* 필수 입력값 검증 */
   if (!f.querySelector('[name=name]').value.trim() || !f.querySelector('[name=phone]').value.trim()) {
     showRes(res, '이름과 연락처를 입력해주세요.', true); return;
   }
@@ -889,14 +760,10 @@ function submitInq(e) {
 
 <!-- ============================================================
    관심고객 등록 섹션
-   - 이름·이메일·연락처·문의내용 폼 (다크 테마)
-   - 좌측: 홍보 카피 + 전화번호
-   - 우측: 등록 폼
    ============================================================ -->
 <section class="sec sec-dark" id="sec-interest">
   <div class="container">
     <div class="interest-layout">
-      <!-- 좌측 카피 영역 -->
       <div class="interest-copy">
         <div class="sec-eyebrow" style="margin-bottom:20px;">
           <span class="sec-eyebrow-line"></span>
@@ -910,7 +777,6 @@ function submitInq(e) {
           <div class="interest-contact-info">평일 09:00 — 18:00 &nbsp;|&nbsp; 주말·공휴일 휴무</div>
         </div>
       </div>
-      <!-- 우측 관심고객 등록 폼 -->
       <div>
         <form id="intForm" onsubmit="submitInterest(event)">
           <div class="form-row"><label class="form-lbl" style="color:var(--g3);">이름 <span class="req">*</span></label><input class="form-inp dark" type="text" name="name" placeholder="성함" required></div>
@@ -920,20 +786,17 @@ function submitInq(e) {
           <div class="form-chk"><input type="checkbox" id="intPriv" required><label class="form-chk-lbl light" for="intPriv">개인정보처리방침 및 수집·이용에 동의합니다.</label></div>
           <button type="submit" class="form-sub gold-btn">관심고객 등록</button>
         </form>
-        <!-- 폼 제출 결과 메시지 -->
         <div id="intRes" class="form-res"></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 관심고객 폼 제출 처리 스크립트 -->
 <script>
 function submitInterest(e) {
   e.preventDefault();
   var f   = e.target;
   var res = document.getElementById('intRes');
-  /* 필수 입력값 검증 */
   if (!f.querySelector('[name=name]').value.trim() || !f.querySelector('[name=phone]').value.trim()) {
     showRes(res, '이름과 연락처를 입력해주세요.', true); return;
   }
@@ -944,9 +807,7 @@ function submitInterest(e) {
 
 
 <!-- ============================================================
-   CTA (Call To Action) 하단 배너
-   - 문의하기 / 관심고객 등록 버튼
-   - 전화번호 링크
+   CTA 하단 배너
    ============================================================ -->
 <div class="cta-sec">
   <div class="container">
@@ -966,41 +827,27 @@ function submitInterest(e) {
 </div>
 
 
-<!-- 토스트 알림 출력 영역 -->
 <div id="toast-area"></div>
 
 
-<!-- ============================================================
-   공통 유틸리티 스크립트
-   ============================================================ -->
 <script>
-/* 지정한 섹션 ID로 부드럽게 스크롤 이동 */
 function navTo(id) {
   var el = document.getElementById(id);
   if (!el) return;
   window.scrollTo({ top: el.getBoundingClientRect().top + window.pageYOffset - 16, behavior: 'smooth' });
 }
-
-/* 토스트 메시지 표시 (2.8초 후 자동 제거) */
 function toast(msg) {
   var t = document.createElement('div'); t.className = 'toast-msg'; t.textContent = msg;
   document.getElementById('toast-area').appendChild(t);
   requestAnimationFrame(function(){ t.classList.add('show'); });
   setTimeout(function(){ t.classList.remove('show'); setTimeout(function(){ t.remove(); }, 400); }, 2800);
 }
-
-/* 폼 결과 메시지 표시
- * @param el    - 결과 메시지를 출력할 DOM 요소
- * @param msg   - 표시할 텍스트
- * @param isErr - true이면 에러 스타일 적용
- */
 function showRes(el, msg, isErr) {
   if (!el) return;
   el.textContent = msg;
   el.classList.toggle('err', isErr);
   el.classList.add('show');
   el.scrollIntoView({ behavior:'smooth', block:'nearest' });
-  /* 성공 메시지는 6초 후 자동 숨김 */
   if (!isErr) setTimeout(function(){ el.classList.remove('show'); }, 6000);
 }
 </script>

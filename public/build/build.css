@@ -132,13 +132,13 @@
 }
 .board-tbl th.cn { width: 60px; text-align: center; }
 .board-tbl th.cc { width: 96px; }
-.board-tbl th.cd { width: 100px; text-align: center; }
+.board-tbl th.date { width: 100px; text-align: center; }
 .board-tbl td {
   padding: 15px 14px; font-size: .875rem; color: var(--g6);
   border-bottom: 1px solid var(--ln); vertical-align: middle;
 }
 .board-tbl td.cn { text-align: center; color: var(--g4); font-size: .76rem; }
-.board-tbl td.cd { text-align: center; font-size: .76rem; color: var(--g4); }
+.board-tbl td.date { text-align: center; font-size: .76rem; color: var(--g4); }
 .board-tbl tr:hover td { background: var(--br6); }
 .board-tbl tr.pin td  { background: var(--br6); }
 .board-link  { color: var(--g6); font-weight: 500; cursor: pointer; transition: color .15s; }
