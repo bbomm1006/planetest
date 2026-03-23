@@ -1,19 +1,3 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Top Slider</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  
-  <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: "DM Sans", "Noto Sans KR", sans-serif; background: #fff; }
-  </style>
-</head>
-<body>
-
 <style>
 
   #topSlider{padding:0!important;margin-top:100px;}
@@ -398,6 +382,3 @@
   return { onVideoEnded: onVideoEnded };
 })();
 </script>
-
-</body>
-</html>
