@@ -57,10 +57,17 @@
     </div>
     <div class="modal-body">
       <input type="hidden" id="sgEditId">
-      <div class="form-group">
+      <div class="form-group" style="margin-bottom:20px;">
         <label>그룹명 <span class="req">*</span></label>
         <input type="text" class="form-control" id="sgEditName" placeholder="예: 이벤트 페이지용 섹션">
         <p style="margin:4px 0 0;font-size:.75rem;color:#999;">새 그룹 생성 시 기본 4개 섹션(전환바·NAV·배너·풋터)이 자동으로 포함됩니다.</p>
+      </div>
+      <div class="form-group" style="margin:0;padding:14px 16px;background:var(--bg2);border-radius:8px;border:1px solid var(--border);">
+        <div style="font-size:.85rem;font-weight:600;margin-bottom:8px;">기본 그룹 설정</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="sgSetDefault" style="width:16px;height:16px;cursor:pointer;flex-shrink:0;">
+          <span style="font-size:.82rem;color:var(--text3);">index.php에 이 그룹 섹션 적용 (기본은 1개만 가능)</span>
+        </div>
       </div>
     </div>
     <div class="modal-footer">

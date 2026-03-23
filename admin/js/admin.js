@@ -983,16 +983,20 @@ async function loadDynSectionListByGroup(groupId) {
 function openSectionGroupModal(id) {
   const grp = id ? sectionGroupList.find(g => g.id == id) : null;
   document.getElementById('sectionGroupModalTitle').textContent = grp ? '그룹 수정' : '섹션 그룹 추가';
-  document.getElementById('sgEditId').value   = grp ? grp.id : '';
-  document.getElementById('sgEditName').value = grp ? grp.name : '';
+  document.getElementById('sgEditId').value      = grp ? grp.id : '';
+  document.getElementById('sgEditName').value    = grp ? grp.name : '';
+  const defCheck = document.getElementById('sgSetDefault');
+  if (defCheck) defCheck.checked = grp ? _isDefault(grp.is_default) : false;
+  if (defCheck) defCheck.disabled = grp ? _isDefault(grp.is_default) : false;
   openModal('sectionGroupModal');
 }
 
 async function saveSectionGroup() {
   const id   = document.getElementById('sgEditId').value;
   const name = document.getElementById('sgEditName').value.trim();
+  const setDefault = document.getElementById('sgSetDefault') && document.getElementById('sgSetDefault').checked ? 1 : 0;
   if (!name) { showToast('그룹명을 입력하세요.', 'error'); return; }
-  const res = await apiPost('api/design.php', { action: 'sectionGroupSave', id, name });
+  const res = await apiPost('api/design.php', { action: 'sectionGroupSave', id, name, set_default: setDefault });
   if (res.ok) {
     showToast('저장되었습니다.', 'success');
     closeModal('sectionGroupModal');
@@ -1005,8 +1009,16 @@ async function saveSectionGroup() {
 
 async function deleteSectionGroup() {
   const grp = sectionGroupList.find(g => g.id == currentSectionGroupId);
-  if (!grp || _isDefault(grp.is_default)) return;
-  if (!confirm('"' + grp.name + '" 그룹을 삭제합니다.\n이 그룹에 속한 섹션도 모두 삭제됩니다.\n계속하시겠습니까?')) return;
+  if (!grp) return;
+  if (_isDefault(grp.is_default)) {
+    showToast('기본 그룹은 삭제할 수 없습니다. 다른 그룹을 기본으로 설정 후 삭제하세요.', 'error'); return;
+  }
+  if (!confirm(
+    '⚠️ [' + grp.name + '] 그룹을 삭제합니다.\n\n' +
+    '· 이 그룹에 등록된 섹션이 모두 DB에서 삭제됩니다.\n' +
+    '· 삭제된 데이터는 복구할 수 없습니다.\n\n' +
+    '정말 삭제하시겠습니까?'
+  )) return;
   const res = await apiPost('api/design.php', { action: 'sectionGroupDelete', id: currentSectionGroupId });
   if (res.ok) {
     showToast('삭제되었습니다.', 'success');
@@ -1064,18 +1076,22 @@ function openColorGroupModal(id) {
   document.getElementById('colorGroupModalTitle').textContent = grp ? '그룹 수정' : '컬러 그룹 추가';
   document.getElementById('cgEditId').value   = grp ? grp.id : '';
   document.getElementById('cgEditName').value = grp ? grp.name : '';
+  const defCheck = document.getElementById('cgSetDefault');
+  if (defCheck) defCheck.checked = grp ? _isDefault(grp.is_default) : false;
+  if (defCheck) defCheck.disabled = grp ? _isDefault(grp.is_default) : false;
   openModal('colorGroupModal');
 }
 
 async function saveColorGroup() {
   const id   = document.getElementById('cgEditId').value;
   const name = document.getElementById('cgEditName').value.trim();
+  const setDefault = document.getElementById('cgSetDefault') && document.getElementById('cgSetDefault').checked ? 1 : 0;
   if (!name) { showToast('그룹명을 입력하세요.', 'error'); return; }
   const base  = document.getElementById('color_base_text')  ? document.getElementById('color_base_text').value  : '#1255a6';
   const point = document.getElementById('color_point_text') ? document.getElementById('color_point_text').value : '#1e7fe8';
   const sub   = document.getElementById('color_sub_text')   ? document.getElementById('color_sub_text').value   : '#00c6ff';
   const sub2  = document.getElementById('color_sub2_text')  ? document.getElementById('color_sub2_text').value  : '#1a2540';
-  const res = await apiPost('api/design.php', { action: 'colorGroupSave', id, name, color_base: base, color_point: point, color_sub: sub, color_sub2: sub2 });
+  const res = await apiPost('api/design.php', { action: 'colorGroupSave', id, name, set_default: setDefault, color_base: base, color_point: point, color_sub: sub, color_sub2: sub2 });
   if (res.ok) {
     showToast('저장되었습니다.', 'success');
     closeModal('colorGroupModal');
@@ -1088,8 +1104,16 @@ async function saveColorGroup() {
 
 async function deleteColorGroup() {
   const grp = colorGroupList.find(g => g.id == currentColorGroupId);
-  if (!grp || _isDefault(grp.is_default)) return;
-  if (!confirm('"' + grp.name + '" 컬러 그룹을 삭제하시겠습니까?')) return;
+  if (!grp) return;
+  if (_isDefault(grp.is_default)) {
+    showToast('기본 컬러 그룹은 삭제할 수 없습니다. 다른 그룹을 기본으로 설정 후 삭제하세요.', 'error'); return;
+  }
+  if (!confirm(
+    '⚠️ [' + grp.name + '] 컬러 그룹을 삭제합니다.\n\n' +
+    '· 이 그룹을 사용하던 디자인 페이지는 기본 컬러 그룹으로 변경됩니다.\n' +
+    '· 삭제된 데이터는 복구할 수 없습니다.\n\n' +
+    '정말 삭제하시겠습니까?'
+  )) return;
   const res = await apiPost('api/design.php', { action: 'colorGroupDelete', id: currentColorGroupId });
   if (res.ok) {
     showToast('삭제되었습니다.', 'success');

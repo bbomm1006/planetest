@@ -9,14 +9,32 @@
   $pageColorGroupId   = defined('PAGE_COLOR_GROUP')   ? (int)PAGE_COLOR_GROUP   : 0;
   $pageExtraCss       = defined('PAGE_EXTRA_CSS')     ? PAGE_EXTRA_CSS          : '';
 
-  // 페이지 전용 컬러 그룹 주입 (기본 그룹이 아닐 때만)
+  // ── 기본 그룹 결정 ──
+  // PAGE_SECTION_GROUP/PAGE_COLOR_GROUP 상수가 없으면(=일반 index.php 접속)
+  // is_default=1 인 그룹을 자동으로 사용
+  if ($pageSectionGroupId <= 0) {
+    try {
+      $defSg = $pdo->query("SELECT id FROM section_groups WHERE is_default=1 LIMIT 1")->fetchColumn();
+      $pageSectionGroupId = $defSg ? (int)$defSg : 0;
+    } catch (Exception $e) { $pageSectionGroupId = 0; }
+  }
+
+  if ($pageColorGroupId <= 0) {
+    try {
+      $defCg = $pdo->query("SELECT id FROM color_groups WHERE is_default=1 LIMIT 1")->fetchColumn();
+      $pageColorGroupId = $defCg ? (int)$defCg : 0;
+    } catch (Exception $e) { $pageColorGroupId = 0; }
+  }
+
+  // ── 컬러 그룹 주입 ──
   if ($pageColorGroupId > 0) {
     try {
       $cgRow = $pdo->query("SELECT color_base,color_point,color_sub,color_sub2 FROM color_groups WHERE id={$pageColorGroupId}")->fetch(PDO::FETCH_ASSOC);
       if ($cgRow) {
-        $cvars = [];
-        foreach (['color_base'=>'--color-base','color_point'=>'--color-point','color_sub'=>'--color-sub','color_sub2'=>'--color-sub2'] as $col => $var) {
-          $v = trim($cgRow[$col] ?? '');
+        $cvars = array();
+        $colorMap = array('color_base'=>'--color-base','color_point'=>'--color-point','color_sub'=>'--color-sub','color_sub2'=>'--color-sub2');
+        foreach ($colorMap as $col => $var) {
+          $v = trim(isset($cgRow[$col]) ? $cgRow[$col] : '');
           if (preg_match('/^#[0-9a-fA-F]{3,8}$/', $v)) $cvars[] = $var.':'.$v;
         }
         if ($cvars) echo '<style>:root{'.implode(';',$cvars).'}</style>'."\n";
@@ -24,65 +42,59 @@
     } catch (Exception $e) {}
   }
 
-  // 추가 CSS 주입
+  // ── 추가 CSS 주입 ──
   if (trim($pageExtraCss) !== '') {
     echo '<style>'."\n".htmlspecialchars_decode($pageExtraCss)."\n".'</style>'."\n";
   }
 
-  // front_sections 테이블에서 모든 섹션을 순서대로 로드
-  $allSections = [];
+  // ── 섹션 로드 ──
+  $allSections = array();
   try {
     if ($pageSectionGroupId > 0) {
-      // 특정 그룹 섹션만 로드
       $stmt = $pdo->prepare("SELECT * FROM front_sections WHERE group_id=? ORDER BY sort_order, id");
-      $stmt->execute([$pageSectionGroupId]);
+      $stmt->execute(array($pageSectionGroupId));
     } else {
-      // 기본: group_id=1 또는 group_id IS NULL (하위호환)
-      $stmt = $pdo->query("SELECT * FROM front_sections WHERE group_id=1 OR group_id IS NULL OR group_id=0 ORDER BY sort_order, id");
+      // group_id 컬럼 없는 구버전 fallback
+      $stmt = $pdo->query("SELECT * FROM front_sections ORDER BY sort_order, id");
     }
     $allSections = $stmt->fetchAll(PDO::FETCH_ASSOC);
   } catch (Exception $e) {
-    // group_id 컬럼 없는 구버전 호환
     try {
-      $stmt = $pdo->query("SELECT * FROM front_sections ORDER BY sort_order, id");
-      $allSections = $stmt->fetchAll(PDO::FETCH_ASSOC);
+      $allSections = $pdo->query("SELECT * FROM front_sections ORDER BY sort_order, id")->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e2) {}
   }
 
-  // 코어 파일명 (wrapper div 없이 직접 include)
-  $coreSections = ['_site', '_nav', '_ft'];
+  $coreSections = array('_site', '_nav', '_ft');
 
-  // 활성화된 섹션 파일명 목록 (JS 조건부 로드에 사용)
-  $activeFileNames = [];
+  $activeFileNames = array();
   foreach ($allSections as $sec) {
     if ((int)$sec['is_active'] === 0) continue;
     $fn = preg_replace('/[^a-zA-Z0-9_\-]/', '', pathinfo($sec['file_name'], PATHINFO_FILENAME));
     if ($fn !== '') $activeFileNames[] = $fn;
   }
 
-  // 섹션 파일명 → 필요한 JS 매핑
-  $sectionJsMap = [
-    'top_banner'           => ['hero.js', 'popup.js', 'countdown.js'],
-    '_nav'                 => ['nav-fade.js'],
-    'products'             => ['products.js', 'recommend.js'],
-    'bbs_video'            => ['video-reviews.js'],
-    'bbs_review'           => ['video-reviews.js'],
-    'bbs_notice'           => ['notice-faq-gallery.js'],
-    'bbs_faq'              => ['notice-faq-gallery.js'],
-    'bbs_gallery'          => ['notice-faq-gallery.js'],
-    'bbs_photogallery'     => ['bbs_photogallery.js'],
-    'bbs_slidegallery'     => ['bbs_slidegallery.js'],
-    'bbs_event'            => ['notice-faq-gallery.js'],
-    'stores'               => ['store.js'],
-    'reservation'          => ['reservation.js', 'reservationLookup.js', 'timeslots.js'],
-    'reservationLookup'    => ['reservationLookup.js'],
-    'bkf_front'            => ['timeslots.js'],
-    'custom_inquiry_front' => ['custom_inquiry_front.js'],
-    'consult'              => ['inquiry.js'],
-    'qna'                  => ['inquiry.js'],
-  ];
+  $sectionJsMap = array(
+    'top_banner'           => array('hero.js', 'popup.js', 'countdown.js'),
+    '_nav'                 => array('nav-fade.js'),
+    'products'             => array('products.js', 'recommend.js'),
+    'bbs_video'            => array('video-reviews.js'),
+    'bbs_review'           => array('video-reviews.js'),
+    'bbs_notice'           => array('notice-faq-gallery.js'),
+    'bbs_faq'              => array('notice-faq-gallery.js'),
+    'bbs_gallery'          => array('notice-faq-gallery.js'),
+    'bbs_photogallery'     => array('bbs_photogallery.js'),
+    'bbs_slidegallery'     => array('bbs_slidegallery.js'),
+    'bbs_event'            => array('notice-faq-gallery.js'),
+    'stores'               => array('store.js'),
+    'reservation'          => array('reservation.js', 'reservationLookup.js', 'timeslots.js'),
+    'reservationLookup'    => array('reservationLookup.js'),
+    'bkf_front'            => array('timeslots.js'),
+    'custom_inquiry_front' => array('custom_inquiry_front.js'),
+    'consult'              => array('inquiry.js'),
+    'qna'                  => array('inquiry.js'),
+  );
 
-  $jsToLoad = [];
+  $jsToLoad = array();
   foreach ($activeFileNames as $fn) {
     if (isset($sectionJsMap[$fn])) {
       foreach ($sectionJsMap[$fn] as $js) { $jsToLoad[$js] = true; }
@@ -94,7 +106,7 @@
   <?php
     foreach ($allSections as $sec):
       $fn = pathinfo($sec['file_name'], PATHINFO_FILENAME);
-      if (!in_array($fn, ['_site', '_nav'], true)) continue;
+      if (!in_array($fn, array('_site', '_nav'), true)) continue;
       if ((int)$sec['is_active'] === 0) continue;
       $fp = __DIR__ . '/lib/' . $fn . '.php';
       if (file_exists($fp)) include $fp;
@@ -152,7 +164,6 @@
 
 <?php endif; ?>
 
-  <!-- MODALS (항상 필요) -->
   <?php include 'lib/modalPm.php'; ?>
   <?php include 'lib/modalcmpBar.php'; ?>
   <?php include 'lib/modalMhd.php'; ?>
@@ -160,17 +171,14 @@
   <?php include 'lib/modalApply.php'; ?>
   <?php include 'lib/modalEmail.php'; ?>
 
-  <!-- 소셜 로그인 SDK (항상 필요) -->
   <script async src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"></script>
   <script async src="https://static.nid.naver.com/js/naveridlogin_js_sdk_2.0.2.js" charset="utf-8"></script>
   <script src="https://accounts.google.com/gsi/client" async></script>
   <div id="naver_id_login" style="display:none"></div>
 
-  <!-- 코어 JS (항상 필요) -->
   <script src="js/board.js"></script>
   <script src="js/utils.js"></script>
 
-  <!-- 섹션별 조건부 JS 로드 -->
   <?php if (isset($jsToLoad['hero.js'])): ?><script src="js/hero.js"></script><?php endif; ?>
   <?php if (isset($jsToLoad['countdown.js'])): ?><script src="js/countdown.js"></script><?php endif; ?>
   <?php if (isset($jsToLoad['nav-fade.js'])): ?><script src="js/nav-fade.js"></script><?php endif; ?>
@@ -191,7 +199,6 @@
   <script src="/js/bkf_public.js" defer></script>
   <?php endif; ?>
 
-  <!-- 데이터 로드 (활성 섹션 기반) -->
   <script>
   (function() {
     <?php if (isset($jsToLoad['hero.js'])): ?>
@@ -215,12 +222,12 @@
     <?php endif; ?>
 
     <?php
-      $boardFetches = [];
+      $boardFetches = array();
       if (isset($jsToLoad['notice-faq-gallery.js'])) {
-        if (in_array('bbs_notice', $activeFileNames))  $boardFetches[] = ['notice', 'ntInit'];
-        if (in_array('bbs_faq', $activeFileNames))     $boardFetches[] = ['faq',    'faqInit'];
-        if (in_array('bbs_event', $activeFileNames))   $boardFetches[] = ['event',  null];
-        if (in_array('bbs_gallery', $activeFileNames)) $boardFetches[] = ['gallery', null];
+        if (in_array('bbs_notice', $activeFileNames))  $boardFetches[] = array('notice', 'ntInit');
+        if (in_array('bbs_faq', $activeFileNames))     $boardFetches[] = array('faq',    'faqInit');
+        if (in_array('bbs_event', $activeFileNames))   $boardFetches[] = array('event',  null);
+        if (in_array('bbs_gallery', $activeFileNames)) $boardFetches[] = array('gallery', null);
       }
       $hasVideo  = isset($jsToLoad['video-reviews.js']) && in_array('bbs_video', $activeFileNames);
       $hasReview = isset($jsToLoad['video-reviews.js']) && in_array('bbs_review', $activeFileNames);

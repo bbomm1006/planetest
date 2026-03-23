@@ -43,7 +43,7 @@ function _ensureDesignTables(PDO $pdo) {
         created_at       DATETIME DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
-    // 기본 섹션 그룹 (id=1) 보장
+    // 기본 섹션 그룹 보장
     $cnt = $pdo->query("SELECT COUNT(*) FROM section_groups WHERE is_default=1")->fetchColumn();
     if (!$cnt) {
         $pdo->exec("INSERT INTO section_groups (name, is_default) VALUES ('기본 그룹', 1)");
@@ -76,26 +76,31 @@ if ($action === 'sectionGroupList') {
     $rows = $pdo->query("SELECT id,name,is_default,created_at FROM section_groups ORDER BY is_default DESC, id")->fetchAll(PDO::FETCH_ASSOC);
     $countRows = $pdo->query("SELECT group_id, COUNT(*) as cnt FROM front_sections GROUP BY group_id")->fetchAll(PDO::FETCH_ASSOC);
     $counts = array();
-    foreach ($countRows as $cr) {
-        $counts[$cr['group_id']] = (int)$cr['cnt'];
-    }
-    foreach ($rows as &$r) {
-        $r['section_count'] = isset($counts[$r['id']]) ? $counts[$r['id']] : 0;
-    }
+    foreach ($countRows as $cr) { $counts[$cr['group_id']] = (int)$cr['cnt']; }
+    foreach ($rows as &$r) { $r['section_count'] = isset($counts[$r['id']]) ? $counts[$r['id']] : 0; }
     unset($r);
     echo json_encode(array('ok'=>true,'data'=>$rows)); exit;
 }
 
 if ($action === 'sectionGroupSave') {
-    $id   = (int)($_POST['id'] ?? 0);
-    $name = trim($_POST['name'] ?? '');
+    $id        = (int)($_POST['id'] ?? 0);
+    $name      = trim($_POST['name'] ?? '');
+    $setDefault = isset($_POST['set_default']) ? (int)$_POST['set_default'] : -1;
+
     if ($name === '') { echo json_encode(array('ok'=>false,'msg'=>'그룹명을 입력하세요.')); exit; }
+
     if ($id > 0) {
-        $pdo->prepare("UPDATE section_groups SET name=? WHERE id=? AND is_default=0")->execute(array($name, $id));
+        // 이름 수정 (기본 그룹도 이름 변경 가능)
+        $pdo->prepare("UPDATE section_groups SET name=? WHERE id=?")->execute(array($name, $id));
+        // 기본 설정 변경
+        if ($setDefault === 1) {
+            $pdo->exec("UPDATE section_groups SET is_default=0");
+            $pdo->prepare("UPDATE section_groups SET is_default=1 WHERE id=?")->execute(array($id));
+        }
     } else {
         $pdo->prepare("INSERT INTO section_groups (name,is_default) VALUES (?,0)")->execute(array($name));
         $id = (int)$pdo->lastInsertId();
-        // 코어 4개 섹션을 새 그룹으로 복사
+        // 코어 4개 섹션 복사
         $stmt = $pdo->query("SELECT name,file_name,nav_label,anchor_id,params,sort_order FROM front_sections WHERE group_id=1 AND file_name IN ('_site','_nav','top_banner','_ft')");
         $cores = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $ins = $pdo->prepare("INSERT INTO front_sections (`key`,name,file_name,is_active,nav_label,anchor_id,params,sort_order,group_id) VALUES (?,?,?,1,?,?,?,?,?)");
@@ -108,14 +113,24 @@ if ($action === 'sectionGroupSave') {
     echo json_encode(array('ok'=>true,'id'=>$id)); exit;
 }
 
+if ($action === 'sectionGroupSetDefault') {
+    $id = (int)($_POST['id'] ?? 0);
+    if ($id <= 0) { echo json_encode(array('ok'=>false,'msg'=>'잘못된 ID')); exit; }
+    $pdo->exec("UPDATE section_groups SET is_default=0");
+    $pdo->prepare("UPDATE section_groups SET is_default=1 WHERE id=?")->execute(array($id));
+    logAdminAction($pdo, 'update', 'section_groups', 'default='.$id);
+    echo json_encode(array('ok'=>true)); exit;
+}
+
 if ($action === 'sectionGroupDelete') {
     $id = (int)($_POST['id'] ?? 0);
     $stmt = $pdo->prepare("SELECT is_default FROM section_groups WHERE id=?");
     $stmt->execute(array($id));
     $isDef = $stmt->fetchColumn();
-    if ($isDef) { echo json_encode(array('ok'=>false,'msg'=>'기본 그룹은 삭제할 수 없습니다.')); exit; }
+    if ($isDef) { echo json_encode(array('ok'=>false,'msg'=>'기본 그룹은 삭제할 수 없습니다. 다른 그룹을 기본으로 설정 후 삭제하세요.')); exit; }
+    // 해당 그룹 섹션 전부 삭제
     $pdo->prepare("DELETE FROM front_sections WHERE group_id=?")->execute(array($id));
-    $pdo->prepare("DELETE FROM section_groups WHERE id=? AND is_default=0")->execute(array($id));
+    $pdo->prepare("DELETE FROM section_groups WHERE id=?")->execute(array($id));
     logAdminAction($pdo, 'delete', 'section_groups', (string)$id);
     echo json_encode(array('ok'=>true)); exit;
 }
@@ -129,8 +144,10 @@ if ($action === 'colorGroupList') {
 }
 
 if ($action === 'colorGroupSave') {
-    $id    = (int)($_POST['id'] ?? 0);
-    $name  = trim($_POST['name'] ?? '');
+    $id         = (int)($_POST['id'] ?? 0);
+    $name       = trim($_POST['name'] ?? '');
+    $setDefault = isset($_POST['set_default']) ? (int)$_POST['set_default'] : -1;
+
     if ($name === '') { echo json_encode(array('ok'=>false,'msg'=>'그룹명을 입력하세요.')); exit; }
 
     $hexVal = function($v, $d) {
@@ -144,6 +161,11 @@ if ($action === 'colorGroupSave') {
 
     if ($id > 0) {
         $pdo->prepare("UPDATE color_groups SET name=?,color_base=?,color_point=?,color_sub=?,color_sub2=? WHERE id=?")->execute(array($name,$base,$point,$sub,$sub2,$id));
+        if ($setDefault === 1) {
+            $pdo->exec("UPDATE color_groups SET is_default=0");
+            $pdo->prepare("UPDATE color_groups SET is_default=1 WHERE id=?")->execute(array($id));
+        }
+        // 기본 그룹이면 homepage_info도 동기화
         $stmt2 = $pdo->prepare("SELECT is_default FROM color_groups WHERE id=?");
         $stmt2->execute(array($id));
         $isDef = $stmt2->fetchColumn();
@@ -158,13 +180,30 @@ if ($action === 'colorGroupSave') {
     echo json_encode(array('ok'=>true,'id'=>$id)); exit;
 }
 
+if ($action === 'colorGroupSetDefault') {
+    $id = (int)($_POST['id'] ?? 0);
+    if ($id <= 0) { echo json_encode(array('ok'=>false,'msg'=>'잘못된 ID')); exit; }
+    $pdo->exec("UPDATE color_groups SET is_default=0");
+    $pdo->prepare("UPDATE color_groups SET is_default=1 WHERE id=?")->execute(array($id));
+    // homepage_info 동기화
+    $row = $pdo->query("SELECT color_base,color_point,color_sub,color_sub2 FROM color_groups WHERE id={$id}")->fetch(PDO::FETCH_ASSOC);
+    if ($row) {
+        $pdo->prepare("UPDATE homepage_info SET color_base=?,color_point=?,color_sub=?,color_sub2=? WHERE id=1")->execute(array($row['color_base'],$row['color_point'],$row['color_sub'],$row['color_sub2']));
+    }
+    logAdminAction($pdo, 'update', 'color_groups', 'default='.$id);
+    echo json_encode(array('ok'=>true)); exit;
+}
+
 if ($action === 'colorGroupDelete') {
     $id = (int)($_POST['id'] ?? 0);
     $stmt = $pdo->prepare("SELECT is_default FROM color_groups WHERE id=?");
     $stmt->execute(array($id));
     $isDef = $stmt->fetchColumn();
-    if ($isDef) { echo json_encode(array('ok'=>false,'msg'=>'기본 컬러 그룹은 삭제할 수 없습니다.')); exit; }
-    $pdo->prepare("DELETE FROM color_groups WHERE id=? AND is_default=0")->execute(array($id));
+    if ($isDef) { echo json_encode(array('ok'=>false,'msg'=>'기본 컬러 그룹은 삭제할 수 없습니다. 다른 그룹을 기본으로 설정 후 삭제하세요.')); exit; }
+    $pdo->prepare("DELETE FROM color_groups WHERE id=?")->execute(array($id));
+    // 이 그룹 쓰던 design_pages는 기본 그룹으로 변경
+    $defId = $pdo->query("SELECT id FROM color_groups WHERE is_default=1 LIMIT 1")->fetchColumn();
+    if ($defId) { $pdo->prepare("UPDATE design_pages SET color_group_id=? WHERE color_group_id=?")->execute(array($defId, $id)); }
     logAdminAction($pdo, 'delete', 'color_groups', (string)$id);
     echo json_encode(array('ok'=>true)); exit;
 }
@@ -189,7 +228,7 @@ if ($action === 'dynSectionListByGroup') {
 }
 
 /* =====================================================
-   디자인 페이지 목록/저장/삭제
+   디자인 페이지
 ===================================================== */
 if ($action === 'designPageList') {
     $rows = $pdo->query("SELECT p.*,sg.name as section_group_name,cg.name as color_group_name FROM design_pages p LEFT JOIN section_groups sg ON sg.id=p.section_group_id LEFT JOIN color_groups cg ON cg.id=p.color_group_id ORDER BY p.id DESC")->fetchAll(PDO::FETCH_ASSOC);
@@ -206,9 +245,7 @@ if ($action === 'designPageSave') {
 
     if ($slug === '') { echo json_encode(array('ok'=>false,'msg'=>'파일명을 입력하세요.')); exit; }
     $reserved = array('index','admin','lib','js','style','img','chatbot');
-    if (in_array($slug, $reserved, true)) {
-        echo json_encode(array('ok'=>false,'msg'=>'사용할 수 없는 파일명입니다.')); exit;
-    }
+    if (in_array($slug, $reserved, true)) { echo json_encode(array('ok'=>false,'msg'=>'사용할 수 없는 파일명입니다.')); exit; }
 
     $rootDir  = realpath(__DIR__ . '/../../') . '/';
     $filePath = $rootDir . $slug . '.php';
@@ -247,9 +284,7 @@ if ($action === 'designPageDelete') {
         $filePath = $rootDir . $row['slug'] . '.php';
         if (file_exists($filePath)) {
             $contents = file_get_contents($filePath);
-            if (strpos($contents, '// [자동생성]') !== false) {
-                @unlink($filePath);
-            }
+            if (strpos($contents, '// [자동생성]') !== false) { @unlink($filePath); }
         }
         $pdo->prepare("DELETE FROM design_pages WHERE id=?")->execute(array($id));
         logAdminAction($pdo, 'delete', 'design_pages', (string)$id);
