@@ -17,7 +17,7 @@ $bp-xs: 480px;
   --aqua2: #7df9ff;
   --white: #fff;
   --off:   #f7f9fc;
-  --mist:  #eef3fb;
+  --mist:  color-mix(in srgb, var(--color-point) 10%, transparent);
   --pale:  #d6eafc;
   --g2: #e2e8f0;
   --g3: #cbd5e1;
