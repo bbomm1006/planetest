@@ -25,7 +25,7 @@
   --ln: #e0d4c3;
   --ff: 'Pretendard', 'Noto Sans KR', sans-serif;
   --cont: 1260px;
-  --hh:   72px;   /* 헤더 높이 */
+
   --sw:   40px;   /* 서비스 전환 바 높이 */
   --ease: cubic-bezier(.22, .68, 0, 1.2);
 }
@@ -36,9 +36,59 @@ body.castle{
   line-height: 1.7;
   color: var(--g6);
   background: var(--w);
+
+  // ══════════════════════════════════════
+  //   bkf_public  —  예약 폼 프론트 UI 
+  //   접두어: .bkf-*
+  // ══════════════════════════════════════
+
+  /* 모든 bkf 컴포넌트 radius 제거 */
+  [class^="bkf-"],
+  [class*=" bkf-"] {
+    border-radius: 0 !important;
+  }
+
+  .bkf-btn-next,
+  .bkf-btn-submit,
+  .bkf-btn-primary {
+    background: var(--color-sub2) !important;
+    box-shadow: none !important;
+  }
+
+  .bkf-btn-next:hover,
+  .bkf-btn-submit:hover,
+  .bkf-btn-primary:hover {
+    background: var(--color-sub2) !important;
+  }
+
+  nav{
+    @media(min-width:767px)  {
+      padding: 0;
+      .nav-logo{
+        margin-left: 20px;
+      }
+    }
+    .nav-cta{
+      border-radius: 0;
+      padding: 0 20px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--g6);
+    }
+    
+    @media(max-width:768px)  {
+      .nav-cta{
+        display: none;
+      }
+    }
+  }
+
 }
 
 body.castle{
+
   /* ───────────────────────────────────
     3. 컨테이너
   ─────────────────────────────────── */
@@ -226,58 +276,6 @@ body.castle{
   /*********************/
 
 
-  /* ───────────────────────────────────
-    4. 히어로
-  ─────────────────────────────────── */
-  #sec-build { position: relative; width: 100%; height: calc(100vh - var(--hh) - var(--sw)); min-height: 560px; max-height: 900px; overflow: hidden; }
-  .build-slides { position: relative; width: 100%; height: 100%; }
-  .build-sl { position: absolute; inset: 0; opacity: 0; transition: opacity 1.2s ease; z-index: 0; }
-  .build-sl.on { opacity: 1; z-index: 1; }
-  .build-bg { position: absolute; inset: 0; background-size: cover; background-position: center; transition: transform 9s ease; }
-  .build-sl.on .build-bg { transform: scale(1.07); }
-  .build-bg-def { background: linear-gradient(150deg, #0d0804 0%, #2a1a0e 45%, #3d2214 100%); }
-  .build-ov { position: absolute; inset: 0; }
-
-  .build-cnt { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; justify-content: center; padding: 0 8vw 80px; }
-  .build-badge { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 28px; opacity: 0; animation: buildFadeUp .9s .2s forwards; }
-  .build-badge-bar { width: 36px; height: 1px; background: var(--gold); }
-  .build-badge-txt { font-size: .7rem; font-weight: 700; letter-spacing: .28em; text-transform: uppercase; color: var(--gold); }
-  .build-sub { font-size: clamp(1rem,2.2vw,1.4rem); font-weight: 300; color: rgba(255,255,255,.55); letter-spacing: .14em; text-transform: uppercase; margin-bottom: 16px; opacity: 0; animation: buildFadeUp .9s .35s forwards; }
-  .build-ttl { font-size: clamp(2.8rem,6.5vw,5.2rem); font-weight: 900; color: var(--w); line-height: 1.08; letter-spacing: -.04em; margin-bottom: 24px; opacity: 0; animation: buildFadeUp .9s .5s forwards; }
-  .build-ttl strong { display: block; color: var(--gold); }
-  .build-desc { font-size: clamp(.88rem,1.4vw,1rem); color: rgba(255,255,255,.55); line-height: 1.85; margin-bottom: 44px; max-width: 480px; font-weight: 300; opacity: 0; animation: buildFadeUp .9s .65s forwards; }
-  .build-acts { display: flex; gap: 14px; flex-wrap: wrap; opacity: 0; animation: buildFadeUp .9s .8s forwards; }
-
-  .build-btn { display: inline-flex; align-items: center; gap: 10px; padding: 15px 36px; font-size: .84rem; font-weight: 700; letter-spacing: .08em; transition: all .25s; white-space: nowrap; font-family: var(--ff); border: none; cursor: pointer; }
-  .build-btn-fill { background: var(--br); color: var(--w); }
-  .build-btn-fill:hover { background: var(--bk2); transform: translateY(-2px); }
-  .build-btn-out { color: var(--w); border: 1px solid rgba(255,255,255,.4); background: transparent; }
-  .build-btn-out:hover { border-color: var(--gold); color: var(--gold); transform: translateY(-2px); }
-
-  /* 슬라이더 컨트롤 */
-  .build-ctrl { position: absolute; bottom: 36px; left: 8vw; z-index: 10; display: flex; align-items: center; gap: 16px; }
-  .build-dots { display: flex; gap: 7px; }
-  .build-dot { width: 5px; height: 5px; background: rgba(255,255,255,.25); border: none; cursor: pointer; transition: all .3s var(--ease); padding: 0; }
-  .build-dot.on { background: var(--gold); width: 28px; }
-
-  /* 우측 인포 패널 */
-  .build-info-panel {
-    position: absolute; right: 0; bottom: 0; z-index: 3;
-    width: clamp(200px, 20vw, 280px);
-    background: rgba(63,42,21,.75); backdrop-filter: blur(8px);
-    display: flex; flex-direction: column; justify-content: center;
-    padding: 40px 28px; border-left: 1px solid rgba(255,255,255,.07);
-  }
-  .build-info-item { margin-bottom: 28px; }
-  .build-info-item:last-child { margin-bottom: 0; }
-  .build-info-lbl { font-size: .62rem; font-weight: 700; letter-spacing: .2em; color: var(--gold); text-transform: uppercase; margin-bottom: 6px; }
-  .build-info-val { font-size: .9rem; font-weight: 600; color: var(--w); line-height: 1.5; }
-
-  /* 스크롤 힌트 */
-  .build-scroll-hint { position: absolute; right: clamp(220px,21vw,290px); bottom: 36px; z-index: 3; display: flex; align-items: center; gap: 10px; opacity: .4; }
-  .build-scroll-hint span { font-size: .62rem; font-weight: 700; letter-spacing: .2em; color: var(--w); text-transform: uppercase; }
-  .build-scroll-line { width: 44px; height: 1px; background: var(--w); position: relative; overflow: hidden; }
-  .build-scroll-line::after { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: var(--gold); animation: scrollMove 1.8s ease-in-out infinite; }
 
   /* ───────────────────────────────────
     5. 퀵 링크 바
@@ -403,6 +401,7 @@ body.castle{
     16. CTA 섹션
   ─────────────────────────────────── */
   .cta-sec  { padding: 80px 0; background: var(--br); }
+  .cta-sec .container{ max-width: none;}
   .cta-inner { display: flex; align-items: center; justify-content: space-between; gap: 36px; flex-wrap: wrap; }
   .cta-eyebrow { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
   .cta-eyebrow-line { width: 20px; height: 1px; background: rgba(255,255,255,.4); }
@@ -435,10 +434,10 @@ body.castle{
     .interest-layout    { grid-template-columns: 1fr; }
   }
   @media (max-width: 680px) {
-    :root { --hh: 60px; }
+
     .container     { padding: 0 20px; }
     .sec           { padding: 68px 0; }
-    #sec-build     { max-height: 640px; min-height: 460px; }
+    
     .build-cnt     { padding: 0 24px 60px; }
     .build-ttl     { font-size: clamp(2.2rem,10vw,3.4rem); }
     .build-desc    { font-size: .875rem; margin-bottom: 28px; }
@@ -449,10 +448,14 @@ body.castle{
     .unit-filter-btn { flex: none; width: 50%; }
     .int-grid      { grid-template-columns: 1fr 1fr; }
     .board-tbl th.cc, .board-tbl td.cc { display: none; }
-    .cta-inner     { flex-direction: column; text-align: center; }
+
     .cta-acts      { justify-content: center; }
     .form-row.r2   { grid-template-columns: 1fr; }
   }
+
+  @media (max-width:1024px){.inq-layout{grid-template-columns:1fr;gap:32px;}}
+  @media (max-width:768px){.sec-head{margin-bottom:30px}.inq-layout{grid-template-columns:1fr;gap:24px;}.inq-quick{display:none}.inq-layout>div:last-child{order:-1;}.inq-side-card{padding:20px 18px;}.inq-side-ph{font-size:1rem;}.inq-side-txt{font-size:.75rem;}.inq-layout>div:last-child>div:last-child{padding:16px 18px;}.btn-solid{height:44px;font-size:.9rem;}.form-row{margin-bottom:14px;}.form-ta{min-height:120px;}}
+  @media (max-width:480px){.inq-side-lbl{font-size:.55rem;}.inq-side-ph{font-size:.95rem;}.inq-side-txt{line-height:1.6;}.btn-solid{height:42px;font-size:.85rem;}}
 
   .terms-view-btn {
     flex-shrink: 0;
@@ -490,4 +493,5 @@ body.castle{
   .terms-modal-ft { padding: 16px 28px 22px; border-top: 1px solid var(--ln); display: flex; justify-content: flex-end; }
   .terms-modal-close-btn { padding: 10px 36px; font-size: .84rem; font-weight: 700; background: var(--br); color: var(--w); border: none; cursor: pointer; font-family: var(--ff); letter-spacing: .06em; transition: background .2s; }
   .terms-modal-close-btn:hover { background: var(--bk2); }
+
 }
