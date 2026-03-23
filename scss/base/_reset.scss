@@ -1,0 +1,29 @@
+// ══════════════════════════════════════
+//   RESET & BASE
+//   원본: reset.css (토큰 제외 나머지)
+// ══════════════════════════════════════
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+body {
+  font-family: 'DM Sans', 'Noto Sans KR', sans-serif;
+  background: var(--white);
+  color: var(--ink);
+  overflow-x: hidden;
+}
+
+#backToTop {
+  position: fixed; bottom: 24px; right: 28px; z-index: 81;
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--white); color: var(--ink2);
+  border: 1px solid var(--g2); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; visibility: hidden;
+  transition: opacity .3s, visibility .3s, transform .3s, box-shadow .3s;
+  box-shadow: var(--sh-card); padding: 0;
+
+  &.show { opacity: 1; visibility: visible; }
+  &:hover { transform: translateY(-3px); box-shadow: var(--sh-float); }
+
+  @media (max-width: 480px) { bottom: 14px; right: 16px; width: 44px; height: 44px; }
+}

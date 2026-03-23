@@ -1,0 +1,45 @@
+// ══════════════════════════════════════
+//   MODAL  — 백드롭 + 공통 헤더/닫기
+// ══════════════════════════════════════
+
+// ── 모달 열릴 때 body 스크롤 잠금 (iOS Safari 포함)
+body.modal-open { overflow: hidden; touch-action: none; }
+
+// ── 공통 백드롭
+.mbg {
+  position: fixed; inset: 0;
+  background: rgba(8, 14, 26, .68);
+  backdrop-filter: blur(8px);
+  z-index: 1100;
+  overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 24px 16px;
+  opacity: 0; transition: opacity .28s;
+  pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+  &.open { opacity: 1; pointer-events: all; }
+}
+
+// ── 공통 모달 헤더
+.mhd {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--g2);
+  flex-shrink: 0;
+  h2 { font-size: 1rem; font-weight: 800; color: var(--ink2); }
+}
+
+// ── 닫기 버튼
+.mclose {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: none; background: var(--off);
+  cursor: pointer; display: grid; place-items: center;
+  transition: background .18s;
+  &:hover { background: var(--g2); }
+  svg { width: 13px; height: 13px; stroke: var(--g5); stroke-width: 2.5; }
+}
+
+// ── 공통 모달 오픈 시 transform 초기화
+.mbg.open {
+  .pmod, .cmod, .combmod, .capmod { transform: translateY(0); }
+}

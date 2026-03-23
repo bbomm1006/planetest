@@ -1,0 +1,37 @@
+// ══════════════════════════════════════
+//   main.scss  —  진입점
+//   빌드: sass scss/main.scss dist/main.css --style=compressed
+// ══════════════════════════════════════
+
+// ── 1. Abstracts (출력 없음, 설정만)
+@use 'abstracts/variables';
+@use 'abstracts/mixins';
+
+// ── 2. Base
+@use 'base/reset';
+@use 'base/layout';
+
+// ── 3. Components (재사용 UI 조각)
+@use 'components/modal';
+@use 'components/utils';
+@use 'components/board';
+@use 'components/floating';
+
+// ── 4. Sections (페이지 구성 섹션)
+@use 'sections/hero';
+@use 'sections/benefits';
+@use 'sections/products';
+@use 'sections/compare';
+@use 'sections/combo';
+@use 'sections/videos';
+@use 'sections/event';
+@use 'sections/notices';
+@use 'sections/stores';
+@use 'sections/faq';
+@use 'sections/gallery';
+@use 'sections/reservation';
+@use 'sections/footer';
+
+// ── 5. Features (독립 기능 단위)
+@use 'features/bkf_public';
+@use 'features/custom_inquiry';

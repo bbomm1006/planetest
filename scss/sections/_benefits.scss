@@ -1,0 +1,35 @@
+// ══════════════════════════════════════
+//   BENEFITS
+// ══════════════════════════════════════
+
+.bfg {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+  @media (max-width: 768px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 480px) { grid-template-columns: 1fr; }
+}
+.bc {
+  background: var(--white); border-radius: var(--card-r); padding: 30px 26px;
+  border: 1px solid var(--g2); position: relative; overflow: hidden;
+  transition: transform .28s var(--ease-out), box-shadow .28s;
+  &::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--sky), var(--aqua));
+    transform: scaleX(0); transform-origin: left; transition: transform .35s var(--ease-out);
+  }
+  &:hover { transform: translateY(-6px); box-shadow: 0 16px 44px rgba(18,85,166,.1); }
+  &:hover::after { transform: scaleX(1); }
+  &:hover .bc-n  { color: var(--pale); }
+}
+.bc-n {
+  position: absolute; top: 20px; right: 22px;
+  font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; color: var(--g2); line-height: 1;
+  transition: color .3s;
+}
+.bc-ico {
+  width: 52px; height: 52px; border-radius: 14px;
+  background: linear-gradient(135deg, var(--pale), var(--mist));
+  display: grid; place-items: center; margin-bottom: 20px;
+  svg { width: 25px; height: 25px; }
+}
+.bc-title { font-weight: 800; font-size: 1rem; color: var(--ink2); margin-bottom: 8px; }
+.bc-desc  { font-size: .84rem; color: var(--g5); line-height: 1.78; word-break: keep-all; }

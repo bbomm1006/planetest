@@ -1,0 +1,15 @@
+// ══════════════════════════════════════
+//   UTILS  — 공통 유틸리티
+// ══════════════════════════════════════
+
+// ── Fade-up 애니메이션 유틸
+.fu {
+  opacity: 0; transform: translateY(30px);
+  transition: opacity .68s var(--ease-out), transform .68s var(--ease-out);
+  &.v { opacity: 1; transform: none; }
+  &:nth-child(2) { transition-delay: .08s; }
+  &:nth-child(3) { transition-delay: .16s; }
+  &:nth-child(4) { transition-delay: .24s; }
+  &:nth-child(5) { transition-delay: .32s; }
+  &:nth-child(6) { transition-delay: .40s; }
+}

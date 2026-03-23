@@ -1,0 +1,134 @@
+// ══════════════════════════════════════
+//   COMBO CALCULATOR MODAL
+// ══════════════════════════════════════
+
+.combmod {
+  background: var(--white); border-radius: var(--modal-r);
+  width: 100%; max-width: 680px; max-height: calc(100svh - 48px);
+  display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: var(--sh-modal); transform: translateY(20px);
+  transition: transform .28s var(--ease-out); flex-shrink: 0;
+  .mhd { flex-shrink: 0; }
+}
+.combo-scroll-area { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; min-height: 0; }
+.combo-head { padding: 26px 32px 0; }
+.combo-tag  { display: inline-block; font-size: .62rem; font-weight: 800; letter-spacing: 2.5px; text-transform: uppercase; color: var(--green); background: rgba(16,185,129,.1); padding: 4px 12px; border-radius: 100px; margin-bottom: 12px; }
+.combo-head {
+  h2 { font-size: 1.5rem; font-weight: 900; color: var(--ink2); letter-spacing: -.5px; margin-bottom: 6px; }
+  p  { font-size: .84rem; color: var(--g5); line-height: 1.65; padding-bottom: 20px; border-bottom: 1px solid var(--g2); }
+}
+.combo-body { padding: 24px 32px; }
+
+.comb-prods    { display: flex; gap: 12px; margin-bottom: 20px; }
+.comb-prod {
+  flex: 1; border: 1.5px solid var(--g2); border-radius: 14px; padding: 14px;
+  position: relative; background: var(--off);
+  &.sel { border-color: var(--sky); background: var(--mist); }
+}
+.comb-prod-img  { width: 52px; height: 52px; border-radius: 10px; overflow: hidden; font-size: 1.8rem; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; img { width: 100%; height: 100%; object-fit: cover; } }
+.comb-prod-name { font-size: .78rem; font-weight: 700; color: var(--ink2); margin-bottom: 3px; line-height: 1.3; }
+.comb-prod-pr   { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--blue); letter-spacing: .5px; span { font-size: .65rem; font-family: 'DM Sans', sans-serif; color: var(--g5); letter-spacing: 0; } }
+.comb-x {
+  position: absolute; top: 8px; right: 8px; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--g2); border: none; cursor: pointer; display: grid; place-items: center;
+  font-size: .9rem; line-height: 1; transition: background .15s;
+  &:hover { background: var(--red); color: #fff; }
+}
+
+// ── 할인 계산기
+.disc-box   { background: linear-gradient(135deg, var(--ink) 0%, #0d2a5e 100%); border-radius: 16px; padding: 22px 22px 18px; color: #fff; margin-bottom: 18px; }
+.disc-row   { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: .83rem; & + & { border-top: 1px solid rgba(255,255,255,.08); } }
+.disc-row.orig    { color: rgba(255,255,255,.5); }
+.disc-row.discount { color: #6ee7b7; }
+.disc-row.combo-d  { color: var(--aqua); }
+.disc-row.card-d   { color: #fbbf24; }
+.disc-row.total    { font-weight: 900; font-size: 1rem; color: #fff; border-top: 1.5px solid rgba(255,255,255,.2) !important; margin-top: 4px; padding-top: 12px; .disc-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.55rem; color: var(--aqua); letter-spacing: .5px; } }
+.disc-save     { background: rgba(16,185,129,.15); border-radius: 10px; padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+.disc-save-txt { font-size: .72rem; color: #6ee7b7; font-weight: 600; }
+.disc-save-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.05rem; color: #6ee7b7; letter-spacing: .5px; }
+
+// ── 카드 할인
+.card-disc-row { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+.card-btn {
+  padding: 7px 16px; border-radius: 100px; border: 1.5px solid var(--g2);
+  background: #fff; font-size: .76rem; font-weight: 700; cursor: pointer;
+  font-family: inherit; color: var(--g5); transition: all .2s;
+  &.on { background: var(--ink2); color: #fff; border-color: transparent; }
+}
+
+// ── 콤보 푸터 CTA
+.combo-footer    { padding: 0 32px 24px; flex-shrink: 0; }
+.combo-cta       { display: flex; gap: 10px; }
+.combo-apply-btn {
+  flex: 1; padding: 14px; border-radius: 12px; border: none; cursor: pointer;
+  font-family: inherit; font-weight: 800; font-size: .96rem;
+  background: linear-gradient(90deg, var(--blue), var(--sky)); color: #fff;
+  box-shadow: 0 6px 24px rgba(18,85,166,.3); transition: all .22s;
+  &:hover    { transform: translateY(-2px); }
+  &:disabled { opacity: .45; cursor: default; transform: none; }
+}
+.combo-close-btn {
+  padding: 14px 20px; border-radius: 12px; border: 1.5px solid var(--g2);
+  background: #fff; color: var(--ink2); font-weight: 700; font-size: .9rem;
+  cursor: pointer; font-family: inherit; transition: all .2s;
+  &:hover { background: var(--off); }
+}
+
+// ── 콤보 신청 폼 모달
+.capmod {
+  background: #fff; border-radius: var(--modal-r);
+  width: 100%; max-width: 560px; max-height: calc(100svh - 48px);
+  display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: var(--sh-modal); transform: translateY(20px);
+  transition: transform .28s var(--ease-out); flex-shrink: 0;
+  .mhd { flex-shrink: 0; }
+}
+.cap-inner { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; min-height: 0; padding: 28px 32px 32px; }
+.cap-prods-summary { background: var(--mist); border-radius: 12px; padding: 14px 16px; margin-bottom: 22px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.cap-prod-pill  { display: flex; align-items: center; gap: 6px; background: #fff; border-radius: 100px; padding: 5px 12px 5px 8px; border: 1px solid var(--g2); }
+.cap-prod-dot   { width: 8px; height: 8px; border-radius: 50%; background: var(--sky); }
+.cap-prod-nm    { font-size: .76rem; font-weight: 700; color: var(--ink2); }
+.cap-plus       { font-size: 1rem; color: var(--g4); font-weight: 700; }
+.cap-disc-badge { margin-left: auto; background: var(--green); color: #fff; font-size: .68rem; font-weight: 800; padding: 4px 10px; border-radius: 100px; white-space: nowrap; }
+
+// ── 타임슬롯
+.time-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 6px; }
+.ts {
+  display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 10px;
+  border: 1.5px solid var(--g2); cursor: pointer; transition: all .2s;
+  &:hover { border-color: var(--sky); }
+  input[type=radio] { display: none; }
+  &.checked { border-color: var(--sky); background: var(--mist); .ts-label { color: var(--blue); font-weight: 700; } .ts-check { border-color: var(--sky); background: var(--sky); &::after { content: ''; width: 5px; height: 5px; border-radius: 50%; background: #fff; } } }
+}
+.ts-label { font-size: .8rem; font-weight: 600; color: var(--g7); cursor: pointer; user-select: none; }
+.ts-check { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--g3); flex-shrink: 0; display: grid; place-items: center; transition: all .18s; }
+
+// ── 폼 필드 (캡 폼 공통)
+.fg  { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.fl  { font-size: .73rem; font-weight: 700; color: var(--ink2); em { color: var(--sky); font-style: normal; } }
+.fi, .fs, .fta {
+  border: 1.5px solid var(--g2); border-radius: 10px; padding: 10px 14px;
+  font-size: .85rem; font-family: inherit; color: var(--ink); background: #fff; outline: none; width: 100%;
+  transition: border-color .2s, box-shadow .2s;
+  &:focus { border-color: var(--sky); box-shadow: 0 0 0 3px rgba(30,127,232,.1); }
+}
+.fta { min-height: 80px; resize: vertical; }
+.priv-wrap   { background: var(--off); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; border: 1px solid var(--g2); }
+.priv-scroll { max-height: 80px; overflow-y: auto; font-size: .73rem; color: var(--g5); line-height: 1.65; margin-bottom: 10px; }
+.priv-check  { display: flex; align-items: center; gap: 8px; cursor: pointer; input { width: 15px; height: 15px; cursor: pointer; accent-color: var(--sky); } span { font-size: .78rem; font-weight: 600; color: var(--ink2); } }
+.cap-ok { display: none; text-align: center; padding: 48px 32px; svg { width: 72px; height: 72px; margin-bottom: 18px; } h3 { font-size: 1.4rem; font-weight: 900; color: var(--ink2); margin-bottom: 10px; } p { font-size: .88rem; color: var(--g5); line-height: 1.75; } }
+
+// ── 반응형
+@media (max-width: 768px) {
+  .comb-prods  { flex-direction: column; }
+  .time-grid   { grid-template-columns: repeat(2, 1fr); }
+  .combo-head  { padding: 20px 20px 0; }
+  .combo-body  { padding: 16px 20px; }
+  .combo-footer { padding: 0 20px 20px; }
+  .cap-inner   { padding: 20px 20px 24px; }
+  .disc-box    { padding: 16px 16px 14px; }
+}
+@media (max-width: 640px) {
+  .combo-head h2 { font-size: 1.15rem; }
+  .time-grid     { grid-template-columns: repeat(2, 1fr); }
+}

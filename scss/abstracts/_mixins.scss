@@ -1,0 +1,54 @@
+// ══════════════════════════════════════
+//   MIXINS  — 반복되는 반응형·패턴 모음
+// ══════════════════════════════════════
+
+@use 'variables' as v;
+
+// ── 미디어쿼리 단축 믹스인
+@mixin md { @media (max-width: #{v.$bp-md}) { @content; } }
+@mixin sm { @media (max-width: #{v.$bp-sm}) { @content; } }
+@mixin xs { @media (max-width: #{v.$bp-xs}) { @content; } }
+
+// ── Flex 중앙 정렬
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// ── Grid 중앙 배치
+@mixin grid-center {
+  display: grid;
+  place-items: center;
+}
+
+// ── 텍스트 말줄임 (여러 줄)
+@mixin line-clamp($lines) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// ── 스크롤바 숨김
+@mixin hide-scrollbar {
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  &::-webkit-scrollbar { display: none; }
+}
+
+// ── 공통 카드 호버 상승 효과
+@mixin card-hover($lift: 6px, $shadow: 0 16px 48px rgba(18, 85, 166, .13)) {
+  transition: transform .28s var(--ease-out), box-shadow .28s;
+  &:hover {
+    transform: translateY(-#{$lift});
+    box-shadow: $shadow;
+  }
+}
+
+// ── 그라디언트 버튼 공통
+@mixin btn-gradient($from: var(--blue), $to: var(--sky)) {
+  background: linear-gradient(90deg, #{$from}, #{$to});
+  color: #fff;
+  border: none;
+}
