@@ -12,27 +12,6 @@ function colorNormalize(v) {
   return v;
 }
 
-// ── 페이지 진입 시 데이터 로드 ───────────────────────────
-function colorLoad() {
-  fetch('api/color.php?action=get')
-    .then(r => {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
-    })
-    .then(res => {
-      if (!res.ok) throw new Error(res.msg || 'API error');
-      const d = res.data;
-      colorSetAll('color_base',  d.color_base  || '#1255a6');
-      colorSetAll('color_point', d.color_point || '#1e7fe8');
-      colorSetAll('color_sub',   d.color_sub   || '#00c6ff');
-      colorSetAll('color_sub2',  d.color_sub2  || '#1a2540');
-      colorRefreshPreview();
-    })
-    .catch(err => {
-      console.warn('[colorLoad] 컬러 설정 불러오기 실패:', err);
-    });
-}
-
 // picker + text + bar 동시 설정
 function colorSetAll(key, val) {
   const norm   = colorNormalize(val);
@@ -96,33 +75,4 @@ function colorRefreshPreview() {
 
   const dot2 = document.getElementById('clr_prev_dot2');
   if (dot2 && ok(sub2)) dot2.style.background = sub2;
-}
-
-// ── 저장 ────────────────────────────────────────────────
-function colorSave() {
-  const base  = (document.getElementById('color_base_text')?.value  || '').trim();
-  const point = (document.getElementById('color_point_text')?.value || '').trim();
-  const sub   = (document.getElementById('color_sub_text')?.value   || '').trim();
-  const sub2  = (document.getElementById('color_sub2_text')?.value  || '').trim();
-
-  const hexOk = v => /^#[0-9a-fA-F]{3,8}$/.test(v);
-  if (!hexOk(base) || !hexOk(point) || !hexOk(sub) || !hexOk(sub2)) {
-    showToast('올바른 HEX 색상 코드를 입력해주세요. (예: #1255a6)', 'error');
-    return;
-  }
-
-  const fd = new FormData();
-  fd.append('action',      'save');
-  fd.append('color_base',  base);
-  fd.append('color_point', point);
-  fd.append('color_sub',   sub);
-  fd.append('color_sub2',  sub2);
-
-  fetch('api/color.php', { method: 'POST', body: fd })
-    .then(r => r.json())
-    .then(res => {
-      if (res.ok) showToast('컬러가 저장되었습니다. 프론트를 새로고침하면 즉시 반영됩니다.', 'success');
-      else        showToast(res.msg || '저장 실패', 'error');
-    })
-    .catch(() => showToast('서버 오류가 발생했습니다.', 'error'));
 }
