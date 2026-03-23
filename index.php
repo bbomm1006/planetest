@@ -1,5 +1,5 @@
 <?php include 'lib/__head.php'; ?>
-<body>
+<body class="<?= defined('PAGE_SLUG') ? htmlspecialchars(PAGE_SLUG) : 'index' ?>">
 
 <?php
   $legalSlug = isset($_GET['legal']) ? preg_replace('/[^a-zA-Z0-9\-_]/', '', (string) $_GET['legal']) : '';

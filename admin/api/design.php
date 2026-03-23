@@ -254,6 +254,7 @@ if ($action === 'designPageSave') {
     $phpContent .= "// [자동생성] 디자인 만들기 — {$slug}\n";
     $phpContent .= "defined('PAGE_SECTION_GROUP') || define('PAGE_SECTION_GROUP', {$sgId});\n";
     $phpContent .= "defined('PAGE_COLOR_GROUP')   || define('PAGE_COLOR_GROUP',   {$cgId});\n";
+    $phpContent .= "defined('PAGE_SLUG')           || define('PAGE_SLUG',           '{$slug}');\n";
     if (trim($extraCss) !== '') {
         $escaped     = str_replace("'", "\\'", $extraCss);
         $phpContent .= "defined('PAGE_EXTRA_CSS') || define('PAGE_EXTRA_CSS', '" . $escaped . "');\n";
