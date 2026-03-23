@@ -263,39 +263,6 @@
     .review-name { font-size:13px; font-weight:700; }
     .review-plan { font-size:11px; color:var(--gray-400); margin-top:1px; }
 
-    /* ─── RECOMMEND ─── */
-    #recommend { background:var(--gray-50); padding-left:0; padding-right:0; }
-    .recommend-wrap {
-    background:linear-gradient(135deg,var(--color-base),var(--color-point));
-    border-radius:0; padding:52px 48px; color:white;
-    display:flex; flex-direction:column; align-items:center; gap:36px;
-    position:relative; overflow:hidden; text-align:center;
-    }
-    .recommend-wrap::before { content:''; position:absolute; right:-60px; top:-60px; width:260px; height:260px; border-radius:50%; background:rgba(255,255,255,0.1); }
-    .recommend-wrap::after { content:''; position:absolute; left:-40px; bottom:-80px; width:180px; height:180px; border-radius:50%; background:rgba(255,255,255,0.07); }
-    .recommend-content { position:relative; z-index:1; }
-    .recommend-content h2 { font-size:clamp(26px,3vw,36px); font-weight:900; margin-bottom:8px; letter-spacing:-1px; }
-    .recommend-content p { font-size:15px; opacity:0.85; line-height:1.6; }
-    .recommend-steps { display:flex; gap:12px; position:relative; z-index:1; width:100%; justify-content:center; flex-wrap:nowrap; }
-    .recommend-step { background:rgba(255,255,255,0.18); border-radius:14px; padding:16px 20px; display:flex; align-items:center; gap:10px; font-size:14px; font-weight:700; flex:1; max-width:240px; }
-    .recommend-step-num { width:28px; height:28px; border-radius:50%; flex-shrink:0; background:white; color:var(--color-base); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:900; }
-    .data-slider-wrap { position:relative; z-index:1; width:100%; max-width:680px; padding:0; }
-    .data-slider-label { font-size:13px; font-weight:600; opacity:0.85; margin-bottom:6px; }
-    .data-slider-value { font-size:44px; font-weight:900; letter-spacing:-2px; line-height:1; margin-bottom:18px; }
-    .data-slider-value span { font-size:18px; font-weight:600; opacity:0.8; margin-left:3px; }
-    .data-slider { -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:3px; outline:none; cursor:pointer; background:rgba(255,255,255,0.3); }
-    .data-slider::-webkit-slider-thumb { -webkit-appearance:none; width:24px; height:24px; border-radius:50%; background:white; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.2); }
-    .data-slider::-moz-range-thumb { width:24px; height:24px; border-radius:50%; border:none; background:white; cursor:pointer; }
-    .data-slider-ticks { display:flex; justify-content:space-between; margin-top:8px; font-size:11px; opacity:0.6; }
-    .data-slider-result { margin-top:18px; padding-top:18px; border-top:1px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:space-between; gap:14px; }
-    .data-slider-result-label { font-size:12px; opacity:0.8; }
-    .data-slider-result-plan { font-size:17px; font-weight:800; }
-    .data-slider-btn { padding:11px 24px; border-radius:10px; background:white; color:var(--color-base); border:none; font-size:14px; font-weight:800; cursor:pointer; transition:all 0.2s; white-space:nowrap; box-shadow:0 4px 14px rgba(0,0,0,0.12); }
-    .data-slider-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(0,0,0,0.16); }
-
-    .si-clone { pointer-events:auto; }
-    .scroll-track { scroll-behavior:smooth; }
-    .plan-row-num-row { display:flex; align-items:baseline; gap:6px; }
 
     /* ─── NOTICE + FAQ ─── */
     #notice-faq { background:var(--gray-50); text-align: left; }
@@ -449,35 +416,7 @@
   /* ─ REVIEWS ─ */
   .review-card { padding:18px; }
 
-  /* ─ RECOMMEND ─ */
-  .recommend-wrap {
-    padding: 36px 20px;
-    border-radius: 0;
-    overflow: hidden;
-    text-align: center;
-    gap: 28px;
-  }
-  .recommend-content h2 { font-size:clamp(20px,5.5vw,28px); letter-spacing:-0.5px; }
-  .recommend-content p { font-size:14px; }
-  .recommend-steps {
-    flex-direction: column;
-    gap: 10px;
-    width: 100%;
-  }
-  .recommend-step {
-    max-width: 100%;
-    padding: 14px 18px;
-    font-size:13px;
-    justify-content: flex-start;
-  }
-  .data-slider-wrap { width:100%; padding:22px 20px; box-sizing:border-box; }
-  .data-slider-value { font-size:38px; }
-  .data-slider-result {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  .data-slider-btn { width:100%; text-align:center; padding:13px; }
+  
 
   /* ─ NOTICE + FAQ ─ */
   #notice-faq { padding:36px 0; }
@@ -534,9 +473,7 @@
   .event-thumb { height:180px; }
   .event-thumb-title { font-size:16px; }
 
-  /* 추천 */
-  .data-slider-value { font-size:32px; }
-  .recommend-step { padding:12px 14px; font-size:12px; }
+
 }
 
 
@@ -906,33 +843,6 @@
     </section>
 
 
-    <!-- ═══ RECOMMEND ═══ -->
-    <section id="recommend" style="padding:0">
-    <div class="recommend-wrap">
-        <div class="recommend-content">
-            <h2>내게 딱 맞는 요금제를 찾아드려요</h2>
-            <p>사용 패턴 3가지 질문으로 최적의 요금제를 추천해 드립니다.</p>
-        </div>
-        <div class="recommend-steps">
-            <div class="recommend-step"><span class="recommend-step-num">1</span> 데이터 사용량 입력</div>
-            <div class="recommend-step"><span class="recommend-step-num">2</span> 통화 패턴 선택</div>
-            <div class="recommend-step"><span class="recommend-step-num">3</span> 맞춤 요금제 확인</div>
-        </div>
-        <div class="data-slider-wrap">
-            <div class="data-slider-label">📊 1단계 · 한 달 데이터 사용량이 얼마나 되나요?</div>
-            <div class="data-slider-value" id="sliderVal">10<span>GB</span></div>
-            <input type="range" class="data-slider" id="dataSlider" min="0" max="6" value="2" step="1" oninput="updateSlider(this.value)">
-            <div class="data-slider-ticks"><span>1GB</span><span>3GB</span><span>10GB</span><span>15GB</span><span>30GB</span><span>50GB</span><span>무제한</span></div>
-            <div class="data-slider-result">
-            <div>
-                <div class="data-slider-result-label">추천 요금제</div>
-                <div class="data-slider-result-plan" id="sliderPlan">슬림 15GB 플러스 · 월 19,900원</div>
-            </div>
-            <button class="data-slider-btn" onclick="location.href='#usim'">요금제 보기 →</button>
-            </div>
-        </div>
-    </div>
-    </section>
 
     <!-- ═══ NOTICE + FAQ ═══ -->
     <section id="notice-faq">

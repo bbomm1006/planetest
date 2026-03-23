@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<link rel="stylesheet" href="https://plane01.gabia.io/style/main.min.css">
+
+<style>
+    :root {
+    /* ── 브랜드 컬러 토큰 ── */  
+    --color-base:  #FF4D7D;   
+    /* 기본컬러  · 버튼·링크·뱃지      */
+
+    --color-point: #FF7FA3;   
+    /* 포인트컬러· 호버·그라디언트·활성 */
+
+    --color-sub:   #FFF0F4;   
+    /* 서브컬러  · 액센트·네비·아이콘   */
+
+    --color-sub2:  #FFD6E4;   
+    /* 서브컬러2                        */
+
+    }
+</style>
+
+</head>
+<body>
+    <style>
+        #recommend { background:var(--gray-50); padding-left:0; padding-right:0; }
+
+        .recommend-wrap {
+        background:linear-gradient(135deg,var(--color-base),var(--color-point));
+        border-radius:0; padding:52px 48px; color:#fff;
+        display:flex; flex-direction:column; align-items:center; gap:36px;
+        position:relative; overflow:hidden; text-align:center;
+        }
+        .recommend-wrap::before,
+        .recommend-wrap::after {
+        content:''; position:absolute; border-radius:50%;
+        background:rgba(255,255,255,0.1);
+        }
+        .recommend-wrap::before { right:-60px; top:-60px; width:260px; height:260px; }
+        .recommend-wrap::after  { left:-40px; bottom:-80px; width:180px; height:180px; background:rgba(255,255,255,0.07); }
+
+        .recommend-content { position:relative; z-index:1; }
+        .recommend-content h2 { font-size:clamp(26px,3vw,36px); font-weight:900; margin-bottom:8px; letter-spacing:-1px; }
+        .recommend-content p { font-size:15px; opacity:.85; line-height:1.6; }
+
+        .recommend-steps {
+        display:flex; gap:12px; position:relative; z-index:1;
+        width:100%; justify-content:center; flex-wrap:nowrap;
+        }
+        .recommend-step {
+        background:rgba(255,255,255,0.18); border-radius:14px;
+        padding:16px 20px; display:flex; align-items:center; gap:10px;
+        font-size:14px; font-weight:700; flex:1; max-width:240px;
+        }
+        .recommend-step-num {
+        width:28px; height:28px; border-radius:50%; flex-shrink:0;
+        background:#fff; color:var(--color-base);
+        display:flex; align-items:center; justify-content:center;
+        font-size:13px; font-weight:900;
+        }
+
+        .data-slider-wrap { position:relative; z-index:1; width:100%; max-width:680px; }
+        .data-slider-label { font-size:13px; font-weight:600; opacity:.85; margin-bottom:6px; }
+        .data-slider-value { font-size:44px; font-weight:900; letter-spacing:-2px; line-height:1; margin-bottom:18px; }
+        .data-slider-value span { font-size:18px; font-weight:600; opacity:.8; margin-left:3px; }
+
+        .data-slider {
+        -webkit-appearance:none; appearance:none;
+        width:100%; height:6px; border-radius:3px;
+        background:rgba(255,255,255,0.3); cursor:pointer; outline:none;
+        }
+        .data-slider::-webkit-slider-thumb,
+        .data-slider::-moz-range-thumb {
+        width:24px; height:24px; border-radius:50%;
+        background:#fff; cursor:pointer; border:none;
+        box-shadow:0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .data-slider-ticks { display:flex; justify-content:space-between; margin-top:8px; font-size:11px; opacity:.6; }
+
+        .data-slider-result {
+        margin-top:18px; padding-top:18px;
+        border-top:1px solid rgba(255,255,255,0.2);
+        display:flex; align-items:center; justify-content:space-between; gap:14px;
+        }
+        .data-slider-result-label { font-size:12px; opacity:.8; }
+        .data-slider-result-plan { font-size:17px; font-weight:800; }
+
+        .data-slider-btn {
+        padding:11px 24px; border-radius:10px;
+        background:#fff; color:var(--color-base);
+        border:none; font-size:14px; font-weight:800;
+        cursor:pointer; white-space:nowrap;
+        transition:.2s; box-shadow:0 4px 14px rgba(0,0,0,0.12);
+        }
+        .data-slider-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(0,0,0,0.16); }
+
+        /* 기타 */
+        .si-clone { pointer-events:auto; }
+        .scroll-track { scroll-behavior:smooth; }
+        .plan-row-num-row { display:flex; align-items:baseline; gap:6px; }
+
+        /* ─── RESPONSIVE: 768px ─── */
+        @media (max-width:768px) {
+        .recommend-wrap { padding:36px 20px; gap:28px; }
+        .recommend-content h2 { font-size:clamp(20px,5.5vw,28px); letter-spacing:-.5px; }
+        .recommend-content p { font-size:14px; }
+
+        .recommend-steps { flex-direction:column; gap:10px; }
+        .recommend-step {
+            max-width:100%; padding:14px 18px; font-size:13px;
+            justify-content:flex-start;
+        }
+
+        .data-slider-wrap { padding:22px 20px; box-sizing:border-box; }
+        .data-slider-value { font-size:38px; }
+
+        .data-slider-result {
+            flex-direction:column; align-items:flex-start; gap:12px;
+        }
+        .data-slider-btn { width:100%; padding:13px; text-align:center; }
+        }
+
+        /* ─── RESPONSIVE: 480px ─── */
+        @media (max-width:480px) {
+        .data-slider-value { font-size:32px; }
+        .recommend-step { padding:12px 14px; font-size:12px; }
+        }
+    </style>
+
+    <!-- ═══ RECOMMEND ═══ -->
+    <section id="recommend" style="padding:0">
+        <div class="recommend-wrap">
+            <div class="recommend-content">
+                <h2>내게 딱 맞는 요금제를 찾아드려요</h2>
+                <p>사용 패턴 3가지 질문으로 최적의 요금제를 추천해 드립니다.</p>
+            </div>
+            <div class="recommend-steps">
+                <div class="recommend-step"><span class="recommend-step-num">1</span> 데이터 사용량 입력</div>
+                <div class="recommend-step"><span class="recommend-step-num">2</span> 통화 패턴 선택</div>
+                <div class="recommend-step"><span class="recommend-step-num">3</span> 맞춤 요금제 확인</div>
+            </div>
+            <div class="data-slider-wrap">
+                <div class="data-slider-label">📊 1단계 · 한 달 데이터 사용량이 얼마나 되나요?</div>
+                <div class="data-slider-value" id="sliderVal">10<span>GB</span></div>
+                <input type="range" class="data-slider" id="dataSlider" min="0" max="6" value="2" step="1" oninput="updateSlider(this.value)">
+                <div class="data-slider-ticks"><span>1GB</span><span>3GB</span><span>10GB</span><span>15GB</span><span>30GB</span><span>50GB</span><span>무제한</span></div>
+                <div class="data-slider-result">
+                <div>
+                    <div class="data-slider-result-label">추천 요금제</div>
+                    <div class="data-slider-result-plan" id="sliderPlan">슬림 15GB 플러스 · 월 19,900원</div>
+                </div>
+                <button class="data-slider-btn" onclick="location.href='#usim'">요금제 보기 →</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        /* ── 데이터 슬라이더 ── */
+        var sliderPlans = [
+        '미니 2GB · 월 9,900원',
+        '슬림 3GB · 월 12,900원',
+        '슬림 10GB · 월 16,500원',
+        '슬림 15GB 플러스 · 월 19,900원',
+        '스탠다드 30GB · 월 28,900원',
+        '5G 알뜰 플랜 50GB · 월 34,900원',
+        '5G 완전 무제한 · 월 39,900원'
+        ];
+        var sliderLabels = ['1GB','3GB','10GB','15GB','30GB','50GB','무제한'];
+
+        function updateSlider(v) {
+        var val   = parseInt(v);
+        var label = sliderLabels[val];
+        var pct   = (val / 6) * 100;
+        var s     = document.getElementById('dataSlider');
+
+        document.getElementById('sliderVal').innerHTML =
+            label === '무제한'
+            ? '무제한<span></span>'
+            : label.replace('GB', '') + '<span>GB</span>';
+
+        document.getElementById('sliderPlan').textContent = sliderPlans[val];
+
+        s.style.background =
+            'linear-gradient(to right, rgba(255,255,255,0.9) ' + pct + '%, rgba(255,255,255,0.3) ' + pct + '%)';
+        }
+
+        var _s = document.getElementById('dataSlider');
+        if (_s) updateSlider(_s.value);
+        </script>
+</body>
+</html>
