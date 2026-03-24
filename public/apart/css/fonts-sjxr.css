@@ -1,0 +1,47 @@
+/* 원본 폰트 매핑 — 로컬 assets/fonts 없으면 CDN·대체체 사용 */
+
+@font-face {
+  font-family: "SPOKA";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SpoqaHanSansNeo-Medium.woff") format("woff");
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SPOKA";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SpoqaHanSansNeo-Bold.woff") format("woff");
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "NS";
+  src: url("https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@1.0/nanumsquare.woff") format("woff");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "NS";
+  src: url("https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@1.0/nanumsquareb.woff") format("woff");
+  font-weight: 700;
+  font-display: swap;
+}
+
+/*
+  로컬 우선 시 아래처럼 두시면 됩니다.
+  @font-face { font-family: PT; src: url(../assets/fonts/Pretendard-Regular.woff2); ... }
+  Marcellus·Pretendard·Antro_Vectra 는 index.html CDN + Great Vibes 대체
+*/
+
+:root {
+  --sjxr-pt: "Pretendard", "Noto Sans KR", -apple-system, sans-serif;
+  --sjxr-mc: "Marcellus", "Times New Roman", serif;
+  --sjxr-av: "Great Vibes", cursive;
+  --sjxr-ns: "NS", "Noto Sans KR", sans-serif;
+  --sjxr-roboto: "Roboto", "Noto Sans KR", sans-serif;
+  --sjxr-navy: #00293f;
+  --sjxr-navy-2: #153043;
+  --sjxr-sky: #8fc4e8;
+  --sjxr-sky-2: #417193;
+}

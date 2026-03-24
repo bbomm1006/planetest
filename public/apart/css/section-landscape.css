@@ -1,0 +1,439 @@
+/* LANDSCAPE ART — PC: 시안과 동일 — 좌 3열 모자이크 + 우 LANDSCAPE 타이틀만(가운데) · MO Swiper */
+
+:root {
+  --land-teal: #4fb3bf;
+  --land-teal-script: #7ed4df;
+  --land-mosaic-gap: 14px;
+}
+
+.main-section-land {
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+}
+
+.main-section-land .fp-tableCell {
+  vertical-align: middle;
+}
+
+@media (min-width: 992px) {
+  /* fullPage 섹션 높이 100% — 자식까지 이어짐 */
+  .main-section-land {
+    height: 100%;
+    min-height: 100%;
+    box-sizing: border-box;
+  }
+
+  .main-section-land .fp-tableCell {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    height: 100%;
+    min-height: 100%;
+    box-sizing: border-box;
+  }
+
+  .main-section-land .fp-overflow {
+    height: 100%;
+    min-height: 100%;
+  }
+}
+
+/* 풀스크린 숲(사진) + 어둡게 */
+.landscape-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: #0a1210;
+}
+
+.landscape-bg > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+  transform: scale(1.04);
+  transition: transform 3s ease;
+}
+
+.main-section-land.active .landscape-bg > img {
+  transform: scale(1);
+}
+
+.landscape-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(5, 12, 10, 0.45) 0%, rgba(5, 14, 12, 0.5) 40%, rgba(4, 10, 9, 0.62) 100%),
+    radial-gradient(ellipse 85% 65% at 50% 45%, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.42) 100%);
+  pointer-events: none;
+}
+
+.landscape-inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: none;
+  margin: 0 auto;
+  padding: 36px 20px 44px;
+  box-sizing: border-box;
+}
+
+.landscape-head {
+  text-align: center;
+}
+
+.landscape-script {
+  margin: 0 0 6px;
+  font-family: "Great Vibes", cursive;
+  font-size: 2.125rem;
+  color: var(--land-teal-script);
+  line-height: 1.1;
+  font-weight: 400;
+}
+
+.landscape-title {
+  margin: 0 0 10px;
+  font-family: "Marcellus", Georgia, "Times New Roman", serif;
+  font-size: 2.5rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  line-height: 1.05;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.landscape-lead {
+  margin: 0;
+  font-family: "Pretendard", "Noto Sans KR", "DM Sans", sans-serif;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.landscape-lead strong {
+  font-weight: 700;
+}
+
+.landscape-copy__label {
+  margin: 0 0 10px;
+  font-family: "Pretendard", "Noto Sans KR", sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--land-teal);
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+}
+
+.landscape-copy__body {
+  margin: 0;
+  font-family: "Pretendard", "Noto Sans KR", sans-serif;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.96);
+  letter-spacing: -0.02em;
+}
+
+.landscape-fig {
+  margin: 0;
+  overflow: hidden;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.landscape-fig img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.landscape-layout--pc {
+  display: none;
+}
+
+@media (min-width: 992px) {
+  .landscape-inner {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: 1480px;
+    height: 100%;
+    min-height: 100%;
+    margin: 0 auto;
+    padding: clamp(24px, 3.5vh, 44px) clamp(36px, 4vw, 80px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-sizing: border-box;
+    min-width: 0;
+  }
+
+  .landscape-layout--mo {
+    display: none !important;
+  }
+
+  /* 시안: 좌측 = 3열 모자이크만 / 우측 = LANDSCAPE 타이틀만(가운데 정렬) */
+  .landscape-layout--pc {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+    align-items: stretch;
+    justify-content: center;
+    gap: clamp(32px, 4vw, 56px);
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    max-height: 100%;
+  }
+
+  .landscape-mosaic {
+    display: grid;
+    grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.12fr) minmax(0, 0.68fr);
+    gap: var(--land-mosaic-gap);
+    align-items: stretch;
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    max-height: 100%;
+    min-width: 0;
+  }
+
+  .landscape-mosaic__col--a,
+  .landscape-mosaic__col--b,
+  .landscape-mosaic__col--c {
+    display: flex;
+    flex-direction: column;
+    gap: var(--land-mosaic-gap);
+    min-width: 0;
+    min-height: 100%;
+  }
+
+  /* 1열: 카피 시작이 2열 상단 이미지보다 약간 아래(스태거) */
+  .landscape-mosaic__col--a .landscape-copy--ely {
+    margin-top: clamp(36px, 5.5vh, 76px);
+  }
+
+  .landscape-mosaic__col--a .landscape-fig--a1 {
+    margin-top: auto;
+  }
+
+  /* 2열: 세로로 긴 이미지 2장 동일 비율로 분할 */
+  .landscape-mosaic__col--b .landscape-fig--b1,
+  .landscape-mosaic__col--b .landscape-fig--b2 {
+    flex: 1 1 0;
+    min-height: 160px;
+    min-width: 0;
+  }
+
+  /* 3열: 가로 이미지 + 하단 카피 */
+  .landscape-mosaic__col--c {
+    justify-content: space-between;
+  }
+
+  .landscape-mosaic .landscape-fig {
+    border-radius: 0;
+    box-shadow: none;
+    background: rgba(0, 0, 0, 0.22);
+  }
+
+  .landscape-fig--a1 {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+  }
+
+  .landscape-fig--c1 {
+    aspect-ratio: 4 / 3;
+    width: 100%;
+    flex-shrink: 0;
+  }
+
+  .landscape-copy--ely {
+    text-align: right;
+    width: 100%;
+  }
+
+  .landscape-copy--ely .landscape-copy__label {
+    margin-bottom: 8px;
+  }
+
+  .landscape-copy--fun {
+    text-align: left;
+    width: 100%;
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+
+  .landscape-head--pc {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    text-align: center;
+    align-self: center;
+    justify-self: center;
+  }
+
+  .landscape-head--pc .landscape-script {
+    font-size: clamp(2.125rem, 2.6vw, 2.875rem);
+    margin-bottom: 10px;
+    color: var(--land-teal-script);
+  }
+
+  .landscape-head--pc .landscape-title {
+    font-size: clamp(2.5rem, 3.8vw, 3.75rem);
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    margin-bottom: 14px;
+  }
+
+  .landscape-head--pc .landscape-lead {
+    font-size: clamp(0.9375rem, 1.05vw, 1.125rem);
+    line-height: 1.55;
+  }
+
+  .landscape-head--pc .landscape-script,
+  .landscape-head--pc .landscape-title,
+  .landscape-head--pc .landscape-lead {
+    text-align: center;
+  }
+
+  .landscape-copy__label {
+    font-size: 1.0625rem;
+  }
+
+  .landscape-copy__body {
+    font-size: 0.9375rem;
+    line-height: 1.68;
+  }
+}
+
+/* ——— 모바일 + Swiper ——— */
+.landscape-layout--mo {
+  display: block;
+  width: 100%;
+}
+
+.landscape-head--mo {
+  margin-bottom: 28px;
+}
+
+@media (max-width: 991px) {
+  .main-section-land {
+    min-height: 0;
+    height: auto;
+  }
+
+  .landscape-inner {
+    width: 100%;
+    max-width: 100%;
+    padding: var(--mo-title-pad-top) var(--mo-pad-x) var(--mo-section-pad-bottom);
+    box-sizing: border-box;
+  }
+
+  .landscape-head--mo {
+    margin-bottom: 18px;
+    width: 100%;
+    max-width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+  }
+
+  .landscape-script {
+    font-size: var(--mo-head-script);
+    color: var(--land-teal-script);
+  }
+
+  .landscape-title {
+    font-size: var(--mo-head-display);
+    letter-spacing: 0.1em;
+  }
+
+  .landscape-lead {
+    font-size: var(--mo-head-lead);
+  }
+
+  .landscape-slide__media {
+    max-width: 100%;
+  }
+
+  .landscape-swiper {
+    padding-bottom: 28px;
+  }
+}
+
+.landscape-swiper {
+  width: 100%;
+  padding-bottom: 40px;
+  overflow: hidden;
+}
+
+.landscape-swiper .swiper-slide {
+  height: auto;
+  box-sizing: border-box;
+}
+
+.landscape-slide__media {
+  display: block;
+  margin: 0 auto;
+  width: 100%;
+  max-width: calc(100% - 32px);
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 48px 6px 48px 6px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.landscape-slide__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.landscape-slide__cap {
+  margin-top: 24px;
+  padding: 0;
+  text-align: center;
+}
+
+.landscape-slide__cap .landscape-copy__label {
+  color: var(--land-teal);
+  font-size: 1.125rem;
+}
+
+.landscape-slide__cap .landscape-copy__body {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.landscape-swiper .swiper-pagination {
+  bottom: 8px !important;
+}
+
+.landscape-swiper .swiper-pagination-bullet {
+  width: 28px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.35);
+  opacity: 1;
+}
+
+.landscape-swiper .swiper-pagination-bullet-active {
+  background: #fff;
+  width: 36px;
+}
+
+@media (min-width: 992px) {
+  .landscape-swiper .swiper-pagination {
+    display: none;
+  }
+}

@@ -1,0 +1,440 @@
+/* 상주자이르네 — fullPage 뼈대, CSS 변수, 섹션 공통 (참고: xn--950bq1ng9f9nh8dx4g.com) */
+
+:root {
+  --default-bg: #e8e8e8;
+  --default-color: #111;
+  --point-bg: #00243e;
+  --point-color: #fff;
+  /* 콘텐츠 풀폭 — 좌우 여백만 */
+  --content-pad-x: clamp(20px, 4vw, 72px);
+  /* 모바일(≤991px) 좌우 단일 기준 — 섹션·탭·카드 외곽 정렬에 공통 사용 */
+  --mo-pad-x: clamp(18px, 5.5vw, 28px);
+}
+
+html.fp-enabled,
+html.fp-enabled body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 모바일( responsiveWidth 이하 ): fullPage 스냅 해제 → 문서 세로 스크롤, 가로 100% 고정 */
+html.fp-responsive,
+html.fp-responsive body {
+  height: auto !important;
+  width: 100% !important;
+  max-width: 100vw;
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+html.fp-responsive #fullpage {
+  height: auto !important;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  touch-action: pan-y;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+html.fp-responsive #fullpage .section {
+  height: auto !important;
+  min-height: 0 !important;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  position: relative;
+}
+
+html.fp-responsive #fullpage .section .fp-overflow,
+html.fp-responsive #fullpage .section .fp-tableCell {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: auto !important;
+  min-height: 0 !important;
+  box-sizing: border-box;
+}
+
+html.fp-responsive #fp-nav {
+  display: none;
+}
+
+body {
+  color: var(--default-color);
+  background: var(--default-bg);
+}
+
+#fullpage {
+  position: relative;
+}
+
+/* PC(fullPage): 모든 섹션 뷰포트 높이 100% 통일 → 스크롤/앵커 정렬 안정화 */
+@media (min-width: 992px) {
+  html.fp-enabled:not(.fp-responsive) #fullpage .section {
+    height: 100% !important;
+    min-height: 100% !important;
+    box-sizing: border-box;
+  }
+
+  html.fp-enabled:not(.fp-responsive) #fullpage .section .fp-overflow {
+    height: 100%;
+    min-height: 100%;
+    box-sizing: border-box;
+  }
+
+  html.fp-enabled:not(.fp-responsive) #fullpage .section .fp-tableCell {
+    height: 100%;
+    min-height: 100%;
+    box-sizing: border-box;
+  }
+
+  /* PC 세로 스크롤: fullPage scrollOverflow(iScroll) 확장이 .fp-scrollable/.fp-scroller 를 생성·제어함 */
+}
+
+/* main.min.css 등 전역 타이포 정렬이 섹션 의도와 어긋나지 않도록 */
+#fullpage .main-section-visual .section-inner {
+  text-align: center;
+}
+
+#fullpage .main-section-visual .visual-eyebrow,
+#fullpage .main-section-visual .visual-title,
+#fullpage .main-section-visual .visual-brand,
+#fullpage .block-script,
+#fullpage .block-lead,
+#fullpage .block-address,
+/* UNIT / PREMIUM / LOCATION 타이포는 section-*.css 에서 정의 */
+
+/* inner: 뷰포트 풀폭 */
+.section-inner {
+  width: 100%;
+  max-width: none;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--content-pad-x);
+  padding-right: var(--content-pad-x);
+  box-sizing: border-box;
+}
+
+/* ——— 비주얼 ——— */
+.main-section-visual {
+  position: relative;
+  background: var(--point-bg);
+  color: var(--point-color);
+}
+
+.main-section-visual .visual-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 120% 80% at 50% 20%, rgba(0, 60, 100, 0.35), transparent 55%),
+    linear-gradient(180deg, #001a2e 0%, #00243e 45%, #001828 100%);
+  pointer-events: none;
+}
+
+.main-section-visual .section-inner {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: clamp(0.85rem, 2vh, 1.35rem);
+}
+
+.main-section-visual .visual-eyebrow {
+  font-family: "DM Sans", "Noto Sans KR", sans-serif;
+  font-size: clamp(0.95rem, 2vw, 1.35rem);
+  font-weight: 300;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+.main-section-visual .visual-title {
+  margin: 0;
+  font-family: "Noto Sans KR", sans-serif;
+  font-size: clamp(2.25rem, 5.5vw, 4.25rem);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.main-section-visual .visual-brand {
+  margin: clamp(0.75rem, 2vh, 1.5rem) 0 0;
+  font-size: clamp(1.35rem, 2.8vw, 2.25rem);
+  font-weight: 500;
+  opacity: 0.95;
+}
+
+/* ——— 분양일정 ——— */
+.main-section-schedule {
+  position: relative;
+  overflow: hidden;
+}
+
+/* fullPage verticalCentered 래퍼 — 배경 레이어 기준점 */
+.main-section-schedule .fp-tableCell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.schedule-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: #0a0e12 url("../img/hero-bg.jpg") 50% 50% / cover no-repeat;
+}
+
+.schedule-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(0, 0, 0, 0.52);
+  pointer-events: none;
+}
+
+.schedule-inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: none;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--content-pad-x);
+  padding-right: var(--content-pad-x);
+  box-sizing: border-box;
+  text-align: unset;
+}
+
+/* ——— 커뮤니티 외 단락은 section-*.css ——— */
+.main-section-community {
+  background: var(--default-bg);
+  color: var(--default-color);
+}
+
+.block-script {
+  margin: 0;
+  font-family: "Great Vibes", cursive;
+  font-size: clamp(2.25rem, 5.5vw, 3.75rem);
+  color: #6a7a88;
+}
+
+.block-lead {
+  margin: 0;
+  font-family: "Noto Sans KR", "DM Sans", sans-serif;
+  font-size: clamp(1.15rem, 2.2vw, 1.85rem);
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.block-lead--normal {
+  font-weight: 400;
+}
+
+.block-address {
+  margin: 0;
+  font-size: clamp(1.05rem, 2vw, 1.45rem);
+  opacity: 0.95;
+  line-height: 1.5;
+}
+
+/* LOCATION / UNIT / PREMIUM: section-location.css, section-unit.css, section-premium.css */
+
+/* fullPage 우측 네비 도트 — 어두운 배경 섹션은 밝은 도트 (커뮤니티는 밝은 배경 → 제외) */
+body.fp-viewing-0 #fp-nav ul li a span,
+body.fp-viewing-1 #fp-nav ul li a span,
+body.fp-viewing-3 #fp-nav ul li a span,
+body.fp-viewing-5 #fp-nav ul li a span,
+body.fp-viewing-6 #fp-nav ul li a span,
+body.fp-viewing-0 .fp-slidesNav ul li a span,
+body.fp-viewing-1 .fp-slidesNav ul li a span,
+body.fp-viewing-3 .fp-slidesNav ul li a span,
+body.fp-viewing-5 .fp-slidesNav ul li a span,
+body.fp-viewing-6 .fp-slidesNav ul li a span {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+body.fp-viewing-0 #fp-nav ul li:hover a span,
+body.fp-viewing-1 #fp-nav ul li:hover a span,
+body.fp-viewing-3 #fp-nav ul li:hover a span,
+body.fp-viewing-5 #fp-nav ul li:hover a span,
+body.fp-viewing-6 #fp-nav ul li:hover a span,
+body.fp-viewing-0 #fp-nav ul li a.active span,
+body.fp-viewing-1 #fp-nav ul li a.active span,
+body.fp-viewing-3 #fp-nav ul li a.active span,
+body.fp-viewing-5 #fp-nav ul li a.active span,
+body.fp-viewing-6 #fp-nav ul li a.active span {
+  background: #fff;
+}
+
+/* 밝은 배경: 커뮤니티(2) · 유닛(4) */
+body.fp-viewing-2 #fp-nav ul li a span,
+body.fp-viewing-4 #fp-nav ul li a span,
+body.fp-viewing-2 .fp-slidesNav ul li a span,
+body.fp-viewing-4 .fp-slidesNav ul li a span {
+  background: rgba(0, 0, 0, 0.22);
+}
+
+body.fp-viewing-2 #fp-nav ul li:hover a span,
+body.fp-viewing-2 #fp-nav ul li a.active span,
+body.fp-viewing-4 #fp-nav ul li:hover a span,
+body.fp-viewing-4 #fp-nav ul li a.active span {
+  background: var(--point-bg);
+}
+
+/* ——— 모바일: 풀폭 100% · 타이틀/리드 한 세트로 통일 ——— */
+@media (max-width: 991px) {
+  :root {
+    --mo-head-script: clamp(1.8rem, 6.2vw, 2.12rem);
+    --mo-head-display: clamp(2.4rem, 8.4vw, 3.2rem);
+    --mo-head-lead: clamp(1.02rem, 3.55vw, 1.28rem);
+    --mo-cal-title: clamp(2.85rem, 10.5vw, 3.85rem);
+    /* 섹션 타이틀 블록 상·하 — 콘텐츠 높이 가변 시에도 시작선 통일 */
+    --mo-title-pad-top: clamp(16px, 3.2vh, 28px);
+    --mo-title-pad-bottom: clamp(12px, 2.4vh, 20px);
+    --mo-section-pad-bottom: clamp(18px, 3.4vh, 32px);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+  }
+
+  body {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+
+  #fullpage {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  html.fp-responsive #fullpage .section .fp-overflow,
+  html.fp-responsive #fullpage .section .fp-tableCell {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  html.fp-responsive #fullpage .section .fp-overflow {
+    display: block !important;
+  }
+
+  /* 콘텐츠 높이만큼만 쓰고, 세로 가운데 정렬로 생기던 빈 여백 제거 */
+  html.fp-responsive #fullpage .section:not(.main-section-visual) .fp-tableCell {
+    display: flex !important;
+    flex-direction: column;
+    justify-content: flex-start !important;
+    align-items: stretch;
+    vertical-align: top;
+  }
+
+  html.fp-responsive #fullpage .main-section-visual .fp-tableCell {
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center !important;
+    align-items: stretch;
+    min-height: 100svh;
+    min-height: 100dvh;
+    box-sizing: border-box;
+  }
+
+  /* responsive 모드에서 마지막 섹션 등은 .active 미부여 → 진입 애니 opacity 그대로 두면 비노출 */
+  html.fp-responsive .main-section-location .location-tit-box,
+  html.fp-responsive .main-section-location .location-body {
+    opacity: 1;
+    transform: none;
+  }
+
+  html.fp-responsive .main-section-unit .unit-left-con,
+  html.fp-responsive .main-section-unit .unit-sign,
+  html.fp-responsive .main-section-unit .unit-tit,
+  html.fp-responsive .main-section-unit .unit-desc-main,
+  html.fp-responsive .main-section-unit .unit-desc-sub {
+    opacity: 1;
+    transform: none;
+  }
+
+  html.fp-responsive .main-section-premium .premium-sign,
+  html.fp-responsive .main-section-premium .premium-tit,
+  html.fp-responsive .main-section-premium .premium-inner.swiper {
+    opacity: 1;
+    transform: none;
+  }
+
+  .section-inner,
+  .schedule-inner {
+    width: 100%;
+    max-width: 100%;
+    padding-top: var(--mo-title-pad-top);
+    padding-bottom: var(--mo-section-pad-bottom);
+    padding-left: var(--mo-pad-x);
+    padding-right: var(--mo-pad-x);
+    box-sizing: border-box;
+  }
+
+  .main-section-visual .section-inner {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    min-height: 0;
+    gap: clamp(0.85rem, 2.5vh, 1.25rem);
+  }
+
+  .main-section-visual .visual-eyebrow {
+    font-size: clamp(1.05rem, 3.8vw, 1.25rem);
+    letter-spacing: 0.22em;
+    line-height: 1.4;
+  }
+
+  .main-section-visual .visual-title {
+    font-size: clamp(2.65rem, 9vmin, 3.85rem);
+    line-height: 1.28;
+    letter-spacing: -0.02em;
+  }
+
+  .main-section-visual .visual-brand {
+    font-size: clamp(1.45rem, 4.5vw, 1.95rem);
+    line-height: 1.35;
+  }
+
+  .block-script {
+    font-size: clamp(2.5rem, 9vw, 3.35rem);
+    line-height: 1.15;
+  }
+
+  .block-lead {
+    font-size: clamp(1.2rem, 4.2vw, 1.55rem);
+    line-height: 1.6;
+    font-weight: 700;
+  }
+
+  .block-lead--normal {
+    font-weight: 500;
+  }
+
+  .block-address {
+    font-size: clamp(1.1rem, 3.8vw, 1.35rem);
+    line-height: 1.65;
+  }
+
+  .schedule-overlay {
+    background: rgba(0, 0, 0, 0.46);
+  }
+}

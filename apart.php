@@ -1,0 +1,662 @@
+<?php include 'lib/__head.php'; ?>
+<body>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://plane01.gabia.io/style/main.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Marcellus&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullPage.js/3.1.2/fullpage.min.css" />
+  <link rel="stylesheet" href="/style/apart/css/fonts-sjxr.css" />
+  <link rel="stylesheet" href="/style/apart/css/site.css" />
+  <link rel="stylesheet" href="/style/apart/css/section-calender.css" />
+  <link rel="stylesheet" href="/style/apart/css/section-community.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+  <link rel="stylesheet" href="/style/apart/css/section-landscape.css" />
+  <link rel="stylesheet" href="/style/apart/css/section-unit.css" />
+  <link rel="stylesheet" href="/style/apart/css/section-premium.css" />
+  <link rel="stylesheet" href="/style/apart/css/section-location.css" />
+
+  <style>
+  #fullpage .ci-section {
+    padding: 0 20px;
+    height: 100%;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+  }
+  #fullpage .s-p.ci-form-desc{
+    display:none
+  }
+  @media(max-width: 768px) {
+    #fullpage .ci-section {
+        padding:50px 20px;
+    }
+  }
+</style>
+
+<div id="fullpage">
+    <div class="section main-section-visual" data-anchor="visual">
+        <div class="visual-bg" aria-hidden="true"></div>
+        <div class="section-inner">
+        <p class="visual-eyebrow">The first Life</p>
+        <p class="visual-eyebrow">The new prestige</p>
+        <h2 class="visual-title">최고를 담은 최초의 생활</h2>
+        <p class="visual-brand">상주자이르네</p>
+        </div>
+    </div>
+
+    <div class="section main-section-schedule" data-anchor="schedule">
+        <div class="schedule-bg" aria-hidden="true"></div>
+        <div class="schedule-overlay" aria-hidden="true"></div>
+        <div class="schedule-inner">
+        <div class="sjxr-cal" id="sjxr-calender" aria-labelledby="sjxr-calender-title">
+            <div class="sjxr-cal__inner">
+            <header class="sjxr-cal__head">
+                <p class="sjxr-cal__script">Sang Ju Xi rene</p>
+                <h2 class="sjxr-cal__title" id="sjxr-calender-title">CALENDER</h2>
+                <p class="sjxr-cal__sub"><strong>상주자이르네 분양일정</strong>을 확인하세요!</p>
+            </header>
+
+            <div class="sjxr-cal__grid-wrap">
+                <div class="sjxr-cal__grid">
+                <div class="sjxr-cal__row sjxr-cal__row--2">
+                    <div class="sjxr-cal__card">
+                    <span class="sjxr-cal__card-label">모집공고</span>
+                    <span class="sjxr-cal__card-sep" aria-hidden="true"></span>
+                    <span class="sjxr-cal__card-date">2026.03.09(월)</span>
+                    </div>
+                    <div class="sjxr-cal__card">
+                    <span class="sjxr-cal__card-label">특별공급</span>
+                    <span class="sjxr-cal__card-sep" aria-hidden="true"></span>
+                    <span class="sjxr-cal__card-date">2026.03.16(월)</span>
+                    </div>
+                </div>
+                <div class="sjxr-cal__row sjxr-cal__row--3">
+                    <div class="sjxr-cal__card">
+                    <span class="sjxr-cal__card-label">1순위</span>
+                    <span class="sjxr-cal__card-sep" aria-hidden="true"></span>
+                    <span class="sjxr-cal__card-date">2026.03.17(화)</span>
+                    </div>
+                    <div class="sjxr-cal__card">
+                    <span class="sjxr-cal__card-label">2순위</span>
+                    <span class="sjxr-cal__card-sep" aria-hidden="true"></span>
+                    <span class="sjxr-cal__card-date">2026.03.18(수)</span>
+                    </div>
+                    <div class="sjxr-cal__card">
+                    <span class="sjxr-cal__card-label">당첨자발표</span>
+                    <span class="sjxr-cal__card-sep" aria-hidden="true"></span>
+                    <span class="sjxr-cal__card-date">2026.03.24(화)</span>
+                    </div>
+                </div>
+                <div class="sjxr-cal__row sjxr-cal__row--2">
+                    <div class="sjxr-cal__card">
+                    <span class="sjxr-cal__card-label">서류접수</span>
+                    <span class="sjxr-cal__card-sep" aria-hidden="true"></span>
+                    <span class="sjxr-cal__card-date">2026.03.27(금)~03.30(월)</span>
+                    </div>
+                    <div class="sjxr-cal__card">
+                    <span class="sjxr-cal__card-label">정당계약</span>
+                    <span class="sjxr-cal__card-sep" aria-hidden="true"></span>
+                    <span class="sjxr-cal__card-date">2026.04.04(토)~04.06(월)</span>
+                    </div>
+                </div>
+                </div>
+
+                <a class="sjxr-cal__cta" href="https://www.applyhome.co.kr/co/coa/selectMainView.do" target="_blank" rel="noopener noreferrer">
+                <span class="sjxr-cal__cta-text">청약홈 바로가기</span>
+                <span class="sjxr-cal__cta-arr sjxr-cal__cta-arr--fa" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
+                <span class="sjxr-cal__cta-arr sjxr-cal__cta-arr--mo" aria-hidden="true"> →</span>
+                </a>
+            </div>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <div class="section main-section-community" data-anchor="community">
+        <div class="community-inner" data-community-root>
+        <div class="community-top">
+            <header class="community-head">
+            <p class="community-script">Sang Ju Xi rene</p>
+            <h2 class="community-title">COMMUNITY</h2>
+            <p class="community-lead">일상이 달라지는 <strong>고품격</strong> 커뮤니티</p>
+            </header>
+            <div class="community-tabs" role="tablist" aria-label="커뮤니티 층 선택">
+            <button type="button" class="community-tab is-active" role="tab" aria-selected="true" aria-controls="community-panel-b1" id="community-tab-b1" data-community-tab="b1">
+                <span class="community-tab__floor">B1</span>
+                <span class="community-tab__name">CLUB XIAN</span>
+            </button>
+            <button type="button" class="community-tab" role="tab" aria-selected="false" aria-controls="community-panel-1f" id="community-tab-1f" data-community-tab="1f">
+                <span class="community-tab__floor">1F</span>
+                <span class="community-tab__name">CLUB XIAN</span>
+            </button>
+            <button type="button" class="community-tab" role="tab" aria-selected="false" aria-controls="community-panel-29f" id="community-tab-29f" data-community-tab="29f">
+                <span class="community-tab__floor">29F</span>
+                <span class="community-tab__name">CLUB CLOUD</span>
+            </button>
+            <button type="button" class="community-tab" role="tab" aria-selected="false" aria-controls="community-panel-study" id="community-tab-study" data-community-tab="study">
+                <span class="community-tab__floor">1F</span>
+                <span class="community-tab__name">독서실</span>
+            </button>
+            </div>
+        </div>
+
+        <div class="community-panels">
+            <div class="community-panel is-active" role="tabpanel" id="community-panel-b1" aria-labelledby="community-tab-b1" data-community-panel="b1">
+            <div class="community-visual">
+                <figure class="community-photo community-photo--overlap">
+                <img src="/style/apart/img/community/community-01.png" alt="B1 CLUB XIAN 주요 시설" width="1600" height="1000" loading="lazy" decoding="async" />
+                <div class="community-photo-deco" data-community-deco aria-hidden="true">
+                    <img src="/style/apart/img/community/community-deco-b1.png" alt="" width="280" height="200" loading="lazy" decoding="async" />
+                </div>
+                </figure>
+                <div class="community-plan community-plan--transparent">
+                <img src="/style/apart/img/community/community-plan-01.png" alt="B1 CLUB XIAN 배치도" width="1600" height="1100" loading="lazy" decoding="async" />
+                <div class="community-callouts" aria-hidden="true">
+                    <div class="community-pin" style="--pin-x: 19%; --pin-y: 74%; --trail-w: clamp(48px, 7vw, 88px); --trail-rot: -6deg">
+                    <div class="community-pin__body">
+                        <i class="fa-solid fa-fire-flame-curved" aria-hidden="true"></i>
+                        <span class="community-pin__text">사우나</span>
+                    </div>
+                    <span class="community-pin__trail"></span>
+                    <span class="community-pin__dot"></span>
+                    </div>
+                    <div class="community-pin" style="--pin-x: 26%; --pin-y: 30%; --trail-w: clamp(40px, 6vw, 72px); --trail-rot: 10deg">
+                    <div class="community-pin__body">
+                        <i class="fa-solid fa-couch" aria-hidden="true"></i>
+                        <span class="community-pin__text">라운지</span>
+                    </div>
+                    <span class="community-pin__trail"></span>
+                    <span class="community-pin__dot"></span>
+                    </div>
+                    <div class="community-pin" style="--pin-x: 52%; --pin-y: 26%; --trail-w: clamp(36px, 5vw, 64px); --trail-rot: 6deg">
+                    <div class="community-pin__body">
+                        <i class="fa-solid fa-users" aria-hidden="true"></i>
+                        <span class="community-pin__text">입주민회의실</span>
+                    </div>
+                    <span class="community-pin__trail"></span>
+                    <span class="community-pin__dot"></span>
+                    </div>
+                    <div
+                    class="community-pin community-pin--reverse community-pin--long"
+                    style="--pin-x: 87%; --pin-y: 40%; --trail-w: clamp(44px, 5vw, 72px); --trail-rot: 0deg"
+                    >
+                    <div class="community-pin__body">
+                        <i class="fa-solid fa-door-open" aria-hidden="true"></i>
+                        <span class="community-pin__text">CLUB CLOUD 스카이커뮤니티 전용 엘리베이터</span>
+                    </div>
+                    <span class="community-pin__trail"></span>
+                    <span class="community-pin__dot"></span>
+                    </div>
+                </div>
+                </div>
+            </div>
+            </div>
+
+            <div class="community-panel" role="tabpanel" id="community-panel-1f" aria-labelledby="community-tab-1f" data-community-panel="1f" hidden>
+            <div class="community-visual">
+                <figure class="community-photo">
+                <img src="/style/apart/img/community/photo-1f.png" alt="1F CLUB XIAN 주요 시설" width="1600" height="1000" loading="lazy" decoding="async" />
+                </figure>
+                <div class="community-plan">
+                <img src="/style/apart/img/community/plan-1f.png" alt="1F CLUB XIAN 배치도" width="1600" height="1100" loading="lazy" decoding="async" />
+                <div class="community-callouts" aria-hidden="true">
+                    <div class="community-pin" style="--pin-x: 35%; --pin-y: 45%;">
+                    <span class="community-pin__dot"></span>
+                    <span class="community-pin__text">스크린골프</span>
+                    </div>
+                    <div class="community-pin" style="--pin-x: 62%; --pin-y: 52%;">
+                    <span class="community-pin__dot"></span>
+                    <span class="community-pin__text">피트니스</span>
+                    </div>
+                    <div class="community-pin" style="--pin-x: 50%; --pin-y: 70%;">
+                    <span class="community-pin__dot"></span>
+                    <span class="community-pin__text">GX룸</span>
+                    </div>
+                </div>
+                </div>
+            </div>
+            </div>
+
+            <div class="community-panel" role="tabpanel" id="community-panel-29f" aria-labelledby="community-tab-29f" data-community-panel="29f" hidden>
+            <div class="community-visual">
+                <figure class="community-photo">
+                <img src="/style/apart/img/community/photo-29f.png" alt="29F CLUB CLOUD 주요 시설" width="1600" height="1000" loading="lazy" decoding="async" />
+                </figure>
+                <div class="community-plan">
+                <img src="/style/apart/img/community/plan-29f.png" alt="29F CLUB CLOUD 배치도" width="1600" height="1100" loading="lazy" decoding="async" />
+                <div class="community-callouts" aria-hidden="true">
+                    <div class="community-pin" style="--pin-x: 50%; --pin-y: 42%;">
+                    <span class="community-pin__dot"></span>
+                    <span class="community-pin__text">스카이라운지</span>
+                    </div>
+                    <div class="community-pin" style="--pin-x: 42%; --pin-y: 58%;">
+                    <span class="community-pin__dot"></span>
+                    <span class="community-pin__text">카페</span>
+                    </div>
+                    <div class="community-pin" style="--pin-x: 58%; --pin-y: 58%;">
+                    <span class="community-pin__dot"></span>
+                    <span class="community-pin__text">파티룸</span>
+                    </div>
+                </div>
+                </div>
+            </div>
+            </div>
+
+            <div class="community-panel" role="tabpanel" id="community-panel-study" aria-labelledby="community-tab-study" data-community-panel="study" hidden>
+            <div class="community-visual">
+                <figure class="community-photo">
+                <img src="/style/apart/img/community/photo-study.png" alt="1F 독서실" width="1600" height="1000" loading="lazy" decoding="async" />
+                </figure>
+                <div class="community-plan">
+                <img src="/style/apart/img/community/plan-study.png" alt="1F 독서실 배치도" width="1600" height="1100" loading="lazy" decoding="async" />
+                <div class="community-callouts" aria-hidden="true">
+                    <div class="community-pin" style="--pin-x: 50%; --pin-y: 48%;">
+                    <span class="community-pin__dot"></span>
+                    <span class="community-pin__text">독서실</span>
+                    </div>
+                </div>
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <div class="section main-section-land" data-anchor="land">
+        <div class="landscape-bg" aria-hidden="true">
+        <img src="/style/apart/img/hero-bg.jpg" alt="" width="1920" height="1080" decoding="async" />
+        </div>
+        <div class="landscape-overlay" aria-hidden="true"></div>
+        <div class="landscape-inner">
+        <div class="landscape-layout landscape-layout--pc">
+            <div class="landscape-mosaic" aria-label="단지 조경 이미지">
+            <div class="landscape-mosaic__col landscape-mosaic__col--a">
+                <div class="landscape-copy landscape-copy--ely">
+                <p class="landscape-copy__label">엘리시안가든</p>
+                <p class="landscape-copy__body">
+                    단지 내 넓게 펼쳐진 오픈스페이스의 잔디광장과<br />
+                    예술적인 수경시설이 어우러져 있는<br />
+                    자이르네 만의 시그니처 가든
+                </p>
+                </div>
+                <figure class="landscape-fig landscape-fig--a1">
+                <img src="/style/apart/img/landscape/land-01.png" alt="엘리시안가든 단지 전경" width="800" height="600" loading="lazy" decoding="async" data-landscape-fallback="img/landscape/land-02.png" />
+                </figure>
+            </div>
+            <div class="landscape-mosaic__col landscape-mosaic__col--b">
+                <figure class="landscape-fig landscape-fig--b1">
+                <img src="/style/apart/img/landscape/land-02.png" alt="중앙 수경 야경" width="800" height="1100" loading="lazy" decoding="async" data-landscape-fallback="img/landscape/land-01.png" />
+                </figure>
+                <figure class="landscape-fig landscape-fig--b2">
+                <img src="/style/apart/img/landscape/land-03.png" alt="자이펀그라운드" width="800" height="1100" loading="lazy" decoding="async" data-landscape-fallback="img/landscape/land-04.png" />
+                </figure>
+            </div>
+            <div class="landscape-mosaic__col landscape-mosaic__col--c">
+                <figure class="landscape-fig landscape-fig--c1">
+                <img src="/style/apart/img/landscape/land-04.png" alt="자이펀그라운드 물놀이" width="900" height="600" loading="lazy" decoding="async" data-landscape-fallback="img/landscape/land-03.png" />
+                </figure>
+                <div class="landscape-copy landscape-copy--fun">
+                <p class="landscape-copy__label">자이펀그라운드(어린이물놀이터)</p>
+                <p class="landscape-copy__body">
+                    아이들의 상상과 모험심을 키워주는<br />
+                    안전하고 즐거운 테마형 물놀이공간
+                </p>
+                </div>
+            </div>
+            </div>
+            <header class="landscape-head landscape-head--pc">
+            <p class="landscape-script">Sang Ju Xi rene</p>
+            <h2 class="landscape-title">LANDSCAPE ART</h2>
+            <p class="landscape-lead">품격있는 차이로 <strong>자연 속 힐링라이프!</strong></p>
+            </header>
+        </div>
+
+        <div class="landscape-layout landscape-layout--mo">
+            <header class="landscape-head landscape-head--mo">
+            <p class="landscape-script">Sang Ju Xi rene</p>
+            <h2 class="landscape-title">LANDSCAPE ART</h2>
+            <p class="landscape-lead">품격있는 차이로 <strong>자연 속 힐링라이프!</strong></p>
+            </header>
+            <div class="swiper landscape-swiper" aria-label="랜드스케이프 이미지">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                <figure class="landscape-slide__media">
+                    <img src="/style/apart/img/landscape/land-01.png" alt="엘리시안가든" width="1200" height="800" loading="lazy" decoding="async" data-landscape-fallback="img/landscape/land-02.png" />
+                </figure>
+                <div class="landscape-slide__cap">
+                    <p class="landscape-copy__label">엘리시안가든</p>
+                    <p class="landscape-copy__body">
+                    단지 내 넓게 펼쳐진 오픈스페이스의 잔디광장과<br />
+                    예술적인 수경시설이 어우러져 있는 자이르네 만의 시그니처 가든
+                    </p>
+                </div>
+                </div>
+                <div class="swiper-slide">
+                <figure class="landscape-slide__media">
+                    <img src="/style/apart/img/landscape/land-02.png" alt="단지 산책로" width="1200" height="800" loading="lazy" decoding="async" data-landscape-fallback="img/landscape/land-01.png" />
+                </figure>
+                <div class="landscape-slide__cap">
+                    <p class="landscape-copy__label">엘리시안가든</p>
+                    <p class="landscape-copy__body">잔디광장과 수경시설이 어우러진 단지 내 오픈스페이스</p>
+                </div>
+                </div>
+                <div class="swiper-slide">
+                <figure class="landscape-slide__media">
+                    <img src="/style/apart/img/landscape/land-03.png" alt="자이펀그라운드" width="1200" height="800" loading="lazy" decoding="async" data-landscape-fallback="img/landscape/land-04.png" />
+                </figure>
+                <div class="landscape-slide__cap">
+                    <p class="landscape-copy__label">자이펀그라운드(어린이물놀이터)</p>
+                    <p class="landscape-copy__body">테마형 물놀이공간 조망</p>
+                </div>
+                </div>
+                <div class="swiper-slide">
+                <figure class="landscape-slide__media">
+                    <img src="/style/apart/img/landscape/land-04.png" alt="어린이 물놀이터" width="1200" height="800" loading="lazy" decoding="async" data-landscape-fallback="img/landscape/land-03.png" />
+                </figure>
+                <div class="landscape-slide__cap">
+                    <p class="landscape-copy__label">자이펀그라운드(어린이물놀이터)</p>
+                    <p class="landscape-copy__body">
+                    아이들의 상상과 모험심을 키워주는<br />
+                    안전하고 즐거운 테마형 물놀이공간
+                    </p>
+                </div>
+                </div>
+            </div>
+            <div class="swiper-pagination" aria-hidden="true"></div>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <div class="section main-section-unit" data-anchor="unit">
+        <div class="unit-inner">
+        <div class="unit-left">
+            <div class="unit-left-img">
+            <img src="/style/apart/img/hero-bg.jpg" alt="" width="1200" height="800" decoding="async" />
+            </div>
+            <div class="unit-left-con">
+            <p class="unit-sign">Sang Ju Xi rene</p>
+            <h2 class="unit-tit">UNIT PLAN</h2>
+            <p class="unit-desc-main"><strong>새로움</strong>은 <strong>자이르네</strong>로부터 <strong>시작</strong>됩니다</p>
+            <p class="unit-desc-sub">
+                라이프스타일을 존중하기에<br />
+                당신만을 위한 특별한 설계를 제안합니다
+            </p>
+            </div>
+        </div>
+        <div class="unit-right">
+            <div class="unit-type-title-box">
+            <div class="unit-type-num">
+                <span class="unit-type-size" data-unit-size>84</span>
+                <span class="unit-type-unit">㎡</span>
+                <span class="unit-type-name" data-unit-name>A</span>
+            </div>
+            </div>
+            <div class="unit-tab-wrap">
+            <div class="unit-tab-list" role="tablist" aria-label="평형 선택">
+                <button type="button" class="unit-tab on" role="tab" aria-selected="true">84㎡A</button>
+                <button type="button" class="unit-tab" role="tab" aria-selected="false">84㎡B</button>
+                <button type="button" class="unit-tab" role="tab" aria-selected="false">99㎡A</button>
+                <button type="button" class="unit-tab" role="tab" aria-selected="false">112㎡</button>
+                <button type="button" class="unit-tab" role="tab" aria-selected="false">135㎡PH-2</button>
+            </div>
+            </div>
+            <div class="unit-info-bar" data-unit-info>
+            <span>전용면적 : <b>84.00㎡</b></span><span class="unit-info-div">|</span><span>공급면적 : <b>—</b></span><span class="unit-info-div">|</span><span>세대수 : <b>—</b></span>
+            </div>
+            <div class="unit-plan-area">
+            <div class="swiper unit-plan-swiper" aria-label="평면도">
+                <div class="swiper-wrapper">
+                <div class="swiper-slide"><img src="/style/apart/img/community/community-plan-01.png" alt="84㎡A 평면도" width="1200" height="900" loading="lazy" decoding="async" /></div>
+                <div class="swiper-slide"><img src="/style/apart/img/community/plan-1f.png" alt="84㎡B 평면도" width="1200" height="900" loading="lazy" decoding="async" /></div>
+                <div class="swiper-slide"><img src="/style/apart/img/community/plan-29f.png" alt="99㎡A 평면도" width="1200" height="900" loading="lazy" decoding="async" /></div>
+                <div class="swiper-slide"><img src="/style/apart/img/community/plan-study.png" alt="112㎡ 평면도" width="1200" height="900" loading="lazy" decoding="async" /></div>
+                <div class="swiper-slide"><img src="/style/apart/img/community/community-plan-01.png" alt="135㎡PH-2 평면도" width="1200" height="900" loading="lazy" decoding="async" /></div>
+                </div>
+                <div class="unit-plan-pagination" aria-hidden="true"></div>
+            </div>
+            <button type="button" class="unit-arrow unit-arrow-prev" aria-label="이전 평형"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+            <button type="button" class="unit-arrow unit-arrow-next" aria-label="다음 평형"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+            </div>
+            <div class="unit-btn-box">
+            <a class="unit-view-btn" href="#unit">자세히보기 <i class="fa-solid fa-arrow-up-right" aria-hidden="true"></i></a>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <div class="section main-section-premium" data-anchor="premium">
+        <div class="premium-bg" aria-hidden="true">
+        <img src="/style/apart/img/hero-bg.jpg" alt="" width="1920" height="1080" decoding="async" />
+        </div>
+        <div class="premium-tit-box">
+        <p class="premium-sign">Sang Ju Xi rene</p>
+        <h2 class="premium-tit">PREMIUM 5</h2>
+        </div>
+        <div class="premium-inner swiper premium-swiper" role="list">
+        <div class="swiper-wrapper">
+            <div class="swiper-slide">
+        <article class="premium-card premium-card-01" role="listitem" tabindex="0">
+            <div class="premium-card-bg" aria-hidden="true">
+            <img src="/style/apart/img/main/premium-01.png" alt="" width="640" height="800" decoding="async" />
+            </div>
+            <div class="premium-card-obj" aria-hidden="true">
+            <img src="/style/apart/img/main/premium-obj-01.png" alt="" width="480" height="360" decoding="async" />
+            </div>
+            <div class="premium-card-con">
+            <p class="premium-card-sign">Transportation</p>
+            <h3 class="premium-card-tit">빠르고 편리하게<br />연결되는 <b>교통환경</b></h3>
+            <ul class="premium-card-list">
+                <li>KTX 이음 중부내륙선 연장(예정) 점촌역 통해 판교역, 수서역까지 쾌속연결</li>
+                <li>3번국도 사아매교차로, 점촌함창IC, 단지옆 점촌시내와 연결되는 함창로</li>
+            </ul>
+            </div>
+            <div class="premium-card-icon" aria-hidden="true"><i class="fa-solid fa-train-subway"></i></div>
+        </article>
+            </div>
+            <div class="swiper-slide">
+        <article class="premium-card premium-card-02" role="listitem" tabindex="0">
+            <div class="premium-card-bg" aria-hidden="true">
+            <img src="/style/apart/img/main/premium-02.png" alt="" width="640" height="800" decoding="async" />
+            </div>
+            <div class="premium-card-obj" aria-hidden="true">
+            <img src="/style/apart/img/main/premium-obj-02.png" alt="" width="480" height="360" decoding="async" />
+            </div>
+            <div class="premium-card-con">
+            <p class="premium-card-sign">Education</p>
+            <h3 class="premium-card-tit">안전한 통학 환경을<br />자랑하는 <b>교육환경</b></h3>
+            <ul class="premium-card-list">
+                <li>도보 통학이 가능한 함창초(그린스마트스쿨, 2027년 완공 예정)를 비롯 함창 중·고, 상지여중 등 인접</li>
+                <li>문경시립중앙도서관, 점촌 학원가 이용 편리</li>
+                <li>단지 내 국공립 어린이집, 다함께 돌봄센터 등 아이 키우기 좋은 아파트</li>
+            </ul>
+            </div>
+            <div class="premium-card-icon" aria-hidden="true"><i class="fa-solid fa-graduation-cap"></i></div>
+        </article>
+            </div>
+            <div class="swiper-slide">
+        <article class="premium-card premium-card-03" role="listitem" tabindex="0">
+            <div class="premium-card-bg" aria-hidden="true">
+            <img src="/style/apart/img/main/premium-03.png" alt="" width="640" height="800" decoding="async" />
+            </div>
+            <div class="premium-card-obj premium-card-obj--dual" aria-hidden="true">
+            <img src="/style/apart/img/main/premium-obj-03.png" alt="" width="400" height="320" decoding="async" class="premium-card-obj__a" />
+            <img src="/style/apart/img/main/premium-couple.png" alt="" width="400" height="320" decoding="async" class="premium-card-obj__b" />
+            </div>
+            <div class="premium-card-con">
+            <p class="premium-card-sign premium-card-sign--empty" aria-hidden="true">&nbsp;</p>
+            <h3 class="premium-card-tit"><b>가깝게 누리는</b><br />편리한 생활 인프라</h3>
+            <ul class="premium-card-list">
+                <li>하나로마트(함창점), 홈플러스(문경점), 문경제일병원, 은행 등 다양한 생활인프라</li>
+                <li>문경문화예술회관, 문경시민운동장, 명주박물관 등 인접</li>
+            </ul>
+            </div>
+            <div class="premium-card-icon" aria-hidden="true"><i class="fa-solid fa-cart-shopping"></i></div>
+        </article>
+            </div>
+            <div class="swiper-slide">
+        <article class="premium-card premium-card-04" role="listitem" tabindex="0">
+            <div class="premium-card-bg" aria-hidden="true">
+            <img src="/style/apart/img/main/premium-04.png" alt="" width="640" height="800" decoding="async" />
+            </div>
+            <div class="premium-card-obj" aria-hidden="true">
+            <img src="/style/apart/img/main/premium-obj-04.png" alt="" width="480" height="360" decoding="async" />
+            </div>
+            <div class="premium-card-con">
+            <p class="premium-card-sign">Design</p>
+            <h3 class="premium-card-tit"><b>생활의 놀라운 변화를</b><br />만들어낼 혁신설계</h3>
+            <ul class="premium-card-list">
+                <li>넉넉한 수납공간과 4bay, 5bay 평면이 반영된 중대형 위주 혁신 설계</li>
+                <li>생활의 질을 높여주는 커뮤니티시설과 100% 지하주차 설계로 조경면적 극대화</li>
+            </ul>
+            </div>
+            <div class="premium-card-icon" aria-hidden="true"><i class="fa-solid fa-compass-drafting"></i></div>
+        </article>
+            </div>
+            <div class="swiper-slide">
+        <article class="premium-card premium-card-05" role="listitem" tabindex="0">
+            <div class="premium-card-bg" aria-hidden="true">
+            <img src="/style/apart/img/main/premium-05.png" alt="" width="640" height="800" decoding="async" />
+            </div>
+            <div class="premium-card-obj" aria-hidden="true">
+            <img src="/style/apart/img/main/premium-obj-05.png" alt="" width="480" height="360" decoding="async" />
+            </div>
+            <div class="premium-card-con">
+            <p class="premium-card-sign">Brand</p>
+            <h3 class="premium-card-tit"><b>상주를 대표할</b><br />미래가치</h3>
+            <ul class="premium-card-list">
+                <li>상주 최대규모 773세대, 최고높이 29층의 랜드마크단지</li>
+                <li>중부내륙철도 착공예정(문경-점촌-상주-김천)</li>
+                <li>상주시 이차전지 클러스터 산업단지 조성(계획) 등</li>
+                <li>경북농업기술원 상주이전(2027년 완공예정)</li>
+            </ul>
+            </div>
+            <div class="premium-card-icon" aria-hidden="true"><i class="fa-solid fa-building"></i></div>
+        </article>
+            </div>
+        </div>
+        <button type="button" class="premium-nav premium-nav-prev" aria-label="이전 슬라이드">
+            <span class="premium-nav__ring" aria-hidden="true"></span>
+            <span class="premium-nav__chev premium-nav__chev--prev" aria-hidden="true"></span>
+        </button>
+        <button type="button" class="premium-nav premium-nav-next" aria-label="다음 슬라이드">
+            <span class="premium-nav__ring" aria-hidden="true"></span>
+            <span class="premium-nav__chev premium-nav__chev--next" aria-hidden="true"></span>
+        </button>
+        </div>
+    </div>
+
+    <div class="section main-section-location" data-anchor="location">
+        <div class="location-bg" aria-hidden="true">
+        <img src="/style/apart/img/hero-bg.jpg" alt="" width="1920" height="1080" decoding="async" />
+        </div>
+        <div class="location-inner">
+        <div class="location-tit-box">
+            <h2 class="location-tit">CONTACT US</h2>
+            <p class="location-sub">상주자이르네</p>
+        </div>
+        <div class="location-body">
+            <div class="location-map-section">
+            <div class="location-map">
+                <img src="/style/apart/img/location-contact-map.png" alt="현장 및 견본주택 위치 안내 지도" width="640" height="480" loading="lazy" decoding="async" />
+            </div>
+            </div>
+            <div class="location-blocks">
+            <div class="location-block">
+                <p class="location-address">
+                <span class="location-address__pipe" aria-hidden="true">|</span>
+                <span class="location-address__label">현장</span>
+                <span class="location-address__pipe" aria-hidden="true">|</span>
+                <span class="location-address__detail">경북 상주시 함창읍 윤직리 840</span>
+                </p>
+                <div class="location-btn-box">
+                <a class="location-btn location-btn--naver" href="https://map.naver.com/p/search/%EA%B2%BD%EB%B6%81%20%EC%83%81%EC%A3%BC%EC%8B%9C%20%ED%95%A8%EC%B0%BD%EC%9D%8D%20%EC%9C%A4%EC%A7%81%EB%A6%AC%20840" target="_blank" rel="noopener noreferrer"><span class="location-btn__mark" aria-hidden="true">N</span> 네이버 지도보기</a>
+                <a class="location-btn location-btn--kakao" href="https://map.kakao.com/link/search/%EA%B2%BD%EB%B6%81%20%EC%83%81%EC%A3%BC%EC%8B%9C%20%ED%95%A8%EC%B0%BD%EC%9D%8D%20%EC%9C%A4%EC%A7%81%EB%A6%AC%20840" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> 카카오 지도보기</a>
+                </div>
+            </div>
+            <div class="location-block">
+                <p class="location-address">
+                <span class="location-address__pipe" aria-hidden="true">|</span>
+                <span class="location-address__label">견본주택</span>
+                <span class="location-address__pipe" aria-hidden="true">|</span>
+                <span class="location-address__detail">경북 상주시 함창읍 함창로 491</span>
+                </p>
+                <div class="location-btn-box">
+                <a class="location-btn location-btn--naver" href="https://map.naver.com/p/search/%EA%B2%BD%EB%B6%81%20%EC%83%81%EC%A3%BC%EC%8B%9C%20%ED%95%A8%EC%B0%BD%EC%9D%8D%20%ED%95%A8%EC%B0%BD%EB%A1%9C%20491" target="_blank" rel="noopener noreferrer"><span class="location-btn__mark" aria-hidden="true">N</span> 네이버 지도보기</a>
+                <a class="location-btn location-btn--kakao" href="https://map.kakao.com/link/search/%EA%B2%BD%EB%B6%81%20%EC%83%81%EC%A3%BC%EC%8B%9C%20%ED%95%A8%EC%B0%BD%EC%9D%8D%20%ED%95%A8%EC%B0%BD%EB%A1%9C%20491" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> 카카오 지도보기</a>
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <!-- 문의 섹션 -->
+    <div class="section fp-auto-height" data-anchor="form">
+      <?php
+        $ci_table = 'form3';
+        include __DIR__ . '/lib/custom_inquiry_front.php';
+        ?>
+
+        
+    </div>
+
+
+
+</div>
+
+
+<script src="js/custom_inquiry_front.js"></script>
+
+<!-- fullPage scrollOverflow(iScroll) — 반드시 fullpage.min.js 보다 먼저 로드 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fullPage.js/3.1.2/vendors/scrolloverflow.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fullPage.js/3.1.2/fullpage.min.js"></script>
+<script>
+    new fullpage("#fullpage", {
+        licenseKey: "gplv3-license",
+        anchors: ["visual", "schedule", "community", "land", "unit", "premium", "location", "form"],
+        // navigationTooltips: ["VISUAL", "CALENDER", "COMMUNITY", "LAND", "UNIT", "PREMIUM", "LOCATION", "FOOTER"],
+        navigation: true,
+        navigationPosition: "right",
+        showActiveTooltip: false,
+        scrollingSpeed: 700,
+        autoScrolling: true,
+        scrollHorizontally: false,
+        css3: true,
+        verticalCentered: true,
+        /* 내부 스크롤(iScroll)과 충돌 시 섹션이 다시 맞춰지며 끊기는 현상 방지 */
+        fitToSection: false,
+        fitToSectionDelay: 600,
+        /* PC: 콘텐츠가 뷰포트보다 길면 섹션 안에서 세로 스크롤 */
+        scrollOverflow: true,
+        scrollOverflowReset: false,
+        /* 스와이퍼·일정 그리드 등은 기본 스크롤 유지 (scrollOverflow와 병행) */
+        normalScrollElements: ".landscape-swiper, .swiper, .sjxr-cal__grid-wrap",
+        responsiveWidth: 992,
+        bigSectionsDestination: "top",
+
+
+    });
+</script>
+<script src="/style/apart/js/section-community.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script src="/style/apart/js/section-landscape.js"></script>
+<script src="/style/apart/js/section-unit.js"></script>
+<script src="/style/apart/js/section-premium.js"></script>
+<script>
+    document.querySelectorAll("img[data-landscape-fallback]").forEach(function (img) {
+        img.addEventListener(
+        "error",
+        function () {
+            var fb = img.getAttribute("data-landscape-fallback");
+            if (fb && img.src.indexOf(fb) === -1) {
+            img.src = fb;
+            }
+        },
+        { once: true }
+        );
+    });
+</script>
+</body>
+</html>

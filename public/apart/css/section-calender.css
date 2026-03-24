@@ -1,0 +1,351 @@
+/* 분양일정 — 풀폭 · 대형 타이포 */
+
+.sjxr-cal {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  color: #fff;
+  font-family: "Noto Sans KR", "DM Sans", sans-serif;
+}
+
+.sjxr-cal *,
+.sjxr-cal *::before,
+.sjxr-cal *::after {
+  box-sizing: border-box;
+}
+
+.sjxr-cal__inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: none;
+  margin: 0 auto;
+  padding: clamp(44px, 10vw, 88px) 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: clamp(32px, 6vw, 52px);
+}
+
+.sjxr-cal__head {
+  text-align: center;
+  order: 0;
+}
+
+.sjxr-cal__head .sjxr-cal__script,
+.sjxr-cal__head .sjxr-cal__title,
+.sjxr-cal__head .sjxr-cal__sub {
+  text-align: center;
+}
+
+.sjxr-cal__script {
+  margin: 0 0 8px;
+  font-family: "Great Vibes", cursive;
+  font-size: clamp(2.65rem, 9vw, 4rem);
+  font-weight: 400;
+  line-height: 1.12;
+  color: #b8c5d2;
+  letter-spacing: 0.02em;
+}
+
+.sjxr-cal__title {
+  margin: 0 0 16px;
+  font-family: Georgia, "Times New Roman", Times, serif;
+  font-size: clamp(3.6rem, 16vw, 5.5rem);
+  font-weight: 700;
+  line-height: 0.98;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.sjxr-cal__sub {
+  margin: 0;
+  font-size: clamp(1.18rem, 4.2vw, 1.45rem);
+  font-weight: 700;
+  line-height: 1.58;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+
+.sjxr-cal__sub strong {
+  font-weight: 700;
+}
+
+.sjxr-cal__grid-wrap {
+  order: 1;
+  width: 100%;
+  max-width: none;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: clamp(26px, 5.5vw, 36px);
+}
+
+.sjxr-cal__grid {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 3.2vw, 16px);
+}
+
+.sjxr-cal__row {
+  display: grid;
+  gap: clamp(14px, 3.2vw, 16px);
+}
+
+.sjxr-cal__row--2 {
+  grid-template-columns: 1fr;
+}
+
+.sjxr-cal__row--3 {
+  grid-template-columns: 1fr;
+}
+
+/* 모바일: 라벨·구분선·날짜를 한 덩어리로 가운데 정렬 (양끝 1fr 그리드 깨짐 방지) */
+.sjxr-cal__card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(14px, 3.5vw, 20px);
+  min-height: clamp(68px, 18vw, 80px);
+  padding: 18px var(--mo-pad-x);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.48);
+  -webkit-tap-highlight-color: transparent;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.sjxr-cal__card-label {
+  flex: 0 1 auto;
+  max-width: 46%;
+  text-align: right;
+  font-size: clamp(1.08rem, 3.6vw, 1.28rem);
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.45;
+  word-break: keep-all;
+}
+
+.sjxr-cal__card-sep {
+  width: 2px;
+  min-height: 1.35em;
+  height: 1.35em;
+  align-self: center;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.65);
+  flex-shrink: 0;
+}
+
+.sjxr-cal__card-date {
+  flex: 0 1 auto;
+  max-width: 50%;
+  text-align: left;
+  font-size: clamp(1.02rem, 3.3vw, 1.2rem);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.96);
+  line-height: 1.45;
+  word-break: keep-all;
+}
+
+.sjxr-cal__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  max-width: none;
+  min-height: 54px;
+  padding: 18px var(--mo-pad-x);
+  border: none;
+  border-radius: 999px;
+  background: #2b86c4;
+  color: #fff !important;
+  font-family: "Noto Sans KR", "DM Sans", sans-serif;
+  font-size: clamp(1.12rem, 3.8vw, 1.28rem);
+  font-weight: 700;
+  text-decoration: none !important;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+  transition: background 0.2s ease, opacity 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sjxr-cal__cta:hover {
+  background: #2478b0;
+  color: #fff !important;
+}
+
+@media (max-width: 991px) {
+  .sjxr-cal__inner {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 0 var(--mo-section-pad-bottom);
+    gap: clamp(18px, 4vw, 28px);
+    box-sizing: border-box;
+  }
+
+  .sjxr-cal__head {
+    padding-top: 0;
+    padding-bottom: var(--mo-title-pad-bottom);
+  }
+
+  .sjxr-cal__script {
+    font-size: var(--mo-head-script);
+  }
+
+  .sjxr-cal__title {
+    font-size: var(--mo-cal-title);
+    margin-bottom: 12px;
+  }
+
+  .sjxr-cal__sub {
+    font-size: var(--mo-head-lead);
+  }
+
+  .sjxr-cal__grid-wrap {
+    width: 100%;
+    max-width: 100%;
+    gap: clamp(18px, 4vw, 28px);
+  }
+}
+
+.sjxr-cal__cta-arr--fa {
+  display: none;
+}
+
+.sjxr-cal__cta-arr--mo {
+  display: inline;
+  font-weight: 700;
+}
+
+@media (min-width: 992px) {
+  .sjxr-cal__inner {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(40px, 5vw, 96px);
+    padding-top: clamp(56px, 9vh, 120px);
+    padding-bottom: clamp(56px, 9vh, 120px);
+  }
+
+  .sjxr-cal__head {
+    order: 2;
+    flex: 1 1 40%;
+    min-width: 0;
+    text-align: right;
+    align-self: center;
+    padding-top: 0.25rem;
+  }
+
+  .sjxr-cal__head .sjxr-cal__script,
+  .sjxr-cal__head .sjxr-cal__title,
+  .sjxr-cal__head .sjxr-cal__sub {
+    text-align: right;
+  }
+
+  .sjxr-cal__script {
+    font-size: clamp(3rem, 4.5vw, 4.5rem);
+    margin-bottom: 10px;
+  }
+
+  .sjxr-cal__title {
+    font-family: "Bebas Neue", sans-serif;
+    font-size: clamp(6rem, 11vw, 12rem);
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    line-height: 0.88;
+    margin-bottom: 20px;
+  }
+
+  .sjxr-cal__sub {
+    font-size: clamp(1.2rem, 1.6vw, 1.65rem);
+    max-width: none;
+    margin-left: auto;
+    line-height: 1.5;
+  }
+
+  .sjxr-cal__grid-wrap {
+    order: 1;
+    flex: 1 1 60%;
+    max-width: none;
+    width: auto;
+    min-width: 0;
+    margin: 0;
+    align-items: flex-start;
+  }
+
+  .sjxr-cal__row--2 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .sjxr-cal__row--3 {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .sjxr-cal__card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: clamp(120px, 14vh, 160px);
+    padding: clamp(22px, 2.5vw, 32px) clamp(16px, 2vw, 24px);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    gap: 0;
+  }
+
+  .sjxr-cal__card-label {
+    max-width: none;
+    text-align: center;
+    font-size: clamp(1.05rem, 1.35vw, 1.35rem);
+    margin-bottom: 8px;
+  }
+
+  .sjxr-cal__card-sep {
+    display: none;
+  }
+
+  .sjxr-cal__card-date {
+    max-width: none;
+    text-align: center;
+    font-size: clamp(0.98rem, 1.2vw, 1.15rem);
+    opacity: 0.98;
+  }
+
+  .sjxr-cal__cta {
+    width: auto;
+    max-width: none;
+    align-self: flex-start;
+    padding: 18px 40px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    color: #fff !important;
+    font-weight: 500;
+    font-size: clamp(1.05rem, 1.25vw, 1.25rem);
+  }
+
+  .sjxr-cal__cta:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff !important;
+  }
+
+  .sjxr-cal__cta-arr--fa {
+    display: inline-flex;
+    font-size: 0.9em;
+    font-weight: 300;
+    opacity: 0.95;
+  }
+
+  .sjxr-cal__cta-arr--mo {
+    display: none;
+  }
+}
