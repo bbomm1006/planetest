@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>초정밀 채무해결</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* styles.css */
+body {
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.container {
+  max-width: 2000px;
+  width: 90%;
+  background: radial-gradient(circle, #ffffff, #d4d8ff);
+  border-radius: 30px;
+  padding: 40px 20px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.container::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.5) 10%, transparent 70%);
+  z-index: 0;
+}
+
+.logo-placeholder,
+.image-placeholder {
+  width: 100px;
+  height: 100px;
+  background-color: #000;
+  margin: 20px auto;
+  border-radius: 10px;
+  z-index: 1;
+}
+
+.badge {
+  display: inline-block;
+  background-color: #e0e7ff;
+  color: #4a4a4a;
+  font-size: 14px;
+  padding: 5px 15px;
+  border-radius: 20px;
+  margin-bottom: 20px;
+  z-index: 1;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: bold;
+  color: #333;
+  line-height: 1.5;
+  margin: 20px 0;
+  z-index: 1;
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin: 20px 0;
+  z-index: 1;
+}
+
+.button {
+  padding: 15px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.button.blue {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.button.blue:hover {
+  background-color: #0056b3;
+}
+
+.button.mint {
+  background-color: #b2f5ea;
+  color: #333;
+}
+
+.button.mint:hover {
+  background-color: #81e6d9;
+}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo-placeholder"></div>
+    <div class="badge">전화상담 필요없이 바로 확인</div>
+    <h1 class="title">
+      터치로 간편하게<br>
+      초정밀 채무해결
+    </h1>
+    <div class="buttons">
+      <button class="button blue">초정밀 예상 탕감액 진단</button>
+      <button class="button mint">지금 서비스 신청하기</button>
+    </div>
+    <div class="image-placeholder"></div>
+  </div>
+</body>
+</html>

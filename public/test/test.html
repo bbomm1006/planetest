@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>초정밀 채무해결 레이아웃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:#f5f6fb;
+      display:flex;
+      justify-content:center;
+    }
+
+    .page-wrap {
+      width:100%;
+      max-width:2000px;
+      padding:40px 16px 80px;
+    }
+
+    /* ====== 상단 히어로 ====== */
+    .hero {
+      position:relative;
+      border-radius:32px;
+      overflow:hidden;
+      background:
+        radial-gradient(circle at center, #ffffff 0%, #f7f8ff 32%, #e0e5ff 56%, #c3ccff 78%, #a8b4ff 100%);
+      padding:60px 16px 70px;
+    }
+
+    .hero::before {
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius:32px;
+      pointer-events:none;
+      background:
+        radial-gradient(circle at center, transparent 0, transparent 90px, rgba(255,255,255,.55) 90px, transparent 91px),
+        radial-gradient(circle at center, transparent 0, transparent 180px, rgba(255,255,255,.45) 180px, transparent 181px),
+        radial-gradient(circle at center, transparent 0, transparent 270px, rgba(255,255,255,.35) 270px, transparent 271px),
+        radial-gradient(circle at center, transparent 0, transparent 360px, rgba(255,255,255,.25) 360px, transparent 361px),
+        radial-gradient(circle at center, transparent 0, transparent 450px, rgba(255,255,255,.18) 450px, transparent 451px);
+      opacity:.7;
+    }
+
+    .hero-inner {
+      position:relative;
+      max-width:470px;
+      margin:0 auto;
+      text-align:center;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+    }
+
+    .hero-logo {
+      width:120px;
+      height:52px;
+      background:#000;
+      border-radius:10px;
+      margin-bottom:28px;
+    }
+
+    .hero-badge-top {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:6px 16px;
+      border-radius:999px;
+      background:rgba(255,255,255,.9);
+      font-size:11px;
+      font-weight:500;
+      color:#4b5563;
+      margin-bottom:8px;
+    }
+
+    .hero-title {
+      font-size:32px;
+      line-height:1.32;
+      font-weight:700;
+      color:#111827;
+      margin-bottom:22px;
+      white-space:pre-line;
+    }
+
+    .hero-buttons {
+      display:flex;
+      gap:10px;
+      margin-bottom:34px;
+      flex-wrap:wrap;
+      justify-content:center;
+    }
+
+    .hero-btn {
+      border:none;
+      border-radius:999px;
+      padding:10px 22px;
+      font-size:13px;
+      font-weight:600;
+      cursor:pointer;
+      box-shadow:0 10px 25px rgba(15,23,42,0.25);
+      white-space:nowrap;
+    }
+    .hero-btn.blue { background:#2563eb; color:#fff; }
+    .hero-btn.mint { background:#a7f3d0; color:#111827; }
+
+    .hero-main-img {
+      width:260px;
+      height:340px;
+      background:#000;
+      border-radius:20px;
+    }
+
+    /* ====== 히어로 하단 캡션 배지 ====== */
+    .quote-wrap {
+      margin-top:28px;
+      display:flex;
+      justify-content:center;
+    }
+    .quote-badge {
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      background:#d7ddff;
+      border-radius:999px;
+      padding:10px 22px;
+      font-size:11px;
+      color:#384152;
+    }
+    .quote-cta {
+      background:#fff;
+      border-radius:999px;
+      padding:4px 14px;
+      font-size:10px;
+      font-weight:600;
+    }
+
+    /* ====== 하단 콘텐츠 영역 ====== */
+    .content-section {
+      margin-top:68px;
+      text-align:center;
+    }
+    .content-title {
+      font-size:20px;
+      font-weight:700;
+      line-height:1.4;
+      color:#111827;
+    }
+    .content-subbtn {
+      margin-top:14px;
+      border:none;
+      border-radius:999px;
+      padding:8px 20px;
+      font-size:12px;
+      font-weight:600;
+      background:#22c55e;
+      color:#fff;
+      box-shadow:0 10px 20px rgba(22,163,74,0.35);
+      cursor:pointer;
+    }
+
+    .card-grid {
+      margin:32px auto 0;
+      display:grid;
+      grid-template-columns:repeat(4, 1fr);
+      gap:14px;
+      max-width:640px;
+    }
+    .card {
+      background:#fff;
+      border-radius:18px;
+      box-shadow:0 12px 30px rgba(15,23,42,0.15);
+      padding:22px 6px 20px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+    }
+    .card-emoji { font-size:32px; margin-bottom:10px; }
+    .card-label { font-size:12px; color:#111827; }
+
+    /* ====== 청록색 배너 ====== */
+    .teal-banner-wrap {
+      margin-top:60px;
+    }
+    .teal-banner {
+      background:#0d9a80;          /* 청록 계열 컬러 */
+      border-radius:32px;
+      padding:40px 16px 46px;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      text-align:center;
+    }
+    .teal-inner {
+      max-width:520px;
+      margin:0 auto;
+      color:#ecfdf5;
+    }
+    .teal-eyebrow {
+      font-size:13px;
+      font-weight:600;
+      letter-spacing:2px;
+      margin-bottom:16px;
+      color:#bbf7d0;
+    }
+    .teal-main {
+      font-size:34px;
+      font-weight:800;
+      margin-bottom:18px;
+      color:#fefce8;
+    }
+    .teal-sub {
+      font-size:15px;
+      line-height:1.5;
+      margin-bottom:22px;
+    }
+    .teal-small {
+      font-size:10px;
+      line-height:1.6;
+      opacity:0.9;
+    }
+
+    /* ====== 반응형 ====== */
+    @media (max-width:900px) {
+      .hero { padding:46px 16px 60px; }
+      .hero-title { font-size:26px; }
+      .hero-main-img { width:220px; height:300px; }
+      .page-wrap { padding-inline:12px; }
+      .teal-main { font-size:28px; }
+    }
+
+    @media (max-width:640px) {
+      .card-grid {
+        grid-template-columns:repeat(2, 1fr);
+        max-width:360px;
+      }
+      .quote-badge { font-size:10px; padding-inline:16px; }
+      .hero-logo { margin-bottom:24px; }
+      .teal-banner { padding:30px 18px 34px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+    <!-- 상단 히어로 -->
+    <section class="hero">
+      <div class="hero-inner">
+        <div class="hero-logo"></div>
+
+        <div class="hero-badge-top">
+          전화상담 필요없이 바로 확인
+        </div>
+
+        <h1 class="hero-title">
+터치로 간편하게
+초정밀 채무해결
+        </h1>
+
+        <div class="hero-buttons">
+          <button class="hero-btn blue">초정밀 예상 탕감액 진단</button>
+          <button class="hero-btn mint">지금 서비스 신청하기</button>
+        </div>
+
+        <div class="hero-main-img"></div>
+      </div>
+    </section>
+
+    <!-- 중간 문구 배지 -->
+    <div class="quote-wrap">
+      <div class="quote-badge">
+        <span>“저에게 맞는 채무조정 제도를 알고싶어요.”</span>
+        <span class="quote-cta">답변 보기</span>
+      </div>
+    </div>
+
+    <!-- 하단 카드 콘텐츠 -->
+    <section class="content-section">
+      <h2 class="content-title">
+        이런 경우에도<br />채무해결이 가능해요
+      </h2>
+      <button class="content-subbtn">초진단 시작해보기</button>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-emoji">📉</div>
+          <div class="card-label">코인 실패</div>
+        </div>
+        <div class="card">
+          <div class="card-emoji">📊</div>
+          <div class="card-label">주식 실패</div>
+        </div>
+        <div class="card">
+          <div class="card-emoji">♠️</div>
+          <div class="card-label">도박 빚</div>
+        </div>
+        <div class="card">
+          <div class="card-emoji">🧾</div>
+          <div class="card-label">아르바이트</div>
+        </div>
+        <div class="card">
+          <div class="card-emoji">👜</div>
+          <div class="card-label">명품 소비</div>
+        </div>
+        <div class="card">
+          <div class="card-emoji">🧑‍💼</div>
+          <div class="card-label">일용직근로자</div>
+        </div>
+        <div class="card">
+          <div class="card-emoji">✈️</div>
+          <div class="card-label">여행 빚</div>
+        </div>
+        <div class="card">
+          <div class="card-emoji">📱</div>
+          <div class="card-label">프리랜서</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 청록색 배너 섹션 -->
+    <section class="teal-banner-wrap">
+      <div class="teal-banner">
+        <div class="teal-inner">
+          <div class="teal-eyebrow">국내 단 3%</div>
+          <div class="teal-main">개인회생 전문 도산변호사<br>책임 담당 보장제</div>
+          <p class="teal-sub">
+            풍부한 경험을 가진 도산전문 변호사가 직접 사건을 검토하고<br>
+            최적의 해결 전략을 설계해 드립니다.
+          </p>
+          <p class="teal-small">
+            국내 도산법 전문 변호사회 인증 도산전문 변호사가 직접 법원제출 서면부터<br>
+            상담까지 전 과정을 책임지는 보장제입니다.
+          </p>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
