@@ -1,7 +1,7 @@
 export const PhoneSection = () => {
   return (
     <div className="items-center box-border caret-transparent flex justify-center min-h-[auto] min-w-[auto] break-words w-full">
-      <div className="box-border caret-transparent flex max-w-none min-h-[360px] min-w-[auto] break-words w-full rounded-[17px] md:max-w-[2000px] md:min-h-[700px] md:rounded-[33px]">
+      <div className="box-border caret-transparent flex max-w-none min-h-[360px] min-w-[auto] break-words w-full rounded-[17px] md:max-w-[1400px] md:min-h-[700px] md:rounded-[33px]">
         <div className="relative box-border caret-transparent flex basis-[0%] grow min-h-[auto] min-w-[auto] break-words z-[1] overflow-hidden">
           <div className="relative items-center bg-[radial-gradient(circle,rgb(252,253,255),rgb(196,206,255))] box-border caret-transparent flex basis-[0%] grow justify-center min-h-[auto] min-w-[auto] break-words z-50 rounded-[17px] md:bg-[radial-gradient(circle,rgb(252,253,255),rgb(196,206,255),rgb(196,206,255))] md:rounded-[33px]">
             <div className="box-border caret-transparent h-[150px] min-h-[auto] min-w-[auto] break-words w-[150px] md:h-[300px] md:w-[300px]">

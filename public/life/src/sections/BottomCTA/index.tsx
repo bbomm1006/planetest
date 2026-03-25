@@ -12,7 +12,7 @@ export const BottomCTA = () => {
                 type="button"
                 className="btn-press relative appearance-none text-white text-base font-semibold items-center bg-blue-600/90 border-l-slate-200 border-r-slate-200 shadow-[rgba(0,0,0,0.15)_0px_5px_10px_0px] caret-transparent inline-flex h-12 justify-center leading-[19.2px] min-w-12 outline-transparent outline-offset-2 outline outline-2 break-words text-center text-nowrap align-middle px-6 py-0 rounded-full border-y-white/40 border-b border-t md:text-lg md:h-[60px] md:leading-[21.6px] md:min-w-[60px] md:px-7"
               >
-                초정밀 탕감액 진단
+                초정밀 공간 케어
               </button>
             </a>
           </div>
@@ -20,7 +20,7 @@ export const BottomCTA = () => {
             type="button"
             className="btn-press relative appearance-none text-white text-base font-semibold items-center bg-green-600/90 border-l-slate-200 border-r-slate-200 shadow-[rgba(0,0,0,0.15)_0px_5px_10px_0px] caret-transparent flex h-12 justify-center leading-[19.2px] min-h-[auto] min-w-12 outline-transparent outline-offset-2 outline outline-2 break-words text-center text-nowrap align-middle px-6 py-0 rounded-full border-y-white/40 border-b border-t md:text-lg md:h-[60px] md:leading-[21.6px] md:min-w-[60px] md:px-7"
           >
-            초간단 자격확인
+            초간단 청소 견적 받기
           </button>
         </div>
       </div>

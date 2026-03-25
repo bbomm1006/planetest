@@ -1,7 +1,7 @@
 export const DifficultySection = () => {
   return (
     <div className="items-center box-border caret-transparent flex justify-center min-h-[auto] min-w-[auto] break-words w-full">
-      <div className="relative bg-green-200 box-border caret-transparent max-w-none min-h-[360px] min-w-[auto] break-words w-full overflow-hidden pt-10 pb-5 px-5 rounded-[17px] md:max-w-[2000px] md:min-h-[700px] md:p-[100px] md:rounded-[33px]">
+      <div className="relative bg-green-200 box-border caret-transparent max-w-none min-h-[360px] min-w-[auto] break-words w-full overflow-hidden pt-10 pb-5 px-5 rounded-[17px] md:max-w-[1400px] md:min-h-[700px] md:p-[100px] md:rounded-[33px]">
         <h2 className="relative text-[25px] font-bold box-border caret-transparent leading-[33.25px] break-words text-center z-[1] mb-2 md:text-[50px] md:leading-[60px] md:text-start md:mb-[15px]">
           진짜 실력의 차이는
           <br className="text-[25px] box-border caret-transparent leading-[33.25px] break-words text-center md:text-[50px] md:leading-[60px] md:text-start" />

@@ -8,52 +8,52 @@ export const ServiceIconGrid = () => {
           <div className="box-border caret-transparent min-h-[auto] min-w-[auto] break-words">
             <ServiceIcon
               imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/144.png"
-              label="제출 상세 매뉴얼"
+              label="청소 상세 안내서"
             />
           </div>
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/person-running.0yi2wt8f7fvts.png"
-            label="부채증명서 대리발급"
+            label="청소용품 무상 제공"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/183.png"
-            label="제출물 온라인 관리"
+            label="청소 내역 온라인 관리"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/188.png"
-            label="개인별 초정밀 진단"
+            label="맞춤 청소 진단"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/rocket.0tm7okw41dt6i.png"
-            label="초고속 법원제출"
+            label="당일 청소 완료"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/144.png"
-            label="제출 상세 매뉴얼"
+            label="청소 상세 안내서"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/person-running.0yi2wt8f7fvts.png"
-            label="부채증명서 대리발급"
+            label="청소용품 무상 제공"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/183.png"
-            label="제출물 온라인 관리"
+            label="청소 내역 온라인 관리"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/188.png"
-            label="개인별 초정밀 진단"
+            label="맞춤 청소 진단"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/rocket.0tm7okw41dt6i.png"
-            label="초고속 법원제출"
+            label="당일 청소 완료"
             hasWrapper={true}
           />
         </div>
@@ -70,7 +70,7 @@ export const ServiceIconGrid = () => {
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/132.png"
-            label="채권자 대응 컨설팅"
+            label="청소 품질 컨설팅"
             hasWrapper={true}
           />
           <ServiceIcon
@@ -80,7 +80,7 @@ export const ServiceIconGrid = () => {
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/159.png"
-            label="서류 대리발급"
+            label="소모품 대리 구매"
             hasWrapper={true}
           />
           <ServiceIcon
@@ -95,7 +95,7 @@ export const ServiceIconGrid = () => {
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/132.png"
-            label="채권자 대응 컨설팅"
+            label="청소 품질 컨설팅"
             hasWrapper={true}
           />
           <ServiceIcon
@@ -105,7 +105,7 @@ export const ServiceIconGrid = () => {
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/159.png"
-            label="서류 대리발급"
+            label="소모품 대리 구매"
             hasWrapper={true}
           />
         </div>

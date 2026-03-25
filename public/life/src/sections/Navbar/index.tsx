@@ -57,7 +57,7 @@ export const Navbar = () => {
           ✕
         </button>
         {[
-          { href: "#hero", label: "똑생 소개", active: true },
+          { href: "#hero", label: "클린메이트 소개", active: true },
           { href: "#pricing", label: "이용료 안내" },
           { href: "#info", label: "유용한 정보" },
           { href: "#team", label: "💙 만든이들" },
@@ -77,14 +77,14 @@ export const Navbar = () => {
             onClick={close}
             className="btn-press text-center text-white text-sm font-semibold bg-sky-500 h-12 flex items-center justify-center rounded-full"
           >
-            초정밀 예상 탕감액 진단
+            예상 비용 확인하기
           </a>
           <a
             href="https://app.ddok.life/intake/wep/apply"
             onClick={close}
             className="btn-press text-center text-green-700 text-sm font-semibold bg-green-200 h-12 flex items-center justify-center rounded-full"
           >
-            지금 서비스 신청하기
+            지금 바로 예약하기
           </a>
         </div>
       </div>

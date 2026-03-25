@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 60">
+  <defs>
+    <style>
+      .bg  { fill: #00BCD4; }
+      .ico { fill: #fff; }
+      .ico2{ fill: #E0F7FA; }
+      .ct  { fill: #006064; font-family: 'Apple SD Gothic Neo','Noto Sans KR',sans-serif; font-weight: 800; }
+    </style>
+  </defs>
+
+  <!-- 아이콘 배경 박스 -->
+  <rect class="bg" x="0" y="0" width="60" height="60" rx="12" ry="12"/>
+
+  <!-- 청소기 헤드 (바닥 브러시) -->
+  <rect class="ico" x="8" y="44" width="44" height="9" rx="4.5"/>
+  <!-- 브러시 슬릿 -->
+  <rect class="ico2" x="12" y="46.5" width="5" height="2.5" rx="1.2"/>
+  <rect class="ico2" x="20" y="46.5" width="5" height="2.5" rx="1.2"/>
+  <rect class="ico2" x="28" y="46.5" width="5" height="2.5" rx="1.2"/>
+  <rect class="ico2" x="36" y="46.5" width="5" height="2.5" rx="1.2"/>
+
+  <!-- 청소기 본체 -->
+  <rect class="ico" x="22" y="27" width="16" height="19" rx="5"/>
+  <!-- 본체 창 -->
+  <rect class="ico2" x="25" y="30" width="6" height="8" rx="3"/>
+
+  <!-- 핸들 파이프 -->
+  <path fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" d="M28,27 C27,21 24,16 20,10"/>
+  <!-- 핸들 그립 -->
+  <rect class="ico" x="14" y="7" width="12" height="6" rx="3"/>
+  <rect class="ico2" x="17" y="9" width="6" height="2" rx="1"/>
+
+  <!-- 거품/반짝이 효과 -->
+  <circle class="ico2" cx="44" cy="14" r="3.5" opacity="0.7"/>
+  <circle class="ico2" cx="51" cy="22" r="2.5" opacity="0.5"/>
+  <circle class="ico2" cx="47" cy="8"  r="2"   opacity="0.4"/>
+
+  <!-- 클린메이트 텍스트 -->
+  <text x="72" y="35" class="ct" font-size="28" letter-spacing="-1">클린메이트</text>
+
+  <!-- 영문 서브 -->
+  <text x="74" y="52" fill="#00ACC1" font-size="10" font-family="Arial,sans-serif" font-weight="700" letter-spacing="3">CLEANMATE</text>
+</svg>

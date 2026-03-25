@@ -4,7 +4,7 @@ const TEAM_VIDEOS = [
   {
     youtubeId: "D8mxrSvCZ1M",
     img: "https://c.animaapp.com/mn4j4i5rMNHjkT/assets/160.png",
-    role: "전략 전문가",
+    role: "청소 전문가",
   },
   {
     youtubeId: "CND-OpobQt0",
@@ -14,17 +14,17 @@ const TEAM_VIDEOS = [
   {
     youtubeId: "iJG0GB9VZks",
     img: "https://c.animaapp.com/mn4j4i5rMNHjkT/assets/150.png",
-    role: "소프트웨어 개발자",
+    role: "서비스 개발자",
   },
   {
     youtubeId: "ccDjysySykI",
     img: "https://c.animaapp.com/mn4j4i5rMNHjkT/assets/174.png",
-    role: "개인회생 전문 대표 변호사",
+    role: "청소 전문 대표 매니저",
   },
   {
     youtubeId: "nUESeu10nmM",
     img: "https://c.animaapp.com/mn4j4i5rMNHjkT/assets/178.png",
-    role: "분석 전문가",
+    role: "품질 관리 전문가",
   },
 ];
 
@@ -144,10 +144,10 @@ export function TeamCarouselSection() {
           {/* Header */}
           <div className="text-center px-5 mb-8 md:mb-12">
             <h2 className="text-[25px] font-bold leading-[33.25px] text-center mb-2 md:text-[50px] md:leading-[60px] md:mb-[15px]">
-              똑생을 만든<br />전문가들을 만나보세요
+              클린메이트를 만든<br />전문 청소팀을 만나보세요
             </h2>
             <p className="text-[13px] font-semibold leading-[19.5px] text-slate-500 text-center mt-2 md:text-xl md:leading-[30px] md:mt-[15px]">
-              각 분야의 전문가들이 모여 만드는 새로운 개인회생 이야기
+              다양한 현장 경험을 가진 전문가들이 모여 최고의 청소 서비스를 제공합니다
             </p>
           </div>
 

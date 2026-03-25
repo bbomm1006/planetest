@@ -1,19 +1,19 @@
 export const PricingSection = () => {
   return (
     <div className="items-center box-border caret-transparent flex justify-center min-h-[auto] min-w-[auto] break-words w-full">
-      <div className="bg-indigo-100 box-border caret-transparent max-w-none min-h-[360px] min-w-[auto] break-words w-full overflow-hidden p-[25px] rounded-[17px] md:max-w-[2000px] md:min-h-[700px] md:p-[35px] md:rounded-[33px]">
+      <div className="bg-indigo-100 box-border caret-transparent max-w-none min-h-[360px] min-w-[auto] break-words w-full overflow-hidden p-[25px] rounded-[17px] md:max-w-[1400px] md:min-h-[700px] md:p-[35px] md:rounded-[33px]">
         <div className="items-center box-border caret-transparent flex justify-center break-words mt-0 md:mt-[30px]">
           <div className="box-border caret-transparent gap-x-[23px] flex flex-col max-w-[470px] min-h-[auto] min-w-[auto] break-words gap-y-[23px] w-full md:gap-x-[45px] md:max-w-[826px] md:gap-y-[45px]">
             <div className="box-border caret-transparent flex min-h-[auto] min-w-[auto] break-words">
               <div className="self-stretch box-border caret-transparent basis-[0%] grow justify-self-stretch min-h-[auto] min-w-[auto] break-words"></div>
               <div className="box-border caret-transparent gap-x-5 flex min-h-[auto] min-w-[auto] break-words gap-y-5 md:gap-x-12 md:gap-y-12">
                 <div className="relative text-blue-700 text-[15px] font-semibold bg-green-200 box-border caret-transparent leading-[22.5px] min-h-[auto] min-w-[auto] break-words p-5 rounded-[17px] md:text-3xl md:leading-[45px] md:p-10 md:rounded-[25px] after:accent-auto after:border-l-green-200 after:border-r-slate-200 after:border-t-slate-200 after:caret-transparent after:text-blue-700 after:block after:text-[15px] after:not-italic after:normal-nums after:font-semibold after:tracking-[-0.64px] after:leading-[22.5px] after:list-outside after:list-disc after:break-words after:pointer-events-auto after:absolute after:right-[-18px] after:text-start after:no-underline after:indent-[0px] after:normal-case after:visible after:border-l-[18px] after:border-b-transparent after:border-b-[18px] after:border-separate after:top-5 after:font-pretendard after:md:text-3xl after:md:leading-[45px] after:md:right-[-33px] after:md:border-l-[33px] after:md:border-b-[33px] after:md:top-[26px]">
-                  변제금 말고도 변호사비로
+                  청소 한 번 맡기는데
                   <br className="text-[15px] box-border caret-transparent leading-[22.5px] break-words md:text-3xl md:leading-[45px]" />
                   <span className="text-green-600 text-[15px] box-border caret-transparent leading-[22.5px] break-words md:text-3xl md:leading-[45px]">
-                    달달이 60만원이나
+                    비용이 너무 부담
                   </span>
-                  내라고요?!
+                  되셨나요?
                 </div>
                 <div className="box-border caret-transparent min-h-[auto] min-w-[auto] break-words w-[70px] md:w-[125px]">
                   <img
@@ -30,13 +30,13 @@ export const PricingSection = () => {
                   <div className="box-border caret-transparent min-h-[auto] min-w-[auto] break-words w-[55px] md:w-[105px]">
                     <img
                       alt=""
-                      src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/130.svg"
+                      src="cleanmate_logo.svg"
                       className="text-transparent aspect-[auto_55_/_55] box-border max-w-full break-words align-baseline w-[55px] md:aspect-[auto_105_/_105] md:w-[105px]"
                     />
                   </div>
                 </div>
                 <div className="relative text-black text-[15px] font-semibold bg-indigo-200 box-border caret-transparent leading-[22.5px] min-h-[auto] min-w-[auto] break-words p-5 rounded-[17px] md:text-3xl md:leading-[45px] md:p-10 md:rounded-[25px] after:accent-auto after:border-l-slate-200 after:border-r-indigo-200 after:border-t-slate-200 after:caret-transparent after:text-black after:block after:text-[15px] after:not-italic after:normal-nums after:font-semibold after:left-[-18px] after:tracking-[-0.64px] after:leading-[22.5px] after:list-outside after:list-disc after:break-words after:pointer-events-auto after:absolute after:text-start after:no-underline after:indent-[0px] after:normal-case after:visible after:border-r-[18px] after:border-b-transparent after:border-b-[18px] after:border-separate after:top-5 after:font-pretendard after:md:text-3xl after:md:left-[-33px] after:md:leading-[45px] after:md:border-r-[33px] after:md:border-b-[33px] after:md:top-[26px]">
-                  저희 똑생 에서는
+                  저희 클린메이트 에서는
                   <br className="text-[15px] box-border caret-transparent leading-[22.5px] break-words md:text-3xl md:leading-[45px]" />
                   <span className="text-blue-700 text-[15px] box-border caret-transparent leading-[22.5px] break-words md:text-3xl md:leading-[45px]">
                     월 19만원만
@@ -69,7 +69,7 @@ export const PricingSection = () => {
             <div className="items-center box-border caret-transparent flex justify-center min-h-[auto] min-w-[auto] break-words">
               <div className="box-border caret-transparent min-h-[auto] min-w-[auto] break-words w-64 mt-[30px] md:w-[539px]">
                 <img
-                  alt="똑생 월 납부액 19만원"
+                  alt="클린메이트 월 정기 이용료"
                   src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/157.png"
                   className="text-transparent aspect-[auto_256_/_262] box-border max-w-full break-words align-baseline w-64 md:aspect-[auto_539_/_552] md:w-[539px]"
                 />
