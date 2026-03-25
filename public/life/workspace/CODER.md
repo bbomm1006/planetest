@@ -17,7 +17,7 @@ Keep entries sorted in DESC order (newest first) so recent knowledge stays in pr
 ## Stack
 - React 18 + TypeScript, Vite, Tailwind CSS 3, lucide-react, radix-ui
 - No router (single-page, hash anchors)
-- Font: Pretendard (loaded via CDN woff2 in tailwind.css)
+- Font: Noto Sans KR (Google Fonts, loaded via <link> in index.html) — replaced Pretendard which had @FONTWARNING on all 5 weights
 - Path alias: `@/` → `./src/` (configured in vite.config.ts / tsconfig)
 
 ## Key File Locations

@@ -28,11 +28,6 @@ Active nav link highlight on scroll
 Detect which section is in viewport and highlight current nav item using IntersectionObserver + useState
 </todo>
 
-<todo id="review-carousel-swipe">
-Touch-swipe support for review carousel
-Add pointer/touch drag support to the horizontal review strip so mobile users can swipe naturally
-</todo>
-
 <todo id="faq-deep-answers">
 Expand FAQ with real answers
 The 6 FAQ items now have placeholder answers — replace with actual official content from ddok.life
