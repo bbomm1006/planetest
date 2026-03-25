@@ -33,7 +33,7 @@ export const FAQBanner = () => {
         href="https://plead.notion.site/691c7660f2e240529f000d6d6e9223a9"
         className="box-border caret-transparent contents break-words"
       >
-        <div className="items-center backdrop-blur bg-blue-700/20 box-border caret-transparent flex min-h-[auto] min-w-[auto] break-words w-full m-[17px] rounded-full hover:bg-blue-700/30 transition-colors duration-200 md:w-[800px] md:m-[34px]">
+        <div className="items-center backdrop-blur bg-blue-700/20 box-border caret-transparent flex min-h-[auto] min-w-[auto] break-words w-full rounded-none hover:bg-blue-700/30 transition-colors duration-200 md:w-[800px] md:rounded-full md:mx-[34px]">
           <div className="text-blue-700 text-[15px] font-semibold box-border caret-transparent basis-[0%] grow h-[50px] leading-[50px] min-h-[auto] min-w-[auto] break-words text-center overflow-hidden md:text-2xl md:h-16 md:leading-[64px]">
             <div
               key={textIndex}

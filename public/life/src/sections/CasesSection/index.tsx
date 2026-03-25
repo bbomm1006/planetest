@@ -84,10 +84,10 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
   );
 }
 
-function ReviewCard({ review }: { review: { img: string; name: string; meta: string; tags: string[]; title: string } }) {
+function ReviewCard({ review }: { review: { img: string; name: string; meta: string; tags: string[]; title: string; body: string } }) {
   return (
-    <div className="relative box-border caret-transparent shrink-0 h-full min-h-[auto] min-w-[auto] break-words w-[295px] md:w-[310px]">
-      <div className="relative bg-white shadow-[rgba(45,55,72,0.05)_0px_0px_1px_0px,rgba(45,55,72,0.1)_0px_4px_8px_0px] box-border caret-transparent flex flex-col h-80 break-words mb-2.5 p-5 rounded-2xl md:shadow-none md:h-[590px] md:mb-0 md:p-[30px]">
+    <div className="relative box-border caret-transparent shrink-0 h-full min-h-[auto] min-w-[auto] break-words w-[320px] md:w-[548px]">
+      <div className="relative bg-white shadow-[rgba(45,55,72,0.05)_0px_0px_1px_0px,rgba(45,55,72,0.1)_0px_4px_8px_0px] box-border caret-transparent flex flex-col break-words mb-2.5 p-5 rounded-2xl aspect-square md:shadow-none md:mb-0 md:p-[40px]">
         <div className="items-center box-border caret-transparent gap-x-2.5 flex min-h-[auto] min-w-[auto] break-words gap-y-2.5 md:gap-x-5 md:gap-y-5">
           <div className="box-border caret-transparent min-h-[auto] min-w-[auto] break-words overflow-hidden rounded-full w-[50px] md:w-[65px]">
             <img
@@ -115,7 +115,16 @@ function ReviewCard({ review }: { review: { img: string; name: string; meta: str
         <h4 className="text-lg font-bold box-border caret-transparent leading-[27px] min-h-[auto] min-w-[auto] break-words mt-2.5 md:text-[22px] md:leading-[33px] md:mt-[15px]">
           {review.title}
         </h4>
-        <div className="absolute items-center box-border caret-transparent flex justify-center break-words bottom-5 inset-x-0 md:bottom-10">
+
+        {/* 본문 + 그라디언트 페이드 */}
+        <div className="relative flex-1 overflow-hidden mt-2.5 md:mt-4">
+          <p className="text-sm text-gray-500 leading-relaxed md:text-base md:leading-7">
+            {review.body}
+          </p>
+          <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-white to-transparent" />
+        </div>
+
+        <div className="items-center box-border caret-transparent flex justify-center break-words mt-4">
           <button
             type="button"
             className="btn-press relative appearance-none text-white text-sm font-semibold items-center bg-green-600 caret-transparent flex h-8 justify-center leading-[16.8px] min-h-[auto] min-w-8 outline-transparent outline-offset-2 outline outline-2 break-words text-center text-nowrap align-middle px-3 py-0 rounded-full md:text-base md:h-10 md:leading-[19.2px] md:min-w-10 md:px-4"
@@ -214,12 +223,12 @@ export const CasesSection = () => {
           <div className="relative box-border caret-transparent list-none break-words overscroll-x-contain z-[1] overflow-x-auto scrollbar-none cursor-grab active:cursor-grabbing mx-auto">
             <div className="relative caret-transparent flex h-full break-words w-max px-[23px] gap-x-3.5 md:px-[60px] md:gap-x-[30px]">
               {[
-                { img: "138.png", name: "유○○", meta: "30대 / 여성 / 프리랜서", tags: ["꼼꼼한 청소", "시간 약속 준수", "친절한 응대", "가성비 좋음"], title: "집 상태가 너무 깔끔해져서 처음 들어왔을 때 기분이 정말 좋았어요" },
-                { img: "128.png", name: "김○○", meta: "20대 / 남성 / 대학생", tags: ["빠른 예약", "깔끔한 마무리", "친절한 안내", "편한 진행"], title: "자취방 맡겼는데 기대 이상으로 깨끗해져서 만족합니다" },
-                { img: "156.png", name: "박○○", meta: "30대 / 남성 / 자영업", tags: ["빠른 작업", "전문적인 청소", "체계적인 진행", "신뢰감"], title: "가게 청소 맡겼는데 확실히 전문가 느낌이 나네요" },
-                { img: "133.png", name: "최○○", meta: "40대 / 여성 / 주부", tags: ["꼼꼼한 디테일", "합리적인 가격", "전문 장비", "깔끔한 결과"], title: "주방이 특히 만족스러웠고 전체적으로 정말 깨끗해졌어요" },
-                { img: "124.png", name: "정○○", meta: "20대 / 여성 / 직장인", tags: ["친절한 상담", "빠른 진행", "정확한 시간", "깔끔한 마무리"], title: "처음 맡겨봤는데 응대도 좋고 결과도 만족입니다" },
-                { img: "145.png", name: "이○○", meta: "50대 / 남성 / 개인사업자", tags: ["체계적인 서비스", "믿을 수 있는 업체", "확실한 결과", "만족도 높음"], title: "다음에도 재이용할 생각입니다. 믿고 맡길 수 있네요" },
+                { img: "138.png", name: "유○○", meta: "30대 / 여성 / 프리랜서", tags: ["꼼꼼한 청소", "시간 약속 준수", "친절한 응대", "가성비 좋음"], title: "집 상태가 너무 깔끔해져서 처음 들어왔을 때 기분이 정말 좋았어요", body: "처음에는 반신반의했는데 막상 결과를 보고 깜짝 놀랐어요. 구석구석 정말 꼼꼼하게 청소해주셔서 집이 새것처럼 바뀌었습니다. 특히 시간 약속도 칼같이 지켜주셔서 믿음이 갔어요. 가격 대비 퀄리티가 너무 좋아서 주변에도 추천하고 있습니다." },
+                { img: "128.png", name: "김○○", meta: "20대 / 남성 / 대학생", tags: ["빠른 예약", "깔끔한 마무리", "친절한 안내", "편한 진행"], title: "자취방 맡겼는데 기대 이상으로 깨끗해져서 만족합니다", body: "예약도 앱으로 간편하게 할 수 있어서 좋았고, 담당자분이 진행 과정을 친절하게 안내해주셔서 처음 이용했는데도 전혀 불편함이 없었어요. 자취방이라 좁고 어수선했는데 끝나고 나서 보니 진짜 깨끗해져서 기분이 좋았습니다." },
+                { img: "156.png", name: "박○○", meta: "30대 / 남성 / 자영업", tags: ["빠른 작업", "전문적인 청소", "체계적인 진행", "신뢰감"], title: "가게 청소 맡겼는데 확실히 전문가 느낌이 나네요", body: "영업 전 가게 청소를 맡겼는데 작업 속도도 빠르고 체계적으로 진행해주셔서 영업 준비에 전혀 지장이 없었습니다. 일반 청소업체랑은 확실히 다른 전문성이 느껴졌고, 손이 잘 안 닿는 곳까지 꼼꼼하게 해주셔서 다음에도 꼭 이용할 예정입니다." },
+                { img: "133.png", name: "최○○", meta: "40대 / 여성 / 주부", tags: ["꼼꼼한 디테일", "합리적인 가격", "전문 장비", "깔끔한 결과"], title: "주방이 특히 만족스러웠고 전체적으로 정말 깨끗해졌어요", body: "주방 기름때가 너무 심해서 걱정했는데 전문 장비로 말끔하게 제거해주셨어요. 일반 청소로는 절대 안 될 것 같았던 부분들도 다 깨끗하게 해주셔서 정말 감동받았습니다. 가격도 다른 곳에 비해 합리적이라 부담 없이 이용할 수 있었어요." },
+                { img: "124.png", name: "정○○", meta: "20대 / 여성 / 직장인", tags: ["친절한 상담", "빠른 진행", "정확한 시간", "깔끔한 마무리"], title: "처음 맡겨봤는데 응대도 좋고 결과도 만족입니다", body: "청소 서비스를 처음 이용해봐서 많이 낯설었는데 상담부터 마무리까지 친절하게 안내해주셔서 편하게 진행할 수 있었어요. 정해진 시간에 정확히 오셔서 믿음이 갔고, 마무리도 깔끔하게 해주셔서 다음에도 꼭 이용할 것 같아요." },
+                { img: "145.png", name: "이○○", meta: "50대 / 남성 / 개인사업자", tags: ["체계적인 서비스", "믿을 수 있는 업체", "확실한 결과", "만족도 높음"], title: "다음에도 재이용할 생각입니다. 믿고 맡길 수 있네요", body: "여러 청소 업체를 써봤는데 이렇게 체계적으로 운영하는 곳은 처음이었어요. 진행 상황을 중간중간 알려주시고 결과물도 확실해서 신뢰가 생겼습니다. 바쁜 사업장 특성상 빠르고 정확한 서비스가 필요했는데 딱 맞게 해주셔서 정말 만족합니다." },
               ].map((review, i) => (
                 <ReviewCard key={i} review={review} />
               ))}
@@ -369,112 +378,11 @@ export const CasesSection = () => {
           </div>
         </div>
       </RevealSection>
-      <RevealSection delay={100} className="items-center box-border caret-transparent flex justify-center min-h-[auto] min-w-[auto] break-words w-full">
-        <div className="relative bg-indigo-500 box-border caret-transparent max-w-none min-h-[360px] min-w-[auto] break-words w-full overflow-hidden pt-5 pb-[30px] rounded-[17px] md:max-w-[1400px] md:min-h-[700px] md:rounded-[33px]">
-          <div className="items-center box-border caret-transparent flex flex-col justify-center break-words">
-            <div className="relative items-center box-border caret-transparent flex h-[300px] justify-center min-h-[auto] min-w-[auto] break-words transform-none w-[400px] md:translate-y-[187.5px] md:scale-[2.5]">
-              <div className="absolute box-border caret-transparent break-words rotate-[-19.99998485209311deg] w-[260px]">
-                <img
-                  alt=""
-                  src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/185.png"
-                  className="text-transparent aspect-[auto_260_/_260] box-border max-w-full break-words align-baseline w-[260px]"
-                />
-              </div>
-              <div className="absolute box-border caret-transparent break-words translate-x-[-18.1542px] translate-y-[-51.8382px] rotate-[8.999998316886215deg] z-[1] scale-[0.9299998369655771]">
-                <div className="text-white backdrop-blur-[10px] bg-blue-700/50 box-border caret-transparent break-words text-center text-nowrap px-[30px] py-2.5 rounded-full">
-                  <span className="text-[27px] font-extrabold box-border caret-transparent leading-[40.5px] break-words text-nowrap mr-2.5">당일 예약 완료 평균</span>
-                  <span className="text-[50px] font-extrabold box-border caret-transparent leading-[75px] break-words text-nowrap">4.9일</span>
-                </div>
-              </div>
-              <div className="absolute box-border caret-transparent break-words translate-x-[17.6857px] translate-y-[33.8682px] rotate-[-7.999970437763044deg] scale-[0.7999994825248326]">
-                <div className="text-white backdrop-blur-[10px] bg-green-500/60 box-border caret-transparent break-words text-center text-nowrap px-[30px] py-2.5 rounded-full">
-                  <span className="text-[27px] font-extrabold box-border caret-transparent leading-[40.5px] break-words text-nowrap mr-2.5">청소 완료 평균</span>
-                  <span className="text-[50px] font-extrabold box-border caret-transparent leading-[75px] break-words text-nowrap">3시간</span>
-                </div>
-              </div>
-              <p className="absolute text-white/40 text-[10px] font-semibold box-border caret-transparent leading-[15px] break-words right-[20%] bottom-[8%] md:text-[8px] md:leading-3">
-                2026년 3월 25일 기준
-              </p>
-            </div>
-            <div className="static box-border caret-transparent min-h-[auto] min-w-[auto] break-words text-center right-auto bottom-auto md:absolute md:min-h-0 md:min-w-0 md:text-right md:right-10 md:bottom-10">
-              <h2 className="text-white text-[25px] font-bold box-border caret-transparent leading-[33.25px] break-words text-center mb-2 md:text-[50px] md:leading-[60px] md:text-right md:mb-[15px]">
-                빠르고 확실하게
-              </h2>
-              <p className="text-white/80 text-xs font-semibold box-border caret-transparent leading-[18px] break-words text-center md:text-base md:leading-6 md:text-right">
-                기다림 없이, 한 번에 끝내는
-                <br className="text-xs box-border caret-transparent leading-[18px] break-words text-center md:text-base md:leading-6 md:text-right" />
-                클린메이트 청소 서비스
-              </p>
-            </div>
-          </div>
-        </div>
-      </RevealSection>
+     
       <RevealSection delay={100} className="items-center box-border caret-transparent flex justify-center min-h-[auto] min-w-[auto] break-words w-full">
         <div className="relative bg-[url('https://www.ddok.life/_next/static/media/document-issuance-bg.0.b-rfqye9i4p.png')] bg-cover box-border caret-transparent max-w-none min-h-[360px] min-w-[auto] break-words w-full overflow-hidden bg-center px-0 py-5 rounded-[17px] md:max-w-[1400px] md:min-h-[700px] md:p-[100px] md:rounded-[33px]">
-          <div className="absolute box-border caret-transparent flex h-[185px] break-words w-full left-0 top-[30px] md:h-[370px] md:top-40">
-            <div className="relative box-border caret-transparent basis-[0%] grow min-h-[auto] min-w-[auto] break-words overflow-hidden">
-              <p className="static text-black text-base font-normal box-content caret-black leading-[normal] opacity-100 text-wrap transform-none top-auto md:absolute md:text-green-800 md:text-[45.389px] md:font-bold md:aspect-auto md:box-border md:caret-transparent md:leading-[45.389px] md:opacity-[0.29202] md:break-words md:overscroll-x-auto md:overscroll-y-auto md:snap-align-none md:snap-normal md:snap-none md:decoration-auto md:underline-offset-auto md:text-nowrap md:translate-x-[606px] md:[mask-position:0%] md:bg-left-top md:scroll-m-0 md:scroll-p-[auto] md:top-[252.371px]">
-                카드회사별 거래내역
-              </p>
-              <p className="static text-black text-base font-normal box-content caret-black leading-[normal] opacity-100 text-wrap transform-none top-auto md:absolute md:text-green-800 md:text-[48.5549px] md:font-bold md:aspect-auto md:box-border md:caret-transparent md:leading-[48.5549px] md:opacity-[0.189169] md:break-words md:overscroll-x-auto md:overscroll-y-auto md:snap-align-none md:snap-normal md:snap-none md:decoration-auto md:underline-offset-auto md:text-nowrap md:translate-x-[606px] md:[mask-position:0%] md:bg-left-top md:scroll-m-0 md:scroll-p-[auto] md:top-[192.029px]">
-                저축은행별 거래내역
-              </p>
-              <p className="static text-black text-base font-normal box-content caret-black leading-[normal] opacity-100 text-wrap transform-none top-auto md:absolute md:text-green-800 md:text-[48.3295px] md:font-bold md:aspect-auto md:box-border md:caret-transparent md:leading-[48.3295px] md:opacity-[0.166655] md:break-words md:overscroll-x-auto md:overscroll-y-auto md:snap-align-none md:snap-normal md:snap-none md:decoration-auto md:underline-offset-auto md:text-nowrap md:translate-x-[606px] md:[mask-position:0%] md:bg-left-top md:scroll-m-0 md:scroll-p-[auto] md:top-[234.012px]"></p>
-              <p className="static text-black text-base font-normal box-content caret-black leading-[normal] opacity-100 text-wrap transform-none top-auto md:absolute md:text-green-800 md:text-[45.3521px] md:font-bold md:aspect-auto md:box-border md:caret-transparent md:leading-[45.3521px] md:opacity-[0.166407] md:break-words md:overscroll-x-auto md:overscroll-y-auto md:snap-align-none md:snap-normal md:snap-none md:decoration-auto md:underline-offset-auto md:text-nowrap md:translate-x-[606px] md:[mask-position:0%] md:bg-left-top md:scroll-m-0 md:scroll-p-[auto] md:top-[119.265px]"></p>
-              <p className="static text-black text-base font-normal box-content caret-black leading-[normal] opacity-100 text-wrap transform-none top-auto md:absolute md:text-green-800 md:text-[43.6928px] md:font-bold md:aspect-auto md:box-border md:caret-transparent md:leading-[43.6928px] md:opacity-[0.142486] md:break-words md:overscroll-x-auto md:overscroll-y-auto md:snap-align-none md:snap-normal md:snap-none md:decoration-auto md:underline-offset-auto md:text-nowrap md:translate-x-[606px] md:[mask-position:0%] md:bg-left-top md:scroll-m-0 md:scroll-p-[auto] md:top-[1.89264px]">
-                신용정보조회서
-              </p>
-              <p className="static text-black text-base font-normal box-content caret-black leading-[normal] opacity-100 text-wrap transform-none top-auto md:absolute md:text-green-800 md:text-[41.98px] md:font-bold md:aspect-auto md:box-border md:caret-transparent md:leading-[41.98px] md:opacity-[0.208726] md:break-words md:overscroll-x-auto md:overscroll-y-auto md:snap-align-none md:snap-normal md:snap-none md:decoration-auto md:underline-offset-auto md:text-nowrap md:translate-x-[606px] md:[mask-position:0%] md:bg-left-top md:scroll-m-0 md:scroll-p-[auto] md:top-[59.1941px]">
-                채권자변동정보
-              </p>
-              <p className="static text-black text-base font-normal box-content caret-black leading-[normal] opacity-100 text-wrap transform-none top-auto md:absolute md:text-green-800 md:text-[44.6517px] md:font-bold md:aspect-auto md:box-border md:caret-transparent md:leading-[44.6517px] md:opacity-[0.223725] md:break-words md:overscroll-x-auto md:overscroll-y-auto md:snap-align-none md:snap-normal md:snap-none md:decoration-auto md:underline-offset-auto md:text-nowrap md:translate-x-[606px] md:[mask-position:0%] md:bg-left-top md:scroll-m-0 md:scroll-p-[auto] md:top-[319.503px]">
-                종합소득세 확정신고서
-              </p>
-            </div>
-            <div className="relative box-border caret-transparent basis-[0%] grow min-h-[auto] min-w-[auto] break-words overflow-hidden">
-              <p className="static text-black text-base font-normal box-content caret-black leading-[normal] opacity-100 text-wrap transform-none top-auto md:absolute md:text-green-800 md:text-[43.6651px] md:font-bold md:aspect-auto md:box-border md:caret-transparent md:leading-[43.6651px] md:opacity-[0.137131] md:break-words md:overscroll-x-auto md:overscroll-y-auto md:snap-align-none md:snap-normal md:snap-none md:decoration-auto md:underline-offset-auto md:text-nowrap md:translate-x-[-260px] md:[mask-position:0%] md:bg-left-top md:scroll-m-0 md:scroll-p-[auto] md:top-[288.695px]">
-                채권자변동정보
-              </p>
-              <p className="static text-black text-base font-normal box-content caret-black leading-[normal] opacity-100 text-wrap transform-none top-auto md:absolute md:text-green-800 md:text-[46.2917px] md:font-bold md:aspect-auto md:box-border md:caret-transparent md:leading-[46.2917px] md:opacity-[0.122057] md:break-words md:overscroll-x-auto md:overscroll-y-auto md:snap-align-none md:snap-normal md:snap-none md:decoration-auto md:underline-offset-auto md:text-nowrap md:translate-x-[-276px] md:[mask-position:0%] md:bg-left-top md:scroll-m-0 md:scroll-p-[auto] md:top-[201.083px]">
-                신용정보조회서
-              </p>
-              <p className="static text-black text-base font-normal box-content caret-black leading-[normal] opacity-100 text-wrap transform-none top-auto md:absolute md:text-green-800 md:text-[45.5999px] md:font-bold md:aspect-auto md:box-border md:caret-transparent md:leading-[45.5999px] md:opacity-[0.108544] md:break-words md:overscroll-x-auto md:overscroll-y-auto md:snap-align-none md:snap-normal md:snap-none md:decoration-auto md:underline-offset-auto md:text-nowrap md:translate-x-[-271px] md:[mask-position:0%] md:bg-left-top md:scroll-m-0 md:scroll-p-[auto] md:top-[202.809px]">
-                채권자변동정보
-              </p>
-              <p className="static text-black text-base font-normal box-content caret-black leading-[normal] opacity-100 text-wrap top-auto md:absolute md:text-green-800 md:text-[41.6231px] md:font-bold md:aspect-auto md:box-border md:caret-transparent md:leading-[41.6231px] md:opacity-[0.253575] md:break-words md:overscroll-x-auto md:overscroll-y-auto md:snap-align-none md:snap-normal md:snap-none md:decoration-auto md:underline-offset-auto md:text-nowrap md:[mask-position:0%] md:bg-left-top md:scroll-m-0 md:scroll-p-[auto] md:top-[149.798px]"></p>
-              <p className="static text-black text-base font-normal box-content caret-black leading-[normal] opacity-100 text-wrap transform-none top-auto md:absolute md:text-green-800 md:text-[49.5759px] md:font-bold md:aspect-auto md:box-border md:caret-transparent md:leading-[49.5759px] md:opacity-[0.207167] md:break-words md:overscroll-x-auto md:overscroll-y-auto md:snap-align-none md:snap-normal md:snap-none md:decoration-auto md:underline-offset-auto md:text-nowrap md:translate-x-[-391px] md:[mask-position:0%] md:bg-left-top md:scroll-m-0 md:scroll-p-[auto] md:top-[314.368px]">
-                저축은행별 거래내역
-              </p>
-              <p className="static text-black text-base font-normal box-content caret-black leading-[normal] opacity-100 text-wrap transform-none top-auto md:absolute md:text-green-800 md:text-[46.7596px] md:font-bold md:aspect-auto md:box-border md:caret-transparent md:leading-[46.7596px] md:opacity-[0.220133] md:break-words md:overscroll-x-auto md:overscroll-y-auto md:snap-align-none md:snap-normal md:snap-none md:decoration-auto md:underline-offset-auto md:text-nowrap md:translate-x-[-368px] md:[mask-position:0%] md:bg-left-top md:scroll-m-0 md:scroll-p-[auto] md:top-[102.131px]">
-                카드회사별 거래내역
-              </p>
-              <p className="static text-black text-base font-normal box-content caret-black leading-[normal] opacity-100 text-wrap transform-none top-auto md:absolute md:text-green-800 md:text-[46.5422px] md:font-bold md:aspect-auto md:box-border md:caret-transparent md:leading-[46.5422px] md:opacity-[0.253461] md:break-words md:overscroll-x-auto md:overscroll-y-auto md:snap-align-none md:snap-normal md:snap-none md:decoration-auto md:underline-offset-auto md:text-nowrap md:translate-x-[-287px] md:[mask-position:0%] md:bg-left-top md:scroll-m-0 md:scroll-p-[auto] md:top-[205.664px]">
-                은행별 거래내역
-              </p>
-              <p className="static text-black text-base font-normal box-content caret-black leading-[normal] opacity-100 text-wrap transform-none top-auto md:absolute md:text-green-800 md:text-[45.731px] md:font-bold md:aspect-auto md:box-border md:caret-transparent md:leading-[45.731px] md:opacity-[0.239466] md:break-words md:overscroll-x-auto md:overscroll-y-auto md:snap-align-none md:snap-normal md:snap-none md:decoration-auto md:underline-offset-auto md:text-nowrap md:translate-x-[-447px] md:[mask-position:0%] md:bg-left-top md:scroll-m-0 md:scroll-p-[auto] md:top-[172.665px]">
-                지방세 세목별 과세증명서
-              </p>
-            </div>
-          </div>
-          <div className="relative items-center box-border caret-transparent flex justify-center break-words w-full left-auto top-auto md:absolute md:left-0 md:top-[230px]">
-            <div className="relative box-border caret-transparent h-56 min-h-[auto] min-w-[auto] break-words transform-none w-[180px] md:scale-[2.3]">
-              <div className="absolute box-border caret-transparent ml-[-212px] mt-[-30px] break-words w-[600px]">
-                <img
-                  alt=""
-                  src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/169.png"
-                  className="text-transparent aspect-[auto_600_/_271] box-border max-w-full break-words align-baseline w-[600px]"
-                />
-              </div>
-              <div className="absolute box-border caret-transparent break-words w-[180px]">
-                <img
-                  alt="청소 서비스 종류 40가지 이상"
-                  src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/179.svg"
-                  className="text-transparent aspect-[auto_180_/_224] box-border max-w-full break-words align-baseline w-[180px]"
-                />
-              </div>
-            </div>
-          </div>
-          <div className="static text-zinc-800 box-border caret-transparent opacity-80 break-words my-5 md:absolute">
+         
+          <div className="static text-green-800 box-border caret-transparent break-words my-5 md:absolute">
             <h2 className="text-[25px] font-bold box-border caret-transparent leading-[33.25px] break-words text-center mb-2 md:text-[50px] md:leading-[60px] md:text-start md:mb-[15px]">
               번거로운 청소는 이제 그만
             </h2>
@@ -483,6 +391,15 @@ export const CasesSection = () => {
               <br className="text-[13px] box-border caret-transparent leading-[19.5px] break-words text-center md:text-xl md:leading-[30px] md:text-start" />
               클린메이트가 대신 깔끔하게 해결해드립니다
             </p>
+          </div>
+          <div className="items-center box-border caret-transparent flex justify-center break-words w-full overflow-hidden my-0 md:justify-end md:-my-10">
+            <div className="box-border caret-transparent min-h-[auto] min-w-[auto] break-words w-[450px] -mx-5 md:w-[1000px]">
+              <img
+                alt=""
+                src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/176.png"
+                className="text-transparent aspect-[auto_450_/_281] box-border max-w-full break-words align-baseline w-[450px] md:aspect-[auto_1000_/_625] md:w-[1000px]"
+              />
+            </div>
           </div>
         </div>
       </RevealSection>
@@ -511,20 +428,23 @@ export const CasesSection = () => {
       </RevealSection>
       <RevealSection delay={100} className="items-center box-border caret-transparent flex justify-center min-h-[auto] min-w-[auto] break-words w-full">
         <div className="relative bg-green-200 box-border caret-transparent max-w-none min-h-[360px] min-w-[auto] break-words w-full overflow-hidden pt-10 pb-5 px-5 rounded-[17px] md:max-w-[1400px] md:min-h-[700px] md:p-[100px] md:rounded-[33px]">
-          <h2 className="relative text-[25px] font-bold box-border caret-transparent leading-[33.25px] break-words text-center z-[1] mb-2 md:text-[50px] md:leading-[60px] md:text-start md:mb-[15px]">
-            진짜 실력의 차이는
-            <br className="text-[25px] box-border caret-transparent leading-[33.25px] break-words text-center md:text-[50px] md:leading-[60px] md:text-start" />
-            어려운 상황에서 나옵니다
-          </h2>
-          <div className="static items-center box-border caret-transparent flex flex-col justify-center break-words transform-none origin-[50%_50%] mt-5 right-auto md:absolute md:origin-[100%_50%] md:mt-0 md:scale-[2.2] md:right-[5%]">
-            <p className="text-black/40 text-sm font-bold box-border caret-transparent leading-[21px] min-h-[auto] min-w-[auto] break-words mb-2.5">
-              실제 해결한 사례 입니다
+          <div className="static text-green-800 box-border caret-transparent break-words my-5 md:absolute">
+            <h2 className="text-[25px] font-bold box-border caret-transparent leading-[33.25px] break-words text-center mb-2 md:text-[50px] md:leading-[60px] md:text-start md:mb-[15px]">
+              전국 어디든 가능한 풍부한 청소 경험
+            </h2>
+            <p className="text-[13px] font-semibold box-border caret-transparent leading-[19.5px] break-words text-center mt-2 md:text-xl md:leading-[30px] md:text-start md:mt-[15px]">
+              클린메이트는 전국 어디서든 OK!
+              <br className="text-[13px] box-border caret-transparent leading-[19.5px] break-words text-center md:text-xl md:leading-[30px] md:text-start" />
+              다양한 현장 경험으로 공간에 맞는 청소를 제공합니다
             </p>
-            <div className="box-border caret-transparent h-[220px] min-h-[auto] min-w-[auto] break-words w-80">
-              <div className="absolute items-center bg-white shadow-[rgba(45,55,72,0.05)_0px_0px_1px_0px,rgba(45,55,72,0.1)_0px_4px_8px_0px] box-border caret-transparent flex blur-[2px] h-[90px] justify-center opacity-0 break-words translate-y-[-89.1px] w-80 z-[5] rounded-[10px] scale-110 md:opacity-100 md:transform-none md:z-[4]"></div>
-              <div className="absolute items-center bg-white shadow-[rgba(45,55,72,0.05)_0px_0px_1px_0px,rgba(45,55,72,0.1)_0px_4px_8px_0px] box-border caret-transparent flex h-[90px] justify-center opacity-100 break-words transform-none w-80 z-[4] rounded-[10px] md:blur-[2px] md:opacity-60 md:translate-y-[72.9px] md:z-[3] md:scale-90"></div>
-              <div className="absolute items-center bg-white shadow-[rgba(45,55,72,0.05)_0px_0px_1px_0px,rgba(45,55,72,0.1)_0px_4px_8px_0px] box-border caret-transparent flex blur-[2px] h-[90px] justify-center opacity-60 break-words translate-y-[72.9px] w-80 z-[3] rounded-[10px] scale-90 md:blur-[3px] md:opacity-30 md:translate-y-[129.6px] md:z-[2] md:scale-[0.8]"></div>
-              <div className="absolute items-center bg-white shadow-[rgba(45,55,72,0.05)_0px_0px_1px_0px,rgba(45,55,72,0.1)_0px_4px_8px_0px] box-border caret-transparent flex blur-[3px] h-[90px] justify-center opacity-30 break-words translate-y-[129.6px] w-80 z-[2] rounded-[10px] scale-[0.8] md:blur-sm md:opacity-0 md:translate-y-[170.1px] md:z-[1] md:scale-[0.7]"></div>
+          </div>
+          <div className="items-center box-border caret-transparent flex justify-center break-words w-full overflow-hidden my-0 md:justify-end md:-my-10">
+            <div className="box-border caret-transparent min-h-[auto] min-w-[auto] break-words w-[450px] -mx-5 md:w-[1000px]">
+              <img
+                alt=""
+                src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/176.png"
+                className="text-transparent aspect-[auto_450_/_281] box-border max-w-full break-words align-baseline w-[450px] md:aspect-[auto_1000_/_625] md:w-[1000px]"
+              />
             </div>
           </div>
         </div>
@@ -723,12 +643,12 @@ export const CasesSection = () => {
             <div className="bg-white box-border caret-transparent flex flex-col min-h-[auto] min-w-[auto] break-words p-[25px] rounded-[15px] md:p-[70px] md:rounded-[30px]">
               <div className="box-border caret-transparent min-h-[auto] min-w-[auto] break-words">
                 <h2 className="text-[25px] font-bold box-border caret-transparent leading-[33.25px] break-words text-center mb-2 md:text-[40px] md:leading-[48px] md:text-start md:mb-[15px]">
-                  채권자가 많아도
+                  추가 비용 없이
                   <br className="text-[25px] box-border caret-transparent leading-[33.25px] break-words text-center md:text-[40px] md:leading-[48px] md:text-start" />
-                  수임료를 더 받지 않아요
+                  합리적인 가격으로 진행합니다
                 </h2>
                 <p className="text-[13px] font-semibold box-border caret-transparent leading-[19.5px] break-words text-center mt-2 md:text-xl md:leading-[30px] md:text-start md:mt-[15px]">
-                  11명부터 추가금 청구
+                  작업 범위에 따른 명확한 견적으로 안내드려요
                 </p>
               </div>
               <div className="self-stretch box-border caret-transparent basis-[0%] grow justify-self-stretch min-h-[auto] min-w-[auto] break-words"></div>
@@ -738,7 +658,7 @@ export const CasesSection = () => {
                     type="button"
                     className="btn-press relative appearance-none text-white text-base font-semibold items-center bg-sky-500 caret-transparent inline-flex h-12 justify-center leading-[19.2px] min-w-12 outline-transparent outline-offset-2 outline outline-2 break-words text-center text-nowrap align-middle px-6 py-0 rounded-full md:text-2xl md:h-16 md:leading-[28.8px] md:min-w-0"
                   >
-                    수임료 알아보기
+                    견적 알아보기
                   </button>
                 </a>
               </div>
