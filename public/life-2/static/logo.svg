@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 60">
+  <defs>
+    <style>
+      .t1 { fill: #ffffff; font-family: 'Apple SD Gothic Neo','Noto Sans KR',Arial,sans-serif; font-weight: 900; }
+      .t2 { fill: #ff4444; font-family: Arial,sans-serif; font-weight: 700; }
+    </style>
+  </defs>
+
+  <!-- 아이콘 배경 박스 -->
+  <rect fill="#CC0000" x="0" y="0" width="60" height="60" rx="10" ry="10"/>
+
+  <!-- 차체 하단 (날카로운 사다리꼴) -->
+  <polygon fill="#ffffff" points="6,40 8,32 52,32 54,40"/>
+
+  <!-- 차 루프 (낮고 날렵한 쿠페 라인) -->
+  <polygon fill="#ffffff" points="13,32 18,22 38,20 48,32"/>
+
+  <!-- 앞유리 (어둡게) -->
+  <polygon fill="#CC0000" points="34,22 46,32 36,32 32,22"/>
+
+  <!-- 뒷유리 -->
+  <polygon fill="#CC0000" points="19,22 14,32 24,32 28,22"/>
+
+  <!-- 앞 헤드라이트 (날카로운 슬릿) -->
+  <polygon fill="#ffdddd" points="49,33 54,33 53,37 49,37"/>
+
+  <!-- 뒤 테일라이트 -->
+  <polygon fill="#880000" points="6,33 10,33 10,37 7,37"/>
+
+  <!-- 왼쪽 바퀴 -->
+  <circle fill="#111111" cx="16" cy="42" r="6.5"/>
+  <circle fill="#555555" cx="16" cy="42" r="3"/>
+  <circle fill="#999999" cx="16" cy="42" r="1.2"/>
+
+  <!-- 오른쪽 바퀴 -->
+  <circle fill="#111111" cx="44" cy="42" r="6.5"/>
+  <circle fill="#555555" cx="44" cy="42" r="3"/>
+  <circle fill="#999999" cx="44" cy="42" r="1.2"/>
+
+  <!-- 차체 하단 라인 -->
+  <line x1="10" y1="40" x2="50" y2="40" stroke="#ff4444" stroke-width="1.2"/>
+
+  <!-- 레드존 텍스트 -->
+  <text x="72" y="36" class="t1" font-size="26" letter-spacing="-0.5">레드존</text>
+  <!-- 영문 서브 -->
+  <text x="72" y="52" class="t2" font-size="11" letter-spacing="2">REDZONE RENTCAR</text>
+</svg>

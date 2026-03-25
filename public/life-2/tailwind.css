@@ -1,0 +1,123 @@
+@tailwind components;
+@tailwind utilities;
+
+@tailwind base;
+
+@layer base {
+  :root {
+    --background: 0 0% 6%;
+    --foreground: 0 0% 95%;
+
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 55%;
+
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 95%;
+
+    --border: 0 0% 16%;
+    --input: 0 0% 16%;
+
+    --card: transparent;
+    --card-foreground: 0 0% 95%;
+
+    --primary: 0 85% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 90%;
+
+    --accent: 0 75% 40%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 100% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --ring: 0 85% 50%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 0 0% 4%;
+    --foreground: 0 0% 93%;
+
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 50%;
+
+    --accent: 0 75% 35%;
+    --accent-foreground: 0 0% 100%;
+
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 80%;
+
+    --border: 0 0% 14%;
+    --input: 0 0% 14%;
+
+    --card: transparent;
+    --card-foreground: 0 0% 93%;
+
+    --primary: 0 85% 52%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 90%;
+
+    --destructive: 0 70% 35%;
+    --destructive-foreground: 0 0% 100%;
+
+    --ring: 0 85% 45%;
+
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Scroll-reveal utility */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.65s ease-out, transform 0.65s ease-out;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+
+/* Hover press feedback */
+.btn-press {
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+.btn-press:hover { opacity: 0.88; }
+.btn-press:active { transform: scale(0.96); }
+
+/* Smooth hover for nav links */
+.nav-link {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.nav-link:hover {
+  background-color: rgba(220, 38, 38, 0.1);
+}
+
+/* FAQ accordion */
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.3s ease;
+}
+.faq-answer.open {
+  max-height: 500px;
+}
