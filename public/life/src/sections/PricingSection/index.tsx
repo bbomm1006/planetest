@@ -62,7 +62,7 @@ export const PricingSection = () => {
                 장기 분할납부제
               </h2>
               <p className="text-[13px] font-semibold box-border caret-transparent leading-[19.5px] break-words text-center mt-2 md:text-xl md:leading-[30px] md:text-start md:mt-[15px]">
-                경제적 자립의 걸림돌인 수임료 부담을 줄였어요
+                청소 맡길 때 부담되는 비용을 줄였어요
               </p>
             </div>
             <div className="self-stretch box-border caret-transparent basis-[0%] grow justify-self-stretch min-h-[auto] min-w-[auto] break-words"></div>

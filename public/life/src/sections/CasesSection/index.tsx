@@ -483,7 +483,7 @@ export const CasesSection = () => {
                 집요하게 찾아내는{" "}
                 <span className="relative text-[17px] box-border caret-transparent leading-[25.5px] break-words md:text-2xl md:leading-9 after:accent-auto after:bg-green-300 after:caret-transparent after:text-gray-900 after:block after:text-[17px] after:not-italic after:normal-nums after:font-semibold after:h-1/5 after:tracking-[-0.64px] after:leading-[25.5px] after:list-outside after:list-disc after:break-words after:pointer-events-auto after:absolute after:text-start after:no-underline after:indent-[0px] after:normal-case after:visible after:border-separate after:bottom-0 after:inset-x-0 after:font-pretendard after:md:text-2xl after:md:leading-9">
                   <u className="relative text-blue-700 text-[17px] box-border caret-transparent leading-[25.5px] break-words z-[1] md:text-2xl md:leading-9">
-                    치밀한 탕감률
+                    곰팡이 제거
                   </u>
                 </span>
               </p>
@@ -497,7 +497,7 @@ export const CasesSection = () => {
                 />
               </div>
               <p className="text-[17px] font-semibold box-border caret-transparent leading-[25.5px] min-h-[auto] min-w-[auto] break-words md:text-2xl md:leading-9">
-                더 빠른 업무처리
+                원클릭 청소 예약
               </p>
             </li>
             <li className="items-center bg-white shadow-[rgba(45,55,72,0.05)_0px_0px_1px_0px,rgba(45,55,72,0.1)_0px_8px_16px_0px] box-border caret-transparent gap-x-[15px] flex h-[70px] min-h-[auto] min-w-[auto] break-words gap-y-[15px] w-auto pl-[26px] rounded-xl md:shadow-[rgba(45,55,72,0.05)_0px_0px_1px_0px,rgba(45,55,72,0.1)_0px_16px_24px_0px] md:gap-x-6 md:h-[100px] md:gap-y-6 md:w-[500px] md:pl-[50px] md:rounded-[20px]">
@@ -509,7 +509,7 @@ export const CasesSection = () => {
                 />
               </div>
               <p className="text-[17px] font-semibold box-border caret-transparent leading-[25.5px] min-h-[auto] min-w-[auto] break-words md:text-2xl md:leading-9">
-                사람에 의한 실수 방지
+                프리미엄 청소 서비스
               </p>
             </li>
           </ul>
@@ -626,7 +626,7 @@ export const CasesSection = () => {
                   장기 분할납부제
                 </h2>
                 <p className="text-[13px] font-semibold box-border caret-transparent leading-[19.5px] break-words text-center mt-2 md:text-xl md:leading-[30px] md:text-start md:mt-[15px]">
-                  경제적 자립의 걸림돌인 수임료 부담을 줄였어요
+                  청소 맡길 때 부담되는 비용을 줄였어요
                 </p>
               </div>
               <div className="self-stretch box-border caret-transparent basis-[0%] grow justify-self-stretch min-h-[auto] min-w-[auto] break-words"></div>
