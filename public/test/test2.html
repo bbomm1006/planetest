@@ -1,0 +1,400 @@
+// /App.jsx
+import React from 'react';
+
+const stats = [
+  { label: '당일견적문의', value: '14건', icon: '✎' },
+  { label: '온라인상담시간', value: '1분', icon: '⏱' },
+];
+
+const compareLeft = [
+  '신차 장기렌트',
+  '초기비용 부담 ↓',
+  '보험/세금 포함',
+  '차량관리 편리',
+  '계약 종료 후 반납',
+];
+const compareRight = [
+  '신차 오토리스',
+  '사업자 절세 효과',
+  '개인/법인 맞춤',
+  '월 납입금 최적화',
+  '인수/반납 선택',
+];
+
+const brands = ['ALL', '벤츠', 'BMW', '아우디', '포르쉐', '제네시스', '테슬라'];
+
+const cars = [
+  ['AMG GT', '3,165만원'],
+  ['Electric G-Class', '485만원'],
+  ['The New G-Class', '699만원'],
+  ['GLS-Class', '942만원'],
+  ['GLE-Class', '1,386만원'],
+  ['GLC-Class', '739만원'],
+  ['S-Class', '2,332만원'],
+  ['E-Class', '937만원'],
+  ['C-Class', '790만원'],
+];
+
+const faq = [
+  '리스와 장기렌트의 차이는 무엇인가요?',
+  '초기 비용은 얼마나 필요한가요?',
+  '개인사업자/법인 모두 이용 가능한가요?',
+];
+
+function SectionTitle({ eyebrow, title, accent }) {
+  return (
+    <div className="text-center">
+      {eyebrow ? <p className="mb-2 text-xs font-medium tracking-[0.35em] text-cyan-200/90">{eyebrow}</p> : null}
+      <h2 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+        {title} {accent ? <span className="text-cyan-300">{accent}</span> : null}
+      </h2>
+    </div>
+  );
+}
+
+function CarSilhouette({ className = '' }) {
+  return (
+    <svg viewBox="0 0 520 220" className={className} aria-hidden="true">
+      <defs>
+        <linearGradient id="g" x1="0" x2="1">
+          <stop offset="0" stopColor="#0f172a" />
+          <stop offset="1" stopColor="#334155" />
+        </linearGradient>
+      </defs>
+      <path d="M70 145c18-28 42-43 78-47l40-34h114l39 34c31 2 56 16 74 47l18 2v18H52v-18l18-2z" fill="url(#g)" />
+      <path d="M160 98h108l26 24H138l22-24z" fill="#1e293b" />
+      <circle cx="150" cy="170" r="28" fill="#111827" />
+      <circle cx="150" cy="170" r="16" fill="#94a3b8" />
+      <circle cx="370" cy="170" r="28" fill="#111827" />
+      <circle cx="370" cy="170" r="16" fill="#94a3b8" />
+      <path d="M92 147h336" stroke="#cbd5e1" strokeOpacity="0.25" strokeWidth="4" />
+    </svg>
+  );
+}
+
+export default function App() {
+  return (
+    <main className="bg-neutral-950 text-white">
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(34,211,238,0.18),transparent_30%),linear-gradient(180deg,rgba(0,0,0,0.35),rgba(0,0,0,0.65))]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.55),rgba(0,0,0,0.15))]" />
+        <div className="h-[420px] bg-[linear-gradient(180deg,rgba(20,24,28,0.2),rgba(20,24,28,0.2)),linear-gradient(120deg,#1f2937_0%,#0f172a_45%,#334155_100%)]" />
+        <div className="absolute inset-0 bg-[repeating-linear-gradient(90deg,transparent_0,transparent_18px,rgba(255,255,255,0.03)_18px,rgba(255,255,255,0.03)_20px)] opacity-30" />
+        <div className="absolute inset-x-0 top-0 mx-auto max-w-6xl px-4 pt-16 sm:px-6 lg:px-8">
+          <div className="max-w-xl">
+            <p className="mb-3 text-sm font-medium tracking-[0.35em] text-cyan-200/90">신차·리스·장기렌트 비교</p>
+            <h1 className="text-4xl font-black tracking-tight text-cyan-300 drop-shadow sm:text-6xl">DW모토솔루션</h1>
+            <p className="mt-4 max-w-md text-sm leading-6 text-white/85 sm:text-base">
+              합리적인 조건으로 신차 장기렌트와 오토리스를 비교하고, 빠르게 상담받을 수 있는 맞춤 솔루션.
+            </p>
+            <button className="mt-6 rounded-full border border-white/20 bg-white/10 px-5 py-2 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/15">
+              상담 문의하기 →
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-cyan-400/95 px-4 py-6 text-slate-900 sm:px-6 lg:px-8">
+        <div className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[1.1fr_1fr]">
+          <div className="grid gap-4 sm:grid-cols-2">
+            {stats.map((s) => (
+              <div key={s.label} className="rounded-lg border border-white/30 bg-white/20 p-5 shadow-sm backdrop-blur-sm">
+                <div className="flex items-center justify-between text-white">
+                  <span className="text-2xl">{s.icon}</span>
+                  <span className="text-2xl font-bold">{s.value}</span>
+                </div>
+                <p className="mt-3 text-sm font-medium text-white/95">{s.label}</p>
+              </div>
+            ))}
+          </div>
+          <div className="rounded-lg border border-white/30 bg-white/15 p-5 backdrop-blur-sm">
+            <h3 className="text-sm font-bold text-white">접수 현황</h3>
+            <div className="mt-4 space-y-2">
+              {['상담 접수', '견적 비교', '차량 추천', '계약 진행', '출고 안내'].map((item, i) => (
+                <div key={item} className="flex items-center gap-3 text-sm text-white/90">
+                  <span className="rounded-full bg-slate-900/70 px-2 py-0.5 text-[10px] font-bold text-cyan-200">0{i + 1}</span>
+                  <span className="h-px flex-1 bg-white/30" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative overflow-hidden bg-[linear-gradient(180deg,#111827,#0b0f14)] px-4 py-14 sm:px-6 lg:px-8">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(34,211,238,0.12),transparent_35%)]" />
+        <div className="mx-auto max-w-6xl">
+          <div className="text-center">
+            <p className="text-sm font-semibold text-white/80">차이점을 한눈에 비교해보세요!</p>
+            <h2 className="mt-2 text-3xl font-black tracking-tight sm:text-5xl">
+              <span className="text-cyan-300">신차 장기렌트</span> vs 신차 오토리스
+            </h2>
+          </div>
+
+          <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_auto_1fr] lg:items-start">
+            <div className="rounded-xl border border-cyan-300/30 bg-white shadow-2xl shadow-black/30">
+              <div className="rounded-t-xl bg-sky-700 px-5 py-3 text-center text-lg font-bold">신차 장기렌트</div>
+              <ul className="divide-y divide-slate-200 text-sm text-slate-700">
+                {compareLeft.map((item, i) => (
+                  <li key={item} className="px-5 py-3 text-center font-medium">{i === 0 ? item : item}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="flex flex-col items-center justify-center gap-3 py-4 text-center text-white/90">
+              <div className="text-sm font-semibold text-cyan-300">VS</div>
+              {['차량 소유 명의', '보험', '해지 위약금', '세금혜택', '차량 선택권', '출고차 매각'].map((t) => (
+                <div key={t} className="text-sm font-semibold">{t}</div>
+              ))}
+            </div>
+
+            <div className="rounded-xl border border-cyan-300/30 bg-white shadow-2xl shadow-black/30">
+              <div className="rounded-t-xl bg-cyan-400 px-5 py-3 text-center text-lg font-bold text-slate-900">신차 오토리스</div>
+              <ul className="divide-y divide-slate-200 text-sm text-slate-700">
+                {compareRight.map((item) => (
+                  <li key={item} className="px-5 py-3 text-center font-medium">{item}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-10 flex justify-center">
+            <div className="w-full max-w-4xl rounded-3xl bg-white p-4 shadow-2xl shadow-black/30">
+              <CarSilhouette className="mx-auto h-44 w-full max-w-3xl" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white px-4 py-14 text-slate-900 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <SectionTitle title="DW모토솔루션, 왜 선택해야할까요?" accent="" />
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {[
+              ['01', '조기비용 없이', '시작 가능'],
+              ['02', '보험료', '내 조건대로'],
+              ['03', '번호판, 인수도', '자유롭게'],
+              ['04', '세금 혜택은', '명확하게'],
+              ['05', '차량 선택도', '가볍고 빠르게'],
+            ].map(([n, a, b]) => (
+              <div key={n} className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-center shadow-sm">
+                <div className="text-xs font-semibold text-slate-400">{n}</div>
+                <div className="mt-3 text-sm font-bold text-slate-900">{a}</div>
+                <div className="text-sm font-bold text-cyan-500">{b}</div>
+                <div className="mt-4 text-3xl text-cyan-400">✦</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-neutral-900 px-4 py-14 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+            <div className="rounded-3xl bg-[linear-gradient(135deg,#111827,#1f2937)] p-8 shadow-2xl shadow-black/30">
+              <p className="text-sm font-semibold text-white/70">신나는 드라이브, 리스는 장기실속!</p>
+              <h3 className="mt-3 max-w-md text-3xl font-black tracking-tight text-white sm:text-4xl">
+                이제는 <span className="rounded bg-white px-2 text-slate-900">리스</span>로 선택하는 시대입니다.
+              </h3>
+              <div className="mt-8 flex justify-end">
+                <CarSilhouette className="h-40 w-full max-w-xl opacity-90" />
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+              {[
+                ['리스', '내 차처럼 편하게'],
+                ['장기렌트', '비용 부담은 낮게'],
+                ['오토리스', '사업자 절세에 유리'],
+              ].map(([t, d]) => (
+                <div key={t} className="rounded-2xl border border-white/10 bg-white/5 p-5 text-white shadow-lg backdrop-blur-sm">
+                  <div className="text-lg font-bold text-cyan-300">{t}</div>
+                  <p className="mt-2 text-sm text-white/80">{d}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white px-4 py-14 text-slate-900 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <SectionTitle title="DW모토솔루션 이달의 특가차종" />
+          <div className="mt-8 flex flex-wrap justify-center gap-2">
+            {brands.map((b, i) => (
+              <button
+                key={b}
+                className={`rounded-full border px-4 py-2 text-sm font-semibold ${i === 0 ? 'border-cyan-300 bg-cyan-50 text-cyan-600' : 'border-slate-200 bg-white text-slate-600'}`}
+              >
+                {b}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-8 space-y-3">
+            {cars.map(([name, price], idx) => (
+              <div key={name} className="grid items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-[120px_1fr_160px_120px]">
+                <div className="flex h-20 items-center justify-center rounded-xl bg-slate-100 text-4xl">🚗</div>
+                <div>
+                  <p className="text-xs font-semibold text-slate-400">{idx % 2 ? '수입' : '국산'}</p>
+                  <h4 className="text-lg font-bold text-slate-900">{name}</h4>
+                  <p className="text-sm text-slate-500">즉시 출고 가능 차량</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-semibold text-slate-400">월 납입금</p>
+                  <p className="text-lg font-bold text-cyan-500">{price}</p>
+                </div>
+                <button className="rounded-full border border-cyan-300 px-4 py-2 text-sm font-semibold text-cyan-600 transition hover:bg-cyan-50">
+                  상담하기
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-slate-50 px-4 py-14 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid gap-4 lg:grid-cols-[220px_1fr_1fr_1fr]">
+            <div className="rounded-2xl bg-white p-5 shadow-sm">
+              <p className="text-sm font-semibold text-slate-400">렌트로 손해 보는</p>
+              <h3 className="mt-2 text-2xl font-black text-slate-900">사람의 특징 3가지</h3>
+            </div>
+            {[
+              ['😣', '할인만 보고 계약하는 경우'],
+              ['😭', '사양 비교 없이 바로 결정'],
+              ['🤯', '계약 조건을 끝까지 확인 안 함'],
+            ].map(([emoji, text]) => (
+              <div key={text} className="rounded-2xl bg-white p-5 shadow-sm">
+                <div className="text-3xl">{emoji}</div>
+                <p className="mt-3 text-sm font-semibold text-slate-700">{text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-cyan-400 px-4 py-14 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid gap-4 lg:grid-cols-[220px_1fr_1fr_1fr]">
+            <div className="rounded-2xl bg-white/10 p-5 text-white shadow-sm backdrop-blur-sm">
+              <p className="text-sm font-semibold text-white/80">리스로 바꾸고</p>
+              <h3 className="mt-2 text-2xl font-black">달라진 점 BEST 3</h3>
+            </div>
+            {[
+              ['📊', '보여지는 비용보다', '내가 직접 관리'],
+              ['💸', '계약만 잘 해도', '월 납입금 절약'],
+              ['🚗', '초기비용 없이', '부담 없이 수입차도'],
+            ].map(([emoji, a, b]) => (
+              <div key={a} className="rounded-2xl bg-white p-5 shadow-lg">
+                <div className="text-3xl">{emoji}</div>
+                <p className="mt-3 text-sm font-bold text-slate-900">{a}</p>
+                <p className="text-sm text-slate-600">{b}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white px-4 py-14 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+            <div className="rounded-3xl bg-[linear-gradient(135deg,#e0f2fe,#ffffff)] p-8 shadow-sm">
+              <div className="flex items-end justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-cyan-500">Q & A</p>
+                  <h3 className="mt-2 text-3xl font-black text-slate-900">리스에 대한 흔한 오해 TOP 3</h3>
+                </div>
+                <div className="hidden text-right text-sm text-slate-500 sm:block">상담 전 꼭 확인하세요</div>
+              </div>
+              <div className="mt-8 flex gap-4">
+                <CarSilhouette className="h-36 w-1/2" />
+                <CarSilhouette className="h-36 w-1/2 opacity-80" />
+              </div>
+            </div>
+            <div className="space-y-3">
+              {faq.map((q) => (
+                <details key={q} className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-slate-800">
+                    <span>{q}</span>
+                    <span className="text-cyan-500 transition group-open:rotate-45">+</span>
+                  </summary>
+                  <p className="mt-3 text-sm leading-6 text-slate-600">
+                    조건과 목적에 따라 장기렌트와 오토리스의 장단점이 달라집니다. 상담을 통해 맞춤 비교가 가장 정확합니다.
+                  </p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+// /index.html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DW모토솔루션</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.jsx"></script>
+  </body>
+</html>
+
+// /index.jsx
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App.jsx';
+import './styles.css';
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+// /postcss.config.js
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};
+
+// /styles.css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #0a0a0a;
+}
+
+// /tailwind.config.js
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './App.jsx', './index.jsx'],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};
+
+// /vite.config.js
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+});

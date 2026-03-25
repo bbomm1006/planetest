@@ -1,0 +1,1439 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>비전오토플랜 - 최저가 장기렌트</title>
+
+    <style>
+      @font-face {
+        font-family: "Noto Sans KR";
+        src: url("https://fonts.gstatic.com/s/notosanskr/v39/PbykFmXiEBPT4ITbgNA5CgmG0X7t.woff2") format("woff2");
+        font-weight: 300 900;
+        font-style: normal;
+      }
+      @font-face {
+        font-family: "Paperozi";
+        src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-7Bold.woff2") format("woff2");
+        font-weight: 700;
+        font-style: normal;
+      }
+      @font-face {
+        font-family: "Paperozi";
+        src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-6SemiBold.woff2") format("woff2");
+        font-weight: 600;
+        font-style: normal;
+      }
+    </style>
+
+    <link rel="stylesheet" href="https://plane01.gabia.io/style/main.min.css">
+
+    <style>
+ 
+
+      :root {
+        --accent-lime: rgb(206, 255, 87);
+        --accent-purple: rgb(151, 76, 255);
+        --accent-purple-dark: rgb(114, 76, 255);
+        --accent-yellow: rgb(255, 240, 113);
+        --nav-bg: rgb(35, 31, 32);
+        --text-dark: rgb(24, 24, 24);
+        --text-mid: rgb(52, 52, 52);
+      }
+
+      ul, ol {
+        list-style: none;
+      }
+
+
+      /* ─── ANIMATIONS ─────────────────────────────── */
+      @keyframes fadeSlideUp {
+        from { opacity: 0; transform: translateY(40px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes floating {
+        0%, 100% { transform: translateY(0); }
+        50%       { transform: translateY(-10px); }
+      }
+      @keyframes tossing {
+        0%, 100% { transform: rotate(-3deg); }
+        50%       { transform: rotate(3deg); }
+      }
+      @keyframes backgroundCycle {
+        0%, 100% { background-color: rgb(206, 255, 87); }
+        50%       { background-color: rgb(255, 240, 113); }
+      }
+      @keyframes scrollUp {
+        0%   { transform: translateY(0); }
+        100% { transform: translateY(-50%); }
+      }
+      @keyframes timerPulse {
+        0%, 100% { opacity: 1; }
+        50%       { opacity: 0.7; }
+      }
+
+      .reveal {
+        opacity: 0;
+        transform: translateY(40px);
+        transition: opacity 0.65s ease, transform 0.65s ease;
+      }
+      .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .reveal-delay-1 { transition-delay: 0.1s; }
+      .reveal-delay-2 { transition-delay: 0.2s; }
+      .reveal-delay-3 { transition-delay: 0.3s; }
+      .reveal-delay-4 { transition-delay: 0.4s; }
+
+      /* ─── FIXED HEADER ───────────────────────────── */
+      .site-header {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        height: 80px;
+        background: var(--nav-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        transition: box-shadow 0.3s;
+      }
+      .site-header.scrolled { box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+
+      .header-inner {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 40px;
+        width: 100%;
+        max-width: 760px;
+        padding: 0 20px;
+      }
+      .header-logo {
+        font-family: "Paperozi", sans-serif;
+        font-size: 22px;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: -0.75px;
+        white-space: nowrap;
+        padding-right: 24px;
+        border-right: 1px solid #fff;
+        margin-right: 8px;
+        flex-shrink: 0;
+        animation: fadeSlideUp 0.6s ease both;
+        cursor: default;
+      }
+      .header-timer {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        animation: fadeSlideUp 0.6s 0.15s ease both;
+      }
+      .header-timer .timer-label {
+        font-family: "Paperozi";
+        font-size: 14px;
+        font-weight: 700;
+        color: rgba(255,255,255,0.7);
+        margin-right: 4px;
+      }
+      .timer-digits {
+        font-family: "Paperozi";
+        font-size: 26px;
+        font-weight: 700;
+        color: var(--accent-yellow);
+        letter-spacing: 2px;
+        animation: timerPulse 1s ease infinite;
+      }
+      .header-spacer { flex: 1; }
+
+      .hamburger {
+        display: none;
+        flex-direction: column;
+        gap: 5px;
+        cursor: pointer;
+        padding: 8px;
+        background: none;
+        border: none;
+        margin-left: auto;
+      }
+      .hamburger span {
+        display: block;
+        width: 24px;
+        height: 2px;
+        background: #fff;
+        transition: all 0.3s;
+        transform-origin: center;
+      }
+      .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+      .hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+      .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+      /* Mobile nav drawer */
+      .mobile-nav {
+        display: none;
+        position: fixed;
+        top: 80px; left: 0; right: 0; bottom: 0;
+        background: rgba(35,31,32,0.98);
+        z-index: 999;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 32px;
+        transform: translateX(-100%);
+        transition: transform 0.35s ease;
+      }
+      .mobile-nav.open {
+        display: flex;
+        transform: translateX(0);
+      }
+      .mobile-nav a {
+        color: #fff;
+        font-family: "Paperozi";
+        font-size: 24px;
+        font-weight: 700;
+        text-decoration: none;
+        letter-spacing: -0.5px;
+        transition: color 0.2s;
+      }
+      .mobile-nav a:hover { color: var(--accent-lime); }
+
+      /* ─── QUICK CTA BAR ──────────────────────────── */
+      .quick-cta {
+        position: fixed;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: min(700px, calc(100vw - 20px));
+        z-index: 100;
+      }
+      .quick-cta a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        height: 70px;
+        background: var(--accent-lime);
+        border-radius: 15px;
+        font-size: 18px;
+        font-weight: 700;
+        color: #181818;
+        text-decoration: none;
+        animation: backgroundCycle 3s linear infinite;
+        transition: filter 0.2s, transform 0.15s;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      }
+      .quick-cta a:hover { filter: brightness(1.08); transform: translateX(-50%) scale(1.02); }
+      .quick-cta a:active { transform: translateX(-50%) scale(0.97); }
+      .quick-cta a img { height: 29px; }
+
+      /* ─── SECTION 1 — HERO ───────────────────────── */
+      #section1 {
+        background-color: rgb(234, 225, 244);
+        background-image: url("https://visionlease.co.kr/home/skin/gaga_basic_skin/home_image/S_main_s1_bg.png");
+        background-position: 50% 0;
+        background-repeat: no-repeat;
+        margin-top: 80px;
+        padding-top: 35px;
+        padding-bottom: 40px;
+      }
+      #section1 .inner {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+      .hero-logo-wrap { text-align: center; padding-bottom: 10px; }
+      .hero-logo-wrap img { height: 59px; width: auto; }
+
+      .hero-headline {
+        text-align: center;
+        animation: fadeSlideUp 0.8s 0.2s ease both;
+      }
+      .hero-headline img {
+        width: 100%;
+        max-width: 760px;
+        height: auto;
+      }
+      .hero-subline {
+        font-family: "Paperozi";
+        font-size: 26px;
+        font-weight: 600;
+        color: #fff;
+        text-align: center;
+        line-height: 1.45;
+        word-break: keep-all;
+        animation: fadeSlideUp 0.8s 0.4s ease both;
+      }
+      .hero-subline b { color: rgb(249, 255, 90); }
+
+      /* ─── CAR GRID ───────────────────────────────── */
+      .car-grid {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 20px;
+        margin-top: 45px;
+        list-style: none;
+        gap: 0;
+      }
+      .car-grid li {
+        width: 50%;
+        padding: 10px;
+        box-sizing: border-box;
+      }
+      .car-card {
+        background: #fff;
+        border-radius: 20px;
+        padding: 30px;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+      }
+      .car-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+      }
+      .car-card:active { transform: translateY(0); }
+      .car-card p { font-size: 14px; color: rgb(35,31,32); line-height: 1; padding-bottom: 5px; }
+      .car-card h3 { font-size: 20px; font-weight: 700; color: rgb(35,31,32); line-height: 1; }
+      .car-card .car-img-wrap img { width: 100%; height: 131px; object-fit: contain; }
+      .car-card .price-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 5px;
+      }
+      .car-card .price-row strike { font-size: 15px; color: rgb(91,91,91); }
+      .car-card .price-badge {
+        background: var(--accent-purple);
+        color: #fff;
+        font-size: 20px;
+        font-weight: 700;
+        padding: 10px 25px 15px;
+        border-radius: 30px;
+        letter-spacing: -2px;
+        line-height: 1;
+      }
+
+      /* Section 1 bottom image */
+      .s1-bottom-img { text-align: center; margin-top: 20px; }
+      .s1-bottom-img img { max-width: 100%; height: auto; }
+
+      /* ─── SECTION 2 ──────────────────────────────── */
+      #section2 {
+        background-color: rgb(2, 2, 0);
+        background-image: url("https://visionlease.co.kr/home/skin/gaga_basic_skin/home_image/S_main_s2_bg.png");
+        background-position: 50%;
+        background-repeat: no-repeat;
+      }
+      #section2 .inner { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+      #section2 img { width: 100%; height: auto; display: block; }
+
+      /* ─── SECTION 3 ──────────────────────────────── */
+      #section3 { padding: 90px 0 80px; }
+      #section3 .inner { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+      #section3 img { width: 100%; height: auto; display: block; }
+
+      /* ─── SECTION 4 — NO-CREDIT ──────────────────── */
+      #section4 {
+        background-color: rgb(8, 15, 61);
+        background-image: url("https://visionlease.co.kr/home/skin/gaga_basic_skin/home_image/S_main_s4_bg.png");
+        background-position: 50%;
+        background-repeat: no-repeat;
+        padding: 90px 0;
+      }
+      #section4 .inner { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+
+      .s4-badge {
+        display: inline-block;
+        background: rgb(106, 40, 215);
+        color: #fff;
+        font-size: 18px;
+        padding: 7px 20px 10px;
+        border-radius: 30px;
+        margin-bottom: 25px;
+        letter-spacing: -0.75px;
+      }
+      .s4-headline {
+        font-family: "Paperozi";
+        font-size: clamp(36px, 8vw, 60px);
+        font-weight: 700;
+        color: #fff;
+        text-align: center;
+        line-height: 1.25;
+        word-break: keep-all;
+        margin-bottom: 0;
+      }
+      .s4-headline font { color: var(--accent-lime); }
+
+      .s4-sub {
+        font-family: "Paperozi";
+        font-size: clamp(24px, 5vw, 37px);
+        font-weight: 700;
+        color: #fff;
+        text-align: center;
+        line-height: 1.25;
+        word-break: keep-all;
+        margin-bottom: 0;
+      }
+      .s4-sub font { color: rgb(252, 255, 42); }
+      .s4-desc {
+        font-size: 18px;
+        color: #fff;
+        text-align: center;
+        line-height: 1.6;
+        padding-top: 35px;
+        word-break: keep-all;
+      }
+
+      /* No-credit "무심사" car cards */
+      .nocredit-card {
+        background: #fff;
+        border-radius: 20px;
+        padding: 30px;
+        position: relative;
+        background-image: url("https://visionlease.co.kr/home/skin/gaga_basic_skin/home_image/S_main_s6_car_bg.png");
+        background-repeat: repeat-x;
+        box-shadow: 0 0 10px #fff;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+      }
+      .nocredit-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(255,255,255,0.15); }
+      .nocredit-badge-100 {
+        position: absolute;
+        top: -12px; right: -12px;
+        width: 110px; height: 110px;
+        border-radius: 50%;
+        background: linear-gradient(95deg, rgb(239,34,165) 0%, rgb(156,14,244) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Paperozi";
+        font-size: 20px;
+        font-weight: 700;
+        color: #fff;
+        text-align: center;
+        line-height: 1.2;
+        padding-top: 5px;
+      }
+      .nocredit-card .car-img-wrap img { width: 100%; height: 131px; object-fit: contain; padding-bottom: 25px; }
+      .nocredit-card h3 { font-size: 22px; font-weight: 700; color: rgb(35,31,32); }
+      .nocredit-card .sub { font-size: 14px; color: rgb(35,31,32); padding-top: 10px; }
+      .nocredit-price { font-size: 22px; font-weight: 700; color: rgb(158,42,255); letter-spacing: -1.5px; margin-top: 20px; }
+
+      /* ─── SECTION 5 — BEST ───────────────────────── */
+      #section5 {
+        background-color: rgb(201, 161, 255);
+        background-image: url("https://visionlease.co.kr/home/skin/gaga_basic_skin/home_image/S_main_s5_bg.png");
+        background-position: 50%;
+        background-repeat: no-repeat;
+        padding: 65px 0 75px;
+      }
+      #section5 .inner { max-width: 760px; margin: 0 auto; padding: 0 20px; text-align: center; }
+
+      .s5-floating { animation: floating 3s ease-in-out infinite; }
+      .s5-tossing  { animation: tossing 2s ease-in-out infinite; }
+
+      /* ─── SECTION 6 — REGULAR CARS ───────────────── */
+      #section6 {
+        margin: 95px 0;
+      }
+      #section6 .inner { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+
+      .brand-bar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 80px;
+        border-radius: 15px;
+        margin: 0 30px 35px;
+        transition: opacity 0.2s;
+      }
+      .brand-bar img { height: 47px; width: auto; display: block; }
+      .brand-bar:hover { opacity: 0.9; }
+
+      .reg-card {
+        background: #fff;
+        border-radius: 20px;
+        padding: 30px;
+        background-image: url("https://visionlease.co.kr/home/skin/gaga_basic_skin/home_image/S_main_s6_car_bg.png");
+        background-repeat: repeat-x;
+        box-shadow: 0 0 10px rgba(255,255,255,0.3);
+        border: 1px solid #ddd;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        transition: transform 0.25s, box-shadow 0.25s;
+      }
+      .reg-card:hover { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(0,0,0,0.1); }
+      .reg-card .car-img-wrap img { width: 100%; height: 130px; object-fit: contain; padding-bottom: 25px; }
+      .reg-card h3 { font-size: 22px; font-weight: 700; color: rgb(35,31,32); }
+      .reg-card .sub { font-size: 15px; color: rgb(35,31,32); padding-top: 10px; }
+      .reg-price { font-size: 22px; font-weight: 700; color: rgb(158,42,255); letter-spacing: -1.5px; margin-top: 20px; }
+
+      /* ─── SECTION 7 — REVIEWS ────────────────────── */
+      #section7 {
+        background: rgb(244, 244, 244);
+        padding: 85px 0 55px;
+      }
+      #section7 .inner { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+
+      .section-label {
+        font-family: "Paperozi";
+        font-size: 22px;
+        font-weight: 600;
+        color: rgba(0,0,0,0.5);
+        text-align: center;
+        margin-bottom: 8px;
+      }
+      .section-title {
+        font-family: "Paperozi";
+        font-size: clamp(32px, 7vw, 55px);
+        font-weight: 700;
+        color: var(--text-dark);
+        text-align: center;
+        line-height: 1.25;
+        word-break: keep-all;
+        margin-bottom: 65px;
+      }
+
+      .review-card {
+        background: #fff;
+        border-radius: 20px;
+        border: 1px solid #ddd;
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        transition: transform 0.25s, box-shadow 0.25s;
+      }
+      .review-card:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+      .review-img-wrap { aspect-ratio: 16/9; overflow: hidden; border-radius: 10px 10px 0 0; }
+      .review-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s; }
+      .review-card:hover .review-img-wrap img { transform: scale(1.04); }
+      .review-body { padding: 30px; }
+      .review-body h3 { font-size: 20px; font-weight: 700; color: rgb(44,44,44); }
+      .review-excerpt {
+        font-size: 15px;
+        color: rgba(0,0,0,0.5);
+        line-height: 1.7;
+        margin: 18px 0;
+      }
+      .review-footer { display: flex; align-items: center; gap: 10px; }
+      .reviewer { font-size: 13px; color: rgb(106,106,106); }
+      .stars { font-size: 15px; color: rgb(153,57,255); }
+
+      .view-more-btn {
+        display: inline-block;
+        margin-top: 40px;
+        padding: 0 40px;
+        height: 63px;
+        line-height: 63px;
+        background: rgb(232,232,232);
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        font-size: 18px;
+        font-weight: 700;
+        color: rgb(120,120,120);
+        text-decoration: none;
+        transition: background 0.2s, color 0.2s, transform 0.15s;
+      }
+      .view-more-btn:hover { background: #e0e0e0; transform: translateY(-2px); }
+      .view-more-btn:active { transform: translateY(0); }
+
+      /* ─── SECTION 8 — INFO IMAGES ────────────────── */
+      #section8 { text-align: center; }
+      #section8 .inner { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+      #section8 img { width: 100%; height: auto; display: block; }
+
+      /* ─── SECTION 9 — FORM ───────────────────────── */
+      #section9 {
+        background-color: var(--accent-purple);
+        background-image: url("https://visionlease.co.kr/home/skin/gaga_basic_skin/home_image/S_main_s9_bg.png");
+        background-position: 50%;
+        background-repeat: no-repeat;
+        padding: 95px 0 65px;
+      }
+      #section9 .inner { max-width: 760px; margin: 0 auto; padding: 0 20px; text-align: center; }
+
+      .s9-sub {
+        font-family: "Paperozi";
+        font-size: 20px;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 0;
+      }
+      .s9-headline {
+        font-family: "Paperozi";
+        font-size: clamp(32px, 7vw, 55px);
+        font-weight: 700;
+        color: #fff;
+        line-height: 1.25;
+        word-break: keep-all;
+        margin-bottom: 0;
+      }
+      .s9-headline font { color: var(--accent-lime); }
+      .s9-promo-img { animation: floating 3s ease-in-out infinite; margin: 0 auto 0; }
+      .s9-promo-img img { width: 100%; max-width: 500px; height: auto; }
+      .s9-cta-label {
+        font-family: "Paperozi";
+        font-size: 28px;
+        font-weight: 700;
+        color: #fff;
+        padding: 45px 0 15px;
+      }
+      .s9-note { font-size: 15px; color: rgba(255,255,255,0.5); margin-bottom: 20px; }
+
+      /* Two-panel form layout */
+      .form-panel-wrap {
+      
+        margin: 0 0 30px;
+      }
+      .form-left{
+        margin-bottom:20px;
+      }
+      .form-left, .form-right {
+        flex: 1;
+        background: #fff;
+        border-radius: 20px;
+        overflow: hidden;
+      }
+
+      /* Apply form */
+      .apply-form { padding: 50px; text-align: left; }
+      .apply-form ul { list-style: none; }
+      .apply-form li { margin-bottom: 20px; }
+      .apply-form dl {
+        display: flex;
+        align-items: center;
+        background: rgb(238,238,238);
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        padding: 20px 0;
+        overflow: hidden;
+      }
+      .apply-form dt {
+        font-size: 18px;
+        color: rgb(27,27,27);
+        width: 135px;
+        padding-left: 25px;
+        border-right: 1px solid #ddd;
+        flex-shrink: 0;
+        line-height: 1;
+      }
+      .apply-form dt font { color: rgb(201,12,248); }
+      .apply-form dd { flex: 1; }
+      .apply-form input[type="text"] {
+        width: 100%;
+        background: transparent;
+        border: none;
+        outline: none;
+        font-size: 18px;
+        color: #000;
+        padding: 10px 25px;
+        font-family: "Noto Sans KR", sans-serif;
+        letter-spacing: -0.5px;
+      }
+      .apply-form input[type="text"]::placeholder { color: rgba(0,0,0,0.35); }
+      .apply-form input[type="text"]:focus { background: rgba(114,76,255,0.05); }
+
+      .privacy-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        position: relative;
+      }
+      .privacy-row input[type="checkbox"] { width: 15px; height: 15px; cursor: pointer; accent-color: var(--accent-purple-dark); }
+      .privacy-row label { font-size: 14px; cursor: pointer; }
+      .privacy-row .view-link { font-size: 14px; font-weight: 700; color: inherit; text-decoration: none; }
+      .privacy-row .view-link:hover { text-decoration: underline; }
+
+      .privacy-popup {
+        display: none;
+        position: absolute;
+        top: 30px; left: 0;
+        width: 300px;
+        max-height: 150px;
+        overflow-y: scroll;
+        background: #fff;
+        border: 2px solid rgb(50,50,50);
+        padding: 20px;
+        font-size: 13px;
+        line-height: 1.6;
+        color: rgb(46,46,46);
+        z-index: 10;
+        text-align: left;
+        border-radius: 4px;
+      }
+      .privacy-popup.open { display: block; }
+
+      .submit-btn {
+        display: block;
+        width: 100%;
+        height: 70px;
+        background: var(--accent-purple-dark);
+        color: #fff;
+        font-size: 18px;
+        font-weight: 500;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        margin-top: 22px;
+        letter-spacing: -0.75px;
+        font-family: "Noto Sans KR", sans-serif;
+        transition: background 0.2s, transform 0.15s;
+      }
+      .submit-btn:hover { background: rgb(90,50,220); }
+      .submit-btn:active { transform: scale(0.98); }
+      .submit-btn.submitted { background: #28a745; cursor: default; }
+
+      /* Real-time feed panel */
+      .feed-panel { overflow: hidden; }
+      .feed-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 15px 35px 20px;
+        border-bottom: 1px solid #ddd;
+        height: 80px;
+      }
+      .feed-header h3 { font-size: 22px; font-weight: 700; }
+      .feed-body {
+        height: 400px;
+        margin: 20px 35px;
+        overflow: hidden;
+        position: relative;
+      }
+      .feed-list {
+        list-style: none;
+        position: relative;
+        animation: scrollUp 30s linear infinite;
+      }
+      .feed-list:hover { animation-play-state: paused; }
+      .feed-item {
+        height: 62.5px;
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 15px;
+        flex-shrink: 0;
+      }
+      .feed-name { width: 15%; min-width: 50px; font-size: 15px; }
+      .feed-car  { flex: 1; font-size: 15px; font-weight: 700; padding: 0 8px; }
+      .feed-badge {
+        color: var(--accent-purple-dark);
+        border: 2px solid var(--accent-purple-dark);
+        font-size: 12px;
+        font-weight: 700;
+        padding: 5px 12px;
+        display: inline-block;
+        width: 15%;
+        min-width: 50px;
+        text-align: center;
+      }
+      .feed-date { width: 15%; font-size: 13px; text-align: right; min-width: 70px; }
+
+      /* ─── FOOTER ─────────────────────────────────── */
+      footer {
+        padding: 75px 0 120px;
+        text-align: center;
+      }
+      footer .inner { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+      footer .footer-info {
+        font-size: 13px;
+        color: rgba(0,0,0,0.5);
+        line-height: 1.8;
+      }
+      footer .admin-link {
+        color: #fff;
+        background: rgba(0,0,0,0.3);
+        padding: 2px 10px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 12px;
+        margin-top: 8px;
+        display: inline-block;
+      }
+
+      /* ─── SHARED HELPERS ─────────────────────────── */
+      .text-center { text-align: center; }
+      .grid-2 { display: flex; flex-wrap: wrap; }
+      .grid-2 > li { width: 50%; padding: 10px; box-sizing: border-box; }
+
+      /* ─── RESPONSIVE ─────────────────────────────── */
+      @media (max-width: 768px) {
+        .header-inner { gap: 16px; }
+        .header-logo { font-size: 16px; padding-right: 12px; }
+        .timer-digits { font-size: 20px; }
+        .header-timer .timer-label { font-size: 11px; }
+
+        .hamburger { display: flex; }
+
+        .car-grid li, .grid-2 > li { width: 50%; }
+
+        .form-panel-wrap { flex-direction: column; }
+        .apply-form { padding: 24px; }
+        .apply-form dt { font-size: 14px; width: 90px; }
+        .apply-form input[type="text"] { font-size: 14px; }
+        .hero-subline { font-size: 20px; }
+        .brand-bar { margin: 0 10px 25px; }
+
+        .feed-date { display: none; }
+        .feed-name { display: none; }
+      }
+
+      @media (max-width: 480px) {
+        .car-grid li, .grid-2 > li { width: 100%; }
+        .car-card, .nocredit-card, .reg-card { padding: 20px; }
+        .s4-badge { font-size: 14px; }
+        .quick-cta a { font-size: 15px; height: 60px; }
+        .quick-cta a img { height: 22px; }
+        .header-timer { display: none; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- ─── FIXED HEADER ──────────────────────────── -->
+    <header class="site-header" id="site-header">
+      <div class="header-inner">
+        <div class="header-logo">선착순 마감</div>
+        <div class="header-timer">
+          <span class="timer-label">마감까지</span>
+          <span class="timer-digits" id="timer-display">18:08:12</span>
+        </div>
+        <!-- <div class="header-spacer"></div> -->
+        <button class="hamburger" id="hamburger" aria-label="메뉴 열기" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Mobile Nav -->
+    <nav class="mobile-nav" id="mobile-nav" aria-label="모바일 내비게이션">
+      <a href="#section1"  onclick="closeMobileNav()">최저가 차량</a>
+      <a href="#section4"  onclick="closeMobileNav()">무심사 장기렌트</a>
+      <a href="#section7"  onclick="closeMobileNav()">고객 후기</a>
+      <a href="#section9"  onclick="closeMobileNav()">상담 신청</a>
+    </nav>
+
+    <!-- ─── QUICK CTA ──────────────────────────────── -->
+    <div class="quick-cta">
+      <a href="#section9">
+        최저가 이벤트 신청 바로가기
+        <img src="https://c.animaapp.com/mn5a9xuan07emD/assets/S_quick_icon_01.png" alt="" />
+      </a>
+    </div>
+
+    <!-- ─── HERO SECTION ──────────────────────────── -->
+    <section id="section1">
+      <div class="inner">
+        <div class="hero-logo-wrap reveal">
+          <img src="https://c.animaapp.com/mn5a9xuan07emD/assets/S_main_s1_logo_01.png" alt="비전오토플랜 로고" />
+        </div>
+        <div class="hero-headline reveal reveal-delay-1">
+          <img src="https://c.animaapp.com/mn5a9xuan07emD/assets/S_main_s1_img_01_.png" alt="최저가 장기렌트 차량" />
+        </div>
+        <div class="hero-subline reveal reveal-delay-2">
+          초기비용, 보험료, 유지관리?<br />
+          <b>전부 0원</b>입니다!
+        </div>
+
+        <!-- Car listing grid -->
+        <ul class="car-grid">
+          <li class="reveal reveal-delay-1">
+            <a href="#section9" class="car-card">
+              <div style="margin-bottom:15px">
+                <p>2026년형</p>
+                <h3>제네시스 G80</h3>
+              </div>
+              <div class="car-img-wrap"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/g80.png" alt="제네시스 G80" /></div>
+              <div class="price-row">
+                <strike>490,000원</strike>
+                <div class="price-badge">월 40만원~</div>
+              </div>
+            </a>
+          </li>
+          <li class="reveal reveal-delay-2">
+            <a href="#section9" class="car-card">
+              <div style="margin-bottom:15px"><p>2026년형</p><h3>제네시스 GV80</h3></div>
+              <div class="car-img-wrap"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/gv80.png" alt="제네시스 GV80" /></div>
+              <div class="price-row"><strike>470,000원</strike><div class="price-badge">월 38만원~</div></div>
+            </a>
+          </li>
+          <li class="reveal reveal-delay-1">
+            <a href="#section9" class="car-card">
+              <div style="margin-bottom:15px"><p>2026년형</p><h3>제네시스 GV70</h3></div>
+              <div class="car-img-wrap"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/gv70.png" alt="제네시스 GV70" /></div>
+              <div class="price-row"><strike>460,000원</strike><div class="price-badge">월 37만원~</div></div>
+            </a>
+          </li>
+          <li class="reveal reveal-delay-2">
+            <a href="#section9" class="car-card">
+              <div style="margin-bottom:15px"><p>2026년형</p><h3>현대 팰리세이드</h3></div>
+              <div class="car-img-wrap"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/palisade.png" alt="현대 팰리세이드" /></div>
+              <div class="price-row"><strike>360,000원</strike><div class="price-badge">월 27만원~</div></div>
+            </a>
+          </li>
+          <li class="reveal reveal-delay-1">
+            <a href="#section9" class="car-card">
+              <div style="margin-bottom:15px"><p>2026년형</p><h3>현대 아반떼</h3></div>
+              <div class="car-img-wrap"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/avante.png" alt="현대 아반떼" /></div>
+              <div class="price-row"><strike>340,000원</strike><div class="price-badge">월 25만원~</div></div>
+            </a>
+          </li>
+          <li class="reveal reveal-delay-2">
+            <a href="#section9" class="car-card">
+              <div style="margin-bottom:15px"><p>2026년형</p><h3>현대 그랜저</h3></div>
+              <div class="car-img-wrap"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/g80.png" alt="현대 그랜저" /></div>
+              <div class="price-row"><strike>320,000원</strike><div class="price-badge">월 23만원~</div></div>
+            </a>
+          </li>
+          <li class="reveal reveal-delay-1">
+            <a href="#section9" class="car-card">
+              <div style="margin-bottom:15px"><p>2026년형</p><h3>기아 K8</h3></div>
+              <div class="car-img-wrap"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/k8.png" alt="기아 K8" /></div>
+              <div class="price-row"><strike>350,000원</strike><div class="price-badge">월 26만원~</div></div>
+            </a>
+          </li>
+          <li class="reveal reveal-delay-2">
+            <a href="#section9" class="car-card">
+              <div style="margin-bottom:15px"><p>2026년형</p><h3>기아 카니발</h3></div>
+              <div class="car-img-wrap"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/carnival.png" alt="기아 카니발" /></div>
+              <div class="price-row"><strike>330,000원</strike><div class="price-badge">월 24만원~</div></div>
+            </a>
+          </li>
+          <li class="reveal reveal-delay-1">
+            <a href="#section9" class="car-card">
+              <div style="margin-bottom:15px"><p>2026년형</p><h3>현대 싼타페</h3></div>
+              <div class="car-img-wrap"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/santafe.png" alt="현대 싼타페" /></div>
+              <div class="price-row"><strike>310,000원</strike><div class="price-badge">월 22만원~</div></div>
+            </a>
+          </li>
+        </ul>
+
+        <div class="s1-bottom-img reveal">
+          <img src="https://c.animaapp.com/mn5a9xuan07emD/assets/S_main_s1_img_02.png" alt="" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── SECTION 2 ──────────────────────────────── -->
+    <section id="section2">
+      <div class="inner reveal">
+        <img src="https://c.animaapp.com/mn5a9xuan07emD/assets/S_main_s2_img_01.png" alt="비전오토플랜 혜택 안내" />
+      </div>
+    </section>
+
+    <!-- ─── SECTION 3 ──────────────────────────────── -->
+    <section id="section3">
+      <div class="inner reveal">
+        <img src="https://c.animaapp.com/mn5a9xuan07emD/assets/S_main_s3_img_01.png" alt="장기렌트 안내" />
+      </div>
+    </section>
+
+    <!-- ─── SECTION 4 — NO-CREDIT ─────────────────── -->
+    <section id="section4">
+      <div class="inner text-center">
+        <div class="reveal">
+          <span class="s4-badge">비전오토플랜에서만 진행하는</span><br />
+          <h2 class="s4-headline">전 상품<br /><font>무심사 장기렌트!</font></h2>
+        </div>
+
+        <div class="reveal" style="margin: 30px auto 0; max-width:500px">
+          <img src="https://c.animaapp.com/mn5a9xuan07emD/assets/S_main_s4_img_01.png" alt="" style="width:100%;height:auto;" />
+        </div>
+
+        <div class="reveal">
+          <h2 class="s4-sub" style="padding-top:45px; margin-bottom:0;">무심사는<br /><font>100% 승인</font> 가능!</h2>
+          <p style="font-size:18px; color:#fff; letter-spacing:-0.75px; line-height:1.6; padding-top:35px; word-break:keep-all;">
+            무심사 상품은 일반 장기렌트와 달라<br />신용과는 무관하게 장기렌트가 가능합니다.
+          </p>
+        </div>
+
+        <div class="reveal" style="margin: 45px auto 0; max-width:600px">
+          <img src="https://c.animaapp.com/mn5a9xuan07emD/assets/S_main_s4_img_02.png" alt="" style="width:100%;height:auto;" />
+        </div>
+
+        <p class="reveal" style="font-size:18px; color:#fff; text-align:center; line-height:1.6; padding-top:60px; word-break:keep-all;">
+          복잡한 조건, 낯선 용어, 까다로운 절차…<br />
+          이제 혼자 고민하지 마세요.<br />
+          전문 컨설턴트의 맞춤형 비교 컨설팅으로<br />
+          고객님께 가장 합리적이고 최적화된 상품을 제안합니다.
+        </p>
+
+        <!-- No-credit car grid -->
+        <ul class="car-grid" style="margin-top:85px;">
+          <li class="reveal reveal-delay-1">
+            <a href="#section9" class="nocredit-card">
+              <div class="nocredit-badge-100">100%<br/>승인</div>
+              <div class="car-img-wrap" style="padding-bottom:25px;text-align:center"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/g80.png" alt="제네시스 G80" style="width:100%;height:131px;object-fit:contain;" /></div>
+              <div style="margin-bottom:20px"><h3>제네시스 G80</h3><p class="sub">2026년형</p></div>
+              <div class="nocredit-price">월 490,000원~</div>
+            </a>
+          </li>
+          <li class="reveal reveal-delay-2">
+            <a href="#section9" class="nocredit-card">
+              <div class="nocredit-badge-100">100%<br/>승인</div>
+              <div class="car-img-wrap" style="padding-bottom:25px;text-align:center"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/gv80.png" alt="제네시스 GV80" style="width:100%;height:131px;object-fit:contain;" /></div>
+              <div style="margin-bottom:20px"><h3>제네시스 GV80</h3><p class="sub">2026년형</p></div>
+              <div class="nocredit-price">월 470,000원~</div>
+            </a>
+          </li>
+          <li class="reveal reveal-delay-1">
+            <a href="#section9" class="nocredit-card">
+              <div class="nocredit-badge-100">100%<br/>승인</div>
+              <div class="car-img-wrap" style="padding-bottom:25px;text-align:center"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/gv70.png" alt="제네시스 GV70" style="width:100%;height:131px;object-fit:contain;" /></div>
+              <div style="margin-bottom:20px"><h3>제네시스 GV70</h3><p class="sub">2026년형</p></div>
+              <div class="nocredit-price">월 460,000원~</div>
+            </a>
+          </li>
+          <li class="reveal reveal-delay-2">
+            <a href="#section9" class="nocredit-card">
+              <div class="nocredit-badge-100">100%<br/>승인</div>
+              <div class="car-img-wrap" style="padding-bottom:25px;text-align:center"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/palisade.png" alt="현대 팰리세이드" style="width:100%;height:131px;object-fit:contain;" /></div>
+              <div style="margin-bottom:20px"><h3>현대 팰리세이드</h3><p class="sub">2026년형</p></div>
+              <div class="nocredit-price">월 360,000원~</div>
+            </a>
+          </li>
+          <li class="reveal reveal-delay-1">
+            <a href="#section9" class="nocredit-card">
+              <div class="nocredit-badge-100">100%<br/>승인</div>
+              <div class="car-img-wrap" style="padding-bottom:25px;text-align:center"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/avante.png" alt="현대 아반떼" style="width:100%;height:131px;object-fit:contain;" /></div>
+              <div style="margin-bottom:20px"><h3>현대 아반떼</h3><p class="sub">2026년형</p></div>
+              <div class="nocredit-price">월 340,000원~</div>
+            </a>
+          </li>
+          <li class="reveal reveal-delay-2">
+            <a href="#section9" class="nocredit-card">
+              <div class="nocredit-badge-100">100%<br/>승인</div>
+              <div class="car-img-wrap" style="padding-bottom:25px;text-align:center"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/k8.png" alt="기아 K8" style="width:100%;height:131px;object-fit:contain;" /></div>
+              <div style="margin-bottom:20px"><h3>기아 K8</h3><p class="sub">2026년형</p></div>
+              <div class="nocredit-price">월 350,000원~</div>
+            </a>
+          </li>
+          <li class="reveal reveal-delay-1">
+            <a href="#section9" class="nocredit-card">
+              <div class="nocredit-badge-100">100%<br/>승인</div>
+              <div class="car-img-wrap" style="padding-bottom:25px;text-align:center"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/carnival.png" alt="기아 카니발" style="width:100%;height:131px;object-fit:contain;" /></div>
+              <div style="margin-bottom:20px"><h3>기아 카니발</h3><p class="sub">2026년형</p></div>
+              <div class="nocredit-price">월 330,000원~</div>
+            </a>
+          </li>
+          <li class="reveal reveal-delay-2">
+            <a href="#section9" class="nocredit-card">
+              <div class="nocredit-badge-100">100%<br/>승인</div>
+              <div class="car-img-wrap" style="padding-bottom:25px;text-align:center"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/santafe.png" alt="현대 싼타페" style="width:100%;height:131px;object-fit:contain;" /></div>
+              <div style="margin-bottom:20px"><h3>현대 싼타페</h3><p class="sub">2026년형</p></div>
+              <div class="nocredit-price">월 310,000원~</div>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ─── SECTION 5 — BEST ───────────────────────── -->
+    <section id="section5">
+      <div class="inner">
+        <div class="reveal" style="margin-bottom:50px;">
+          <div style="margin-bottom:0;">
+            <img src="https://c.animaapp.com/mn5a9xuan07emD/assets/S_main_s1_logo_01.png" alt="" style="height:59px;width:auto;" />
+          </div>
+          <h3 style="font-family:Paperozi;font-size:clamp(22px,4vw,34px);font-weight:600;color:#fff;padding:20px 0 15px;word-break:keep-all;">
+            비전오토플랜 <font style="color:rgb(206,255,88);">Best</font>
+          </h3>
+          <h2 class="s5-floating" style="font-family:Paperozi;font-size:clamp(40px,7vw,60px);font-weight:700;color:rgb(24,24,24);line-height:1.25;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;">
+            <span>
+              <img src="https://c.animaapp.com/mn5a9xuan07emD/assets/S_main_s5_img_01.png" alt="" style="height:80px;width:auto;" />
+            </span>
+            <span class="s5-tossing">
+              <img src="https://c.animaapp.com/mn5a9xuan07emD/assets/S_main_s5_img_02.png" alt="" style="height:80px;width:auto;" />
+            </span>
+          </h2>
+          <h4 style="font-size:clamp(16px,3vw,22px);font-weight:500;color:rgb(121,70,163);padding-top:30px;word-break:keep-all;">
+            비전오토플랜에서 최저가로 BEST 차량을 만나보세요!
+          </h4>
+        </div>
+        <div class="reveal">
+          <img src="https://c.animaapp.com/mn5a9xuan07emD/assets/S_main_s5_img_03.png" alt="" style="width:100%;height:auto;" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── SECTION 6 — REGULAR LEASING ──────────── -->
+    <section id="section6">
+      <div class="inner">
+        <!-- Hyundai brand -->
+        <a href="#section9" class="brand-bar reveal" style="background:rgb(0,57,132);">
+          <img src="https://c.animaapp.com/mn5a9xuan07emD/assets/S_main_s6_brand_01.png" alt="현대 브랜드" />
+        </a>
+        <ul class="grid-2" style="margin-bottom:75px;">
+          <li class="reveal reveal-delay-1"><a href="#section9" class="reg-card">
+            <div class="car-img-wrap"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/palisade.png" alt="현대 팰리세이드" /></div>
+            <div style="margin-bottom:20px"><h3>현대 팰리세이드</h3><p class="sub">2026년형</p></div>
+            <div class="reg-price">월 360,000원~</div>
+          </a></li>
+          <li class="reveal reveal-delay-2"><a href="#section9" class="reg-card">
+            <div class="car-img-wrap"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/avante.png" alt="현대 아반떼" /></div>
+            <div style="margin-bottom:20px"><h3>현대 아반떼</h3><p class="sub">2026년형</p></div>
+            <div class="reg-price">월 340,000원~</div>
+          </a></li>
+          <li class="reveal reveal-delay-1"><a href="#section9" class="reg-card">
+            <div class="car-img-wrap"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/santafe.png" alt="현대 싼타페" /></div>
+            <div style="margin-bottom:20px"><h3>현대 싼타페</h3><p class="sub">2026년형</p></div>
+            <div class="reg-price">월 310,000원~</div>
+          </a></li>
+          <li class="reveal reveal-delay-2"><a href="#section9" class="reg-card">
+            <div class="car-img-wrap"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/g80.png" alt="현대 그랜저" /></div>
+            <div style="margin-bottom:20px"><h3>현대 그랜저</h3><p class="sub">2026년형</p></div>
+            <div class="reg-price">월 320,000원~</div>
+          </a></li>
+        </ul>
+
+        <!-- Kia brand -->
+        <a href="#section9" class="brand-bar reveal" style="background:rgb(19,30,41);">
+          <img src="https://c.animaapp.com/mn5a9xuan07emD/assets/S_main_s6_brand_02.png" alt="기아 브랜드" />
+        </a>
+        <ul class="grid-2" style="margin-bottom:75px;">
+          <li class="reveal reveal-delay-1"><a href="#section9" class="reg-card">
+            <div class="car-img-wrap"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/k8.png" alt="기아 K8" /></div>
+            <div style="margin-bottom:20px"><h3>기아 K8</h3><p class="sub">2026년형</p></div>
+            <div class="reg-price">월 350,000원~</div>
+          </a></li>
+          <li class="reveal reveal-delay-2"><a href="#section9" class="reg-card">
+            <div class="car-img-wrap"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/carnival.png" alt="기아 카니발" /></div>
+            <div style="margin-bottom:20px"><h3>기아 카니발</h3><p class="sub">2026년형</p></div>
+            <div class="reg-price">월 330,000원~</div>
+          </a></li>
+        </ul>
+
+        <!-- Genesis brand -->
+        <a href="#section9" class="brand-bar reveal" style="background:rgb(0,0,0);">
+          <img src="https://c.animaapp.com/mn5a9xuan07emD/assets/S_main_s6_brand_03.png" alt="제네시스 브랜드" />
+        </a>
+        <ul class="grid-2" style="margin-bottom:75px;">
+          <li class="reveal reveal-delay-1"><a href="#section9" class="reg-card">
+            <div class="car-img-wrap"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/g80.png" alt="제네시스 G80" /></div>
+            <div style="margin-bottom:20px"><h3>제네시스 G80</h3><p class="sub">2026년형</p></div>
+            <div class="reg-price">월 490,000원~</div>
+          </a></li>
+          <li class="reveal reveal-delay-2"><a href="#section9" class="reg-card">
+            <div class="car-img-wrap"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/gv80.png" alt="제네시스 GV80" /></div>
+            <div style="margin-bottom:20px"><h3>제네시스 GV80</h3><p class="sub">2026년형</p></div>
+            <div class="reg-price">월 470,000원~</div>
+          </a></li>
+          <li class="reveal reveal-delay-1"><a href="#section9" class="reg-card">
+            <div class="car-img-wrap"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/gv70.png" alt="제네시스 GV70" /></div>
+            <div style="margin-bottom:20px"><h3>제네시스 GV70</h3><p class="sub">2026년형</p></div>
+            <div class="reg-price">월 460,000원~</div>
+          </a></li>
+        </ul>
+
+        <div class="reveal" style="margin:0 30px;">
+          <img src="https://c.animaapp.com/mn5a9xuan07emD/assets/S_main_s6_img_03.png" alt="" style="width:100%;height:auto;" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── SECTION 7 — REVIEWS ────────────────────── -->
+    <section id="section7">
+      <div class="inner">
+        <p class="section-label reveal">고객님들의 이유 있는 선택</p>
+        <h2 class="section-title reveal">생생한 고객 후기</h2>
+
+        <ul class="grid-2">
+          <li class="reveal reveal-delay-1">
+            <a href="#" class="review-card">
+              <div class="review-img-wrap"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/carnival.png" alt="기아 카니발" /></div>
+              <div class="review-body">
+                <h3>기아 카니발</h3>
+                <p class="review-excerpt">개인사업자인데 장기렌트가 확실히 좋긴 하네요. 사업자 렌트에 메리트에 대해서도 잘 설명해주셔서 너무 좋았습니다!</p>
+                <div class="review-footer">
+                  <span class="reviewer">전XX 고객님</span>
+                  <span class="stars">★★★★★</span>
+                </div>
+              </div>
+            </a>
+          </li>
+          <li class="reveal reveal-delay-2">
+            <a href="#" class="review-card">
+              <div class="review-img-wrap"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/G80.PNG" alt="제네시스 G80" /></div>
+              <div class="review-body">
+                <h3>제네시스 G80</h3>
+                <p class="review-excerpt">장기렌트는 처음인데 강팀장님께서 너무 친절하게 잘 도와주셔서 어려움 없이 일사천리로 차량 받았습니다.</p>
+                <div class="review-footer">
+                  <span class="reviewer">김XX 고객님</span>
+                  <span class="stars">★★★★★</span>
+                </div>
+              </div>
+            </a>
+          </li>
+          <li class="reveal reveal-delay-1">
+            <a href="#" class="review-card">
+              <div class="review-img-wrap"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/palisade.png" alt="현대 팰리세이드" /></div>
+              <div class="review-body">
+                <h3>현대 팰리세이드</h3>
+                <p class="review-excerpt">몇 달 동안 8업체는 비교해본 것 같은데 그중에서 견적도 견적이지만 꾸준히 연락 주시면서 신경써주신 덕분에 가장 좋은 조건으로 차량을 받았어요.</p>
+                <div class="review-footer">
+                  <span class="reviewer">최XX 고객님</span>
+                  <span class="stars">★★★★★</span>
+                </div>
+              </div>
+            </a>
+          </li>
+          <li class="reveal reveal-delay-2">
+            <a href="#" class="review-card">
+              <div class="review-img-wrap"><img src="https://c.animaapp.com/mn5a9xuan07emD/assets/santafe.png" alt="기아 쏘렌토" /></div>
+              <div class="review-body">
+                <h3>기아 쏘렌토</h3>
+                <p class="review-excerpt">상담부터 계약까지 2달 정도 걸린 듯 한데 그럼에도 불구하고 끝까지 신경써주시는 모습에 감동 받았어요.</p>
+                <div class="review-footer">
+                  <span class="reviewer">정XX 고객님</span>
+                  <span class="stars">★★★★★</span>
+                </div>
+              </div>
+            </a>
+          </li>
+        </ul>
+
+        <div class="text-center">
+          <a href="#section9" class="view-more-btn reveal">계약 후기 더보기</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── SECTION 8 — INFO IMAGES ───────────────── -->
+    <section id="section8">
+      <div class="inner">
+        <div class="reveal">
+          <img src="https://c.animaapp.com/mn5a9xuan07emD/assets/S_main_s7_img_01.png" alt="비전오토플랜 혜택 정보" />
+        </div>
+        <div class="reveal">
+          <img src="https://c.animaapp.com/mn5a9xuan07emD/assets/S_main_s8_img_01.png" alt="신청 절차 안내" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── SECTION 9 — FORM ───────────────────────── -->
+    <section id="section9">
+      <div class="inner">
+        <div class="reveal">
+          <p class="s9-sub">비전오토플랜 최저가 혜택!</p>
+          <h2 class="s9-headline"><font>현재 이 페이지</font>에서만!</h2>
+        </div>
+
+        <div class="s9-promo-img reveal">
+          <img src="https://c.animaapp.com/mn5a9xuan07emD/assets/S_main_s9_img_01.png" alt="이벤트 이미지" />
+        </div>
+
+        <div class="reveal">
+          <p class="s9-cta-label">일단 신청해보세요!</p>
+          <p class="s9-note">* 이벤트 신청 후 걸려오는 전화를 꼭 받아주셔야 상담이 가능합니다.</p>
+        </div>
+
+        <div class="form-panel-wrap reveal">
+          <!-- Apply Form -->
+          <div class="form-left">
+            <div class="apply-form">
+              <form id="apply-form" novalidate>
+                <ul>
+                  <li>
+                    <dl>
+                      <dt>성명<font>*</font></dt>
+                      <dd><input type="text" name="name" id="f-name" placeholder="성명(필수)" autocomplete="name" /></dd>
+                    </dl>
+                  </li>
+                  <li>
+                    <dl>
+                      <dt>연락처<font>*</font></dt>
+                      <dd><input type="text" name="phone" id="f-phone" placeholder="전화번호(필수/숫자만 입력)" autocomplete="tel" inputmode="numeric" /></dd>
+                    </dl>
+                  </li>
+                  <li>
+                    <dl>
+                      <dt>희망차종<font>*</font></dt>
+                      <dd><input type="text" name="car" id="f-car" placeholder="희망차종(필수)" /></dd>
+                    </dl>
+                  </li>
+                </ul>
+
+                <div class="privacy-row">
+                  <input type="checkbox" id="privacy-chk" name="accept2" value="1" />
+                  <label for="privacy-chk">개인정보수집에 동의</label>
+                  <a href="#" class="view-link" id="privacy-toggle">[내용보기]</a>
+                  <div class="privacy-popup" id="privacy-popup">
+                    <b>개인정보의 수집,이용목적</b><br/>
+                    ① 서비스 이용에 따른 본인식별 서비스이용<br/>
+                    ② 고지사항 전달, 불만처리 의사소통 경로 확보<br/>
+                    ③ 기타 원활한 양질의 서비스 제공등<br/><br/>
+                    <b>수집하는 개인정보의 항목</b><br/>
+                    ① 성명, 전화번호, 이메일, IP정보 그외 선택항목<br/><br/>
+                    <b>개인정보의 보유 및 이용기간</b><br/>
+                    ① 작성자 본인에 의해서 작성된 정보는 게시물 삭제시 즉시 삭제할 수 있으며 게시판에 수집된 개인정보는 별도로 삭제하지 않습니다.
+                  </div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submit-btn">최저가 견적 문의하기</button>
+                <p id="form-msg" style="display:none;margin-top:12px;font-size:14px;color:rgb(114,76,255);font-weight:700;text-align:center;">✓ 접수가 완료되었습니다. 곧 연락드리겠습니다!</p>
+              </form>
+            </div>
+          </div>
+
+          <!-- Real-time feed -->
+          <div class="form-right">
+            <div class="feed-panel">
+              <div class="feed-header">
+                <h3>실시간 신청 현황</h3>
+              </div>
+              <div class="feed-body">
+                <ul class="feed-list" id="feed-list">
+                  <!-- Items duplicated in JS for seamless loop -->
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── FOOTER ─────────────────────────────────── -->
+    <footer>
+      <div class="inner">
+        <p class="footer-info">
+          상호 : 비전오토플랜<br />
+          주소 : 경기도 수원시 권선구 세권로 2, 3층<br />
+          통신판매업번호 :&nbsp;&nbsp;&nbsp;&nbsp; 사업자등록번호 : 501-04-53390<br />
+          문의 : 1544-3496
+        </p>
+
+      </div>
+    </footer>
+
+    <script>
+    // ─── Countdown timer ──────────────────────────
+    (function() {
+      const el = document.getElementById('timer-display');
+      let totalSec = 18 * 3600 + 8 * 60 + 12;
+      function fmt(s) {
+        const h = String(Math.floor(s / 3600)).padStart(2,'0');
+        const m = String(Math.floor((s % 3600) / 60)).padStart(2,'0');
+        const sec = String(s % 60).padStart(2,'0');
+        return h + ':' + m + ':' + sec;
+      }
+      setInterval(function() {
+        if (totalSec > 0) totalSec--;
+        el.textContent = fmt(totalSec);
+      }, 1000);
+    })();
+
+    // ─── Scroll header shadow ─────────────────────
+    window.addEventListener('scroll', function() {
+      document.getElementById('site-header').classList.toggle('scrolled', window.scrollY > 10);
+    }, {passive:true});
+
+    // ─── Hamburger menu ───────────────────────────
+    var burger = document.getElementById('hamburger');
+    var mobileNav = document.getElementById('mobile-nav');
+    burger.addEventListener('click', function() {
+      var open = mobileNav.classList.toggle('open');
+      burger.classList.toggle('open', open);
+      burger.setAttribute('aria-expanded', open);
+      document.body.style.overflow = open ? 'hidden' : '';
+    });
+    function closeMobileNav() {
+      mobileNav.classList.remove('open');
+      burger.classList.remove('open');
+      burger.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    }
+
+    // ─── Scroll reveal ────────────────────────────
+    var revealEls = document.querySelectorAll('.reveal');
+    var io = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          io.unobserve(e.target);
+        }
+      });
+    }, {threshold: 0.08});
+    revealEls.forEach(function(el) { io.observe(el); });
+
+    // ─── Privacy popup ────────────────────────────
+    document.getElementById('privacy-toggle').addEventListener('click', function(e) {
+      e.preventDefault();
+      document.getElementById('privacy-popup').classList.toggle('open');
+    });
+    document.addEventListener('click', function(e) {
+      var pp = document.getElementById('privacy-popup');
+      if (!pp.contains(e.target) && e.target.id !== 'privacy-toggle') {
+        pp.classList.remove('open');
+      }
+    });
+
+    // ─── Form submission ──────────────────────────
+    document.getElementById('apply-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var name  = document.getElementById('f-name').value.trim();
+      var phone = document.getElementById('f-phone').value.trim();
+      var car   = document.getElementById('f-car').value.trim();
+      var chk   = document.getElementById('privacy-chk').checked;
+      var btn   = document.getElementById('submit-btn');
+      var msg   = document.getElementById('form-msg');
+
+      if (!name)  { alert('성명을 입력해주세요.'); return; }
+      if (!phone) { alert('연락처를 입력해주세요.'); return; }
+      if (!car)   { alert('희망차종을 입력해주세요.'); return; }
+      if (!chk)   { alert('개인정보 수집에 동의해주세요.'); return; }
+
+      btn.textContent = '신청 완료 ✓';
+      btn.classList.add('submitted');
+      btn.disabled = true;
+      msg.style.display = 'block';
+
+      // Add to live feed
+      addToFeed(name.charAt(0) + '**', car);
+    });
+
+    // ─── Real-time feed ───────────────────────────
+    var feedData = [
+      ['김**','현대 디 올 뉴 산타페'],
+      ['한**','기아 올 뉴 카니발'],
+      ['박**','기아 K5'],
+      ['김**','제네시스 G90'],
+      ['김**','현대 디 올 뉴 산타페'],
+      ['한**','기아 올 뉴 카니발'],
+      ['박**','기아 K5'],
+      ['김**','제네시스 G90'],
+      ['김**','현대 디 올 뉴 산타페'],
+      ['한**','기아 올 뉴 카니발'],
+      ['박**','기아 K5'],
+      ['김**','제네시스 G90'],
+    ];
+
+    function buildFeedHTML(data) {
+      return data.map(function(d) {
+        return '<li class="feed-item"><span class="feed-name">' + d[0] + '</span><span class="feed-car">' + d[1] + '</span><span class="feed-badge">신청</span><span class="feed-date">2026.03.25</span></li>';
+      }).join('');
+    }
+
+    var feedList = document.getElementById('feed-list');
+    // Duplicate for seamless looping
+    feedList.innerHTML = buildFeedHTML(feedData) + buildFeedHTML(feedData);
+
+    function addToFeed(name, car) {
+      var newItem = document.createElement('li');
+      newItem.className = 'feed-item';
+      newItem.style.fontWeight = '700';
+      newItem.style.color = 'rgb(114,76,255)';
+      var today = new Date();
+      var dateStr = today.getFullYear() + '.' + String(today.getMonth()+1).padStart(2,'0') + '.' + String(today.getDate()).padStart(2,'0');
+      newItem.innerHTML = '<span class="feed-name">' + name + '</span><span class="feed-car">' + car + '</span><span class="feed-badge" style="color:rgb(114,76,255);border-color:rgb(114,76,255);">신청</span><span class="feed-date">' + dateStr + '</span>';
+      feedList.insertBefore(newItem, feedList.firstChild);
+    }
+    </script>
+  </body>
+</html>

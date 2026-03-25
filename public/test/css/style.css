@@ -1,0 +1,332 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Playfair+Display:wght@700&display=swap');
+
+:root {
+    --main-bg-color: #f0f0f0;
+    --text-color: #333;
+    --dark-bg-color: #0a192f;
+    --light-text-color: #e6f1ff;
+    --accent-color: #64ffda;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    color: var(--text-color);
+    background-color: var(--dark-bg-color);
+    overflow-x: hidden;
+}
+
+main {
+    width: 100%;
+    overflow: hidden;
+}
+
+header {
+    position: fixed;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    padding: 1rem 2rem;
+    background-color: rgba(10, 25, 47, 0.85);
+    backdrop-filter: blur(10px);
+    transition: top 0.3s ease-in-out;
+}
+
+header.hidden {
+    top: -100px;
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+nav .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-decoration: none;
+    color: var(--light-text-color);
+}
+
+nav ul {
+    display: flex;
+    list-style: none;
+}
+
+nav ul li {
+    margin-left: 2rem;
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: var(--light-text-color);
+    font-weight: 400;
+    transition: color 0.3s ease;
+}
+
+nav ul li a:hover {
+    color: var(--accent-color);
+}
+
+.panel {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 4rem 2rem;
+    background-size: cover;
+    background-position: center;
+    color: var(--light-text-color);
+    position: relative;
+}
+
+#home {
+    background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1582463143935-a93c71275b65?q=80&w=1935&auto=format&fit=crop');
+}
+
+#home h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 5rem;
+    text-align: center;
+    line-height: 1.2;
+}
+
+#home h2 {
+    font-size: 1.5rem;
+    margin-top: 1rem;
+    font-weight: 300;
+}
+
+.panel h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.panel p {
+    font-size: 1.2rem;
+    font-weight: 300;
+}
+
+#horizontal-scroll {
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+
+#scroll-container {
+    height: 100%;
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+.horizontal-panel {
+    height: 100vh;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    width: 100vw; /* 각 패널이 화면 너비를 차지하도록 설정 */
+}
+
+#calender { background-color: #1d2d3c; }
+#community { background-color: #ffffff; color: var(--text-color); }
+#landscape { background-color: #0e2a24; }
+#unit-plan { background-color: #ffffff; color: var(--text-color); }
+#premium { background-color: #1d3c4d; }
+
+#contact {
+    background-color: #f0f0f0;
+    color: var(--text-color);
+}
+
+footer {
+    text-align: center;
+    padding: 2rem;
+    background-color: #0a192f;
+    color: #8892b0;
+}
+
+.content-section .content-box {
+    width: 100%;
+    max-width: 1200px;
+    padding: 2rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    backdrop-filter: blur(5px);
+}
+
+.two-column {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+.two-column .text-part {
+    flex: 1;
+}
+
+.two-column .image-part {
+    flex: 1;
+}
+
+.two-column .image-part img {
+    width: 100%;
+    border-radius: 8px;
+}
+
+/* Calender */
+.calender-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.calender-item {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.calender-item h3 {
+    font-size: 1.2rem;
+    color: var(--accent-color);
+}
+
+/* Community */
+#community ul {
+    list-style: none;
+    margin-top: 1.5rem;
+}
+
+#community ul li {
+    background: rgba(0,0,0,0.1);
+    margin-bottom: 0.5rem;
+    padding: 0.8rem;
+    border-radius: 5px;
+}
+
+/* Landscape */
+.landscape-gallery {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    justify-content: center;
+}
+
+.landscape-gallery img {
+    width: 30%;
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+}
+
+.landscape-gallery img:hover {
+    transform: scale(1.05);
+}
+
+/* Unit Plan */
+.unit-tabs {
+    margin-top: 1.5rem;
+}
+
+.unit-tabs span {
+    padding: 0.5rem 1rem;
+    margin-right: 0.5rem;
+    background: rgba(0,0,0,0.2);
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.unit-tabs span.active {
+    background: var(--accent-color);
+    color: var(--dark-bg-color);
+}
+
+/* Premium */
+.premium-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.premium-item {
+    text-align: center;
+}
+
+.premium-item h3 {
+    color: var(--accent-color);
+    font-family: 'Playfair Display', serif;
+}
+
+/* Contact */
+.contact-info {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.contact-info img {
+    max-width: 400px;
+    border-radius: 8px;
+}
+
+.address p {
+    margin-bottom: 1rem;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    header {
+        padding: 1rem;
+    }
+
+    nav ul {
+        display: none; /* 모바일에서는 메뉴를 숨기거나 햄버거 메뉴로 변경 */
+    }
+
+    #home h1 {
+        font-size: 3rem;
+    }
+
+    #home h2 {
+        font-size: 1.2rem;
+    }
+
+    .panel h2 {
+        font-size: 2.5rem;
+    }
+
+    .panel p {
+        font-size: 1rem;
+    }
+
+    .two-column {
+        flex-direction: column;
+    }
+
+    .landscape-gallery {
+        flex-direction: column;
+    }
+
+    .landscape-gallery img {
+        width: 100%;
+    }
+
+    .contact-info {
+        flex-direction: column;
+    }
+}

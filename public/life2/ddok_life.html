@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>똑생 - 터치로 간편하게 초정밀 채무해결</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { pretendard: ["Noto Sans KR","system-ui","sans-serif"] },
+          keyframes: {
+            "fade-in": { from:{opacity:"0"}, to:{opacity:"1"} },
+            "cta-slide-up": { from:{transform:"translateY(100px)"}, to:{transform:"translateY(0)"} },
+            "float": { "0%,100%":{transform:"translateY(0px)"}, "50%":{transform:"translateY(-6px)"} },
+            "marquee": { from:{transform:"translateX(0)"}, to:{transform:"translateX(-50%)"} },
+            "fade-in-up": { from:{opacity:"0",transform:"translateY(24px)"}, to:{opacity:"1",transform:"translateY(0)"} },
+          },
+          animation: {
+            "fade-in": "fade-in 0.6s ease-out both",
+            "cta-slide-up": "cta-slide-up 0.5s ease-out 0.8s both",
+            "float": "float 3s ease-in-out infinite",
+            "marquee": "marquee 25s linear infinite",
+            "fade-in-up": "fade-in-up 0.7s ease-out both",
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { font-family: "Noto Sans KR", system-ui, sans-serif; }
+    body { overflow-x: hidden; background: white; color: #111827; }
+
+    /* Scroll reveal */
+    .reveal { opacity:0; transform:translateY(28px); transition:opacity .65s ease-out, transform .65s ease-out; }
+    .reveal.visible { opacity:1; transform:translateY(0); }
+
+    /* Button press effect */
+    .btn-press { cursor:pointer; transition:transform .1s; }
+    .btn-press:active { transform:scale(0.95); }
+
+    /* Nav link hover */
+    .nav-link:hover { background:rgba(59,130,246,0.08); }
+
+    /* FAQ answer accordion */
+    .faq-answer { max-height:0; overflow:hidden; transition:max-height .35s ease; }
+    .faq-answer.open { max-height:300px; }
+
+    /* Hide scrollbar */
+    .scrollbar-none::-webkit-scrollbar { display:none; }
+    .scrollbar-none { -ms-overflow-style:none; scrollbar-width:none; }
+
+    /* Marquee container */
+    .marquee-track { display:flex; width:max-content; animation: marquee 25s linear infinite; gap:10px; }
+    @media(min-width:768px) { .marquee-track { gap:46px; } }
+
+    /* Mobile drawer transition */
+    .drawer { transition: transform .3s ease-in-out; }
+  </style>
+</head>
+<body>
+
+<main>
+
+<!-- ===== HERO SECTION ===== -->
+<div id="hero" class="relative flex flex-col items-center justify-center px-0 md:px-[34px]">
+  <div class="relative bg-[radial-gradient(circle,rgb(255,255,255)_40%,rgb(170,170,255)_100%)] max-w-[2000px] w-full overflow-hidden rounded-none md:rounded-[33px]">
+    <div class="absolute inset-0 overflow-hidden">
+      <div class="absolute h-[900px] w-[900px] -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2 md:h-[1500px] md:w-[1500px]">
+        <img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/image-1.png" class="h-full w-full" />
+      </div>
+    </div>
+    <div id="heroContent" class="relative flex flex-col items-center justify-center">
+      <h1 class="hero-reveal mt-[60px] md:mt-[100px]">
+        <img alt="똑생" src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/78.svg" class="w-[120px] md:w-[200px]" />
+      </h1>
+      <h2 class="hero-reveal text-[34px] font-bold text-center mt-[50px] leading-[1.3] md:text-[68px] md:mt-[70px]">
+        터치로 간편하게<br />초정밀 채무해결
+      </h2>
+      <div class="hero-reveal flex flex-col items-center gap-2.5 mt-[65px] md:flex-row md:gap-5 md:mt-[73px]">
+        <a href="https://app.ddok.life/intake/wep/diagnosis">
+          <button class="btn-press text-white text-base font-semibold bg-sky-500 h-12 px-6 rounded-full md:text-lg md:h-[60px] md:px-7">초정밀 예상 탕감액 진단</button>
+        </a>
+        <a href="https://app.ddok.life/intake/wep/apply">
+          <button class="btn-press text-green-700 text-base font-semibold bg-green-200 h-12 px-6 rounded-full md:text-lg md:h-[60px] md:px-7">지금 서비스 신청하기</button>
+        </a>
+      </div>
+      <div class="hero-reveal h-[250px] w-[290px] overflow-hidden mt-10 animate-float md:h-[400px] md:w-[440px] md:mt-[60px]">
+        <img alt="똑생 서비스 화면" src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/121.png" class="w-full" />
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FAQ BANNER ===== -->
+<div id="faqBanner" class="reveal flex items-center justify-center w-full">
+  <a href="https://plead.notion.site/691c7660f2e240529f000d6d6e9223a9" class="contents">
+    <div class="flex items-center backdrop-blur bg-blue-700/20 w-full m-[17px] rounded-full hover:bg-blue-700/30 transition-colors md:w-[800px] md:m-[34px]">
+      <div class="text-blue-700 text-[15px] font-semibold flex-1 h-[50px] leading-[50px] text-center overflow-hidden md:text-2xl md:h-16 md:leading-[64px]">
+        <div id="faqText" class="px-2 truncate animate-fade-in">"소득이 없어도 신청할 수 있나요?"</div>
+      </div>
+      <button class="btn-press text-blue-700 text-sm font-bold bg-white h-8 px-3 mr-2.5 rounded-full md:text-lg md:h-10 md:px-4 md:mr-3">답변 보기</button>
+    </div>
+  </a>
+</div>
+
+<!-- ===== CASES + SUBSECTIONS ===== -->
+<div id="cases" class="flex flex-col gap-[17px] p-[17px] md:gap-[34px] md:p-[34px]">
+
+  <!-- Cases grid section -->
+  <div class="reveal flex items-center justify-center w-full">
+    <div class="max-w-[2000px] w-full overflow-hidden py-[30px] rounded-[17px] md:min-h-[700px] md:py-[110px] md:rounded-[33px]">
+      <h2 class="text-[25px] font-bold text-center mb-2 md:text-[50px] md:leading-[60px] md:mb-[15px]">이런 경우에도<br />채무해결이 가능해요</h2>
+      <div class="flex items-center justify-center mb-8">
+        <a href="https://app.ddok.life/intake/wep/diagnosis">
+          <button class="btn-press text-white text-base font-semibold bg-green-600 h-12 px-6 rounded-full md:text-lg md:h-[60px] md:px-7">초간단 자격확인 하기</button>
+        </a>
+      </div>
+      <div class="flex items-center justify-center mt-[30px] md:mt-[77px]">
+        <div class="grid grid-cols-2 gap-[15px] md:grid-cols-4 md:gap-[25px]">
+          <div class="flex flex-col items-center justify-center gap-[15px] bg-sky-100 h-[140px] w-[140px] rounded-[25px] md:h-[250px] md:w-[250px] md:rounded-[40px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/142.png" class="w-[35px] h-[35px] scale-[1.3] md:w-[100px] md:h-[100px]" /><p class="text-[17px] font-semibold md:text-2xl">코인 실패</p></div>
+          <div class="flex flex-col items-center justify-center gap-[15px] bg-sky-100 h-[140px] w-[140px] rounded-[25px] md:h-[250px] md:w-[250px] md:rounded-[40px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/137.png" class="w-[35px] h-[35px] md:w-[100px] md:h-[100px]" /><p class="text-[17px] font-semibold md:text-2xl">주식 실패</p></div>
+          <div class="flex flex-col items-center justify-center gap-[15px] bg-sky-100 h-[140px] w-[140px] rounded-[25px] md:h-[250px] md:w-[250px] md:rounded-[40px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/155.png" class="w-[35px] h-[35px] md:w-[100px] md:h-[100px]" /><p class="text-[17px] font-semibold md:text-2xl">도박 빚</p></div>
+          <div class="flex flex-col items-center justify-center gap-[15px] bg-sky-100 h-[140px] w-[140px] rounded-[25px] md:h-[250px] md:w-[250px] md:rounded-[40px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/166.png" class="w-[35px] h-[35px] md:w-[100px] md:h-[100px]" /><p class="text-[17px] font-semibold md:text-2xl">아르바이트</p></div>
+          <div class="flex flex-col items-center justify-center gap-[15px] bg-sky-100 h-[140px] w-[140px] rounded-[25px] md:h-[250px] md:w-[250px] md:rounded-[40px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/125.png" class="w-[35px] h-[35px] md:w-[100px] md:h-[100px]" /><p class="text-[17px] font-semibold md:text-2xl">명품 소비</p></div>
+          <div class="flex flex-col items-center justify-center gap-[15px] bg-sky-100 h-[140px] w-[140px] rounded-[25px] md:h-[250px] md:w-[250px] md:rounded-[40px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/190.png" class="w-[35px] h-[35px] md:w-[100px] md:h-[100px]" /><p class="text-[17px] font-semibold md:text-2xl">일용직근무자</p></div>
+          <div class="flex flex-col items-center justify-center gap-[15px] bg-sky-100 h-[140px] w-[140px] rounded-[25px] md:h-[250px] md:w-[250px] md:rounded-[40px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/123.png" class="w-[35px] h-[35px] md:w-[100px] md:h-[100px]" /><p class="text-[17px] font-semibold md:text-2xl">여행 빚</p></div>
+          <div class="flex flex-col items-center justify-center gap-[15px] bg-sky-100 h-[140px] w-[140px] rounded-[25px] md:h-[250px] md:w-[250px] md:rounded-[40px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/122.png" class="w-[35px] h-[35px] md:w-[100px] md:h-[100px]" /><p class="text-[17px] font-semibold md:text-2xl">프리랜서</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lawyer section (green) -->
+  <div class="reveal flex items-center justify-center w-full">
+    <div class="relative max-w-[2000px] w-full overflow-hidden rounded-[17px] md:min-h-[700px] md:rounded-[33px]">
+      <div class="absolute inset-0 flex items-center justify-center after:absolute after:inset-0 after:bg-emerald-600/90">
+        <div class="rotate-[-20deg] w-[300px] scale-[1.8] md:w-[500px]">
+          <img alt="" src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/164.png" class="w-[300px] md:w-[500px]" />
+        </div>
+      </div>
+      <div class="relative z-10 text-white flex flex-col items-center justify-center text-center py-16 px-5 min-h-[360px] md:min-h-[700px]">
+        <div class="w-[200px] md:w-[300px]">
+          <img alt="국내 3%" src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/165.png" class="w-full" />
+        </div>
+        <h2 class="text-[25px] font-bold mt-[5px] mb-2 md:text-[50px] md:leading-[60px] md:mt-5 md:mb-[15px]">개인회생 전문 도산변호사<br />책임 담당 보장제</h2>
+        <p class="text-[13px] font-semibold mt-2 md:text-xl md:mt-[15px]">국내 단 3%뿐인 대한변호사협회 인증 도산전문 변호사가<br />직접 변제계획안 작성부터 상담까지 모두 책임져요</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reviews section -->
+  <div class="reveal flex items-center justify-center w-full">
+    <div class="relative bg-green-100 max-w-[2000px] w-full overflow-hidden py-[30px] rounded-[17px] md:min-h-[700px] md:py-[60px] md:rounded-[33px]">
+      <div class="flex justify-center mb-5 md:mb-[30px]">
+        <div class="flex gap-[5px] w-[87%] px-0 md:gap-2 md:w-full md:px-[60px]">
+          <img alt="" src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/129.png" class="w-[30px] h-[30px] md:w-10 md:h-10" />
+          <div class="flex-1">
+            <h2 class="text-[22px] font-bold md:text-3xl">실제 고객의 소감은?</h2>
+            <p class="text-indigo-400 text-sm font-semibold md:text-lg">고객님 의향에 의해 직접 작성해 주신 후기 입니다</p>
+          </div>
+          <a href="#"><button class="btn-press absolute text-black text-xs font-semibold bg-amber-300 h-6 px-2 rounded-full right-[30px] top-[35px] md:text-base md:h-10 md:px-4 md:right-[60px] md:top-[65px]">모두보기</button></a>
+        </div>
+      </div>
+      <div class="relative z-[1] overflow-x-auto scrollbar-none overscroll-x-contain cursor-grab mx-auto">
+        <div class="flex gap-3.5 px-[23px] w-max md:gap-[30px] md:px-[60px]">
+          <!-- Review cards -->
+          <div class="shrink-0 w-[295px] md:w-[310px]">
+            <div class="relative bg-white shadow flex flex-col h-80 mb-2.5 p-5 rounded-2xl md:h-[590px] md:mb-0 md:p-[30px]">
+              <div class="flex items-center gap-2.5"><div class="w-[50px] rounded-full overflow-hidden"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/138.png" class="w-[50px]" /></div><div><p class="font-bold">오○○</p><p class="text-sm font-medium">30대 / 여성 / 프리랜서</p></div></div>
+              <div class="mt-2.5"><span class="text-green-800 text-xs font-semibold bg-green-100 px-2 py-0.5 rounded-md m-[3px] inline-block">정확한 초정밀 진단</span><span class="text-green-800 text-xs font-semibold bg-green-100 px-2 py-0.5 rounded-md m-[3px] inline-block">높은 탕감률</span></div>
+              <h4 class="text-lg font-bold mt-2.5 leading-snug">다른 사무실들은 불가능하다고 했는데 똑생은 약속한 6만원대로 받아냈어요</h4>
+              <div class="absolute flex items-center justify-center bottom-5 inset-x-0 md:bottom-10"><button class="btn-press text-white text-sm font-semibold bg-green-600 h-8 px-3 rounded-full md:text-base md:h-10 md:px-4">이어서 읽기</button></div>
+            </div>
+          </div>
+          <div class="shrink-0 w-[295px] md:w-[310px]">
+            <div class="relative bg-white shadow flex flex-col h-80 mb-2.5 p-5 rounded-2xl md:h-[590px] md:mb-0 md:p-[30px]">
+              <div class="flex items-center gap-2.5"><div class="w-[50px] rounded-full overflow-hidden"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/138.png" class="w-[50px]" /></div><div><p class="font-bold">오○○</p><p class="text-sm font-medium">30대 / 여성 / 프리랜서</p></div></div>
+              <div class="mt-2.5"><span class="text-green-800 text-xs font-semibold bg-green-100 px-2 py-0.5 rounded-md m-[3px] inline-block">정확한 초정밀 진단</span><span class="text-green-800 text-xs font-semibold bg-green-100 px-2 py-0.5 rounded-md m-[3px] inline-block">높은 탕감률</span></div>
+              <h4 class="text-lg font-bold mt-2.5 leading-snug">다른 사무실들은 불가능하다고 했는데 똑생은 약속한 6만원대로 받아냈어요</h4>
+              <div class="absolute flex items-center justify-center bottom-5 inset-x-0 md:bottom-10"><button class="btn-press text-white text-sm font-semibold bg-green-600 h-8 px-3 rounded-full md:text-base md:h-10 md:px-4">이어서 읽기</button></div>
+            </div>
+          </div>
+          <div class="shrink-0 w-[295px] md:w-[310px]">
+            <div class="relative bg-white shadow flex flex-col h-80 mb-2.5 p-5 rounded-2xl md:h-[590px] md:mb-0 md:p-[30px]">
+              <div class="flex items-center gap-2.5"><div class="w-[50px] rounded-full overflow-hidden"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/128.png" class="w-[50px]" /></div><div><p class="font-bold">정○○</p><p class="text-sm font-medium">20대 / 여성 / 직장인</p></div></div>
+              <div class="mt-2.5"><span class="text-green-800 text-xs font-semibold bg-green-100 px-2 py-0.5 rounded-md m-[3px] inline-block">깔끔한 일처리</span><span class="text-green-800 text-xs font-semibold bg-green-100 px-2 py-0.5 rounded-md m-[3px] inline-block">친절한 안내</span></div>
+              <h4 class="text-lg font-bold mt-2.5 leading-snug">비대면인데도 이렇게 물심양면인 변호사님들은 못 찾으실 겁니다</h4>
+              <div class="absolute flex items-center justify-center bottom-5 inset-x-0 md:bottom-10"><button class="btn-press text-white text-sm font-semibold bg-green-600 h-8 px-3 rounded-full md:text-base md:h-10 md:px-4">이어서 읽기</button></div>
+            </div>
+          </div>
+          <div class="shrink-0 w-[295px] md:w-[310px]">
+            <div class="relative bg-white shadow flex flex-col h-80 mb-2.5 p-5 rounded-2xl md:h-[590px] md:mb-0 md:p-[30px]">
+              <div class="flex items-center gap-2.5"><div class="w-[50px] rounded-full overflow-hidden"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/156.png" class="w-[50px]" /></div><div><p class="font-bold">문○○</p><p class="text-sm font-medium">30대 / 남성 / 직장인</p></div></div>
+              <div class="mt-2.5"><span class="text-green-800 text-xs font-semibold bg-green-100 px-2 py-0.5 rounded-md m-[3px] inline-block">빠른 피드백</span><span class="text-green-800 text-xs font-semibold bg-green-100 px-2 py-0.5 rounded-md m-[3px] inline-block">1:1 맞춤 진행</span></div>
+              <h4 class="text-lg font-bold mt-2.5 leading-snug">간편하게 자료 확보하는 법부터 다르다는 생각이 들었어요</h4>
+              <div class="absolute flex items-center justify-center bottom-5 inset-x-0 md:bottom-10"><button class="btn-press text-white text-sm font-semibold bg-green-600 h-8 px-3 rounded-full md:text-base md:h-10 md:px-4">이어서 읽기</button></div>
+            </div>
+          </div>
+          <div class="shrink-0 w-[295px] md:w-[310px]">
+            <div class="relative bg-white shadow flex flex-col h-80 mb-2.5 p-5 rounded-2xl md:h-[590px] md:mb-0 md:p-[30px]">
+              <div class="flex items-center gap-2.5"><div class="w-[50px] rounded-full overflow-hidden"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/133.png" class="w-[50px]" /></div><div><p class="font-bold">맹○○</p><p class="text-sm font-medium">40대 / 여성 / 직장인</p></div></div>
+              <div class="mt-2.5"><span class="text-green-800 text-xs font-semibold bg-green-100 px-2 py-0.5 rounded-md m-[3px] inline-block">합리적인 수임료</span><span class="text-green-800 text-xs font-semibold bg-green-100 px-2 py-0.5 rounded-md m-[3px] inline-block">변호사 상담</span></div>
+              <h4 class="text-lg font-bold mt-2.5 leading-snug">똑생은 보완이 필요하면 바로 알려주고 부족한 부분을 딱 짚어주는 게 좋았어요</h4>
+              <div class="absolute flex items-center justify-center bottom-5 inset-x-0 md:bottom-10"><button class="btn-press text-white text-sm font-semibold bg-green-600 h-8 px-3 rounded-full md:text-base md:h-10 md:px-4">이어서 읽기</button></div>
+            </div>
+          </div>
+          <div class="shrink-0 w-[295px] md:w-[310px]">
+            <div class="flex items-center justify-center gap-2.5 flex-col bg-white/40 shadow h-80 mb-2.5 p-5 rounded-2xl md:h-[590px] md:mb-0 md:p-[30px]">
+              <p class="text-xl font-bold">다른 후기들도 많아요!</p>
+              <a href="#"><button class="btn-press text-black text-base font-semibold bg-amber-300 h-10 px-4 rounded-full md:text-lg md:h-12 md:px-6">후기 모두 보기</button></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- All-In-One marquee section -->
+  <div class="reveal flex items-center justify-center w-full">
+    <div class="flex flex-col max-w-[2000px] w-full overflow-hidden p-5 rounded-[17px] md:flex-row md:min-h-[700px] md:p-[100px] md:rounded-[33px]">
+      <h2 class="text-[25px] font-bold text-center z-[2] mb-2 md:absolute md:text-[50px] md:leading-[60px] md:text-start md:mb-[15px]">쉽고 빠른 채무해결을 위한<br />올인원 서비스 제공</h2>
+      <div class="flex-1"></div>
+      <div class="flex items-center justify-center">
+        <div class="relative w-auto overflow-hidden mt-[30px] md:w-[900px] md:mt-0 before:absolute before:left-0 before:inset-y-0 before:w-[30px] before:bg-gradient-to-r before:from-white before:to-transparent before:z-[1] after:absolute after:right-0 after:inset-y-0 after:w-[30px] after:bg-gradient-to-l after:from-white after:to-transparent after:z-[1] md:before:w-[100px] md:after:w-[100px]">
+          <div class="marquee-track">
+            <!-- items x2 for seamless loop -->
+            <div class="flex gap-2.5 md:gap-[46px]">
+              <div class="flex flex-col items-center justify-center gap-[15px] bg-green-50 h-[120px] w-[120px] rounded-[20px] flex-shrink-0 hover:bg-green-100 transition-colors md:h-60 md:w-60 md:rounded-[40px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/144.png" class="w-[50px] h-[50px] md:w-[100px] md:h-[100px]" /><p class="text-[13px] font-semibold text-center md:text-2xl">제출 상세 매뉴얼</p></div>
+              <div class="flex flex-col items-center justify-center gap-[15px] bg-green-50 h-[120px] w-[120px] rounded-[20px] flex-shrink-0 hover:bg-green-100 transition-colors md:h-60 md:w-60 md:rounded-[40px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/person-running.0yi2wt8f7fvts.png" class="w-[50px] h-[50px] md:w-[100px] md:h-[100px]" /><p class="text-[13px] font-semibold text-center md:text-2xl">부채증명서 대리발급</p></div>
+              <div class="flex flex-col items-center justify-center gap-[15px] bg-green-50 h-[120px] w-[120px] rounded-[20px] flex-shrink-0 hover:bg-green-100 transition-colors md:h-60 md:w-60 md:rounded-[40px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/183.png" class="w-[50px] h-[50px] md:w-[100px] md:h-[100px]" /><p class="text-[13px] font-semibold text-center md:text-2xl">제출물 온라인 관리</p></div>
+              <div class="flex flex-col items-center justify-center gap-[15px] bg-green-50 h-[120px] w-[120px] rounded-[20px] flex-shrink-0 hover:bg-green-100 transition-colors md:h-60 md:w-60 md:rounded-[40px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/188.png" class="w-[50px] h-[50px] md:w-[100px] md:h-[100px]" /><p class="text-[13px] font-semibold text-center md:text-2xl">개인별 초정밀 진단</p></div>
+              <div class="flex flex-col items-center justify-center gap-[15px] bg-green-50 h-[120px] w-[120px] rounded-[20px] flex-shrink-0 hover:bg-green-100 transition-colors md:h-60 md:w-60 md:rounded-[40px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/rocket.0tm7okw41dt6i.png" class="w-[50px] h-[50px] md:w-[100px] md:h-[100px]" /><p class="text-[13px] font-semibold text-center md:text-2xl">초고속 법원제출</p></div>
+              <div class="flex flex-col items-center justify-center gap-[15px] bg-green-50 h-[120px] w-[120px] rounded-[20px] flex-shrink-0 hover:bg-green-100 transition-colors md:h-60 md:w-60 md:rounded-[40px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/127.png" class="w-[50px] h-[50px] md:w-[100px] md:h-[100px]" /><p class="text-[13px] font-semibold text-center md:text-2xl">진행상황 자동알림</p></div>
+              <div class="flex flex-col items-center justify-center gap-[15px] bg-green-50 h-[120px] w-[120px] rounded-[20px] flex-shrink-0 hover:bg-green-100 transition-colors md:h-60 md:w-60 md:rounded-[40px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/147.png" class="w-[50px] h-[50px] md:w-[100px] md:h-[100px]" /><p class="text-[13px] font-semibold text-center md:text-2xl">실시간 채팅상담</p></div>
+              <div class="flex flex-col items-center justify-center gap-[15px] bg-green-50 h-[120px] w-[120px] rounded-[20px] flex-shrink-0 hover:bg-green-100 transition-colors md:h-60 md:w-60 md:rounded-[40px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/132.png" class="w-[50px] h-[50px] md:w-[100px] md:h-[100px]" /><p class="text-[13px] font-semibold text-center md:text-2xl">채권자 대응 컨설팅</p></div>
+              <div class="flex flex-col items-center justify-center gap-[15px] bg-green-50 h-[120px] w-[120px] rounded-[20px] flex-shrink-0 hover:bg-green-100 transition-colors md:h-60 md:w-60 md:rounded-[40px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/spiral-calendar.0z-4n620wwoy0.png" class="w-[50px] h-[50px] md:w-[100px] md:h-[100px]" /><p class="text-[13px] font-semibold text-center md:text-2xl">일정 미리 안내</p></div>
+              <div class="flex flex-col items-center justify-center gap-[15px] bg-green-50 h-[120px] w-[120px] rounded-[20px] flex-shrink-0 hover:bg-green-100 transition-colors md:h-60 md:w-60 md:rounded-[40px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/159.png" class="w-[50px] h-[50px] md:w-[100px] md:h-[100px]" /><p class="text-[13px] font-semibold text-center md:text-2xl">서류 대리발급</p></div>
+              <!-- Duplicate for loop -->
+              <div class="flex flex-col items-center justify-center gap-[15px] bg-green-50 h-[120px] w-[120px] rounded-[20px] flex-shrink-0 hover:bg-green-100 transition-colors md:h-60 md:w-60 md:rounded-[40px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/144.png" class="w-[50px] h-[50px] md:w-[100px] md:h-[100px]" /><p class="text-[13px] font-semibold text-center md:text-2xl">제출 상세 매뉴얼</p></div>
+              <div class="flex flex-col items-center justify-center gap-[15px] bg-green-50 h-[120px] w-[120px] rounded-[20px] flex-shrink-0 hover:bg-green-100 transition-colors md:h-60 md:w-60 md:rounded-[40px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/person-running.0yi2wt8f7fvts.png" class="w-[50px] h-[50px] md:w-[100px] md:h-[100px]" /><p class="text-[13px] font-semibold text-center md:text-2xl">부채증명서 대리발급</p></div>
+              <div class="flex flex-col items-center justify-center gap-[15px] bg-green-50 h-[120px] w-[120px] rounded-[20px] flex-shrink-0 hover:bg-green-100 transition-colors md:h-60 md:w-60 md:rounded-[40px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/183.png" class="w-[50px] h-[50px] md:w-[100px] md:h-[100px]" /><p class="text-[13px] font-semibold text-center md:text-2xl">제출물 온라인 관리</p></div>
+              <div class="flex flex-col items-center justify-center gap-[15px] bg-green-50 h-[120px] w-[120px] rounded-[20px] flex-shrink-0 hover:bg-green-100 transition-colors md:h-60 md:w-60 md:rounded-[40px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/188.png" class="w-[50px] h-[50px] md:w-[100px] md:h-[100px]" /><p class="text-[13px] font-semibold text-center md:text-2xl">개인별 초정밀 진단</p></div>
+              <div class="flex flex-col items-center justify-center gap-[15px] bg-green-50 h-[120px] w-[120px] rounded-[20px] flex-shrink-0 hover:bg-green-100 transition-colors md:h-60 md:w-60 md:rounded-[40px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/rocket.0tm7okw41dt6i.png" class="w-[50px] h-[50px] md:w-[100px] md:h-[100px]" /><p class="text-[13px] font-semibold text-center md:text-2xl">초고속 법원제출</p></div>
+              <div class="flex flex-col items-center justify-center gap-[15px] bg-green-50 h-[120px] w-[120px] rounded-[20px] flex-shrink-0 hover:bg-green-100 transition-colors md:h-60 md:w-60 md:rounded-[40px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/159.png" class="w-[50px] h-[50px] md:w-[100px] md:h-[100px]" /><p class="text-[13px] font-semibold text-center md:text-2xl">서류 대리발급</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reduction rate (96.7%) section -->
+  <div class="reveal flex items-center justify-center w-full">
+    <div class="relative bg-[url('https://www.ddok.life/_next/static/media/reduce-rate-bg.0n472h56-261o.png')] bg-cover bg-center max-w-[2000px] w-full overflow-hidden py-5 rounded-[17px] md:min-h-[700px] md:py-[100px] md:rounded-[33px]">
+      <div class="relative flex flex-col items-center justify-center h-[330px] py-5 md:h-[500px] md:py-0">
+        <h2 class="text-white text-[40px] font-extrabold md:text-[55px]">실제 최대 탕감률</h2>
+        <div class="w-80 -mr-7 mt-[5px] md:w-[800px] md:mt-[30px]">
+          <img alt="96.7%" src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/187.svg" class="w-full" />
+        </div>
+        <p class="text-[13px] font-semibold text-center mt-[30px] md:text-xl md:mt-[50px]">
+          빅데이터 기술을 이용한 치밀한 변제계획과<br />개인회생 전문 변호사의 다각적 전략수립으로 최고의 결과를 만들어요
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Speed section (indigo) -->
+  <div class="reveal flex items-center justify-center w-full">
+    <div class="relative bg-indigo-500 max-w-[2000px] w-full overflow-hidden pt-5 pb-[30px] rounded-[17px] md:min-h-[700px] md:rounded-[33px]">
+      <div class="flex flex-col items-center justify-center">
+        <div class="relative flex items-center justify-center h-[300px] w-[400px]">
+          <div class="absolute rotate-[-20deg] w-[260px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/185.png" class="w-[260px]" /></div>
+          <div class="absolute -translate-x-[18px] -translate-y-[52px] rotate-[9deg] z-[1] scale-[0.93]">
+            <div class="text-white backdrop-blur-[10px] bg-blue-700/50 text-center text-nowrap px-[30px] py-2.5 rounded-full">
+              <span class="text-[27px] font-extrabold mr-2.5">금지명령 평균</span><span class="text-[50px] font-extrabold">4.9일</span>
+            </div>
+          </div>
+          <div class="absolute translate-x-[18px] translate-y-[34px] rotate-[-8deg] scale-[0.8]">
+            <div class="text-white backdrop-blur-[10px] bg-green-500/60 text-center text-nowrap px-[30px] py-2.5 rounded-full">
+              <span class="text-[27px] font-extrabold mr-2.5">개시결정 평균</span><span class="text-[50px] font-extrabold">2.5개월</span>
+            </div>
+          </div>
+        </div>
+        <div class="text-center md:absolute md:text-right md:right-10 md:bottom-10">
+          <h2 class="text-white text-[25px] font-bold text-center mb-2 md:text-[50px] md:leading-[60px] md:text-right md:mb-[15px]">결과가 증명하는 속도</h2>
+          <p class="text-white/80 text-xs font-semibold text-center md:text-base md:text-right">금지명령: 채권자의 강제집행을 막는 법원의 명령<br />개시결정: 개인회생이 본격적으로 시작되는 단계</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Document section -->
+  <div class="reveal flex items-center justify-center w-full">
+    <div class="relative bg-[url('https://www.ddok.life/_next/static/media/document-issuance-bg.0.b-rfqye9i4p.png')] bg-cover bg-center max-w-[2000px] w-full overflow-hidden py-5 rounded-[17px] md:min-h-[700px] md:p-[100px] md:rounded-[33px]">
+      <div class="relative flex items-center justify-center w-full my-5 md:absolute md:left-0 md:top-[230px]">
+        <div class="relative h-56 w-[180px] md:scale-[2.3]">
+          <div class="absolute -ml-[212px] -mt-[30px] w-[600px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/169.png" class="w-[600px]" /></div>
+          <div class="absolute w-[180px]"><img alt="대리발급 서류종류 48종 이상" src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/179.svg" class="w-[180px]" /></div>
+        </div>
+      </div>
+      <div class="text-zinc-800 opacity-80 my-5">
+        <h2 class="text-[25px] font-bold text-center mb-2 md:text-[50px] md:leading-[60px] md:text-start md:mb-[15px]">복잡한 서류걱정은 이제 그만</h2>
+        <p class="text-[13px] font-semibold text-center mt-2 md:text-xl md:leading-[30px] md:text-start md:mt-[15px]">개인회생을 위해선 정말 많은 서류가 필요해요<br />하지만 똑생에서 그런 걱정은 접어두셔도 돼요!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nationwide (amber) -->
+  <div class="reveal flex items-center justify-center w-full">
+    <div class="relative bg-amber-200 max-w-[2000px] w-full overflow-hidden px-0 py-5 rounded-[17px] md:min-h-[700px] md:p-[100px] md:rounded-[33px]">
+      <div class="text-green-800 my-5">
+        <h2 class="text-[25px] font-bold text-center mb-2 md:text-[50px] md:leading-[60px] md:text-start md:mb-[15px]">전국단위의 풍부한 회생 노하우</h2>
+        <p class="text-[13px] font-semibold text-center mt-2 md:text-xl md:text-start md:mt-[15px]">똑생은 대한민국 전 지역에서 OK!<br />수많은 경험을 토대로 각 지역 회생법원 특성에 대응해요</p>
+      </div>
+      <div class="flex items-center justify-center w-full overflow-hidden md:justify-end md:-my-10">
+        <div class="w-[450px] -mx-5 md:w-[1000px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/176.png" class="w-[450px] md:w-[1000px]" /></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Difficulty (green) -->
+  <div class="reveal flex items-center justify-center w-full">
+    <div class="relative bg-green-200 max-w-[2000px] w-full overflow-hidden pt-10 pb-5 px-5 rounded-[17px] md:min-h-[700px] md:p-[100px] md:rounded-[33px]">
+      <h2 class="relative text-[25px] font-bold text-center z-[1] mb-2 md:text-[50px] md:leading-[60px] md:text-start md:mb-[15px]">진짜 실력의 차이는<br />어려운 상황에서 나옵니다</h2>
+      <div class="flex flex-col items-center justify-center mt-5 md:absolute md:scale-[2.2] md:origin-[100%_50%] md:right-[5%] md:mt-0">
+        <p class="text-black/40 text-sm font-bold mb-2.5">실제 해결한 사례 입니다</p>
+        <div class="h-[220px] w-80 relative">
+          <div class="absolute flex items-center justify-center bg-white shadow h-[90px] w-80 rounded-[10px] opacity-0 -translate-y-[89px] z-[5] scale-110 md:opacity-100 md:translate-y-0 md:z-[4]"></div>
+          <div class="absolute flex items-center justify-center bg-white shadow h-[90px] w-80 rounded-[10px] z-[4] md:blur-[2px] md:opacity-60 md:translate-y-[73px] md:z-[3] md:scale-90"></div>
+          <div class="absolute flex items-center justify-center bg-white shadow h-[90px] w-80 rounded-[10px] blur-[2px] opacity-60 translate-y-[73px] z-[3] scale-90 md:blur-[3px] md:opacity-30 md:translate-y-[130px] md:z-[2] md:scale-[0.8]"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Online / anywhere -->
+  <div class="reveal flex items-center justify-center w-full">
+    <div class="relative bg-zinc-100 h-[380px] max-w-[2000px] w-full overflow-hidden rounded-[17px] md:min-h-[700px] md:rounded-[33px]">
+      <div class="absolute opacity-100 top-[-25px] w-[560px] right-0 md:opacity-50 md:w-[1500px] md:top-0">
+        <img alt="똑생 화면" src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/175.png" class="w-[560px] md:w-[1500px]" />
+      </div>
+      <div class="absolute w-full p-5 bottom-0 md:p-[100px]">
+        <h2 class="text-[25px] font-bold text-center mb-2 md:text-[50px] md:leading-[60px] md:text-start md:mb-[15px]">인터넷으로 언제 어디서든</h2>
+        <p class="text-[13px] font-semibold text-center mt-2 md:text-xl md:text-start md:mt-[15px]">장소에 구애받지 않고 손쉽게 개인회생을 할 수 있어요.<br />이제 방문상담의 고민이 필요없어요!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tech/AI section -->
+  <div class="reveal flex items-center justify-center w-full">
+    <div class="relative bg-zinc-100 max-w-[2000px] w-full overflow-hidden pt-10 pb-5 px-5 rounded-[17px] md:min-h-[700px] md:p-[100px] md:rounded-[33px]">
+      <h2 class="text-[25px] font-bold text-center mb-2 md:text-[50px] md:leading-[60px] md:text-start md:mb-[15px]">첨단 분석기술로<br />완성된 2세대 개인회생</h2>
+      <div class="flex items-center justify-center my-[30px] md:my-0">
+        <div class="w-[220px] md:absolute md:opacity-50 md:w-[870px] md:right-[10%] md:top-[-130px]">
+          <img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/170.png" class="w-full" />
+        </div>
+      </div>
+      <p class="text-[13px] font-semibold text-center mt-2 md:text-xl md:text-start md:mt-[15px]">개인회생 전문 변호사가 직접 개발한 알고리즘이<br />고객에게 가장 유리한 변제계획을 실행할 수 있도록 도와줘요</p>
+      <ul class="flex flex-col gap-[13px] w-auto mt-[25px] pl-0 md:gap-[22px] md:w-[400px] md:mt-[120px]">
+        <li class="flex items-center bg-white shadow gap-[15px] h-[70px] pl-[26px] rounded-xl md:gap-6 md:h-[100px] md:w-[500px] md:pl-[50px] md:rounded-[20px]">
+          <img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/146.png" class="w-[29px] md:w-[45px]" />
+          <p class="text-[17px] font-semibold md:text-2xl">집요하게 찾아내는 <u class="text-blue-700">치밀한 탕감률</u></p>
+        </li>
+        <li class="flex items-center bg-white shadow gap-[15px] h-[70px] pl-[26px] rounded-xl md:gap-6 md:h-[100px] md:w-[500px] md:pl-[50px] md:rounded-[20px]">
+          <img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/180.png" class="w-[29px] md:w-[45px]" />
+          <p class="text-[17px] font-semibold md:text-2xl">더 빠른 업무처리</p>
+        </li>
+        <li class="flex items-center bg-white shadow gap-[15px] h-[70px] pl-[26px] rounded-xl md:gap-6 md:h-[100px] md:w-[500px] md:pl-[50px] md:rounded-[20px]">
+          <img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/186.png" class="w-[29px] md:w-[45px]" />
+          <p class="text-[17px] font-semibold md:text-2xl">사람에 의한 실수 방지</p>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Team/Experts section -->
+  <div id="team" class="reveal flex items-center justify-center w-full">
+    <div class="relative bg-gray-700 max-w-[2000px] w-full overflow-hidden py-5 rounded-[17px] md:min-h-[700px] md:py-[100px] md:rounded-[33px]">
+      <div class="flex flex-col items-center justify-center">
+        <div class="w-20 my-[30px] md:w-[330px]"><img alt="법무법인 현림" src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/163.svg" class="w-full" /></div>
+        <div class="text-white text-center mt-4">
+          <h2 class="text-[25px] font-bold mb-2 md:text-[50px] md:leading-[60px] md:mb-[15px]">당신만을 위해 모인<br />개인회생 프로페셔널</h2>
+          <p class="text-[13px] font-semibold mt-2 md:text-xl md:mt-[15px]">똑생은 법무법인 현림의 첨단 IT역량을 가진<br /><span class="text-stone-400">개인회생 법률팀이 직접</span>운영하는 서비스 입니다</p>
+        </div>
+        <div class="overflow-x-auto scrollbar-none w-full mt-10">
+          <div class="flex gap-[15px] px-5 w-max md:gap-[30px] md:px-[34px]">
+            <a href="https://youtu.be/D8mxrSvCZ1M" class="shrink-0 w-[183px] md:w-[467px]"><div class="overflow-hidden rounded-[10px] md:rounded-[30px]"><img alt="전략 전문가" src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/160.png" class="w-full" /></div><p class="text-slate-400 text-base font-semibold text-center mt-[5px] md:text-3xl md:mt-5">전략 전문가</p></a>
+            <a href="https://youtu.be/CND-OpobQt0" class="shrink-0 w-[183px] md:w-[467px]"><div class="overflow-hidden rounded-[10px] md:rounded-[30px]"><img alt="고객상담 전문가" src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/167.png" class="w-full" /></div><p class="text-slate-400 text-base font-semibold text-center mt-[5px] md:text-3xl md:mt-5">고객상담 전문가</p></a>
+            <a href="https://youtu.be/iJG0GB9VZks" class="shrink-0 w-[183px] md:w-[467px]"><div class="overflow-hidden rounded-[10px] md:rounded-[30px]"><img alt="소프트웨어 개발자" src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/150.png" class="w-full" /></div><p class="text-slate-400 text-base font-semibold text-center mt-[5px] md:text-3xl md:mt-5">소프트웨어 개발자</p></a>
+            <a href="https://youtu.be/ccDjysySykI" class="shrink-0 w-[183px] md:w-[467px]"><div class="overflow-hidden rounded-[10px] md:rounded-[30px]"><img alt="개인회생 전문 대표 변호사" src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/174.png" class="w-full" /></div><p class="text-slate-400 text-base font-semibold text-center mt-[5px] md:text-3xl md:mt-5">개인회생 전문 대표 변호사</p></a>
+            <a href="https://youtu.be/nUESeu10nmM" class="shrink-0 w-[183px] md:w-[467px]"><div class="overflow-hidden rounded-[10px] md:rounded-[30px]"><img alt="분석 전문가" src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/178.png" class="w-full" /></div><p class="text-slate-400 text-base font-semibold text-center mt-[5px] md:text-3xl md:mt-5">분석 전문가</p></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pricing section -->
+  <div id="pricing" class="reveal flex items-center justify-center w-full">
+    <div class="bg-indigo-100 max-w-[2000px] w-full overflow-hidden p-[25px] rounded-[17px] md:min-h-[700px] md:p-[35px] md:rounded-[33px]">
+      <div class="flex items-center justify-center mt-0 md:mt-[30px]">
+        <div class="flex flex-col gap-[23px] max-w-[470px] w-full md:gap-[45px] md:max-w-[826px]">
+          <div class="flex justify-end">
+            <div class="flex items-center gap-5 md:gap-12">
+              <div class="relative text-blue-700 text-[15px] font-semibold bg-green-200 leading-[22.5px] p-5 rounded-[17px] md:text-3xl md:p-10 md:rounded-[25px]">변제금 말고도 변호사비로<br /><span class="text-green-600">달달이 60만원이나</span>내라고요?!</div>
+              <div class="w-[70px] md:w-[125px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/anguished-face.14mub2s-rsqk0.png" class="w-full" /></div>
+            </div>
+          </div>
+          <div class="flex items-center gap-[25px] md:gap-12">
+            <div class="flex items-center justify-center bg-white h-[70px] w-[70px] rounded-full md:h-[125px] md:w-[125px]"><img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/130.svg" class="w-[55px] md:w-[105px]" /></div>
+            <div class="relative text-black text-[15px] font-semibold bg-indigo-200 leading-[22.5px] p-5 rounded-[17px] md:text-3xl md:p-10 md:rounded-[25px]">저희 똑생 에서는<br /><span class="text-blue-700">월 19만원만</span>내시면 돼요:)</div>
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-col gap-[25px] mt-5 md:gap-[35px] md:mt-[62px]">
+        <div class="bg-white flex flex-col grow p-[25px] rounded-[15px] md:flex-row md:p-[70px] md:rounded-[30px]">
+          <div>
+            <h2 class="text-[25px] font-bold text-center mb-2 md:text-[50px] md:leading-[60px] md:text-start md:mb-[15px]">생활에 부담되지 않도록,<br /><u class="text-blue-700">업계 유일</u>장기 분할납부제</h2>
+            <p class="text-[13px] font-semibold text-center mt-2 md:text-xl md:text-start md:mt-[15px]">경제적 자립의 걸림돌인 수임료 부담을 줄였어요</p>
+          </div>
+          <div class="flex-1"></div>
+          <div class="flex items-center justify-center"><div class="w-64 mt-[30px] md:w-[539px]"><img alt="똑생 월 납부액 19만원" src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/157.png" class="w-full" /></div></div>
+        </div>
+        <div class="bg-white flex flex-col p-[25px] rounded-[15px] md:p-[70px] md:rounded-[30px]">
+          <h2 class="text-[25px] font-bold text-center mb-2 md:text-[40px] md:leading-[48px] md:text-start md:mb-[15px]">채권자가 많아도<br />수임료를 더 받지 않아요</h2>
+          <p class="text-[13px] font-semibold text-center mt-2 md:text-xl md:text-start md:mt-[15px]">11명부터 추가금 청구</p>
+          <div class="text-center mt-5 md:text-right">
+            <a href="/product#price"><button class="btn-press text-white text-base font-semibold bg-sky-500 h-12 px-6 rounded-full md:text-2xl md:h-16">수임료 알아보기</button></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA Section -->
+  <div class="reveal flex items-center justify-center w-full">
+    <div class="relative flex items-center justify-center bg-[radial-gradient(circle,rgb(255,255,255)_40%,rgb(229,229,255)_100%)] shadow-[rgba(0,0,255,0.3)_0px_0px_30px_0px_inset] max-w-[2000px] w-full overflow-hidden min-h-[360px] rounded-[17px] md:shadow-[rgba(0,0,255,0.3)_0px_0px_110px_0px_inset] md:min-h-[700px] md:rounded-[33px]">
+      <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute h-[800px] w-[800px] -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2 md:h-[2000px] md:w-[2000px]">
+          <img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/image-2.png" class="h-full w-full" />
+        </div>
+      </div>
+      <div class="relative z-10">
+        <p class="text-[21px] font-bold text-center md:text-[44px] md:leading-[66px]">더욱 강력해진 완성형 개인회생 서비스</p>
+        <div class="inline-block w-[297px] mt-2.5 md:w-[637px] md:mt-5"><img alt="똑생 V2" src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/173.svg" class="w-full" /></div>
+        <div class="flex items-center justify-center">
+          <a href="/product"><button class="btn-press text-white text-lg font-semibold bg-blue-700 shadow-[rgba(0,0,255,0.3)_0px_10px_15px_0px] h-[60px] px-7 rounded-full mt-[15px] md:text-3xl md:h-20 md:px-10 md:mt-[30px]">서비스 소개 보기</button></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ Section -->
+  <div class="reveal flex flex-col items-center justify-center py-[60px] md:py-[150px]">
+    <h2 class="text-[25px] font-bold text-center mb-2 md:text-[50px] md:leading-[60px] md:mb-[15px]">혹시 이것도 궁금하세요?</h2>
+    <ul class="flex flex-col gap-2.5 max-w-[700px] w-full mt-[30px] pl-0 md:gap-5 md:mt-[73px]">
+      <li class="faq-item bg-slate-100 rounded-[25px] overflow-hidden transition-all duration-300 md:rounded-[40px]">
+        <button type="button" class="w-full flex items-center text-left p-5 md:p-10" onclick="toggleFaq(this)">
+          <p class="text-base font-semibold flex-1 md:text-2xl">어떤 서비스인가요?</p>
+          <img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/icon-1.svg" class="faq-icon h-[25px] w-[25px] ml-4 flex-shrink-0 transition-transform duration-300 md:h-10 md:w-10" />
+        </button>
+        <div class="faq-answer"><p class="text-slate-600 text-sm font-medium leading-relaxed px-5 pb-5 md:text-lg md:px-10 md:pb-10">똑생은 개인회생 전문 법무법인 현림의 비대면 법률 서비스입니다. AI 기반 초정밀 예상 탕감액 진단, 온라인 서류 관리, 실시간 채팅 상담 등을 월 19만원의 부담 없는 분납 방식으로 제공합니다.</p></div>
+      </li>
+      <li class="faq-item bg-slate-100 rounded-[25px] overflow-hidden transition-all duration-300 md:rounded-[40px]">
+        <button type="button" class="w-full flex items-center text-left p-5 md:p-10" onclick="toggleFaq(this)">
+          <p class="text-base font-semibold flex-1 md:text-2xl">개인회생 외 다른 법률자문은 안하나요?</p>
+          <img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/icon-1.svg" class="faq-icon h-[25px] w-[25px] ml-4 flex-shrink-0 transition-transform duration-300 md:h-10 md:w-10" />
+        </button>
+        <div class="faq-answer"><p class="text-slate-600 text-sm font-medium leading-relaxed px-5 pb-5 md:text-lg md:px-10 md:pb-10">똑생은 개인회생 전문 서비스로, 현재 개인회생에만 특화되어 운영하고 있습니다.</p></div>
+      </li>
+      <li class="faq-item bg-slate-100 rounded-[25px] overflow-hidden transition-all duration-300 md:rounded-[40px]">
+        <button type="button" class="w-full flex items-center text-left p-5 md:p-10" onclick="toggleFaq(this)">
+          <p class="text-base font-semibold flex-1 md:text-2xl">다른 곳보다 어떤 부분이 좋나요?</p>
+          <img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/icon-1.svg" class="faq-icon h-[25px] w-[25px] ml-4 flex-shrink-0 transition-transform duration-300 md:h-10 md:w-10" />
+        </button>
+        <div class="faq-answer"><p class="text-slate-600 text-sm font-medium leading-relaxed px-5 pb-5 md:text-lg md:px-10 md:pb-10">업계 유일 장기 분할납부(최대 9개월), 국내 3%뿐인 도산전문변호사 직접 담당, AI 기반 초정밀 진단, 비대면 전 과정 진행, 부채증명서 대리발급 등 차별화된 서비스를 제공합니다.</p></div>
+      </li>
+      <li class="faq-item bg-slate-100 rounded-[25px] overflow-hidden transition-all duration-300 md:rounded-[40px]">
+        <button type="button" class="w-full flex items-center text-left p-5 md:p-10" onclick="toggleFaq(this)">
+          <p class="text-base font-semibold flex-1 md:text-2xl">회생? 파산? 워크아웃? 어떤게 나아요?</p>
+          <img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/icon-1.svg" class="faq-icon h-[25px] w-[25px] ml-4 flex-shrink-0 transition-transform duration-300 md:h-10 md:w-10" />
+        </button>
+        <div class="faq-answer"><p class="text-slate-600 text-sm font-medium leading-relaxed px-5 pb-5 md:text-lg md:px-10 md:pb-10">상황에 따라 다릅니다. 정기적인 수입이 있다면 개인회생이, 수입이 없거나 매우 적다면 개인파산이 적합할 수 있습니다. 워크아웃은 금융채무만 해당됩니다.</p></div>
+      </li>
+      <li class="faq-item bg-slate-100 rounded-[25px] overflow-hidden transition-all duration-300 md:rounded-[40px]">
+        <button type="button" class="w-full flex items-center text-left p-5 md:p-10" onclick="toggleFaq(this)">
+          <p class="text-base font-semibold flex-1 md:text-2xl">통신요금, 카드값, 사채, 개인채무도 가능한가요?</p>
+          <img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/icon-1.svg" class="faq-icon h-[25px] w-[25px] ml-4 flex-shrink-0 transition-transform duration-300 md:h-10 md:w-10" />
+        </button>
+        <div class="faq-answer"><p class="text-slate-600 text-sm font-medium leading-relaxed px-5 pb-5 md:text-lg md:px-10 md:pb-10">네, 가능합니다! 통신요금, 카드값, 사채, 개인 간 채무 모두 개인회생 대상이 됩니다. 원금의 최대 96.7%까지 탕감받은 사례도 있습니다.</p></div>
+      </li>
+      <li class="faq-item bg-slate-100 rounded-[25px] overflow-hidden transition-all duration-300 md:rounded-[40px]">
+        <button type="button" class="w-full flex items-center text-left p-5 md:p-10" onclick="toggleFaq(this)">
+          <p class="text-base font-semibold flex-1 md:text-2xl">하면 사회생활에 지장이 없을까요?</p>
+          <img src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/icon-1.svg" class="faq-icon h-[25px] w-[25px] ml-4 flex-shrink-0 transition-transform duration-300 md:h-10 md:w-10" />
+        </button>
+        <div class="faq-answer"><p class="text-slate-600 text-sm font-medium leading-relaxed px-5 pb-5 md:text-lg md:px-10 md:pb-10">개인회생은 파산이 아닙니다. 취업, 이직, 금융 거래에 직접적인 제한은 없지만 신용점수 하락이 있을 수 있습니다. 면책 결정 후 성실히 변제하면 신용도를 회복할 수 있습니다.</p></div>
+      </li>
+    </ul>
+  </div>
+
+</div><!-- end cases -->
+
+</main>
+
+<!-- BOTTOM BANNER -->
+<div id="bottomBanner" class="reveal flex items-center justify-center w-full">
+  <div class="text-black bg-white max-w-[2000px] w-full overflow-hidden mb-[80px] py-5 rounded-[17px] md:min-h-[700px] md:py-[100px] md:rounded-[33px]">
+    <div class="flex flex-col items-center justify-center">
+      <h3 class="text-[25px] font-bold my-[30px] md:text-[52px] md:leading-[62.4px]">처음 만나는 똑똑한 개인회생</h3>
+      <div class="w-[140px] mt-[30px] mb-6 md:w-80 md:mt-[75px] md:mb-[70px]">
+        <img alt="똑생" src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/135.svg" class="w-full" />
+      </div>
+      <div class="flex flex-col items-center gap-2.5 mt-[65px] md:flex-row md:gap-5 md:mt-[73px]">
+        <a href="https://app.ddok.life/intake/wep/diagnosis">
+          <button class="btn-press text-white text-base font-semibold bg-sky-500 h-12 px-6 rounded-full md:text-lg md:h-[60px] md:px-7">초정밀 예상 탕감액 진단</button>
+        </a>
+        <a href="https://app.ddok.life/intake/wep/apply">
+          <button class="btn-press text-green-700 text-base font-semibold bg-green-200 h-12 px-6 rounded-full md:text-lg md:h-[60px] md:px-7">지금 서비스 신청하기</button>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+<script>
+  // Scroll shadow on navbar
+  const nav = document.getElementById('mainNav');
+  if (nav) {
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('shadow-[0_2px_16px_0_rgba(0,0,0,0.08)]', window.scrollY > 20);
+    }, { passive: true });
+  }
+
+  // Hamburger menu
+  const hamburger = document.getElementById('hamburger');
+  const drawer = document.getElementById('mobileDrawer');
+  const overlay = document.getElementById('mobileOverlay');
+  const hb1 = document.getElementById('hb1');
+  const hb2 = document.getElementById('hb2');
+  const hb3 = document.getElementById('hb3');
+  let drawerOpen = false;
+
+  if (hamburger) {
+    hamburger.addEventListener('click', () => {
+      drawerOpen = !drawerOpen;
+      if (drawerOpen) {
+        drawer && drawer.classList.remove('translate-x-full');
+        overlay && overlay.classList.remove('hidden');
+        hb1 && hb1.classList.add('rotate-45', 'translate-y-[6.5px]');
+        hb2 && hb2.classList.add('opacity-0', 'scale-x-0');
+        hb3 && hb3.classList.add('-rotate-45', '-translate-y-[6.5px]');
+      } else {
+        closeDrawer();
+      }
+    });
+  }
+
+  function closeDrawer() {
+    drawerOpen = false;
+    drawer && drawer.classList.add('translate-x-full');
+    overlay && overlay.classList.add('hidden');
+    hb1 && hb1.classList.remove('rotate-45', 'translate-y-[6.5px]');
+    hb2 && hb2.classList.remove('opacity-0', 'scale-x-0');
+    hb3 && hb3.classList.remove('-rotate-45', '-translate-y-[6.5px]');
+  }
+
+  // FAQ accordion
+  function toggleFaq(btn) {
+    const li = btn.closest('li');
+    const answer = li.querySelector('.faq-answer');
+    const icon = btn.querySelector('.faq-icon');
+    const isOpen = answer.classList.contains('open');
+    document.querySelectorAll('.faq-answer.open').forEach(a => {
+      a.classList.remove('open');
+      a.closest('li').classList.remove('bg-white','shadow-lg');
+      const ic = a.closest('li').querySelector('.faq-icon');
+      if (ic) ic.style.transform = '';
+    });
+    if (!isOpen) {
+      answer.classList.add('open');
+      li.classList.add('bg-white','shadow-[rgba(45,55,72,0.08)_0px_4px_20px_0px]');
+      if (icon) icon.style.transform = 'rotate(45deg)';
+    }
+  }
+
+  // Scroll reveal
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+  // Hero reveal animation
+  (function() {
+    const items = document.querySelectorAll('.hero-reveal');
+    items.forEach((item, i) => {
+      item.style.opacity = '0';
+      item.style.transform = 'translateY(28px)';
+      item.style.transition = `opacity 0.7s ease-out ${i*0.15}s, transform 0.7s ease-out ${i*0.15}s`;
+      setTimeout(() => {
+        item.style.opacity = '1';
+        item.style.transform = 'translateY(0)';
+      }, 80);
+    });
+  })();
+
+  // Floating button
+  const floatingBtn = document.getElementById('floatingBtn');
+  if (floatingBtn) {
+    setTimeout(() => {
+      floatingBtn.classList.remove('opacity-0', 'translate-y-4');
+      floatingBtn.classList.add('opacity-100', 'translate-y-0');
+    }, 1200);
+  }
+
+  // FAQ Banner text cycle
+  const faqTextEl = document.getElementById('faqText');
+  if (faqTextEl) {
+    const faqTexts = ['"소득이 없어도 신청할 수 있나요?"', '"개인회생을 하면 신용점수가 낮아지나요?"', '"통신요금, 카드값도 탕감 가능한가요?"'];
+    let faqIndex = 0;
+    faqTextEl.style.transition = 'opacity 0.3s';
+    setInterval(() => {
+      faqIndex = (faqIndex + 1) % faqTexts.length;
+      faqTextEl.style.opacity = '0';
+      setTimeout(() => {
+        faqTextEl.textContent = faqTexts[faqIndex];
+        faqTextEl.style.opacity = '1';
+      }, 300);
+    }, 3000);
+  }
+</script>
+</body>
+</html>
