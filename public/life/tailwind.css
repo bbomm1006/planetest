@@ -1,0 +1,163 @@
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  /* @FONTWARNING[{"type":"restricted","family":"Pretendard","weight":"800","style":"normal","allowsCrossOrigin":true}] */
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/packages/pretendard/dist/web/static/woff2/Pretendard-ExtraBold.woff2') format("woff2");
+  font-weight: 800;
+  font-style: normal;
+}
+
+@font-face {
+  /* @FONTWARNING[{"type":"restricted","family":"Pretendard","weight":"700","style":"normal","allowsCrossOrigin":true}] */
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/packages/pretendard/dist/web/static/woff2/Pretendard-Bold.woff2') format("woff2");
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  /* @FONTWARNING[{"type":"restricted","family":"Pretendard","weight":"600","style":"normal","allowsCrossOrigin":true}] */
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/packages/pretendard/dist/web/static/woff2/Pretendard-SemiBold.woff2') format("woff2");
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  /* @FONTWARNING[{"type":"restricted","family":"Pretendard","weight":"500","style":"normal","allowsCrossOrigin":true}] */
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/packages/pretendard/dist/web/static/woff2/Pretendard-Medium.woff2') format("woff2");
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  /* @FONTWARNING[{"type":"restricted","family":"Pretendard","weight":"400","style":"normal","allowsCrossOrigin":true}] */
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/packages/pretendard/dist/web/static/woff2/Pretendard-Regular.woff2') format("woff2");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@tailwind base;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 47.4% 11.2%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+
+    --card: transparent;
+    --card-foreground: 222.2 47.4% 11.2%;
+
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 210 40% 98%;
+
+    --ring: 215 20.2% 65.1%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
+
+    --muted: 223 47% 11%;
+    --muted-foreground: 215.4 16.3% 56.9%;
+
+    --accent: 216 34% 17%;
+    --accent-foreground: 210 40% 98%;
+
+    --popover: 224 71% 4%;
+    --popover-foreground: 215 20.2% 65.1%;
+
+    --border: 216 34% 17%;
+    --input: 216 34% 17%;
+
+    --card: transparent;
+    --card-foreground: 213 31% 91%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 1.2%;
+
+    --secondary: 222.2 47.4% 11.2%;
+    --secondary-foreground: 210 40% 98%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+
+    --ring: 216 34% 17%;
+
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Scroll-reveal utility */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.65s ease-out, transform 0.65s ease-out;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+
+/* Hover press feedback */
+.btn-press {
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+.btn-press:hover { opacity: 0.88; }
+.btn-press:active { transform: scale(0.96); }
+
+/* Smooth hover for nav links */
+.nav-link {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.nav-link:hover {
+  background-color: rgba(0,0,0,0.05);
+}
+
+/* FAQ accordion */
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.3s ease;
+}
+.faq-answer.open {
+  max-height: 500px;
+}
