@@ -13,7 +13,7 @@
 
 <coder>
 
-# 프로젝트: DDok.life (클린메이트)
+# 프로젝트: DDok.life (레드존렌트카)
 
 ## 기술 스택
 - React 18 + TypeScript, Vite, Tailwind CSS 3, lucide-react, radix-ui
@@ -29,7 +29,7 @@
 - 스크롤 리빌 훅: `src/hooks/useScrollReveal.ts`
 
 ## 디자인 컨벤션
-- 색상 팔레트: green (주요 CTA), sky-blue (진단 CTA), indigo/purple (강조), amber (하이라이트 태그)
+- 색상 팔레트: red (주요 CTA), sky-blue (진단 CTA), red/purple (강조), amber (하이라이트 태그)
 - 모서리 둥글기: 모바일 `rounded-[17px]`, 데스크탑 `rounded-[33px]` (카드 블록)
 - 모바일 패딩: `p-[17px]`, 데스크탑: `p-[34px]`
 - 한국어 텍스트 — 내용 변경 금지

@@ -4,7 +4,7 @@ export const OnlineSection = () => {
       <div className="relative bg-zinc-100 box-border caret-transparent h-[380px] max-w-none min-h-[360px] min-w-[auto] break-words w-full overflow-hidden rounded-[17px] md:max-w-[1400px] md:min-h-[700px] md:rounded-[33px]">
         <div className="absolute box-border caret-transparent opacity-100 break-words top-[-25px] w-[560px] right-0 md:opacity-50 md:w-[1500px] md:top-0">
           <img
-            alt="클린메이트 화면"
+            alt="레드존렌트카 화면"
             src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/175.png"
             className="text-transparent aspect-[auto_560_/_348] box-border max-w-full break-words align-baseline w-[560px] md:aspect-[auto_1500_/_931] md:w-[1500px]"
           />
@@ -16,7 +16,7 @@ export const OnlineSection = () => {
           <p className="text-[13px] font-semibold box-border caret-transparent leading-[19.5px] break-words text-center mt-2 md:text-xl md:leading-[30px] md:text-start md:mt-[15px]">
             전국 어디든 빠르고 정확하게
             <br className="text-[13px] box-border caret-transparent leading-[19.5px] break-words text-center md:text-xl md:leading-[30px] md:text-start" />
-            클린메이트가 찾아갑니다
+            레드존렌트카가 찾아갑니다
           </p>
         </div>
       </div>

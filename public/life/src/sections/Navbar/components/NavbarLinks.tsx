@@ -5,8 +5,8 @@ export const NavbarLinks = () => {
         href="#hero"
         className="box-border caret-transparent block min-h-[auto] min-w-[auto] break-words"
       >
-        <div className="text-blue-700 text-[15px] font-bold bg-blue-700/10 box-border caret-transparent leading-[22.5px] break-words px-2.5 py-[5px] rounded-[10px] nav-link md:text-xl md:leading-[30px] md:px-[15px] md:py-2">
-          클린메이트 소개
+        <div className="text-red-400 text-[15px] font-bold bg-blue-700/10 box-border caret-transparent leading-[22.5px] break-words px-2.5 py-[5px] rounded-[10px] nav-link md:text-xl md:leading-[30px] md:px-[15px] md:py-2">
+          레드존렌트카 소개
         </div>
       </a>
       <a

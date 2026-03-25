@@ -6,106 +6,106 @@ export const ServiceIconGrid = () => {
       <div className="box-border caret-transparent break-words w-[1300px] md:w-[2860px]">
         <div className="box-border caret-transparent gap-x-2.5 flex break-words gap-y-2.5 mb-2.5 md:gap-x-[46px] md:gap-y-[46px] md:mb-[46px]">
           <div className="box-border caret-transparent min-h-[auto] min-w-[auto] break-words">
-            <ServiceIcon
-              imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/144.png"
-              label="청소 상세 안내서"
-            />
+          <ServiceIcon
+            imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/144.png"
+            label="차량 이용 가이드 제공"
+          />
           </div>
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/person-running.0yi2wt8f7fvts.png"
-            label="청소용품 무상 제공"
+            label="빠른 차량 배차"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/183.png"
-            label="청소 내역 온라인 관리"
+            label="렌트 내역 온라인 관리"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/188.png"
-            label="맞춤 청소 진단"
+            label="맞춤 차량 추천"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/rocket.0tm7okw41dt6i.png"
-            label="당일 청소 완료"
+            label="당일 즉시 출고"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/144.png"
-            label="청소 상세 안내서"
+            label="차량 이용 가이드 제공"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/person-running.0yi2wt8f7fvts.png"
-            label="청소용품 무상 제공"
+            label="빠른 차량 배차"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/183.png"
-            label="청소 내역 온라인 관리"
+            label="렌트 내역 온라인 관리"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/188.png"
-            label="맞춤 청소 진단"
+            label="맞춤 차량 추천"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/rocket.0tm7okw41dt6i.png"
-            label="당일 청소 완료"
+            label="당일 즉시 출고"
             hasWrapper={true}
           />
         </div>
         <div className="box-border caret-transparent gap-x-2.5 flex ml-[-65px] break-words gap-y-2.5 md:gap-x-[46px] md:ml-[-143px] md:gap-y-[46px]">
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/127.png"
-            label="진행상황 자동알림"
+            label="렌트 진행 알림"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/147.png"
-            label="실시간 채팅상담"
+            label="실시간 상담 지원"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/132.png"
-            label="청소 품질 컨설팅"
+            label="차량 이용 컨설팅"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/spiral-calendar.0z-4n620wwoy0.png"
-            label="일정 미리 안내"
+            label="예약 일정 사전 안내"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/159.png"
-            label="소모품 대리 구매"
+            label="옵션/부가서비스 지원"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/127.png"
-            label="진행상황 자동알림"
+            label="렌트 진행 알림"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/147.png"
-            label="실시간 채팅상담"
+            label="실시간 상담 지원"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/132.png"
-            label="청소 품질 컨설팅"
+            label="차량 이용 컨설팅"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/spiral-calendar.0z-4n620wwoy0.png"
-            label="일정 미리 안내"
+            label="예약 일정 사전 안내"
             hasWrapper={true}
           />
           <ServiceIcon
             imageSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/159.png"
-            label="소모품 대리 구매"
+            label="옵션/부가서비스 지원"
             hasWrapper={true}
           />
         </div>

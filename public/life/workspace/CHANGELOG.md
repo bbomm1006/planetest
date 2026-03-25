@@ -20,11 +20,11 @@ You MUST maintain this file to track your work across messages. This is NON-NEGO
 <changelog>
 
 ## 2026-03-25 — Redesign ReviewsSection to match reference image
-- `ReviewCard.tsx` — increased card height to 520px/560px, refined avatar row, green tag style with border, body gradient `from-white via-white/80`, tighter typography
+- `ReviewCard.tsx` — increased card height to 520px/560px, refined avatar row, red tag style with border, body gradient `from-white via-white/80`, tighter typography
 - `ReviewHeader.tsx` — emoji star, sky-500 subtitle, amber pill button (non-link, cleaner look)
 - `CarouselDots.tsx` — dots now 7px circle / 18px×7px pill for active, blue-500 active color, gap-[5px]
 - `ReviewCarousel.tsx` — updated card width 300px mobile / 380px desktop, gap 14px/20px
-- `ReviewsSection/index.tsx` — background `bg-[#eef7ee]` (softer green), adjusted vertical padding
+- `ReviewsSection/index.tsx` — background `bg-[#eef7ee]` (softer red), adjusted vertical padding
 
 ## 2026-03-25 — Redesign #team section as swipeable YouTube video carousel
 - `CasesSection/components/TeamCarouselSection.tsx` — new component: 5-card thumbnail carousel with scale/opacity active card effect

@@ -110,9 +110,9 @@ export const ReviewCarousel = ({ activeIndex, onIndexChange, total }: Props) => 
           avatarSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/138.png"
           reviewerName="유○○"
           reviewerInfo="30대 / 여성 / 프리랜서"
-          tags={["꼼꼼한 청소", "시간 약속 준수", "친절한 응대", "가성비 좋음"]}
-          title="집 상태가 너무 깔끔해져서 처음 들어왔을 때 기분이 정말 좋았어요"
-          body="처음에는 반신반의했는데 막상 결과를 보고 깜짝 놀랐어요. 구석구석 정말 꼼꼼하게 청소해주셔서 집이 새것처럼 바뀌었습니다. 특히 시간 약속도 칼같이 지켜주셔서 믿음이 갔어요. 가격 대비 퀄리티가 너무 좋아서 주변에도 추천하고 있습니다."
+          tags={["꼼꼼한 차량 관리", "시간 약속 준수", "친절한 응대", "가성비 좋음"]}
+          title="차량 상태가 너무 좋아서 처음 받았을 때 기분이 좋았어요"
+          body="처음에는 반신반의했는데 막상 차량을 받아보니 깜짝 놀랐어요. 구석구석 꼼꼼하게 관리되어 있어서 안심하고 이용할 수 있었습니다. 특히 시간 약속도 정확하게 지켜주셔서 믿음이 갔고, 가격 대비 퀄리티가 너무 좋아서 주변에도 추천하고 있습니다."
           cardWidth={cardW}
           cardGap={cardGap}
         />
@@ -120,9 +120,9 @@ export const ReviewCarousel = ({ activeIndex, onIndexChange, total }: Props) => 
           avatarSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/128.png"
           reviewerName="김○○"
           reviewerInfo="20대 / 남성 / 대학생"
-          tags={["빠른 예약", "깔끔한 마무리", "친절한 안내", "편한 진행"]}
-          title="자취방 맡겼는데 기대 이상으로 깨끗해져서 만족합니다"
-          body="예약도 앱으로 간편하게 할 수 있어서 좋았고, 담당자분이 진행 과정을 친절하게 안내해주셔서 처음 이용했는데도 전혀 불편함이 없었어요. 자취방이라 좁고 어수선했는데 끝나고 나서 보니 진짜 깨끗해져서 기분이 좋았습니다."
+          tags={["빠른 예약", "깔끔한 차량", "친절 안내", "편리한 이용"]}
+          title="렌트카 이용했는데 기대 이상으로 만족합니다"
+          body="앱으로 간편하게 예약할 수 있어서 좋았고, 담당자분이 진행 과정을 친절히 안내해주셔서 처음 이용했는데도 전혀 불편함이 없었어요. 차량 상태도 깔끔해서 기분 좋게 이용했습니다."
           cardWidth={cardW}
           cardGap={cardGap}
         />
@@ -130,9 +130,9 @@ export const ReviewCarousel = ({ activeIndex, onIndexChange, total }: Props) => 
           avatarSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/156.png"
           reviewerName="박○○"
           reviewerInfo="30대 / 남성 / 자영업"
-          tags={["빠른 작업", "전문적인 청소", "체계적인 진행", "신뢰감"]}
-          title="가게 청소 맡겼는데 확실히 전문가 느낌이 나네요"
-          body="영업 전 가게 청소를 맡겼는데 작업 속도도 빠르고 체계적으로 진행해주셔서 영업 준비에 전혀 지장이 없었습니다. 일반 청소업체랑은 확실히 다른 전문성이 느껴졌고, 손이 잘 안 닿는 곳까지 꼼꼼하게 해주셔서 다음에도 꼭 이용할 예정입니다."
+          tags={["빠른 출고", "전문적인 차량 관리", "체계적인 진행", "신뢰감"]}
+          title="업무용 차량 렌트했는데 전문가 느낌이 나네요"
+          body="영업용 차량을 렌트했는데 속도도 빠르고 체계적으로 진행해주셔서 업무에 전혀 지장이 없었습니다. 손이 잘 닿지 않는 부분까지 꼼꼼히 관리해주셔서 다음에도 꼭 이용할 예정입니다."
           cardWidth={cardW}
           cardGap={cardGap}
         />
@@ -140,9 +140,9 @@ export const ReviewCarousel = ({ activeIndex, onIndexChange, total }: Props) => 
           avatarSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/133.png"
           reviewerName="최○○"
           reviewerInfo="40대 / 여성 / 주부"
-          tags={["꼼꼼한 디테일", "합리적인 가격", "전문 장비", "깔끔한 결과"]}
-          title="주방이 특히 만족스러웠고 전체적으로 정말 깨끗해졌어요"
-          body="주방 기름때가 너무 심해서 걱정했는데 전문 장비로 말끔하게 제거해주셨어요. 일반 청소로는 절대 안 될 것 같았던 부분들도 다 깨끗하게 해주셔서 정말 감동받았습니다. 가격도 다른 곳에 비해 합리적이라 부담 없이 이용할 수 있었어요."
+          tags={["세심한 관리", "합리적 가격", "전문 장비", "깔끔한 차량"]}
+          title="차량 상태가 특히 만족스러웠고 전체적으로 깨끗했어요"
+          body="차량 내부 청결이 걱정되었는데 전문 장비로 말끔하게 관리해주셨습니다. 일반 렌트카에서는 볼 수 없는 세심한 서비스 덕분에 감동했습니다. 가격도 합리적이라 부담 없이 이용했습니다."
           cardWidth={cardW}
           cardGap={cardGap}
         />
@@ -150,9 +150,9 @@ export const ReviewCarousel = ({ activeIndex, onIndexChange, total }: Props) => 
           avatarSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/124.png"
           reviewerName="정○○"
           reviewerInfo="20대 / 여성 / 직장인"
-          tags={["친절한 상담", "빠른 진행", "정확한 시간", "깔끔한 마무리"]}
-          title="처음 맡겨봤는데 응대도 좋고 결과도 만족입니다"
-          body="청소 서비스를 처음 이용해봐서 많이 낯설었는데 상담부터 마무리까지 친절하게 안내해주셔서 편하게 진행할 수 있었어요. 정해진 시간에 정확히 오셔서 믿음이 갔고, 마무리도 깔끔하게 해주셔서 다음에도 꼭 이용할 것 같아요."
+          tags={["친절 상담", "빠른 진행", "정확한 시간", "깔끔한 차량"]}
+          title="처음 이용했는데 응대도 좋고 결과도 만족스러워요"
+          body="렌트카 서비스를 처음 이용했는데 상담부터 차량 수령까지 친절하게 안내해주셔서 편하게 이용했습니다. 정해진 시간에 정확히 차량을 받을 수 있었고, 상태도 깔끔해서 다음에도 꼭 이용할 것 같아요."
           cardWidth={cardW}
           cardGap={cardGap}
         />
@@ -160,9 +160,9 @@ export const ReviewCarousel = ({ activeIndex, onIndexChange, total }: Props) => 
           avatarSrc="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/145.png"
           reviewerName="이○○"
           reviewerInfo="50대 / 남성 / 개인사업자"
-          tags={["체계적인 서비스", "믿을 수 있는 업체", "확실한 결과", "만족도 높음"]}
+          tags={["체계적인 서비스", "믿을 수 있는 업체", "확실한 관리", "높은 만족도"]}
           title="다음에도 재이용할 생각입니다. 믿고 맡길 수 있네요"
-          body="여러 청소 업체를 써봤는데 이렇게 체계적으로 운영하는 곳은 처음이었어요. 진행 상황을 중간중간 알려주시고 결과물도 확실해서 신뢰가 생겼습니다. 바쁜 사업장 특성상 빠르고 정확한 서비스가 필요했는데 딱 맞게 해주셔서 정말 만족합니다."
+          body="여러 렌트카 업체를 이용해봤는데 이렇게 체계적으로 운영하는 곳은 처음이에요. 진행 상황도 꼼꼼히 알려주고 결과물도 확실해서 신뢰가 생겼습니다. 바쁜 사업 특성상 빠르고 정확한 서비스가 필요했는데 딱 맞게 해주셔서 정말 만족합니다."
           cardWidth={cardW}
           cardGap={cardGap}
         />

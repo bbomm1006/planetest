@@ -7,7 +7,7 @@ export const HeroButtons = () => {
       >
         <button
           type="button"
-          className="btn-press relative appearance-none text-white text-base font-semibold items-center bg-sky-500 caret-transparent inline-flex h-12 justify-center leading-[19.2px] min-w-12 outline-transparent outline-offset-2 outline outline-2 break-words text-center text-nowrap align-middle px-6 py-0 rounded-full md:text-lg md:h-[60px] md:leading-[21.6px] md:min-w-[60px] md:px-7 before:accent-auto before:bg-blue-700/10 before:caret-transparent before:text-blue-700 before:block before:text-xs before:not-italic before:normal-nums before:font-semibold before:tracking-[-0.64px] before:leading-6 before:list-outside before:list-disc before:break-words before:pointer-events-auto before:absolute before:text-center before:no-underline before:indent-[0px] before:normal-case before:text-nowrap before:top-[-34px] before:visible before:px-2.5 before:rounded-full before:border-separate before:font-pretendard before:md:text-sm after:accent-auto "
+          className="btn-press relative appearance-none text-white text-base font-semibold items-center bg-red-600 caret-transparent inline-flex h-12 justify-center leading-[19.2px] min-w-12 outline-transparent outline-offset-2 outline outline-2 break-words text-center text-nowrap align-middle px-6 py-0 rounded-full md:text-lg md:h-[60px] md:leading-[21.6px] md:min-w-[60px] md:px-7 before:accent-auto before:bg-blue-700/10 before:caret-transparent before:text-red-400 before:block before:text-xs before:not-italic before:normal-nums before:font-semibold before:tracking-[-0.64px] before:leading-6 before:list-outside before:list-disc before:break-words before:pointer-events-auto before:absolute before:text-center before:no-underline before:indent-[0px] before:normal-case before:text-nowrap before:top-[-34px] before:visible before:px-2.5 before:rounded-full before:border-separate before:font-pretendard before:md:text-sm after:accent-auto "
         >
           예상 비용 확인하기
         </button>
@@ -18,7 +18,7 @@ export const HeroButtons = () => {
       >
         <button
           type="button"
-          className="btn-press relative appearance-none text-green-700 text-base font-semibold items-center bg-green-200 caret-transparent inline-flex h-12 justify-center leading-[19.2px] min-w-12 outline-transparent outline-offset-2 outline outline-2 break-words text-center text-nowrap align-middle px-6 py-0 rounded-full md:text-lg md:h-[60px] md:leading-[21.6px] md:min-w-[60px] md:px-7"
+          className="btn-press relative appearance-none text-white text-base font-semibold items-center bg-black caret-transparent inline-flex h-12 justify-center leading-[19.2px] min-w-12 outline-transparent outline-offset-2 outline outline-2 break-words text-center text-nowrap align-middle px-6 py-0 rounded-full md:text-lg md:h-[60px] md:leading-[21.6px] md:min-w-[60px] md:px-7"
         >
           지금 바로 예약하기
         </button>

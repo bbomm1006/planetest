@@ -57,7 +57,7 @@ export const Navbar = () => {
           ✕
         </button>
         {[
-          { href: "#hero", label: "클린메이트 소개", active: true },
+          { href: "#hero", label: "레드존렌트카 소개", active: true },
           { href: "#pricing", label: "이용료 안내" },
           { href: "#info", label: "유용한 정보" },
           { href: "#team", label: "💙 만든이들" },
@@ -66,7 +66,7 @@ export const Navbar = () => {
             key={item.href}
             href={item.href}
             onClick={close}
-            className={`text-lg font-bold px-4 py-3 rounded-xl nav-link ${item.active ? "text-blue-700 bg-blue-700/10" : "text-black"}`}
+            className={`text-lg font-bold px-4 py-3 rounded-xl nav-link ${item.active ? "text-red-400 bg-blue-700/10" : "text-black"}`}
           >
             {item.label}
           </a>
@@ -75,14 +75,14 @@ export const Navbar = () => {
           <a
             href="https://app.ddok.life/intake/wep/diagnosis"
             onClick={close}
-            className="btn-press text-center text-white text-sm font-semibold bg-sky-500 h-12 flex items-center justify-center rounded-full"
+            className="btn-press text-center text-white text-sm font-semibold bg-red-600 h-12 flex items-center justify-center rounded-full"
           >
             예상 비용 확인하기
           </a>
           <a
             href="https://app.ddok.life/intake/wep/apply"
             onClick={close}
-            className="btn-press text-center text-green-700 text-sm font-semibold bg-green-200 h-12 flex items-center justify-center rounded-full"
+            className="btn-press text-center text-white text-sm font-semibold bg-black h-12 flex items-center justify-center rounded-full"
           >
             지금 바로 예약하기
           </a>

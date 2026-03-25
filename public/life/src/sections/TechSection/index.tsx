@@ -4,7 +4,7 @@ const TEAM_VIDEOS = [
   {
     youtubeId: "D8mxrSvCZ1M",
     img: "https://c.animaapp.com/mn4j4i5rMNHjkT/assets/160.png",
-    role: "청소 전문가",
+    role: "렌트카 전문가",
   },
   {
     youtubeId: "CND-OpobQt0",
@@ -19,7 +19,7 @@ const TEAM_VIDEOS = [
   {
     youtubeId: "ccDjysySykI",
     img: "https://c.animaapp.com/mn4j4i5rMNHjkT/assets/174.png",
-    role: "청소 전문 대표 매니저",
+    role: "렌트카 전문 대표 매니저",
   },
   {
     youtubeId: "nUESeu10nmM",
@@ -155,13 +155,13 @@ export function TeamCarouselSection() {
 
   return (
     <RevealSection delay={100} id="team" className="items-center flex justify-center w-full">
-      <div className="relative bg-slate-100 w-full overflow-hidden py-8 rounded-[17px] md:py-[80px] md:rounded-[33px]">
+      <div className="relative bg-red-100 w-full overflow-hidden py-8 rounded-[17px] md:py-[80px] md:rounded-[33px]">
         <div className="text-center px-5 mb-8 md:mb-12">
           <h2 className="text-[25px] font-bold leading-[33.25px] text-center mb-2 md:text-[50px] md:leading-[60px] md:mb-[15px]">
-            클린메이트를 만든<br />전문 청소팀을 만나보세요
+            레드존렌트카를 만든<br />전문 렌트카팀을 만나보세요
           </h2>
           <p className="text-[13px] font-semibold leading-[19.5px] text-slate-500 text-center mt-2 md:text-xl md:leading-[30px] md:mt-[15px]">
-            다양한 현장 경험을 가진 전문가들이 모여 최고의 청소 서비스를 제공합니다
+            다양한 현장 경험을 가진 전문가들이 모여 최고의 렌트카 서비스를 제공합니다
           </p>
         </div>
 

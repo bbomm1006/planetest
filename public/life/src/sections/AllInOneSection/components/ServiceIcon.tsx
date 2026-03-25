@@ -6,7 +6,7 @@ export type ServiceIconProps = {
 
 export const ServiceIcon = (props: ServiceIconProps) => {
   const inner = (
-    <div className="box-border caret-transparent break-words items-center bg-green-50 gap-x-[15px] flex flex-col h-[120px] justify-center gap-y-[15px] w-[120px] rounded-[20px] md:gap-x-5 md:h-60 md:gap-y-5 md:w-60 md:rounded-[40px]">
+    <div className="box-border caret-transparent break-words items-center bg-red-50 gap-x-[15px] flex flex-col h-[120px] justify-center gap-y-[15px] w-[120px] rounded-[20px] md:gap-x-5 md:h-60 md:gap-y-5 md:w-60 md:rounded-[40px]">
       <div className="box-border caret-transparent h-[50px] min-h-[auto] min-w-[auto] break-words w-[50px] md:h-[100px] md:w-[100px]">
         <img
           alt=""

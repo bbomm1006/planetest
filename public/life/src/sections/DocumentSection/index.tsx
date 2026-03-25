@@ -5,12 +5,12 @@ export const DocumentSection = () => {
        
         <div className="static text-zinc-800 box-border caret-transparent opacity-80 break-words my-5 md:absolute">
           <h2 className="text-[25px] font-bold box-border caret-transparent leading-[33.25px] break-words text-center mb-2 md:text-[50px] md:leading-[60px] md:text-start md:mb-[15px]">
-            번거로운 청소는 이제 그만
+            번거로운 렌트카는 이제 그만
           </h2>
           <p className="text-[13px] font-semibold box-border caret-transparent leading-[19.5px] break-words text-center mt-2 md:text-xl md:leading-[30px] md:text-start md:mt-[15px]">
             직접 하기엔 시간도 많이 들고 힘들죠
             <br className="text-[13px] box-border caret-transparent leading-[19.5px] break-words text-center md:text-xl md:leading-[30px] md:text-start" />
-            클린메이트가 대신 깔끔하게 해결해드립니다
+            레드존렌트카가 대신 깔끔하게 해결해드립니다
           </p>
         </div>
       </div>

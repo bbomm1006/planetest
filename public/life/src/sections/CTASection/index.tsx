@@ -12,11 +12,11 @@ export const CTASection = () => {
         </div>
         <div className="box-border caret-transparent min-h-[auto] min-w-[auto] break-words">
           <p className="text-[21px] font-bold box-border caret-transparent leading-[31.5px] break-words text-center md:text-[44px] md:leading-[66px]">
-            완성도를 높인 클린메이트 청소 서비스
+            완성도를 높인 레드존렌트카 렌트카 서비스
           </p>
           <div className="box-border caret-transparent inline-block break-words w-[297px] mt-2.5 md:w-[637px] md:mt-5">
             <img
-              alt="클린메이트 V2"
+              alt="레드존렌트카 V2"
               src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/173.svg"
               className="text-transparent aspect-[auto_297_/_88] box-border max-w-full break-words align-baseline w-[297px] md:aspect-[auto_637_/_190] md:w-[637px]"
             />

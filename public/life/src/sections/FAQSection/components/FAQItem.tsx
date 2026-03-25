@@ -4,7 +4,7 @@ export type FAQItemProps = {
 
 export const FAQItem = (props: FAQItemProps) => {
   return (
-    <li className="items-center bg-slate-100 box-border caret-transparent flex min-h-[auto] min-w-[auto] break-words p-5 rounded-[25px] md:p-10 md:rounded-[40px]">
+    <li className="items-center bg-red-100 box-border caret-transparent flex min-h-[auto] min-w-[auto] break-words p-5 rounded-[25px] md:p-10 md:rounded-[40px]">
       <p className="text-base font-semibold box-border caret-transparent leading-6 min-h-[auto] min-w-[auto] break-words md:text-2xl md:leading-9">
         {props.question}
       </p>

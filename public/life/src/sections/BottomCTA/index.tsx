@@ -6,9 +6,9 @@ export const BottomCTA = () => {
           
           <button
             type="button"
-            className="btn-press relative appearance-none text-white text-base font-semibold items-center bg-green-600/90 border-l-slate-200 border-r-slate-200 shadow-[rgba(0,0,0,0.15)_0px_5px_10px_0px] caret-transparent flex h-12 justify-center leading-[19.2px] min-h-[auto] min-w-12 outline-transparent outline-offset-2 outline outline-2 break-words text-center text-nowrap align-middle px-6 py-0 rounded-full border-y-white/40 border-b border-t md:text-lg md:h-[60px] md:leading-[21.6px] md:min-w-[60px] md:px-7"
+            className="btn-press relative appearance-none text-white text-base font-semibold items-center bg-red-600/90 border-l-slate-200 border-r-slate-200 shadow-[rgba(0,0,0,0.15)_0px_5px_10px_0px] caret-transparent flex h-12 justify-center leading-[19.2px] min-h-[auto] min-w-12 outline-transparent outline-offset-2 outline outline-2 break-words text-center text-nowrap align-middle px-6 py-0 rounded-full border-y-white/40 border-b border-t md:text-lg md:h-[60px] md:leading-[21.6px] md:min-w-[60px] md:px-7"
           >
-            초간단 청소 견적 받기
+            초간단 렌트 견적 받기
           </button>
         </div>
       </div>

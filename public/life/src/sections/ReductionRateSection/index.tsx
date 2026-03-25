@@ -38,7 +38,7 @@ export const ReductionRateSection = () => {
         </div>
         <div className="relative items-center box-border caret-transparent flex flex-col h-[330px] justify-center break-words py-5 md:h-[500px] md:py-0">
           <h2 className="text-white text-[40px] font-extrabold box-border caret-transparent leading-[53.2px] min-h-[auto] min-w-[auto] break-words md:text-[55px] md:leading-[66px]">
-            프리미엄 클린 서비스
+            단기·장기 렌트 전문 업체
           </h2>
           <div className="box-border caret-transparent min-h-[auto] min-w-[auto] break-words w-80 -mr-7 mt-[5px] md:w-[800px] md:mt-[30px]">
             <img
@@ -48,7 +48,7 @@ export const ReductionRateSection = () => {
             />
           </div>
           <p className="text-[13px] font-semibold box-border caret-transparent leading-[19.5px] min-h-[auto] min-w-[auto] break-words text-center mt-[30px] md:text-xl md:leading-[30px] md:mt-[50px]">
-            결과로 증명하는 클린메이트의 청소 퀄리티
+            결과로 증명하는 레드존렌트카의 렌트카 퀄리티
             <br className="text-[13px] box-border caret-transparent leading-[19.5px] break-words md:text-xl md:leading-[30px]" />
             차원이 다른 청결을 제공합니다
           </p>

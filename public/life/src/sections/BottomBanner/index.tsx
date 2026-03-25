@@ -15,15 +15,15 @@ export const BottomBanner = () => {
 
   return (
     <div ref={ref} className="items-center box-border caret-transparent flex justify-center break-words w-full">
-      <div className={`text-black bg-white box-border caret-transparent max-w-none min-h-[360px] min-w-[auto] break-words w-full overflow-hidden mb-[80px] py-5 rounded-[17px] transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"} md:max-w-[1400px] md:min-h-[700px] md:py-[100px] md:rounded-[33px]`}>
+      <div className={`text-black box-border caret-transparent max-w-none min-h-[360px] min-w-[auto] break-words w-full overflow-hidden mb-[80px] py-5 rounded-[17px] transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"} md:max-w-[1400px] md:min-h-[700px] md:py-[100px] md:rounded-[33px]`}>
         <div className="items-center box-border caret-transparent flex flex-col justify-center break-words">
-          <h3 className="text-[25px] font-bold box-border caret-transparent leading-[33.25px] min-h-[auto] min-w-[auto] break-words my-[30px] md:text-[52px] md:leading-[62.4px]">
-            처음 경험하는 스마트한 청소
+          <h3 className="text-[25px] font-bold box-border caret-transparent leading-[33.25px] min-h-[auto] min-w-[auto] break-words my-[30px] md:text-[52px] md:leading-[62.4px] text-white">
+            레드존렌트카 — 단기·장기 렌트 전문 업체
           </h3>
           <div className="box-border caret-transparent min-h-[auto] min-w-[auto] break-words w-[140px] mt-[30px] mb-6 md:w-80 md:mt-[75px] md:mb-[70px]">
             <img
-              alt="클린메이트"
-              src="/cleanmate_logo.svg"
+              alt="레드존렌트카"
+              src="/test/2/logo.svg"
               className="text-transparent aspect-[auto_140_/_55] box-border max-w-full break-words align-baseline w-[140px] md:aspect-[auto_320_/_126] md:w-80"
             />
           </div>
@@ -34,7 +34,7 @@ export const BottomBanner = () => {
             >
               <button
                 type="button"
-                className="btn-press relative appearance-none text-white text-base font-semibold items-center bg-sky-500 caret-transparent inline-flex h-12 justify-center leading-[19.2px] min-w-12 outline-transparent outline-offset-2 outline outline-2 break-words text-center text-nowrap align-middle px-6 py-0 rounded-full md:text-lg md:h-[60px] md:leading-[21.6px] md:min-w-[60px] md:px-7 before:accent-auto before:bg-blue-700/10 before:caret-transparent before:text-blue-700 before:block before:text-xs before:not-italic before:normal-nums before:font-semibold before:tracking-[-0.64px] before:leading-6 before:list-outside before:list-disc before:break-words before:pointer-events-auto before:absolute before:text-center before:no-underline before:indent-[0px] before:normal-case before:text-nowrap before:top-[-34px] before:visible before:px-2.5 before:rounded-full before:border-separate before:font-pretendard before:md:text-sm after:accent-auto "
+                className="btn-press relative appearance-none text-white text-base font-semibold items-center bg-red-600 caret-transparent inline-flex h-12 justify-center leading-[19.2px] min-w-12 outline-transparent outline-offset-2 outline outline-2 break-words text-center text-nowrap align-middle px-6 py-0 rounded-full md:text-lg md:h-[60px] md:leading-[21.6px] md:min-w-[60px] md:px-7 before:accent-auto before:bg-blue-700/10 before:caret-transparent before:text-red-400 before:block before:text-xs before:not-italic before:normal-nums before:font-semibold before:tracking-[-0.64px] before:leading-6 before:list-outside before:list-disc before:break-words before:pointer-events-auto before:absolute before:text-center before:no-underline before:indent-[0px] before:normal-case before:text-nowrap before:top-[-34px] before:visible before:px-2.5 before:rounded-full before:border-separate before:font-pretendard before:md:text-sm after:accent-auto "
               >
                 예상 비용 확인하기
               </button>
@@ -45,7 +45,7 @@ export const BottomBanner = () => {
             >
               <button
                 type="button"
-                className="btn-press relative appearance-none text-green-700 text-base font-semibold items-center bg-green-200 caret-transparent inline-flex h-12 justify-center leading-[19.2px] min-w-12 outline-transparent outline-offset-2 outline outline-2 break-words text-center text-nowrap align-middle px-6 py-0 rounded-full md:text-lg md:h-[60px] md:leading-[21.6px] md:min-w-[60px] md:px-7"
+                className="btn-press relative appearance-none text-white text-base font-semibold items-center bg-black caret-transparent inline-flex h-12 justify-center leading-[19.2px] min-w-12 outline-transparent outline-offset-2 outline outline-2 break-words text-center text-nowrap align-middle px-6 py-0 rounded-full md:text-lg md:h-[60px] md:leading-[21.6px] md:min-w-[60px] md:px-7"
               >
                 지금 바로 예약하기
               </button>

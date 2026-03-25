@@ -80,7 +80,7 @@ export const ReviewCard = (props: ReviewCardProps) => {
           {tags.map((tag, index) => (
             <span
               key={index}
-              className="text-green-700 text-[11px] font-semibold bg-green-50 border border-green-200 box-border caret-transparent inline-block leading-[1.4] break-words m-[2px] px-2 py-0.5 rounded-md md:text-[12px]"
+              className="text-white text-[11px] font-semibold bg-red-50 border border-red-200 box-border caret-transparent inline-block leading-[1.4] break-words m-[2px] px-2 py-0.5 rounded-md md:text-[12px]"
             >
               {tag}
             </span>
@@ -102,7 +102,7 @@ export const ReviewCard = (props: ReviewCardProps) => {
         <div className="flex items-center justify-center pt-3 md:pt-4">
           <button
             type="button"
-            className="relative appearance-none text-white text-[13px] font-bold items-center bg-green-500 caret-transparent flex h-9 justify-center outline-none break-words text-center whitespace-nowrap align-middle px-5 py-0 rounded-full hover:bg-green-600 active:scale-95 transition-all md:text-sm md:h-10 md:px-6"
+            className="relative appearance-none text-white text-[13px] font-bold items-center bg-red-500 caret-transparent flex h-9 justify-center outline-none break-words text-center whitespace-nowrap align-middle px-5 py-0 rounded-full hover:bg-red-600 active:scale-95 transition-all md:text-sm md:h-10 md:px-6"
           >
             {readMoreButtonText}
           </button>

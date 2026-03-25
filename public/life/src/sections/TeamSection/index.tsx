@@ -5,7 +5,7 @@ export const TeamSection = () => {
         <div className="items-center box-border caret-transparent flex flex-col justify-center break-words">
           <div className="box-border caret-transparent min-h-[auto] min-w-[auto] break-words w-20 my-[30px] md:w-[330px]">
             <img
-              alt="클린메이트"
+              alt="레드존렌트카"
               src="https://c.animaapp.com/mn4j4i5rMNHjkT/assets/163.svg"
               className="text-transparent aspect-[auto_80_/_117] box-border max-w-full break-words align-baseline w-20 md:aspect-[auto_330_/_482] md:w-[330px]"
             />
@@ -22,7 +22,7 @@ export const TeamSection = () => {
               <span className="text-stone-400 text-[13px] box-border caret-transparent leading-[19.5px] break-words text-center md:text-xl md:leading-[30px] md:text-start">
                 체계적인 프로세스로
               </span>
-              프리미엄 청소를 완성합니다
+              프리미엄 렌트카를 완성합니다
             </p>
           </div>
         </div>
